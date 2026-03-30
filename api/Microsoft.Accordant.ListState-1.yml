@@ -1,0 +1,2896 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.ListState`1
+  commentId: T:Microsoft.Accordant.ListState`1
+  id: ListState`1
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.ListState`1.#ctor
+  - Microsoft.Accordant.ListState`1.#ctor(System.Collections.Generic.List{`0})
+  - Microsoft.Accordant.ListState`1.Add(`0)
+  - Microsoft.Accordant.ListState`1.Clear
+  - Microsoft.Accordant.ListState`1.CloneInternal(System.Collections.Generic.Dictionary{System.Object,System.Object})
+  - Microsoft.Accordant.ListState`1.Contains(`0)
+  - Microsoft.Accordant.ListState`1.CopyTo(`0[],System.Int32)
+  - Microsoft.Accordant.ListState`1.Count
+  - Microsoft.Accordant.ListState`1.GetEnumerator
+  - Microsoft.Accordant.ListState`1.IndexOf(`0)
+  - Microsoft.Accordant.ListState`1.Insert(System.Int32,`0)
+  - Microsoft.Accordant.ListState`1.InsertAt(System.Int32,`0)
+  - Microsoft.Accordant.ListState`1.IsReadOnly
+  - Microsoft.Accordant.ListState`1.Item(System.Int32)
+  - Microsoft.Accordant.ListState`1.LockComponents(System.Collections.Generic.HashSet{System.Object})
+  - Microsoft.Accordant.ListState`1.Remove(`0)
+  - Microsoft.Accordant.ListState`1.RemoveAt(System.Int32)
+  - Microsoft.Accordant.ListState`1.StringRepresentationInternal(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+  langs:
+  - csharp
+  - vb
+  name: ListState<T>
+  nameWithType: ListState<T>
+  fullName: Microsoft.Accordant.ListState<T>
+  type: Class
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ListState
+    path: Accordant/State/ListState.cs
+    startLine: 10
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    ListState is a collection of state objects. It allows users
+
+    to add/remove elements as long as it is not locked.
+  example: []
+  syntax:
+    content: 'public class ListState<T> : State, IList<T>, ICollection<T>, IEnumerable<T>, IEnumerable where T : State'
+    typeParameters:
+    - id: T
+      description: ''
+    content.vb: Public Class ListState(Of T As State) Inherits State Implements IList(Of T), ICollection(Of T), IEnumerable(Of T), IEnumerable
+  inheritance:
+  - System.Object
+  - Microsoft.Accordant.State
+  implements:
+  - System.Collections.Generic.IList{{T}}
+  - System.Collections.Generic.ICollection{{T}}
+  - System.Collections.Generic.IEnumerable{{T}}
+  - System.Collections.IEnumerable
+  inheritedMembers:
+  - Microsoft.Accordant.State.Random
+  - Microsoft.Accordant.State.stringRepresentation
+  - Microsoft.Accordant.State.stateHash
+  - Microsoft.Accordant.State.Locked
+  - Microsoft.Accordant.State.Clone
+  - Microsoft.Accordant.State.CloneWithMap
+  - Microsoft.Accordant.State.CloneWithMap``1
+  - Microsoft.Accordant.State.Clone(System.Collections.Generic.Dictionary{System.Object,System.Object})
+  - Microsoft.Accordant.State.ToString
+  - Microsoft.Accordant.State.StringRepresentation
+  - Microsoft.Accordant.State.StringRepresentation(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+  - Microsoft.Accordant.State.GetStateHash
+  - Microsoft.Accordant.State.ComputeStringHash(System.String)
+  - Microsoft.Accordant.State.Lock
+  - Microsoft.Accordant.State.Lock(System.Collections.Generic.HashSet{System.Object})
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  nameWithType.vb: ListState(Of T)
+  fullName.vb: Microsoft.Accordant.ListState(Of T)
+  name.vb: ListState(Of T)
+- uid: Microsoft.Accordant.ListState`1.#ctor
+  commentId: M:Microsoft.Accordant.ListState`1.#ctor
+  id: '#ctor'
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: ListState()
+  nameWithType: ListState<T>.ListState()
+  fullName: Microsoft.Accordant.ListState<T>.ListState()
+  type: Constructor
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: .ctor
+    path: Accordant/State/ListState.cs
+    startLine: 18
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: Consturcts an instance of this class.
+  example: []
+  syntax:
+    content: public ListState()
+    content.vb: Public Sub New()
+  overload: Microsoft.Accordant.ListState`1.#ctor*
+  nameWithType.vb: ListState(Of T).New()
+  fullName.vb: Microsoft.Accordant.ListState(Of T).New()
+  name.vb: New()
+- uid: Microsoft.Accordant.ListState`1.#ctor(System.Collections.Generic.List{`0})
+  commentId: M:Microsoft.Accordant.ListState`1.#ctor(System.Collections.Generic.List{`0})
+  id: '#ctor(System.Collections.Generic.List{`0})'
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: ListState(List<T>)
+  nameWithType: ListState<T>.ListState(List<T>)
+  fullName: Microsoft.Accordant.ListState<T>.ListState(System.Collections.Generic.List<T>)
+  type: Constructor
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: .ctor
+    path: Accordant/State/ListState.cs
+    startLine: 26
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    Creates an instance of ListState given an optional
+
+    list of element state objects.
+  example: []
+  syntax:
+    content: public ListState(List<T> list = null)
+    parameters:
+    - id: list
+      type: System.Collections.Generic.List{{T}}
+    content.vb: Public Sub New(list As List(Of T) = Nothing)
+  overload: Microsoft.Accordant.ListState`1.#ctor*
+  nameWithType.vb: ListState(Of T).New(List(Of T))
+  fullName.vb: Microsoft.Accordant.ListState(Of T).New(System.Collections.Generic.List(Of T))
+  name.vb: New(List(Of T))
+- uid: Microsoft.Accordant.ListState`1.Count
+  commentId: P:Microsoft.Accordant.ListState`1.Count
+  id: Count
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: Count
+  nameWithType: ListState<T>.Count
+  fullName: Microsoft.Accordant.ListState<T>.Count
+  type: Property
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Count
+    path: Accordant/State/ListState.cs
+    startLine: 42
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: Returns the number of elements in the list.
+  example: []
+  syntax:
+    content: public int Count { get; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public ReadOnly Property Count As Integer
+  overload: Microsoft.Accordant.ListState`1.Count*
+  implements:
+  - System.Collections.Generic.ICollection{{T}}.Count
+  nameWithType.vb: ListState(Of T).Count
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Count
+- uid: Microsoft.Accordant.ListState`1.IsReadOnly
+  commentId: P:Microsoft.Accordant.ListState`1.IsReadOnly
+  id: IsReadOnly
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: IsReadOnly
+  nameWithType: ListState<T>.IsReadOnly
+  fullName: Microsoft.Accordant.ListState<T>.IsReadOnly
+  type: Property
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: IsReadOnly
+    path: Accordant/State/ListState.cs
+    startLine: 45
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: public bool IsReadOnly { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly Property IsReadOnly As Boolean
+  overload: Microsoft.Accordant.ListState`1.IsReadOnly*
+  implements:
+  - System.Collections.Generic.ICollection{{T}}.IsReadOnly
+  nameWithType.vb: ListState(Of T).IsReadOnly
+  fullName.vb: Microsoft.Accordant.ListState(Of T).IsReadOnly
+- uid: Microsoft.Accordant.ListState`1.Item(System.Int32)
+  commentId: P:Microsoft.Accordant.ListState`1.Item(System.Int32)
+  id: Item(System.Int32)
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: this[int]
+  nameWithType: ListState<T>.this[int]
+  fullName: Microsoft.Accordant.ListState<T>.this[int]
+  type: Property
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: this[]
+    path: Accordant/State/ListState.cs
+    startLine: 48
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: public T this[int index] { get; set; }
+    parameters:
+    - id: index
+      type: System.Int32
+    return:
+      type: '{T}'
+    content.vb: Public Default Property this[](index As Integer) As T
+  overload: Microsoft.Accordant.ListState`1.Item*
+  implements:
+  - System.Collections.Generic.IList{{T}}.Item(System.Int32)
+  nameWithType.vb: ListState(Of T).this[](Integer)
+  fullName.vb: Microsoft.Accordant.ListState(Of T).this[](Integer)
+  name.vb: this[](Integer)
+- uid: Microsoft.Accordant.ListState`1.GetEnumerator
+  commentId: M:Microsoft.Accordant.ListState`1.GetEnumerator
+  id: GetEnumerator
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: GetEnumerator()
+  nameWithType: ListState<T>.GetEnumerator()
+  fullName: Microsoft.Accordant.ListState<T>.GetEnumerator()
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GetEnumerator
+    path: Accordant/State/ListState.cs
+    startLine: 55
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: public IEnumerator<T> GetEnumerator()
+    return:
+      type: System.Collections.Generic.IEnumerator{{T}}
+    content.vb: Public Function GetEnumerator() As IEnumerator(Of T)
+  overload: Microsoft.Accordant.ListState`1.GetEnumerator*
+  implements:
+  - System.Collections.Generic.IEnumerable{{T}}.GetEnumerator
+  nameWithType.vb: ListState(Of T).GetEnumerator()
+  fullName.vb: Microsoft.Accordant.ListState(Of T).GetEnumerator()
+- uid: Microsoft.Accordant.ListState`1.Add(`0)
+  commentId: M:Microsoft.Accordant.ListState`1.Add(`0)
+  id: Add(`0)
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: Add(T)
+  nameWithType: ListState<T>.Add(T)
+  fullName: Microsoft.Accordant.ListState<T>.Add(T)
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Add
+    path: Accordant/State/ListState.cs
+    startLine: 70
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: Adds a state element to the list if not locked.
+  example: []
+  syntax:
+    content: public void Add(T item)
+    parameters:
+    - id: item
+      type: '{T}'
+    content.vb: Public Sub Add(item As T)
+  overload: Microsoft.Accordant.ListState`1.Add*
+  exceptions:
+  - type: Microsoft.Accordant.StateLockedException
+    commentId: T:Microsoft.Accordant.StateLockedException
+    description: ''
+  implements:
+  - System.Collections.Generic.ICollection{{T}}.Add({T})
+  nameWithType.vb: ListState(Of T).Add(T)
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Add(T)
+- uid: Microsoft.Accordant.ListState`1.InsertAt(System.Int32,`0)
+  commentId: M:Microsoft.Accordant.ListState`1.InsertAt(System.Int32,`0)
+  id: InsertAt(System.Int32,`0)
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: InsertAt(int, T)
+  nameWithType: ListState<T>.InsertAt(int, T)
+  fullName: Microsoft.Accordant.ListState<T>.InsertAt(int, T)
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: InsertAt
+    path: Accordant/State/ListState.cs
+    startLine: 84
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: Inserts an element at requested index if not locked.
+  example: []
+  syntax:
+    content: public void InsertAt(int index, T item)
+    parameters:
+    - id: index
+      type: System.Int32
+    - id: item
+      type: '{T}'
+    content.vb: Public Sub InsertAt(index As Integer, item As T)
+  overload: Microsoft.Accordant.ListState`1.InsertAt*
+  exceptions:
+  - type: Microsoft.Accordant.StateLockedException
+    commentId: T:Microsoft.Accordant.StateLockedException
+    description: ''
+  nameWithType.vb: ListState(Of T).InsertAt(Integer, T)
+  fullName.vb: Microsoft.Accordant.ListState(Of T).InsertAt(Integer, T)
+  name.vb: InsertAt(Integer, T)
+- uid: Microsoft.Accordant.ListState`1.RemoveAt(System.Int32)
+  commentId: M:Microsoft.Accordant.ListState`1.RemoveAt(System.Int32)
+  id: RemoveAt(System.Int32)
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: RemoveAt(int)
+  nameWithType: ListState<T>.RemoveAt(int)
+  fullName: Microsoft.Accordant.ListState<T>.RemoveAt(int)
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: RemoveAt
+    path: Accordant/State/ListState.cs
+    startLine: 98
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: Removes an element at requested index if not locked.
+  example: []
+  syntax:
+    content: public void RemoveAt(int index)
+    parameters:
+    - id: index
+      type: System.Int32
+    content.vb: Public Sub RemoveAt(index As Integer)
+  overload: Microsoft.Accordant.ListState`1.RemoveAt*
+  exceptions:
+  - type: Microsoft.Accordant.StateLockedException
+    commentId: T:Microsoft.Accordant.StateLockedException
+    description: ''
+  implements:
+  - System.Collections.Generic.IList{{T}}.RemoveAt(System.Int32)
+  nameWithType.vb: ListState(Of T).RemoveAt(Integer)
+  fullName.vb: Microsoft.Accordant.ListState(Of T).RemoveAt(Integer)
+  name.vb: RemoveAt(Integer)
+- uid: Microsoft.Accordant.ListState`1.CloneInternal(System.Collections.Generic.Dictionary{System.Object,System.Object})
+  commentId: M:Microsoft.Accordant.ListState`1.CloneInternal(System.Collections.Generic.Dictionary{System.Object,System.Object})
+  id: CloneInternal(System.Collections.Generic.Dictionary{System.Object,System.Object})
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: CloneInternal(Dictionary<object, object>)
+  nameWithType: ListState<T>.CloneInternal(Dictionary<object, object>)
+  fullName: Microsoft.Accordant.ListState<T>.CloneInternal(System.Collections.Generic.Dictionary<object, object>)
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: CloneInternal
+    path: Accordant/State/ListState.cs
+    startLine: 112
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: Deep clones the list, recursively cloning its elements.
+  example: []
+  syntax:
+    content: protected override void CloneInternal(Dictionary<object, object> clonedMap)
+    parameters:
+    - id: clonedMap
+      type: System.Collections.Generic.Dictionary{System.Object,System.Object}
+    content.vb: Protected Overrides Sub CloneInternal(clonedMap As Dictionary(Of Object, Object))
+  overridden: Microsoft.Accordant.State.CloneInternal(System.Collections.Generic.Dictionary{System.Object,System.Object})
+  overload: Microsoft.Accordant.ListState`1.CloneInternal*
+  nameWithType.vb: ListState(Of T).CloneInternal(Dictionary(Of Object, Object))
+  fullName.vb: Microsoft.Accordant.ListState(Of T).CloneInternal(System.Collections.Generic.Dictionary(Of Object, Object))
+  name.vb: CloneInternal(Dictionary(Of Object, Object))
+- uid: Microsoft.Accordant.ListState`1.LockComponents(System.Collections.Generic.HashSet{System.Object})
+  commentId: M:Microsoft.Accordant.ListState`1.LockComponents(System.Collections.Generic.HashSet{System.Object})
+  id: LockComponents(System.Collections.Generic.HashSet{System.Object})
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: LockComponents(HashSet<object>)
+  nameWithType: ListState<T>.LockComponents(HashSet<object>)
+  fullName: Microsoft.Accordant.ListState<T>.LockComponents(System.Collections.Generic.HashSet<object>)
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: LockComponents
+    path: Accordant/State/ListState.cs
+    startLine: 126
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: Locks each of the element in the list.
+  example: []
+  syntax:
+    content: protected override void LockComponents(HashSet<object> visited)
+    parameters:
+    - id: visited
+      type: System.Collections.Generic.HashSet{System.Object}
+    content.vb: Protected Overrides Sub LockComponents(visited As HashSet(Of Object))
+  overridden: Microsoft.Accordant.State.LockComponents(System.Collections.Generic.HashSet{System.Object})
+  overload: Microsoft.Accordant.ListState`1.LockComponents*
+  nameWithType.vb: ListState(Of T).LockComponents(HashSet(Of Object))
+  fullName.vb: Microsoft.Accordant.ListState(Of T).LockComponents(System.Collections.Generic.HashSet(Of Object))
+  name.vb: LockComponents(HashSet(Of Object))
+- uid: Microsoft.Accordant.ListState`1.StringRepresentationInternal(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+  commentId: M:Microsoft.Accordant.ListState`1.StringRepresentationInternal(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+  id: StringRepresentationInternal(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: StringRepresentationInternal(Dictionary<object, string>, string)
+  nameWithType: ListState<T>.StringRepresentationInternal(Dictionary<object, string>, string)
+  fullName: Microsoft.Accordant.ListState<T>.StringRepresentationInternal(System.Collections.Generic.Dictionary<object, string>, string)
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: StringRepresentationInternal
+    path: Accordant/State/ListState.cs
+    startLine: 137
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: Returns a string representation of the list.
+  example: []
+  syntax:
+    content: protected override string StringRepresentationInternal(Dictionary<object, string> objectPaths, string path)
+    parameters:
+    - id: objectPaths
+      type: System.Collections.Generic.Dictionary{System.Object,System.String}
+    - id: path
+      type: System.String
+    return:
+      type: System.String
+    content.vb: Protected Overrides Function StringRepresentationInternal(objectPaths As Dictionary(Of Object, String), path As String) As String
+  overridden: Microsoft.Accordant.State.StringRepresentationInternal(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+  overload: Microsoft.Accordant.ListState`1.StringRepresentationInternal*
+  nameWithType.vb: ListState(Of T).StringRepresentationInternal(Dictionary(Of Object, String), String)
+  fullName.vb: Microsoft.Accordant.ListState(Of T).StringRepresentationInternal(System.Collections.Generic.Dictionary(Of Object, String), String)
+  name.vb: StringRepresentationInternal(Dictionary(Of Object, String), String)
+- uid: Microsoft.Accordant.ListState`1.IndexOf(`0)
+  commentId: M:Microsoft.Accordant.ListState`1.IndexOf(`0)
+  id: IndexOf(`0)
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: IndexOf(T)
+  nameWithType: ListState<T>.IndexOf(T)
+  fullName: Microsoft.Accordant.ListState<T>.IndexOf(T)
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: IndexOf
+    path: Accordant/State/ListState.cs
+    startLine: 156
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: public int IndexOf(T item)
+    parameters:
+    - id: item
+      type: '{T}'
+    return:
+      type: System.Int32
+    content.vb: Public Function IndexOf(item As T) As Integer
+  overload: Microsoft.Accordant.ListState`1.IndexOf*
+  implements:
+  - System.Collections.Generic.IList{{T}}.IndexOf({T})
+  nameWithType.vb: ListState(Of T).IndexOf(T)
+  fullName.vb: Microsoft.Accordant.ListState(Of T).IndexOf(T)
+- uid: Microsoft.Accordant.ListState`1.Insert(System.Int32,`0)
+  commentId: M:Microsoft.Accordant.ListState`1.Insert(System.Int32,`0)
+  id: Insert(System.Int32,`0)
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: Insert(int, T)
+  nameWithType: ListState<T>.Insert(int, T)
+  fullName: Microsoft.Accordant.ListState<T>.Insert(int, T)
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Insert
+    path: Accordant/State/ListState.cs
+    startLine: 162
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: public void Insert(int index, T item)
+    parameters:
+    - id: index
+      type: System.Int32
+    - id: item
+      type: '{T}'
+    content.vb: Public Sub Insert(index As Integer, item As T)
+  overload: Microsoft.Accordant.ListState`1.Insert*
+  implements:
+  - System.Collections.Generic.IList{{T}}.Insert(System.Int32,{T})
+  nameWithType.vb: ListState(Of T).Insert(Integer, T)
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Insert(Integer, T)
+  name.vb: Insert(Integer, T)
+- uid: Microsoft.Accordant.ListState`1.Clear
+  commentId: M:Microsoft.Accordant.ListState`1.Clear
+  id: Clear
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: Clear()
+  nameWithType: ListState<T>.Clear()
+  fullName: Microsoft.Accordant.ListState<T>.Clear()
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Clear
+    path: Accordant/State/ListState.cs
+    startLine: 173
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: public void Clear()
+    content.vb: Public Sub Clear()
+  overload: Microsoft.Accordant.ListState`1.Clear*
+  implements:
+  - System.Collections.Generic.ICollection{{T}}.Clear
+  nameWithType.vb: ListState(Of T).Clear()
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Clear()
+- uid: Microsoft.Accordant.ListState`1.Contains(`0)
+  commentId: M:Microsoft.Accordant.ListState`1.Contains(`0)
+  id: Contains(`0)
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: Contains(T)
+  nameWithType: ListState<T>.Contains(T)
+  fullName: Microsoft.Accordant.ListState<T>.Contains(T)
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Contains
+    path: Accordant/State/ListState.cs
+    startLine: 184
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: public bool Contains(T item)
+    parameters:
+    - id: item
+      type: '{T}'
+    return:
+      type: System.Boolean
+    content.vb: Public Function Contains(item As T) As Boolean
+  overload: Microsoft.Accordant.ListState`1.Contains*
+  implements:
+  - System.Collections.Generic.ICollection{{T}}.Contains({T})
+  nameWithType.vb: ListState(Of T).Contains(T)
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Contains(T)
+- uid: Microsoft.Accordant.ListState`1.CopyTo(`0[],System.Int32)
+  commentId: M:Microsoft.Accordant.ListState`1.CopyTo(`0[],System.Int32)
+  id: CopyTo(`0[],System.Int32)
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: CopyTo(T[], int)
+  nameWithType: ListState<T>.CopyTo(T[], int)
+  fullName: Microsoft.Accordant.ListState<T>.CopyTo(T[], int)
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: CopyTo
+    path: Accordant/State/ListState.cs
+    startLine: 191
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: public void CopyTo(T[] array, int arrayIndex)
+    parameters:
+    - id: array
+      type: '{T}[]'
+    - id: arrayIndex
+      type: System.Int32
+    content.vb: Public Sub CopyTo(array As T(), arrayIndex As Integer)
+  overload: Microsoft.Accordant.ListState`1.CopyTo*
+  implements:
+  - System.Collections.Generic.ICollection{{T}}.CopyTo({T}[],System.Int32)
+  nameWithType.vb: ListState(Of T).CopyTo(T(), Integer)
+  fullName.vb: Microsoft.Accordant.ListState(Of T).CopyTo(T(), Integer)
+  name.vb: CopyTo(T(), Integer)
+- uid: Microsoft.Accordant.ListState`1.Remove(`0)
+  commentId: M:Microsoft.Accordant.ListState`1.Remove(`0)
+  id: Remove(`0)
+  parent: Microsoft.Accordant.ListState`1
+  langs:
+  - csharp
+  - vb
+  name: Remove(T)
+  nameWithType: ListState<T>.Remove(T)
+  fullName: Microsoft.Accordant.ListState<T>.Remove(T)
+  type: Method
+  source:
+    remote:
+      path: Accordant/State/ListState.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Remove
+    path: Accordant/State/ListState.cs
+    startLine: 197
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: public bool Remove(T item)
+    parameters:
+    - id: item
+      type: '{T}'
+    return:
+      type: System.Boolean
+    content.vb: Public Function Remove(item As T) As Boolean
+  overload: Microsoft.Accordant.ListState`1.Remove*
+  implements:
+  - System.Collections.Generic.ICollection{{T}}.Remove({T})
+  nameWithType.vb: ListState(Of T).Remove(T)
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Remove(T)
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: Microsoft.Accordant.State
+  commentId: T:Microsoft.Accordant.State
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.State.html
+  name: State
+  nameWithType: State
+  fullName: Microsoft.Accordant.State
+- uid: System.Collections.Generic.IList{{T}}
+  commentId: T:System.Collections.Generic.IList{`0}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic.ICollection{{T}}
+  commentId: T:System.Collections.Generic.ICollection{`0}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.ICollection`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1
+  name: ICollection<T>
+  nameWithType: ICollection<T>
+  fullName: System.Collections.Generic.ICollection<T>
+  nameWithType.vb: ICollection(Of T)
+  fullName.vb: System.Collections.Generic.ICollection(Of T)
+  name.vb: ICollection(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection`1
+    name: ICollection
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection`1
+    name: ICollection
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic.IEnumerable{{T}}
+  commentId: T:System.Collections.Generic.IEnumerable{`0}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IEnumerable`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  name: IEnumerable<T>
+  nameWithType: IEnumerable<T>
+  fullName: System.Collections.Generic.IEnumerable<T>
+  nameWithType.vb: IEnumerable(Of T)
+  fullName.vb: System.Collections.Generic.IEnumerable(Of T)
+  name.vb: IEnumerable(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.IEnumerable
+  commentId: T:System.Collections.IEnumerable
+  parent: System.Collections
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.ienumerable
+  name: IEnumerable
+  nameWithType: IEnumerable
+  fullName: System.Collections.IEnumerable
+- uid: Microsoft.Accordant.State.Random
+  commentId: P:Microsoft.Accordant.State.Random
+  parent: Microsoft.Accordant.State
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Random
+  name: Random
+  nameWithType: State.Random
+  fullName: Microsoft.Accordant.State.Random
+- uid: Microsoft.Accordant.State.stringRepresentation
+  commentId: F:Microsoft.Accordant.State.stringRepresentation
+  parent: Microsoft.Accordant.State
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_stringRepresentation
+  name: stringRepresentation
+  nameWithType: State.stringRepresentation
+  fullName: Microsoft.Accordant.State.stringRepresentation
+- uid: Microsoft.Accordant.State.stateHash
+  commentId: F:Microsoft.Accordant.State.stateHash
+  parent: Microsoft.Accordant.State
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_stateHash
+  name: stateHash
+  nameWithType: State.stateHash
+  fullName: Microsoft.Accordant.State.stateHash
+- uid: Microsoft.Accordant.State.Locked
+  commentId: P:Microsoft.Accordant.State.Locked
+  parent: Microsoft.Accordant.State
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Locked
+  name: Locked
+  nameWithType: State.Locked
+  fullName: Microsoft.Accordant.State.Locked
+- uid: Microsoft.Accordant.State.Clone
+  commentId: M:Microsoft.Accordant.State.Clone
+  parent: Microsoft.Accordant.State
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Clone
+  name: Clone()
+  nameWithType: State.Clone()
+  fullName: Microsoft.Accordant.State.Clone()
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.Clone
+    name: Clone
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Clone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.Clone
+    name: Clone
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Clone
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.State.CloneWithMap
+  commentId: M:Microsoft.Accordant.State.CloneWithMap
+  parent: Microsoft.Accordant.State
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_CloneWithMap
+  name: CloneWithMap()
+  nameWithType: State.CloneWithMap()
+  fullName: Microsoft.Accordant.State.CloneWithMap()
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.CloneWithMap
+    name: CloneWithMap
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_CloneWithMap
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.CloneWithMap
+    name: CloneWithMap
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_CloneWithMap
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.State.CloneWithMap``1
+  commentId: M:Microsoft.Accordant.State.CloneWithMap``1
+  parent: Microsoft.Accordant.State
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_CloneWithMap__1
+  name: CloneWithMap<TState>()
+  nameWithType: State.CloneWithMap<TState>()
+  fullName: Microsoft.Accordant.State.CloneWithMap<TState>()
+  nameWithType.vb: State.CloneWithMap(Of TState)()
+  fullName.vb: Microsoft.Accordant.State.CloneWithMap(Of TState)()
+  name.vb: CloneWithMap(Of TState)()
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.CloneWithMap``1
+    name: CloneWithMap
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_CloneWithMap__1
+  - name: <
+  - name: TState
+  - name: '>'
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.CloneWithMap``1
+    name: CloneWithMap
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_CloneWithMap__1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TState
+  - name: )
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.State.Clone(System.Collections.Generic.Dictionary{System.Object,System.Object})
+  commentId: M:Microsoft.Accordant.State.Clone(System.Collections.Generic.Dictionary{System.Object,System.Object})
+  parent: Microsoft.Accordant.State
+  isExternal: true
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Clone_System_Collections_Generic_Dictionary_System_Object_System_Object__
+  name: Clone(Dictionary<object, object>)
+  nameWithType: State.Clone(Dictionary<object, object>)
+  fullName: Microsoft.Accordant.State.Clone(System.Collections.Generic.Dictionary<object, object>)
+  nameWithType.vb: State.Clone(Dictionary(Of Object, Object))
+  fullName.vb: Microsoft.Accordant.State.Clone(System.Collections.Generic.Dictionary(Of Object, Object))
+  name.vb: Clone(Dictionary(Of Object, Object))
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.Clone(System.Collections.Generic.Dictionary{System.Object,System.Object})
+    name: Clone
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Clone_System_Collections_Generic_Dictionary_System_Object_System_Object__
+  - name: (
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: '>'
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.Clone(System.Collections.Generic.Dictionary{System.Object,System.Object})
+    name: Clone
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Clone_System_Collections_Generic_Dictionary_System_Object_System_Object__
+  - name: (
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  - name: )
+- uid: Microsoft.Accordant.State.ToString
+  commentId: M:Microsoft.Accordant.State.ToString
+  parent: Microsoft.Accordant.State
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_ToString
+  name: ToString()
+  nameWithType: State.ToString()
+  fullName: Microsoft.Accordant.State.ToString()
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.ToString
+    name: ToString
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_ToString
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.ToString
+    name: ToString
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_ToString
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.State.StringRepresentation
+  commentId: M:Microsoft.Accordant.State.StringRepresentation
+  parent: Microsoft.Accordant.State
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_StringRepresentation
+  name: StringRepresentation()
+  nameWithType: State.StringRepresentation()
+  fullName: Microsoft.Accordant.State.StringRepresentation()
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.StringRepresentation
+    name: StringRepresentation
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_StringRepresentation
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.StringRepresentation
+    name: StringRepresentation
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_StringRepresentation
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.State.StringRepresentation(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+  commentId: M:Microsoft.Accordant.State.StringRepresentation(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+  parent: Microsoft.Accordant.State
+  isExternal: true
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_StringRepresentation_System_Collections_Generic_Dictionary_System_Object_System_String__System_String_
+  name: StringRepresentation(Dictionary<object, string>, string)
+  nameWithType: State.StringRepresentation(Dictionary<object, string>, string)
+  fullName: Microsoft.Accordant.State.StringRepresentation(System.Collections.Generic.Dictionary<object, string>, string)
+  nameWithType.vb: State.StringRepresentation(Dictionary(Of Object, String), String)
+  fullName.vb: Microsoft.Accordant.State.StringRepresentation(System.Collections.Generic.Dictionary(Of Object, String), String)
+  name.vb: StringRepresentation(Dictionary(Of Object, String), String)
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.StringRepresentation(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+    name: StringRepresentation
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_StringRepresentation_System_Collections_Generic_Dictionary_System_Object_System_String__System_String_
+  - name: (
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: '>'
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.StringRepresentation(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+    name: StringRepresentation
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_StringRepresentation_System_Collections_Generic_Dictionary_System_Object_System_String__System_String_
+  - name: (
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: Microsoft.Accordant.State.GetStateHash
+  commentId: M:Microsoft.Accordant.State.GetStateHash
+  parent: Microsoft.Accordant.State
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_GetStateHash
+  name: GetStateHash()
+  nameWithType: State.GetStateHash()
+  fullName: Microsoft.Accordant.State.GetStateHash()
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.GetStateHash
+    name: GetStateHash
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_GetStateHash
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.GetStateHash
+    name: GetStateHash
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_GetStateHash
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.State.ComputeStringHash(System.String)
+  commentId: M:Microsoft.Accordant.State.ComputeStringHash(System.String)
+  parent: Microsoft.Accordant.State
+  isExternal: true
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_ComputeStringHash_System_String_
+  name: ComputeStringHash(string)
+  nameWithType: State.ComputeStringHash(string)
+  fullName: Microsoft.Accordant.State.ComputeStringHash(string)
+  nameWithType.vb: State.ComputeStringHash(String)
+  fullName.vb: Microsoft.Accordant.State.ComputeStringHash(String)
+  name.vb: ComputeStringHash(String)
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.ComputeStringHash(System.String)
+    name: ComputeStringHash
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_ComputeStringHash_System_String_
+  - name: (
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.ComputeStringHash(System.String)
+    name: ComputeStringHash
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_ComputeStringHash_System_String_
+  - name: (
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: Microsoft.Accordant.State.Lock
+  commentId: M:Microsoft.Accordant.State.Lock
+  parent: Microsoft.Accordant.State
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Lock
+  name: Lock()
+  nameWithType: State.Lock()
+  fullName: Microsoft.Accordant.State.Lock()
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.Lock
+    name: Lock
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Lock
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.Lock
+    name: Lock
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Lock
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.State.Lock(System.Collections.Generic.HashSet{System.Object})
+  commentId: M:Microsoft.Accordant.State.Lock(System.Collections.Generic.HashSet{System.Object})
+  parent: Microsoft.Accordant.State
+  isExternal: true
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Lock_System_Collections_Generic_HashSet_System_Object__
+  name: Lock(HashSet<object>)
+  nameWithType: State.Lock(HashSet<object>)
+  fullName: Microsoft.Accordant.State.Lock(System.Collections.Generic.HashSet<object>)
+  nameWithType.vb: State.Lock(HashSet(Of Object))
+  fullName.vb: Microsoft.Accordant.State.Lock(System.Collections.Generic.HashSet(Of Object))
+  name.vb: Lock(HashSet(Of Object))
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.Lock(System.Collections.Generic.HashSet{System.Object})
+    name: Lock
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Lock_System_Collections_Generic_HashSet_System_Object__
+  - name: (
+  - uid: System.Collections.Generic.HashSet`1
+    name: HashSet
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.hashset-1
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: '>'
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.Lock(System.Collections.Generic.HashSet{System.Object})
+    name: Lock
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_Lock_System_Collections_Generic_HashSet_System_Object__
+  - name: (
+  - uid: System.Collections.Generic.HashSet`1
+    name: HashSet
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.hashset-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  - name: )
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.Collections.Generic.IList`1
+  commentId: T:System.Collections.Generic.IList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: System.Collections.Generic.ICollection`1
+  commentId: T:System.Collections.Generic.ICollection`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1
+  name: ICollection<T>
+  nameWithType: ICollection<T>
+  fullName: System.Collections.Generic.ICollection<T>
+  nameWithType.vb: ICollection(Of T)
+  fullName.vb: System.Collections.Generic.ICollection(Of T)
+  name.vb: ICollection(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection`1
+    name: ICollection
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection`1
+    name: ICollection
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic.IEnumerable`1
+  commentId: T:System.Collections.Generic.IEnumerable`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  name: IEnumerable<T>
+  nameWithType: IEnumerable<T>
+  fullName: System.Collections.Generic.IEnumerable<T>
+  nameWithType.vb: IEnumerable(Of T)
+  fullName.vb: System.Collections.Generic.IEnumerable(Of T)
+  name.vb: IEnumerable(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections
+  commentId: N:System.Collections
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections
+  nameWithType: System.Collections
+  fullName: System.Collections
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+- uid: Microsoft.Accordant.ListState`1.#ctor*
+  commentId: Overload:Microsoft.Accordant.ListState`1.#ctor
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1__ctor
+  name: ListState
+  nameWithType: ListState<T>.ListState
+  fullName: Microsoft.Accordant.ListState<T>.ListState
+  nameWithType.vb: ListState(Of T).New
+  fullName.vb: Microsoft.Accordant.ListState(Of T).New
+  name.vb: New
+- uid: System.Collections.Generic.List{{T}}
+  commentId: T:System.Collections.Generic.List{`0}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.List`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<T>
+  nameWithType: List<T>
+  fullName: System.Collections.Generic.List<T>
+  nameWithType.vb: List(Of T)
+  fullName.vb: System.Collections.Generic.List(Of T)
+  name.vb: List(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic.List`1
+  commentId: T:System.Collections.Generic.List`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<T>
+  nameWithType: List<T>
+  fullName: System.Collections.Generic.List<T>
+  nameWithType.vb: List(Of T)
+  fullName.vb: System.Collections.Generic.List(Of T)
+  name.vb: List(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: Microsoft.Accordant.ListState`1.Count*
+  commentId: Overload:Microsoft.Accordant.ListState`1.Count
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_Count
+  name: Count
+  nameWithType: ListState<T>.Count
+  fullName: Microsoft.Accordant.ListState<T>.Count
+  nameWithType.vb: ListState(Of T).Count
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Count
+- uid: System.Collections.Generic.ICollection{{T}}.Count
+  commentId: P:System.Collections.Generic.ICollection{`0}.Count
+  parent: System.Collections.Generic.ICollection{{T}}
+  definition: System.Collections.Generic.ICollection`1.Count
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.count
+  name: Count
+  nameWithType: ICollection<T>.Count
+  fullName: System.Collections.Generic.ICollection<T>.Count
+  nameWithType.vb: ICollection(Of T).Count
+  fullName.vb: System.Collections.Generic.ICollection(Of T).Count
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: System.Collections.Generic.ICollection`1.Count
+  commentId: P:System.Collections.Generic.ICollection`1.Count
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.count
+  name: Count
+  nameWithType: ICollection<T>.Count
+  fullName: System.Collections.Generic.ICollection<T>.Count
+  nameWithType.vb: ICollection(Of T).Count
+  fullName.vb: System.Collections.Generic.ICollection(Of T).Count
+- uid: Microsoft.Accordant.ListState`1.IsReadOnly*
+  commentId: Overload:Microsoft.Accordant.ListState`1.IsReadOnly
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_IsReadOnly
+  name: IsReadOnly
+  nameWithType: ListState<T>.IsReadOnly
+  fullName: Microsoft.Accordant.ListState<T>.IsReadOnly
+  nameWithType.vb: ListState(Of T).IsReadOnly
+  fullName.vb: Microsoft.Accordant.ListState(Of T).IsReadOnly
+- uid: System.Collections.Generic.ICollection{{T}}.IsReadOnly
+  commentId: P:System.Collections.Generic.ICollection{`0}.IsReadOnly
+  parent: System.Collections.Generic.ICollection{{T}}
+  definition: System.Collections.Generic.ICollection`1.IsReadOnly
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.isreadonly
+  name: IsReadOnly
+  nameWithType: ICollection<T>.IsReadOnly
+  fullName: System.Collections.Generic.ICollection<T>.IsReadOnly
+  nameWithType.vb: ICollection(Of T).IsReadOnly
+  fullName.vb: System.Collections.Generic.ICollection(Of T).IsReadOnly
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: System.Collections.Generic.ICollection`1.IsReadOnly
+  commentId: P:System.Collections.Generic.ICollection`1.IsReadOnly
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.isreadonly
+  name: IsReadOnly
+  nameWithType: ICollection<T>.IsReadOnly
+  fullName: System.Collections.Generic.ICollection<T>.IsReadOnly
+  nameWithType.vb: ICollection(Of T).IsReadOnly
+  fullName.vb: System.Collections.Generic.ICollection(Of T).IsReadOnly
+- uid: Microsoft.Accordant.ListState`1.Item*
+  commentId: Overload:Microsoft.Accordant.ListState`1.Item
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_Item_System_Int32_
+  name: this
+  nameWithType: ListState<T>.this
+  fullName: Microsoft.Accordant.ListState<T>.this
+  nameWithType.vb: ListState(Of T).this[]
+  fullName.vb: Microsoft.Accordant.ListState(Of T).this[]
+  name.vb: this[]
+- uid: System.Collections.Generic.IList{{T}}.Item(System.Int32)
+  commentId: P:System.Collections.Generic.IList{`0}.Item(System.Int32)
+  parent: System.Collections.Generic.IList{{T}}
+  definition: System.Collections.Generic.IList`1.Item(System.Int32)
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: this[int]
+  nameWithType: IList<T>.this[int]
+  fullName: System.Collections.Generic.IList<T>.this[int]
+  nameWithType.vb: IList(Of T).this[](Integer)
+  fullName.vb: System.Collections.Generic.IList(Of T).this[](Integer)
+  name.vb: this[](Integer)
+  spec.csharp:
+  - name: this
+  - name: '['
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: ']'
+  spec.vb:
+  - uid: System.Collections.Generic.IList{`0}.Item(System.Int32)
+    name: this[]
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.item
+  - name: (
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+- uid: '{T}'
+  commentId: '!:T'
+  definition: T
+  name: T
+  nameWithType: T
+  fullName: T
+- uid: System.Collections.Generic.IList`1.Item(System.Int32)
+  commentId: P:System.Collections.Generic.IList`1.Item(System.Int32)
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: this[int]
+  nameWithType: IList<T>.this[int]
+  fullName: System.Collections.Generic.IList<T>.this[int]
+  nameWithType.vb: IList(Of T).this[](Integer)
+  fullName.vb: System.Collections.Generic.IList(Of T).this[](Integer)
+  name.vb: this[](Integer)
+  spec.csharp:
+  - name: this
+  - name: '['
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: ']'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1.Item(System.Int32)
+    name: this[]
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.item
+  - name: (
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+- uid: T
+  name: T
+  nameWithType: T
+  fullName: T
+- uid: Microsoft.Accordant.ListState`1.GetEnumerator*
+  commentId: Overload:Microsoft.Accordant.ListState`1.GetEnumerator
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_GetEnumerator
+  name: GetEnumerator
+  nameWithType: ListState<T>.GetEnumerator
+  fullName: Microsoft.Accordant.ListState<T>.GetEnumerator
+  nameWithType.vb: ListState(Of T).GetEnumerator
+  fullName.vb: Microsoft.Accordant.ListState(Of T).GetEnumerator
+- uid: System.Collections.Generic.IEnumerable{{T}}.GetEnumerator
+  commentId: M:System.Collections.Generic.IEnumerable{`0}.GetEnumerator
+  parent: System.Collections.Generic.IEnumerable{{T}}
+  definition: System.Collections.Generic.IEnumerable`1.GetEnumerator
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1.getenumerator
+  name: GetEnumerator()
+  nameWithType: IEnumerable<T>.GetEnumerator()
+  fullName: System.Collections.Generic.IEnumerable<T>.GetEnumerator()
+  nameWithType.vb: IEnumerable(Of T).GetEnumerator()
+  fullName.vb: System.Collections.Generic.IEnumerable(Of T).GetEnumerator()
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerable{`0}.GetEnumerator
+    name: GetEnumerator
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1.getenumerator
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerable{`0}.GetEnumerator
+    name: GetEnumerator
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1.getenumerator
+  - name: (
+  - name: )
+- uid: System.Collections.Generic.IEnumerator{{T}}
+  commentId: T:System.Collections.Generic.IEnumerator{`0}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IEnumerator`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerator-1
+  name: IEnumerator<T>
+  nameWithType: IEnumerator<T>
+  fullName: System.Collections.Generic.IEnumerator<T>
+  nameWithType.vb: IEnumerator(Of T)
+  fullName.vb: System.Collections.Generic.IEnumerator(Of T)
+  name.vb: IEnumerator(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerator`1
+    name: IEnumerator
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerator-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerator`1
+    name: IEnumerator
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerator-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic.IEnumerable`1.GetEnumerator
+  commentId: M:System.Collections.Generic.IEnumerable`1.GetEnumerator
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1.getenumerator
+  name: GetEnumerator()
+  nameWithType: IEnumerable<T>.GetEnumerator()
+  fullName: System.Collections.Generic.IEnumerable<T>.GetEnumerator()
+  nameWithType.vb: IEnumerable(Of T).GetEnumerator()
+  fullName.vb: System.Collections.Generic.IEnumerable(Of T).GetEnumerator()
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerable`1.GetEnumerator
+    name: GetEnumerator
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1.getenumerator
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerable`1.GetEnumerator
+    name: GetEnumerator
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1.getenumerator
+  - name: (
+  - name: )
+- uid: System.Collections.Generic.IEnumerator`1
+  commentId: T:System.Collections.Generic.IEnumerator`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerator-1
+  name: IEnumerator<T>
+  nameWithType: IEnumerator<T>
+  fullName: System.Collections.Generic.IEnumerator<T>
+  nameWithType.vb: IEnumerator(Of T)
+  fullName.vb: System.Collections.Generic.IEnumerator(Of T)
+  name.vb: IEnumerator(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerator`1
+    name: IEnumerator
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerator-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerator`1
+    name: IEnumerator
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerator-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: Microsoft.Accordant.StateLockedException
+  commentId: T:Microsoft.Accordant.StateLockedException
+  href: Microsoft.Accordant.StateLockedException.html
+  name: StateLockedException
+  nameWithType: StateLockedException
+  fullName: Microsoft.Accordant.StateLockedException
+- uid: Microsoft.Accordant.ListState`1.Add*
+  commentId: Overload:Microsoft.Accordant.ListState`1.Add
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_Add__0_
+  name: Add
+  nameWithType: ListState<T>.Add
+  fullName: Microsoft.Accordant.ListState<T>.Add
+  nameWithType.vb: ListState(Of T).Add
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Add
+- uid: System.Collections.Generic.ICollection{{T}}.Add({T})
+  commentId: M:System.Collections.Generic.ICollection{`0}.Add(`0)
+  parent: System.Collections.Generic.ICollection{{T}}
+  definition: System.Collections.Generic.ICollection`1.Add(`0)
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.add
+  name: Add(T)
+  nameWithType: ICollection<T>.Add(T)
+  fullName: System.Collections.Generic.ICollection<T>.Add(T)
+  nameWithType.vb: ICollection(Of T).Add(T)
+  fullName.vb: System.Collections.Generic.ICollection(Of T).Add(T)
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection{`0}.Add(`0)
+    name: Add
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.add
+  - name: (
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection{`0}.Add(`0)
+    name: Add
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.add
+  - name: (
+  - name: T
+  - name: )
+- uid: System.Collections.Generic.ICollection`1.Add(`0)
+  commentId: M:System.Collections.Generic.ICollection`1.Add(`0)
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.add
+  name: Add(T)
+  nameWithType: ICollection<T>.Add(T)
+  fullName: System.Collections.Generic.ICollection<T>.Add(T)
+  nameWithType.vb: ICollection(Of T).Add(T)
+  fullName.vb: System.Collections.Generic.ICollection(Of T).Add(T)
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection`1.Add(`0)
+    name: Add
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.add
+  - name: (
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection`1.Add(`0)
+    name: Add
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.add
+  - name: (
+  - name: T
+  - name: )
+- uid: Microsoft.Accordant.ListState`1.InsertAt*
+  commentId: Overload:Microsoft.Accordant.ListState`1.InsertAt
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_InsertAt_System_Int32__0_
+  name: InsertAt
+  nameWithType: ListState<T>.InsertAt
+  fullName: Microsoft.Accordant.ListState<T>.InsertAt
+  nameWithType.vb: ListState(Of T).InsertAt
+  fullName.vb: Microsoft.Accordant.ListState(Of T).InsertAt
+- uid: Microsoft.Accordant.ListState`1.RemoveAt*
+  commentId: Overload:Microsoft.Accordant.ListState`1.RemoveAt
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_RemoveAt_System_Int32_
+  name: RemoveAt
+  nameWithType: ListState<T>.RemoveAt
+  fullName: Microsoft.Accordant.ListState<T>.RemoveAt
+  nameWithType.vb: ListState(Of T).RemoveAt
+  fullName.vb: Microsoft.Accordant.ListState(Of T).RemoveAt
+- uid: System.Collections.Generic.IList{{T}}.RemoveAt(System.Int32)
+  commentId: M:System.Collections.Generic.IList{`0}.RemoveAt(System.Int32)
+  parent: System.Collections.Generic.IList{{T}}
+  definition: System.Collections.Generic.IList`1.RemoveAt(System.Int32)
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.removeat
+  name: RemoveAt(int)
+  nameWithType: IList<T>.RemoveAt(int)
+  fullName: System.Collections.Generic.IList<T>.RemoveAt(int)
+  nameWithType.vb: IList(Of T).RemoveAt(Integer)
+  fullName.vb: System.Collections.Generic.IList(Of T).RemoveAt(Integer)
+  name.vb: RemoveAt(Integer)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList{`0}.RemoveAt(System.Int32)
+    name: RemoveAt
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.removeat
+  - name: (
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.IList{`0}.RemoveAt(System.Int32)
+    name: RemoveAt
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.removeat
+  - name: (
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+- uid: System.Collections.Generic.IList`1.RemoveAt(System.Int32)
+  commentId: M:System.Collections.Generic.IList`1.RemoveAt(System.Int32)
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.removeat
+  name: RemoveAt(int)
+  nameWithType: IList<T>.RemoveAt(int)
+  fullName: System.Collections.Generic.IList<T>.RemoveAt(int)
+  nameWithType.vb: IList(Of T).RemoveAt(Integer)
+  fullName.vb: System.Collections.Generic.IList(Of T).RemoveAt(Integer)
+  name.vb: RemoveAt(Integer)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1.RemoveAt(System.Int32)
+    name: RemoveAt
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.removeat
+  - name: (
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1.RemoveAt(System.Int32)
+    name: RemoveAt
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.removeat
+  - name: (
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+- uid: Microsoft.Accordant.State.CloneInternal(System.Collections.Generic.Dictionary{System.Object,System.Object})
+  commentId: M:Microsoft.Accordant.State.CloneInternal(System.Collections.Generic.Dictionary{System.Object,System.Object})
+  parent: Microsoft.Accordant.State
+  isExternal: true
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_CloneInternal_System_Collections_Generic_Dictionary_System_Object_System_Object__
+  name: CloneInternal(Dictionary<object, object>)
+  nameWithType: State.CloneInternal(Dictionary<object, object>)
+  fullName: Microsoft.Accordant.State.CloneInternal(System.Collections.Generic.Dictionary<object, object>)
+  nameWithType.vb: State.CloneInternal(Dictionary(Of Object, Object))
+  fullName.vb: Microsoft.Accordant.State.CloneInternal(System.Collections.Generic.Dictionary(Of Object, Object))
+  name.vb: CloneInternal(Dictionary(Of Object, Object))
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.CloneInternal(System.Collections.Generic.Dictionary{System.Object,System.Object})
+    name: CloneInternal
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_CloneInternal_System_Collections_Generic_Dictionary_System_Object_System_Object__
+  - name: (
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: '>'
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.CloneInternal(System.Collections.Generic.Dictionary{System.Object,System.Object})
+    name: CloneInternal
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_CloneInternal_System_Collections_Generic_Dictionary_System_Object_System_Object__
+  - name: (
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  - name: )
+- uid: Microsoft.Accordant.ListState`1.CloneInternal*
+  commentId: Overload:Microsoft.Accordant.ListState`1.CloneInternal
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_CloneInternal_System_Collections_Generic_Dictionary_System_Object_System_Object__
+  name: CloneInternal
+  nameWithType: ListState<T>.CloneInternal
+  fullName: Microsoft.Accordant.ListState<T>.CloneInternal
+  nameWithType.vb: ListState(Of T).CloneInternal
+  fullName.vb: Microsoft.Accordant.ListState(Of T).CloneInternal
+- uid: System.Collections.Generic.Dictionary{System.Object,System.Object}
+  commentId: T:System.Collections.Generic.Dictionary{System.Object,System.Object}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.Dictionary`2
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  name: Dictionary<object, object>
+  nameWithType: Dictionary<object, object>
+  fullName: System.Collections.Generic.Dictionary<object, object>
+  nameWithType.vb: Dictionary(Of Object, Object)
+  fullName.vb: System.Collections.Generic.Dictionary(Of Object, Object)
+  name.vb: Dictionary(Of Object, Object)
+  spec.csharp:
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Collections.Generic.Dictionary`2
+  commentId: T:System.Collections.Generic.Dictionary`2
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  name: Dictionary<TKey, TValue>
+  nameWithType: Dictionary<TKey, TValue>
+  fullName: System.Collections.Generic.Dictionary<TKey, TValue>
+  nameWithType.vb: Dictionary(Of TKey, TValue)
+  fullName.vb: System.Collections.Generic.Dictionary(Of TKey, TValue)
+  name.vb: Dictionary(Of TKey, TValue)
+  spec.csharp:
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - name: TKey
+  - name: ','
+  - name: " "
+  - name: TValue
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TKey
+  - name: ','
+  - name: " "
+  - name: TValue
+  - name: )
+- uid: Microsoft.Accordant.State.LockComponents(System.Collections.Generic.HashSet{System.Object})
+  commentId: M:Microsoft.Accordant.State.LockComponents(System.Collections.Generic.HashSet{System.Object})
+  parent: Microsoft.Accordant.State
+  isExternal: true
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_LockComponents_System_Collections_Generic_HashSet_System_Object__
+  name: LockComponents(HashSet<object>)
+  nameWithType: State.LockComponents(HashSet<object>)
+  fullName: Microsoft.Accordant.State.LockComponents(System.Collections.Generic.HashSet<object>)
+  nameWithType.vb: State.LockComponents(HashSet(Of Object))
+  fullName.vb: Microsoft.Accordant.State.LockComponents(System.Collections.Generic.HashSet(Of Object))
+  name.vb: LockComponents(HashSet(Of Object))
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.LockComponents(System.Collections.Generic.HashSet{System.Object})
+    name: LockComponents
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_LockComponents_System_Collections_Generic_HashSet_System_Object__
+  - name: (
+  - uid: System.Collections.Generic.HashSet`1
+    name: HashSet
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.hashset-1
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: '>'
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.LockComponents(System.Collections.Generic.HashSet{System.Object})
+    name: LockComponents
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_LockComponents_System_Collections_Generic_HashSet_System_Object__
+  - name: (
+  - uid: System.Collections.Generic.HashSet`1
+    name: HashSet
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.hashset-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  - name: )
+- uid: Microsoft.Accordant.ListState`1.LockComponents*
+  commentId: Overload:Microsoft.Accordant.ListState`1.LockComponents
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_LockComponents_System_Collections_Generic_HashSet_System_Object__
+  name: LockComponents
+  nameWithType: ListState<T>.LockComponents
+  fullName: Microsoft.Accordant.ListState<T>.LockComponents
+  nameWithType.vb: ListState(Of T).LockComponents
+  fullName.vb: Microsoft.Accordant.ListState(Of T).LockComponents
+- uid: System.Collections.Generic.HashSet{System.Object}
+  commentId: T:System.Collections.Generic.HashSet{System.Object}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.HashSet`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.hashset-1
+  name: HashSet<object>
+  nameWithType: HashSet<object>
+  fullName: System.Collections.Generic.HashSet<object>
+  nameWithType.vb: HashSet(Of Object)
+  fullName.vb: System.Collections.Generic.HashSet(Of Object)
+  name.vb: HashSet(Of Object)
+  spec.csharp:
+  - uid: System.Collections.Generic.HashSet`1
+    name: HashSet
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.hashset-1
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.HashSet`1
+    name: HashSet
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.hashset-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Collections.Generic.HashSet`1
+  commentId: T:System.Collections.Generic.HashSet`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.hashset-1
+  name: HashSet<T>
+  nameWithType: HashSet<T>
+  fullName: System.Collections.Generic.HashSet<T>
+  nameWithType.vb: HashSet(Of T)
+  fullName.vb: System.Collections.Generic.HashSet(Of T)
+  name.vb: HashSet(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.HashSet`1
+    name: HashSet
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.hashset-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.HashSet`1
+    name: HashSet
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.hashset-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: Microsoft.Accordant.State.StringRepresentationInternal(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+  commentId: M:Microsoft.Accordant.State.StringRepresentationInternal(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+  parent: Microsoft.Accordant.State
+  isExternal: true
+  href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_StringRepresentationInternal_System_Collections_Generic_Dictionary_System_Object_System_String__System_String_
+  name: StringRepresentationInternal(Dictionary<object, string>, string)
+  nameWithType: State.StringRepresentationInternal(Dictionary<object, string>, string)
+  fullName: Microsoft.Accordant.State.StringRepresentationInternal(System.Collections.Generic.Dictionary<object, string>, string)
+  nameWithType.vb: State.StringRepresentationInternal(Dictionary(Of Object, String), String)
+  fullName.vb: Microsoft.Accordant.State.StringRepresentationInternal(System.Collections.Generic.Dictionary(Of Object, String), String)
+  name.vb: StringRepresentationInternal(Dictionary(Of Object, String), String)
+  spec.csharp:
+  - uid: Microsoft.Accordant.State.StringRepresentationInternal(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+    name: StringRepresentationInternal
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_StringRepresentationInternal_System_Collections_Generic_Dictionary_System_Object_System_String__System_String_
+  - name: (
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: '>'
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.State.StringRepresentationInternal(System.Collections.Generic.Dictionary{System.Object,System.String},System.String)
+    name: StringRepresentationInternal
+    href: Microsoft.Accordant.State.html#Microsoft_Accordant_State_StringRepresentationInternal_System_Collections_Generic_Dictionary_System_Object_System_String__System_String_
+  - name: (
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: Microsoft.Accordant.ListState`1.StringRepresentationInternal*
+  commentId: Overload:Microsoft.Accordant.ListState`1.StringRepresentationInternal
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_StringRepresentationInternal_System_Collections_Generic_Dictionary_System_Object_System_String__System_String_
+  name: StringRepresentationInternal
+  nameWithType: ListState<T>.StringRepresentationInternal
+  fullName: Microsoft.Accordant.ListState<T>.StringRepresentationInternal
+  nameWithType.vb: ListState(Of T).StringRepresentationInternal
+  fullName.vb: Microsoft.Accordant.ListState(Of T).StringRepresentationInternal
+- uid: System.Collections.Generic.Dictionary{System.Object,System.String}
+  commentId: T:System.Collections.Generic.Dictionary{System.Object,System.String}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.Dictionary`2
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  name: Dictionary<object, string>
+  nameWithType: Dictionary<object, string>
+  fullName: System.Collections.Generic.Dictionary<object, string>
+  nameWithType.vb: Dictionary(Of Object, String)
+  fullName.vb: System.Collections.Generic.Dictionary(Of Object, String)
+  name.vb: Dictionary(Of Object, String)
+  spec.csharp:
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.ListState`1.IndexOf*
+  commentId: Overload:Microsoft.Accordant.ListState`1.IndexOf
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_IndexOf__0_
+  name: IndexOf
+  nameWithType: ListState<T>.IndexOf
+  fullName: Microsoft.Accordant.ListState<T>.IndexOf
+  nameWithType.vb: ListState(Of T).IndexOf
+  fullName.vb: Microsoft.Accordant.ListState(Of T).IndexOf
+- uid: System.Collections.Generic.IList{{T}}.IndexOf({T})
+  commentId: M:System.Collections.Generic.IList{`0}.IndexOf(`0)
+  parent: System.Collections.Generic.IList{{T}}
+  definition: System.Collections.Generic.IList`1.IndexOf(`0)
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.indexof
+  name: IndexOf(T)
+  nameWithType: IList<T>.IndexOf(T)
+  fullName: System.Collections.Generic.IList<T>.IndexOf(T)
+  nameWithType.vb: IList(Of T).IndexOf(T)
+  fullName.vb: System.Collections.Generic.IList(Of T).IndexOf(T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList{`0}.IndexOf(`0)
+    name: IndexOf
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.indexof
+  - name: (
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.IList{`0}.IndexOf(`0)
+    name: IndexOf
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.indexof
+  - name: (
+  - name: T
+  - name: )
+- uid: System.Collections.Generic.IList`1.IndexOf(`0)
+  commentId: M:System.Collections.Generic.IList`1.IndexOf(`0)
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.indexof
+  name: IndexOf(T)
+  nameWithType: IList<T>.IndexOf(T)
+  fullName: System.Collections.Generic.IList<T>.IndexOf(T)
+  nameWithType.vb: IList(Of T).IndexOf(T)
+  fullName.vb: System.Collections.Generic.IList(Of T).IndexOf(T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1.IndexOf(`0)
+    name: IndexOf
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.indexof
+  - name: (
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1.IndexOf(`0)
+    name: IndexOf
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.indexof
+  - name: (
+  - name: T
+  - name: )
+- uid: Microsoft.Accordant.ListState`1.Insert*
+  commentId: Overload:Microsoft.Accordant.ListState`1.Insert
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_Insert_System_Int32__0_
+  name: Insert
+  nameWithType: ListState<T>.Insert
+  fullName: Microsoft.Accordant.ListState<T>.Insert
+  nameWithType.vb: ListState(Of T).Insert
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Insert
+- uid: System.Collections.Generic.IList{{T}}.Insert(System.Int32,{T})
+  commentId: M:System.Collections.Generic.IList{`0}.Insert(System.Int32,`0)
+  parent: System.Collections.Generic.IList{{T}}
+  definition: System.Collections.Generic.IList`1.Insert(System.Int32,`0)
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.insert
+  name: Insert(int, T)
+  nameWithType: IList<T>.Insert(int, T)
+  fullName: System.Collections.Generic.IList<T>.Insert(int, T)
+  nameWithType.vb: IList(Of T).Insert(Integer, T)
+  fullName.vb: System.Collections.Generic.IList(Of T).Insert(Integer, T)
+  name.vb: Insert(Integer, T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList{`0}.Insert(System.Int32,`0)
+    name: Insert
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.insert
+  - name: (
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: ','
+  - name: " "
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.IList{`0}.Insert(System.Int32,`0)
+    name: Insert
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.insert
+  - name: (
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: ','
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic.IList`1.Insert(System.Int32,`0)
+  commentId: M:System.Collections.Generic.IList`1.Insert(System.Int32,`0)
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.insert
+  name: Insert(int, T)
+  nameWithType: IList<T>.Insert(int, T)
+  fullName: System.Collections.Generic.IList<T>.Insert(int, T)
+  nameWithType.vb: IList(Of T).Insert(Integer, T)
+  fullName.vb: System.Collections.Generic.IList(Of T).Insert(Integer, T)
+  name.vb: Insert(Integer, T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1.Insert(System.Int32,`0)
+    name: Insert
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.insert
+  - name: (
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: ','
+  - name: " "
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1.Insert(System.Int32,`0)
+    name: Insert
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1.insert
+  - name: (
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: ','
+  - name: " "
+  - name: T
+  - name: )
+- uid: Microsoft.Accordant.ListState`1.Clear*
+  commentId: Overload:Microsoft.Accordant.ListState`1.Clear
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_Clear
+  name: Clear
+  nameWithType: ListState<T>.Clear
+  fullName: Microsoft.Accordant.ListState<T>.Clear
+  nameWithType.vb: ListState(Of T).Clear
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Clear
+- uid: System.Collections.Generic.ICollection{{T}}.Clear
+  commentId: M:System.Collections.Generic.ICollection{`0}.Clear
+  parent: System.Collections.Generic.ICollection{{T}}
+  definition: System.Collections.Generic.ICollection`1.Clear
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.clear
+  name: Clear()
+  nameWithType: ICollection<T>.Clear()
+  fullName: System.Collections.Generic.ICollection<T>.Clear()
+  nameWithType.vb: ICollection(Of T).Clear()
+  fullName.vb: System.Collections.Generic.ICollection(Of T).Clear()
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection{`0}.Clear
+    name: Clear
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.clear
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection{`0}.Clear
+    name: Clear
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.clear
+  - name: (
+  - name: )
+- uid: System.Collections.Generic.ICollection`1.Clear
+  commentId: M:System.Collections.Generic.ICollection`1.Clear
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.clear
+  name: Clear()
+  nameWithType: ICollection<T>.Clear()
+  fullName: System.Collections.Generic.ICollection<T>.Clear()
+  nameWithType.vb: ICollection(Of T).Clear()
+  fullName.vb: System.Collections.Generic.ICollection(Of T).Clear()
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection`1.Clear
+    name: Clear
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.clear
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection`1.Clear
+    name: Clear
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.clear
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.ListState`1.Contains*
+  commentId: Overload:Microsoft.Accordant.ListState`1.Contains
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_Contains__0_
+  name: Contains
+  nameWithType: ListState<T>.Contains
+  fullName: Microsoft.Accordant.ListState<T>.Contains
+  nameWithType.vb: ListState(Of T).Contains
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Contains
+- uid: System.Collections.Generic.ICollection{{T}}.Contains({T})
+  commentId: M:System.Collections.Generic.ICollection{`0}.Contains(`0)
+  parent: System.Collections.Generic.ICollection{{T}}
+  definition: System.Collections.Generic.ICollection`1.Contains(`0)
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.contains
+  name: Contains(T)
+  nameWithType: ICollection<T>.Contains(T)
+  fullName: System.Collections.Generic.ICollection<T>.Contains(T)
+  nameWithType.vb: ICollection(Of T).Contains(T)
+  fullName.vb: System.Collections.Generic.ICollection(Of T).Contains(T)
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection{`0}.Contains(`0)
+    name: Contains
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.contains
+  - name: (
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection{`0}.Contains(`0)
+    name: Contains
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.contains
+  - name: (
+  - name: T
+  - name: )
+- uid: System.Collections.Generic.ICollection`1.Contains(`0)
+  commentId: M:System.Collections.Generic.ICollection`1.Contains(`0)
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.contains
+  name: Contains(T)
+  nameWithType: ICollection<T>.Contains(T)
+  fullName: System.Collections.Generic.ICollection<T>.Contains(T)
+  nameWithType.vb: ICollection(Of T).Contains(T)
+  fullName.vb: System.Collections.Generic.ICollection(Of T).Contains(T)
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection`1.Contains(`0)
+    name: Contains
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.contains
+  - name: (
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection`1.Contains(`0)
+    name: Contains
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.contains
+  - name: (
+  - name: T
+  - name: )
+- uid: Microsoft.Accordant.ListState`1.CopyTo*
+  commentId: Overload:Microsoft.Accordant.ListState`1.CopyTo
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_CopyTo__0___System_Int32_
+  name: CopyTo
+  nameWithType: ListState<T>.CopyTo
+  fullName: Microsoft.Accordant.ListState<T>.CopyTo
+  nameWithType.vb: ListState(Of T).CopyTo
+  fullName.vb: Microsoft.Accordant.ListState(Of T).CopyTo
+- uid: System.Collections.Generic.ICollection{{T}}.CopyTo({T}[],System.Int32)
+  commentId: M:System.Collections.Generic.ICollection{`0}.CopyTo(`0[],System.Int32)
+  parent: System.Collections.Generic.ICollection{{T}}
+  definition: System.Collections.Generic.ICollection`1.CopyTo(`0[],System.Int32)
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.copyto
+  name: CopyTo(T[], int)
+  nameWithType: ICollection<T>.CopyTo(T[], int)
+  fullName: System.Collections.Generic.ICollection<T>.CopyTo(T[], int)
+  nameWithType.vb: ICollection(Of T).CopyTo(T(), Integer)
+  fullName.vb: System.Collections.Generic.ICollection(Of T).CopyTo(T(), Integer)
+  name.vb: CopyTo(T(), Integer)
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection{`0}.CopyTo(`0[],System.Int32)
+    name: CopyTo
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.copyto
+  - name: (
+  - name: T
+  - name: '['
+  - name: ']'
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection{`0}.CopyTo(`0[],System.Int32)
+    name: CopyTo
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.copyto
+  - name: (
+  - name: T
+  - name: (
+  - name: )
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+- uid: '{T}[]'
+  isExternal: true
+  name: T[]
+  nameWithType: T[]
+  fullName: T[]
+  nameWithType.vb: T()
+  fullName.vb: T()
+  name.vb: T()
+  spec.csharp:
+  - name: T
+  - name: '['
+  - name: ']'
+  spec.vb:
+  - name: T
+  - name: (
+  - name: )
+- uid: System.Collections.Generic.ICollection`1.CopyTo(`0[],System.Int32)
+  commentId: M:System.Collections.Generic.ICollection`1.CopyTo(`0[],System.Int32)
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.copyto
+  name: CopyTo(T[], int)
+  nameWithType: ICollection<T>.CopyTo(T[], int)
+  fullName: System.Collections.Generic.ICollection<T>.CopyTo(T[], int)
+  nameWithType.vb: ICollection(Of T).CopyTo(T(), Integer)
+  fullName.vb: System.Collections.Generic.ICollection(Of T).CopyTo(T(), Integer)
+  name.vb: CopyTo(T(), Integer)
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection`1.CopyTo(`0[],System.Int32)
+    name: CopyTo
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.copyto
+  - name: (
+  - name: T
+  - name: '['
+  - name: ']'
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection`1.CopyTo(`0[],System.Int32)
+    name: CopyTo
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.copyto
+  - name: (
+  - name: T
+  - name: (
+  - name: )
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+- uid: Microsoft.Accordant.ListState`1.Remove*
+  commentId: Overload:Microsoft.Accordant.ListState`1.Remove
+  href: Microsoft.Accordant.ListState-1.html#Microsoft_Accordant_ListState_1_Remove__0_
+  name: Remove
+  nameWithType: ListState<T>.Remove
+  fullName: Microsoft.Accordant.ListState<T>.Remove
+  nameWithType.vb: ListState(Of T).Remove
+  fullName.vb: Microsoft.Accordant.ListState(Of T).Remove
+- uid: System.Collections.Generic.ICollection{{T}}.Remove({T})
+  commentId: M:System.Collections.Generic.ICollection{`0}.Remove(`0)
+  parent: System.Collections.Generic.ICollection{{T}}
+  definition: System.Collections.Generic.ICollection`1.Remove(`0)
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.remove
+  name: Remove(T)
+  nameWithType: ICollection<T>.Remove(T)
+  fullName: System.Collections.Generic.ICollection<T>.Remove(T)
+  nameWithType.vb: ICollection(Of T).Remove(T)
+  fullName.vb: System.Collections.Generic.ICollection(Of T).Remove(T)
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection{`0}.Remove(`0)
+    name: Remove
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.remove
+  - name: (
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection{`0}.Remove(`0)
+    name: Remove
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.remove
+  - name: (
+  - name: T
+  - name: )
+- uid: System.Collections.Generic.ICollection`1.Remove(`0)
+  commentId: M:System.Collections.Generic.ICollection`1.Remove(`0)
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.remove
+  name: Remove(T)
+  nameWithType: ICollection<T>.Remove(T)
+  fullName: System.Collections.Generic.ICollection<T>.Remove(T)
+  nameWithType.vb: ICollection(Of T).Remove(T)
+  fullName.vb: System.Collections.Generic.ICollection(Of T).Remove(T)
+  spec.csharp:
+  - uid: System.Collections.Generic.ICollection`1.Remove(`0)
+    name: Remove
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.remove
+  - name: (
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: System.Collections.Generic.ICollection`1.Remove(`0)
+    name: Remove
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1.remove
+  - name: (
+  - name: T
+  - name: )

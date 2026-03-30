@@ -1,0 +1,843 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.TestCaseExecutor
+  commentId: T:Microsoft.Accordant.TestCaseExecutor
+  id: TestCaseExecutor
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.TestCaseExecutor.ExecuteConcurrentTestCases(Microsoft.Accordant.TestingContext,System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase},Microsoft.Accordant.State,Microsoft.Accordant.TestExecutionOptions)
+  - Microsoft.Accordant.TestCaseExecutor.ExecuteOperationCallAsync(Microsoft.Accordant.TestingContext,Microsoft.Accordant.StateProfile,System.String,Microsoft.Accordant.IOperation,System.Object,Microsoft.Accordant.TestExecutionOptions,System.Boolean)
+  - Microsoft.Accordant.TestCaseExecutor.ExecuteSequentialTestCases(Microsoft.Accordant.TestingContext,System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase},Microsoft.Accordant.State,Microsoft.Accordant.TestExecutionOptions)
+  langs:
+  - csharp
+  - vb
+  name: TestCaseExecutor
+  nameWithType: TestCaseExecutor
+  fullName: Microsoft.Accordant.TestCaseExecutor
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/TestCaseExecutor.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: TestCaseExecutor
+    path: Accordant.Operations/TestCaseExecutor.cs
+    startLine: 8
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public class TestCaseExecutor
+    content.vb: Public Class TestCaseExecutor
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.TestCaseExecutor.ExecuteSequentialTestCases(Microsoft.Accordant.TestingContext,System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase},Microsoft.Accordant.State,Microsoft.Accordant.TestExecutionOptions)
+  commentId: M:Microsoft.Accordant.TestCaseExecutor.ExecuteSequentialTestCases(Microsoft.Accordant.TestingContext,System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase},Microsoft.Accordant.State,Microsoft.Accordant.TestExecutionOptions)
+  id: ExecuteSequentialTestCases(Microsoft.Accordant.TestingContext,System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase},Microsoft.Accordant.State,Microsoft.Accordant.TestExecutionOptions)
+  parent: Microsoft.Accordant.TestCaseExecutor
+  langs:
+  - csharp
+  - vb
+  name: ExecuteSequentialTestCases(TestingContext, IList<SequentialTestCase>, State, TestExecutionOptions)
+  nameWithType: TestCaseExecutor.ExecuteSequentialTestCases(TestingContext, IList<SequentialTestCase>, State, TestExecutionOptions)
+  fullName: Microsoft.Accordant.TestCaseExecutor.ExecuteSequentialTestCases(Microsoft.Accordant.TestingContext, System.Collections.Generic.IList<Microsoft.Accordant.SequentialTestCase>, Microsoft.Accordant.State, Microsoft.Accordant.TestExecutionOptions)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/TestCaseExecutor.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ExecuteSequentialTestCases
+    path: Accordant.Operations/TestCaseExecutor.cs
+    startLine: 21
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Executes the given sequential test cases with the specified initial state.
+
+    The provided context is used for all tests with registered services.
+  example: []
+  syntax:
+    content: public static Task<IList<TestCaseExecutionResult>> ExecuteSequentialTestCases(TestingContext context, IList<SequentialTestCase> testCases, State initialState, TestExecutionOptions options)
+    parameters:
+    - id: context
+      type: Microsoft.Accordant.TestingContext
+      description: The testing context with registered services.
+    - id: testCases
+      type: System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase}
+      description: The test cases to execute.
+    - id: initialState
+      type: Microsoft.Accordant.State
+      description: The initial state for each test.
+    - id: options
+      type: Microsoft.Accordant.TestExecutionOptions
+      description: Execution options.
+    return:
+      type: System.Threading.Tasks.Task{System.Collections.Generic.IList{Microsoft.Accordant.TestCaseExecutionResult}}
+      description: The execution results for each test case.
+    content.vb: Public Shared Function ExecuteSequentialTestCases(context As TestingContext, testCases As IList(Of SequentialTestCase), initialState As State, options As TestExecutionOptions) As Task(Of IList(Of TestCaseExecutionResult))
+  overload: Microsoft.Accordant.TestCaseExecutor.ExecuteSequentialTestCases*
+  nameWithType.vb: TestCaseExecutor.ExecuteSequentialTestCases(TestingContext, IList(Of SequentialTestCase), State, TestExecutionOptions)
+  fullName.vb: Microsoft.Accordant.TestCaseExecutor.ExecuteSequentialTestCases(Microsoft.Accordant.TestingContext, System.Collections.Generic.IList(Of Microsoft.Accordant.SequentialTestCase), Microsoft.Accordant.State, Microsoft.Accordant.TestExecutionOptions)
+  name.vb: ExecuteSequentialTestCases(TestingContext, IList(Of SequentialTestCase), State, TestExecutionOptions)
+- uid: Microsoft.Accordant.TestCaseExecutor.ExecuteConcurrentTestCases(Microsoft.Accordant.TestingContext,System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase},Microsoft.Accordant.State,Microsoft.Accordant.TestExecutionOptions)
+  commentId: M:Microsoft.Accordant.TestCaseExecutor.ExecuteConcurrentTestCases(Microsoft.Accordant.TestingContext,System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase},Microsoft.Accordant.State,Microsoft.Accordant.TestExecutionOptions)
+  id: ExecuteConcurrentTestCases(Microsoft.Accordant.TestingContext,System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase},Microsoft.Accordant.State,Microsoft.Accordant.TestExecutionOptions)
+  parent: Microsoft.Accordant.TestCaseExecutor
+  langs:
+  - csharp
+  - vb
+  name: ExecuteConcurrentTestCases(TestingContext, IList<ConcurrentTestCase>, State, TestExecutionOptions)
+  nameWithType: TestCaseExecutor.ExecuteConcurrentTestCases(TestingContext, IList<ConcurrentTestCase>, State, TestExecutionOptions)
+  fullName: Microsoft.Accordant.TestCaseExecutor.ExecuteConcurrentTestCases(Microsoft.Accordant.TestingContext, System.Collections.Generic.IList<Microsoft.Accordant.ConcurrentTestCase>, Microsoft.Accordant.State, Microsoft.Accordant.TestExecutionOptions)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/TestCaseExecutor.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ExecuteConcurrentTestCases
+    path: Accordant.Operations/TestCaseExecutor.cs
+    startLine: 167
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Executes the given concurrent test cases with the specified initial state.
+
+    The provided context is used for all tests with registered services.
+  example: []
+  syntax:
+    content: public static Task<IList<TestCaseExecutionResult>> ExecuteConcurrentTestCases(TestingContext context, IList<ConcurrentTestCase> testCases, State initialState, TestExecutionOptions options)
+    parameters:
+    - id: context
+      type: Microsoft.Accordant.TestingContext
+      description: The testing context with registered services.
+    - id: testCases
+      type: System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase}
+      description: The test cases to execute.
+    - id: initialState
+      type: Microsoft.Accordant.State
+      description: The initial state for each test.
+    - id: options
+      type: Microsoft.Accordant.TestExecutionOptions
+      description: Execution options.
+    return:
+      type: System.Threading.Tasks.Task{System.Collections.Generic.IList{Microsoft.Accordant.TestCaseExecutionResult}}
+      description: The execution results for each test case.
+    content.vb: Public Shared Function ExecuteConcurrentTestCases(context As TestingContext, testCases As IList(Of ConcurrentTestCase), initialState As State, options As TestExecutionOptions) As Task(Of IList(Of TestCaseExecutionResult))
+  overload: Microsoft.Accordant.TestCaseExecutor.ExecuteConcurrentTestCases*
+  nameWithType.vb: TestCaseExecutor.ExecuteConcurrentTestCases(TestingContext, IList(Of ConcurrentTestCase), State, TestExecutionOptions)
+  fullName.vb: Microsoft.Accordant.TestCaseExecutor.ExecuteConcurrentTestCases(Microsoft.Accordant.TestingContext, System.Collections.Generic.IList(Of Microsoft.Accordant.ConcurrentTestCase), Microsoft.Accordant.State, Microsoft.Accordant.TestExecutionOptions)
+  name.vb: ExecuteConcurrentTestCases(TestingContext, IList(Of ConcurrentTestCase), State, TestExecutionOptions)
+- uid: Microsoft.Accordant.TestCaseExecutor.ExecuteOperationCallAsync(Microsoft.Accordant.TestingContext,Microsoft.Accordant.StateProfile,System.String,Microsoft.Accordant.IOperation,System.Object,Microsoft.Accordant.TestExecutionOptions,System.Boolean)
+  commentId: M:Microsoft.Accordant.TestCaseExecutor.ExecuteOperationCallAsync(Microsoft.Accordant.TestingContext,Microsoft.Accordant.StateProfile,System.String,Microsoft.Accordant.IOperation,System.Object,Microsoft.Accordant.TestExecutionOptions,System.Boolean)
+  id: ExecuteOperationCallAsync(Microsoft.Accordant.TestingContext,Microsoft.Accordant.StateProfile,System.String,Microsoft.Accordant.IOperation,System.Object,Microsoft.Accordant.TestExecutionOptions,System.Boolean)
+  parent: Microsoft.Accordant.TestCaseExecutor
+  langs:
+  - csharp
+  - vb
+  name: ExecuteOperationCallAsync(TestingContext, StateProfile, string, IOperation, object, TestExecutionOptions, bool)
+  nameWithType: TestCaseExecutor.ExecuteOperationCallAsync(TestingContext, StateProfile, string, IOperation, object, TestExecutionOptions, bool)
+  fullName: Microsoft.Accordant.TestCaseExecutor.ExecuteOperationCallAsync(Microsoft.Accordant.TestingContext, Microsoft.Accordant.StateProfile, string, Microsoft.Accordant.IOperation, object, Microsoft.Accordant.TestExecutionOptions, bool)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/TestCaseExecutor.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ExecuteOperationCallAsync
+    path: Accordant.Operations/TestCaseExecutor.cs
+    startLine: 302
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    This method calls an operation with the given request, retrying if needed
+
+    and returns the response.
+  example: []
+  syntax:
+    content: public static Task<(StateProfile, bool, string, object)> ExecuteOperationCallAsync(TestingContext context, StateProfile stateProfile, string operationCallName, IOperation operation, object request, TestExecutionOptions options, bool emitDiagnosticLogsDuringValidation = false)
+    parameters:
+    - id: context
+      type: Microsoft.Accordant.TestingContext
+    - id: stateProfile
+      type: Microsoft.Accordant.StateProfile
+    - id: operationCallName
+      type: System.String
+    - id: operation
+      type: Microsoft.Accordant.IOperation
+    - id: request
+      type: System.Object
+    - id: options
+      type: Microsoft.Accordant.TestExecutionOptions
+    - id: emitDiagnosticLogsDuringValidation
+      type: System.Boolean
+    return:
+      type: System.Threading.Tasks.Task{System.ValueTuple{Microsoft.Accordant.StateProfile,System.Boolean,System.String,System.Object}}
+    content.vb: Public Shared Function ExecuteOperationCallAsync(context As TestingContext, stateProfile As StateProfile, operationCallName As String, operation As IOperation, request As Object, options As TestExecutionOptions, emitDiagnosticLogsDuringValidation As Boolean = False) As Task(Of (StateProfile, Boolean, String, Object))
+  overload: Microsoft.Accordant.TestCaseExecutor.ExecuteOperationCallAsync*
+  nameWithType.vb: TestCaseExecutor.ExecuteOperationCallAsync(TestingContext, StateProfile, String, IOperation, Object, TestExecutionOptions, Boolean)
+  fullName.vb: Microsoft.Accordant.TestCaseExecutor.ExecuteOperationCallAsync(Microsoft.Accordant.TestingContext, Microsoft.Accordant.StateProfile, String, Microsoft.Accordant.IOperation, Object, Microsoft.Accordant.TestExecutionOptions, Boolean)
+  name.vb: ExecuteOperationCallAsync(TestingContext, StateProfile, String, IOperation, Object, TestExecutionOptions, Boolean)
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.TestCaseExecutor.ExecuteSequentialTestCases*
+  commentId: Overload:Microsoft.Accordant.TestCaseExecutor.ExecuteSequentialTestCases
+  href: Microsoft.Accordant.TestCaseExecutor.html#Microsoft_Accordant_TestCaseExecutor_ExecuteSequentialTestCases_Microsoft_Accordant_TestingContext_System_Collections_Generic_IList_Microsoft_Accordant_SequentialTestCase__Microsoft_Accordant_State_Microsoft_Accordant_TestExecutionOptions_
+  name: ExecuteSequentialTestCases
+  nameWithType: TestCaseExecutor.ExecuteSequentialTestCases
+  fullName: Microsoft.Accordant.TestCaseExecutor.ExecuteSequentialTestCases
+- uid: Microsoft.Accordant.TestingContext
+  commentId: T:Microsoft.Accordant.TestingContext
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.TestingContext.html
+  name: TestingContext
+  nameWithType: TestingContext
+  fullName: Microsoft.Accordant.TestingContext
+- uid: System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase}
+  commentId: T:System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<SequentialTestCase>
+  nameWithType: IList<SequentialTestCase>
+  fullName: System.Collections.Generic.IList<Microsoft.Accordant.SequentialTestCase>
+  nameWithType.vb: IList(Of SequentialTestCase)
+  fullName.vb: System.Collections.Generic.IList(Of Microsoft.Accordant.SequentialTestCase)
+  name.vb: IList(Of SequentialTestCase)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.SequentialTestCase
+    name: SequentialTestCase
+    href: Microsoft.Accordant.SequentialTestCase.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.SequentialTestCase
+    name: SequentialTestCase
+    href: Microsoft.Accordant.SequentialTestCase.html
+  - name: )
+- uid: Microsoft.Accordant.State
+  commentId: T:Microsoft.Accordant.State
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.State.html
+  name: State
+  nameWithType: State
+  fullName: Microsoft.Accordant.State
+- uid: Microsoft.Accordant.TestExecutionOptions
+  commentId: T:Microsoft.Accordant.TestExecutionOptions
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.TestExecutionOptions.html
+  name: TestExecutionOptions
+  nameWithType: TestExecutionOptions
+  fullName: Microsoft.Accordant.TestExecutionOptions
+- uid: System.Threading.Tasks.Task{System.Collections.Generic.IList{Microsoft.Accordant.TestCaseExecutionResult}}
+  commentId: T:System.Threading.Tasks.Task{System.Collections.Generic.IList{Microsoft.Accordant.TestCaseExecutionResult}}
+  parent: System.Threading.Tasks
+  definition: System.Threading.Tasks.Task`1
+  href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  name: Task<IList<TestCaseExecutionResult>>
+  nameWithType: Task<IList<TestCaseExecutionResult>>
+  fullName: System.Threading.Tasks.Task<System.Collections.Generic.IList<Microsoft.Accordant.TestCaseExecutionResult>>
+  nameWithType.vb: Task(Of IList(Of TestCaseExecutionResult))
+  fullName.vb: System.Threading.Tasks.Task(Of System.Collections.Generic.IList(Of Microsoft.Accordant.TestCaseExecutionResult))
+  name.vb: Task(Of IList(Of TestCaseExecutionResult))
+  spec.csharp:
+  - uid: System.Threading.Tasks.Task`1
+    name: Task
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  - name: <
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.TestCaseExecutionResult
+    name: TestCaseExecutionResult
+    href: Microsoft.Accordant.TestCaseExecutionResult.html
+  - name: '>'
+  - name: '>'
+  spec.vb:
+  - uid: System.Threading.Tasks.Task`1
+    name: Task
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.TestCaseExecutionResult
+    name: TestCaseExecutionResult
+    href: Microsoft.Accordant.TestCaseExecutionResult.html
+  - name: )
+  - name: )
+- uid: System.Collections.Generic.IList`1
+  commentId: T:System.Collections.Generic.IList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: System.Threading.Tasks.Task`1
+  commentId: T:System.Threading.Tasks.Task`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  name: Task<TResult>
+  nameWithType: Task<TResult>
+  fullName: System.Threading.Tasks.Task<TResult>
+  nameWithType.vb: Task(Of TResult)
+  fullName.vb: System.Threading.Tasks.Task(Of TResult)
+  name.vb: Task(Of TResult)
+  spec.csharp:
+  - uid: System.Threading.Tasks.Task`1
+    name: Task
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  - name: <
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Threading.Tasks.Task`1
+    name: Task
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: System.Threading.Tasks
+  commentId: N:System.Threading.Tasks
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Threading.Tasks
+  nameWithType: System.Threading.Tasks
+  fullName: System.Threading.Tasks
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Threading
+    name: Threading
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading
+  - name: .
+  - uid: System.Threading.Tasks
+    name: Tasks
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Threading
+    name: Threading
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading
+  - name: .
+  - uid: System.Threading.Tasks
+    name: Tasks
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks
+- uid: Microsoft.Accordant.TestCaseExecutor.ExecuteConcurrentTestCases*
+  commentId: Overload:Microsoft.Accordant.TestCaseExecutor.ExecuteConcurrentTestCases
+  href: Microsoft.Accordant.TestCaseExecutor.html#Microsoft_Accordant_TestCaseExecutor_ExecuteConcurrentTestCases_Microsoft_Accordant_TestingContext_System_Collections_Generic_IList_Microsoft_Accordant_ConcurrentTestCase__Microsoft_Accordant_State_Microsoft_Accordant_TestExecutionOptions_
+  name: ExecuteConcurrentTestCases
+  nameWithType: TestCaseExecutor.ExecuteConcurrentTestCases
+  fullName: Microsoft.Accordant.TestCaseExecutor.ExecuteConcurrentTestCases
+- uid: System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase}
+  commentId: T:System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<ConcurrentTestCase>
+  nameWithType: IList<ConcurrentTestCase>
+  fullName: System.Collections.Generic.IList<Microsoft.Accordant.ConcurrentTestCase>
+  nameWithType.vb: IList(Of ConcurrentTestCase)
+  fullName.vb: System.Collections.Generic.IList(Of Microsoft.Accordant.ConcurrentTestCase)
+  name.vb: IList(Of ConcurrentTestCase)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.ConcurrentTestCase
+    name: ConcurrentTestCase
+    href: Microsoft.Accordant.ConcurrentTestCase.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.ConcurrentTestCase
+    name: ConcurrentTestCase
+    href: Microsoft.Accordant.ConcurrentTestCase.html
+  - name: )
+- uid: Microsoft.Accordant.TestCaseExecutor.ExecuteOperationCallAsync*
+  commentId: Overload:Microsoft.Accordant.TestCaseExecutor.ExecuteOperationCallAsync
+  href: Microsoft.Accordant.TestCaseExecutor.html#Microsoft_Accordant_TestCaseExecutor_ExecuteOperationCallAsync_Microsoft_Accordant_TestingContext_Microsoft_Accordant_StateProfile_System_String_Microsoft_Accordant_IOperation_System_Object_Microsoft_Accordant_TestExecutionOptions_System_Boolean_
+  name: ExecuteOperationCallAsync
+  nameWithType: TestCaseExecutor.ExecuteOperationCallAsync
+  fullName: Microsoft.Accordant.TestCaseExecutor.ExecuteOperationCallAsync
+- uid: Microsoft.Accordant.StateProfile
+  commentId: T:Microsoft.Accordant.StateProfile
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.StateProfile.html
+  name: StateProfile
+  nameWithType: StateProfile
+  fullName: Microsoft.Accordant.StateProfile
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.IOperation
+  commentId: T:Microsoft.Accordant.IOperation
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.IOperation.html
+  name: IOperation
+  nameWithType: IOperation
+  fullName: Microsoft.Accordant.IOperation
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: System.Threading.Tasks.Task{System.ValueTuple{Microsoft.Accordant.StateProfile,System.Boolean,System.String,System.Object}}
+  commentId: T:System.Threading.Tasks.Task{System.ValueTuple{Microsoft.Accordant.StateProfile,System.Boolean,System.String,System.Object}}
+  parent: System.Threading.Tasks
+  definition: System.Threading.Tasks.Task`1
+  href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  name: Task<(StateProfile, bool, string, object)>
+  nameWithType: Task<(StateProfile, bool, string, object)>
+  fullName: System.Threading.Tasks.Task<(Microsoft.Accordant.StateProfile, bool, string, object)>
+  nameWithType.vb: Task(Of (StateProfile, Boolean, String, Object))
+  fullName.vb: System.Threading.Tasks.Task(Of (Microsoft.Accordant.StateProfile, Boolean, String, Object))
+  name.vb: Task(Of (StateProfile, Boolean, String, Object))
+  spec.csharp:
+  - uid: System.Threading.Tasks.Task`1
+    name: Task
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  - name: <
+  - name: (
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: ','
+  - name: " "
+  - uid: System.Boolean
+    name: bool
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  - name: '>'
+  spec.vb:
+  - uid: System.Threading.Tasks.Task`1
+    name: Task
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: (
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: ','
+  - name: " "
+  - uid: System.Boolean
+    name: Boolean
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  - name: )

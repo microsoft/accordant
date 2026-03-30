@@ -1,0 +1,1037 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.Logger
+  commentId: T:Microsoft.Accordant.Logger
+  id: Logger
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.Logger.#ctor(System.Boolean,System.Nullable{System.Boolean},System.String)
+  - Microsoft.Accordant.Logger.AsyncLocalEmitTimestamp
+  - Microsoft.Accordant.Logger.AsyncLocalIndentation
+  - Microsoft.Accordant.Logger.AsyncLocalOutputDirectory
+  - Microsoft.Accordant.Logger.Dispose
+  - Microsoft.Accordant.Logger.EmitTimestamp
+  - Microsoft.Accordant.Logger.Indentation
+  - Microsoft.Accordant.Logger.IndentationDelta
+  - Microsoft.Accordant.Logger.Log(System.String)
+  - Microsoft.Accordant.Logger.LogLambda
+  - Microsoft.Accordant.Logger.OutputDirectory
+  - Microsoft.Accordant.Logger.Serialize``1(``0,System.Boolean)
+  langs:
+  - csharp
+  - vb
+  name: Logger
+  nameWithType: Logger
+  fullName: Microsoft.Accordant.Logger
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Logger
+    path: Accordant.Operations/Logger.cs
+    startLine: 9
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: 'public class Logger : IDisposable'
+    content.vb: Public Class Logger Implements IDisposable
+  inheritance:
+  - System.Object
+  implements:
+  - System.IDisposable
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.Logger.AsyncLocalOutputDirectory
+  commentId: F:Microsoft.Accordant.Logger.AsyncLocalOutputDirectory
+  id: AsyncLocalOutputDirectory
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: AsyncLocalOutputDirectory
+  nameWithType: Logger.AsyncLocalOutputDirectory
+  fullName: Microsoft.Accordant.Logger.AsyncLocalOutputDirectory
+  type: Field
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: AsyncLocalOutputDirectory
+    path: Accordant.Operations/Logger.cs
+    startLine: 18
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static AsyncLocal<string> AsyncLocalOutputDirectory
+    return:
+      type: System.Threading.AsyncLocal{System.String}
+    content.vb: Public Shared AsyncLocalOutputDirectory As AsyncLocal(Of String)
+- uid: Microsoft.Accordant.Logger.AsyncLocalIndentation
+  commentId: F:Microsoft.Accordant.Logger.AsyncLocalIndentation
+  id: AsyncLocalIndentation
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: AsyncLocalIndentation
+  nameWithType: Logger.AsyncLocalIndentation
+  fullName: Microsoft.Accordant.Logger.AsyncLocalIndentation
+  type: Field
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: AsyncLocalIndentation
+    path: Accordant.Operations/Logger.cs
+    startLine: 20
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static AsyncLocal<int> AsyncLocalIndentation
+    return:
+      type: System.Threading.AsyncLocal{System.Int32}
+    content.vb: Public Shared AsyncLocalIndentation As AsyncLocal(Of Integer)
+- uid: Microsoft.Accordant.Logger.AsyncLocalEmitTimestamp
+  commentId: F:Microsoft.Accordant.Logger.AsyncLocalEmitTimestamp
+  id: AsyncLocalEmitTimestamp
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: AsyncLocalEmitTimestamp
+  nameWithType: Logger.AsyncLocalEmitTimestamp
+  fullName: Microsoft.Accordant.Logger.AsyncLocalEmitTimestamp
+  type: Field
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: AsyncLocalEmitTimestamp
+    path: Accordant.Operations/Logger.cs
+    startLine: 22
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static AsyncLocal<bool> AsyncLocalEmitTimestamp
+    return:
+      type: System.Threading.AsyncLocal{System.Boolean}
+    content.vb: Public Shared AsyncLocalEmitTimestamp As AsyncLocal(Of Boolean)
+- uid: Microsoft.Accordant.Logger.OutputDirectory
+  commentId: P:Microsoft.Accordant.Logger.OutputDirectory
+  id: OutputDirectory
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: OutputDirectory
+  nameWithType: Logger.OutputDirectory
+  fullName: Microsoft.Accordant.Logger.OutputDirectory
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: OutputDirectory
+    path: Accordant.Operations/Logger.cs
+    startLine: 24
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static string OutputDirectory { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public Shared ReadOnly Property OutputDirectory As String
+  overload: Microsoft.Accordant.Logger.OutputDirectory*
+- uid: Microsoft.Accordant.Logger.Indentation
+  commentId: P:Microsoft.Accordant.Logger.Indentation
+  id: Indentation
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: Indentation
+  nameWithType: Logger.Indentation
+  fullName: Microsoft.Accordant.Logger.Indentation
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Indentation
+    path: Accordant.Operations/Logger.cs
+    startLine: 37
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static int Indentation { get; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public Shared ReadOnly Property Indentation As Integer
+  overload: Microsoft.Accordant.Logger.Indentation*
+- uid: Microsoft.Accordant.Logger.EmitTimestamp
+  commentId: P:Microsoft.Accordant.Logger.EmitTimestamp
+  id: EmitTimestamp
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: EmitTimestamp
+  nameWithType: Logger.EmitTimestamp
+  fullName: Microsoft.Accordant.Logger.EmitTimestamp
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: EmitTimestamp
+    path: Accordant.Operations/Logger.cs
+    startLine: 39
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static bool EmitTimestamp { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Shared ReadOnly Property EmitTimestamp As Boolean
+  overload: Microsoft.Accordant.Logger.EmitTimestamp*
+- uid: Microsoft.Accordant.Logger.IndentationDelta
+  commentId: P:Microsoft.Accordant.Logger.IndentationDelta
+  id: IndentationDelta
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: IndentationDelta
+  nameWithType: Logger.IndentationDelta
+  fullName: Microsoft.Accordant.Logger.IndentationDelta
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: IndentationDelta
+    path: Accordant.Operations/Logger.cs
+    startLine: 41
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static int IndentationDelta { get; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public Shared ReadOnly Property IndentationDelta As Integer
+  overload: Microsoft.Accordant.Logger.IndentationDelta*
+- uid: Microsoft.Accordant.Logger.LogLambda
+  commentId: P:Microsoft.Accordant.Logger.LogLambda
+  id: LogLambda
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: LogLambda
+  nameWithType: Logger.LogLambda
+  fullName: Microsoft.Accordant.Logger.LogLambda
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: LogLambda
+    path: Accordant.Operations/Logger.cs
+    startLine: 51
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static Logger.LogDelegate LogLambda { get; set; }
+    parameters: []
+    return:
+      type: Microsoft.Accordant.Logger.LogDelegate
+    content.vb: Public Shared Property LogLambda As Logger.LogDelegate
+  overload: Microsoft.Accordant.Logger.LogLambda*
+- uid: Microsoft.Accordant.Logger.#ctor(System.Boolean,System.Nullable{System.Boolean},System.String)
+  commentId: M:Microsoft.Accordant.Logger.#ctor(System.Boolean,System.Nullable{System.Boolean},System.String)
+  id: '#ctor(System.Boolean,System.Nullable{System.Boolean},System.String)'
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: Logger(bool, bool?, string)
+  nameWithType: Logger.Logger(bool, bool?, string)
+  fullName: Microsoft.Accordant.Logger.Logger(bool, bool?, string)
+  type: Constructor
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: .ctor
+    path: Accordant.Operations/Logger.cs
+    startLine: 53
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public Logger(bool indent = false, bool? emitTimestamp = null, string outputDirectory = null)
+    parameters:
+    - id: indent
+      type: System.Boolean
+    - id: emitTimestamp
+      type: System.Nullable{System.Boolean}
+    - id: outputDirectory
+      type: System.String
+    content.vb: Public Sub New(indent As Boolean = False, emitTimestamp As Boolean? = Nothing, outputDirectory As String = Nothing)
+  overload: Microsoft.Accordant.Logger.#ctor*
+  nameWithType.vb: Logger.New(Boolean, Boolean?, String)
+  fullName.vb: Microsoft.Accordant.Logger.New(Boolean, Boolean?, String)
+  name.vb: New(Boolean, Boolean?, String)
+- uid: Microsoft.Accordant.Logger.Log(System.String)
+  commentId: M:Microsoft.Accordant.Logger.Log(System.String)
+  id: Log(System.String)
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: Log(string)
+  nameWithType: Logger.Log(string)
+  fullName: Microsoft.Accordant.Logger.Log(string)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Log
+    path: Accordant.Operations/Logger.cs
+    startLine: 78
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static void Log(string logLine)
+    parameters:
+    - id: logLine
+      type: System.String
+    content.vb: Public Shared Sub Log(logLine As String)
+  overload: Microsoft.Accordant.Logger.Log*
+  nameWithType.vb: Logger.Log(String)
+  fullName.vb: Microsoft.Accordant.Logger.Log(String)
+  name.vb: Log(String)
+- uid: Microsoft.Accordant.Logger.Serialize``1(``0,System.Boolean)
+  commentId: M:Microsoft.Accordant.Logger.Serialize``1(``0,System.Boolean)
+  id: Serialize``1(``0,System.Boolean)
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: Serialize<T>(T, bool)
+  nameWithType: Logger.Serialize<T>(T, bool)
+  fullName: Microsoft.Accordant.Logger.Serialize<T>(T, bool)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Serialize
+    path: Accordant.Operations/Logger.cs
+    startLine: 101
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static string Serialize<T>(T value, bool indented = true)
+    parameters:
+    - id: value
+      type: '{T}'
+    - id: indented
+      type: System.Boolean
+    typeParameters:
+    - id: T
+    return:
+      type: System.String
+    content.vb: Public Shared Function Serialize(Of T)(value As T, indented As Boolean = True) As String
+  overload: Microsoft.Accordant.Logger.Serialize*
+  nameWithType.vb: Logger.Serialize(Of T)(T, Boolean)
+  fullName.vb: Microsoft.Accordant.Logger.Serialize(Of T)(T, Boolean)
+  name.vb: Serialize(Of T)(T, Boolean)
+- uid: Microsoft.Accordant.Logger.Dispose
+  commentId: M:Microsoft.Accordant.Logger.Dispose
+  id: Dispose
+  parent: Microsoft.Accordant.Logger
+  langs:
+  - csharp
+  - vb
+  name: Dispose()
+  nameWithType: Logger.Dispose()
+  fullName: Microsoft.Accordant.Logger.Dispose()
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Dispose
+    path: Accordant.Operations/Logger.cs
+    startLine: 123
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: public void Dispose()
+    content.vb: Public Sub Dispose()
+  overload: Microsoft.Accordant.Logger.Dispose*
+  implements:
+  - System.IDisposable.Dispose
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.IDisposable
+  commentId: T:System.IDisposable
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.idisposable
+  name: IDisposable
+  nameWithType: IDisposable
+  fullName: System.IDisposable
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.Threading.AsyncLocal{System.String}
+  commentId: T:System.Threading.AsyncLocal{System.String}
+  parent: System.Threading
+  definition: System.Threading.AsyncLocal`1
+  href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  name: AsyncLocal<string>
+  nameWithType: AsyncLocal<string>
+  fullName: System.Threading.AsyncLocal<string>
+  nameWithType.vb: AsyncLocal(Of String)
+  fullName.vb: System.Threading.AsyncLocal(Of String)
+  name.vb: AsyncLocal(Of String)
+  spec.csharp:
+  - uid: System.Threading.AsyncLocal`1
+    name: AsyncLocal
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  - name: <
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: '>'
+  spec.vb:
+  - uid: System.Threading.AsyncLocal`1
+    name: AsyncLocal
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: System.Threading.AsyncLocal`1
+  commentId: T:System.Threading.AsyncLocal`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  name: AsyncLocal<T>
+  nameWithType: AsyncLocal<T>
+  fullName: System.Threading.AsyncLocal<T>
+  nameWithType.vb: AsyncLocal(Of T)
+  fullName.vb: System.Threading.AsyncLocal(Of T)
+  name.vb: AsyncLocal(Of T)
+  spec.csharp:
+  - uid: System.Threading.AsyncLocal`1
+    name: AsyncLocal
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Threading.AsyncLocal`1
+    name: AsyncLocal
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Threading
+  commentId: N:System.Threading
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Threading
+  nameWithType: System.Threading
+  fullName: System.Threading
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Threading
+    name: Threading
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Threading
+    name: Threading
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading
+- uid: System.Threading.AsyncLocal{System.Int32}
+  commentId: T:System.Threading.AsyncLocal{System.Int32}
+  parent: System.Threading
+  definition: System.Threading.AsyncLocal`1
+  href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  name: AsyncLocal<int>
+  nameWithType: AsyncLocal<int>
+  fullName: System.Threading.AsyncLocal<int>
+  nameWithType.vb: AsyncLocal(Of Integer)
+  fullName.vb: System.Threading.AsyncLocal(Of Integer)
+  name.vb: AsyncLocal(Of Integer)
+  spec.csharp:
+  - uid: System.Threading.AsyncLocal`1
+    name: AsyncLocal
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  - name: <
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: '>'
+  spec.vb:
+  - uid: System.Threading.AsyncLocal`1
+    name: AsyncLocal
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+- uid: System.Threading.AsyncLocal{System.Boolean}
+  commentId: T:System.Threading.AsyncLocal{System.Boolean}
+  parent: System.Threading
+  definition: System.Threading.AsyncLocal`1
+  href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  name: AsyncLocal<bool>
+  nameWithType: AsyncLocal<bool>
+  fullName: System.Threading.AsyncLocal<bool>
+  nameWithType.vb: AsyncLocal(Of Boolean)
+  fullName.vb: System.Threading.AsyncLocal(Of Boolean)
+  name.vb: AsyncLocal(Of Boolean)
+  spec.csharp:
+  - uid: System.Threading.AsyncLocal`1
+    name: AsyncLocal
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  - name: <
+  - uid: System.Boolean
+    name: bool
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: '>'
+  spec.vb:
+  - uid: System.Threading.AsyncLocal`1
+    name: AsyncLocal
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.asynclocal-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Boolean
+    name: Boolean
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: )
+- uid: Microsoft.Accordant.Logger.OutputDirectory*
+  commentId: Overload:Microsoft.Accordant.Logger.OutputDirectory
+  href: Microsoft.Accordant.Logger.html#Microsoft_Accordant_Logger_OutputDirectory
+  name: OutputDirectory
+  nameWithType: Logger.OutputDirectory
+  fullName: Microsoft.Accordant.Logger.OutputDirectory
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.Logger.Indentation*
+  commentId: Overload:Microsoft.Accordant.Logger.Indentation
+  href: Microsoft.Accordant.Logger.html#Microsoft_Accordant_Logger_Indentation
+  name: Indentation
+  nameWithType: Logger.Indentation
+  fullName: Microsoft.Accordant.Logger.Indentation
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: Microsoft.Accordant.Logger.EmitTimestamp*
+  commentId: Overload:Microsoft.Accordant.Logger.EmitTimestamp
+  href: Microsoft.Accordant.Logger.html#Microsoft_Accordant_Logger_EmitTimestamp
+  name: EmitTimestamp
+  nameWithType: Logger.EmitTimestamp
+  fullName: Microsoft.Accordant.Logger.EmitTimestamp
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: Microsoft.Accordant.Logger.IndentationDelta*
+  commentId: Overload:Microsoft.Accordant.Logger.IndentationDelta
+  href: Microsoft.Accordant.Logger.html#Microsoft_Accordant_Logger_IndentationDelta
+  name: IndentationDelta
+  nameWithType: Logger.IndentationDelta
+  fullName: Microsoft.Accordant.Logger.IndentationDelta
+- uid: Microsoft.Accordant.Logger.LogLambda*
+  commentId: Overload:Microsoft.Accordant.Logger.LogLambda
+  href: Microsoft.Accordant.Logger.html#Microsoft_Accordant_Logger_LogLambda
+  name: LogLambda
+  nameWithType: Logger.LogLambda
+  fullName: Microsoft.Accordant.Logger.LogLambda
+- uid: Microsoft.Accordant.Logger.LogDelegate
+  commentId: T:Microsoft.Accordant.Logger.LogDelegate
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.Logger.html
+  name: Logger.LogDelegate
+  nameWithType: Logger.LogDelegate
+  fullName: Microsoft.Accordant.Logger.LogDelegate
+  spec.csharp:
+  - uid: Microsoft.Accordant.Logger
+    name: Logger
+    href: Microsoft.Accordant.Logger.html
+  - name: .
+  - uid: Microsoft.Accordant.Logger.LogDelegate
+    name: LogDelegate
+    href: Microsoft.Accordant.Logger.LogDelegate.html
+  spec.vb:
+  - uid: Microsoft.Accordant.Logger
+    name: Logger
+    href: Microsoft.Accordant.Logger.html
+  - name: .
+  - uid: Microsoft.Accordant.Logger.LogDelegate
+    name: LogDelegate
+    href: Microsoft.Accordant.Logger.LogDelegate.html
+- uid: Microsoft.Accordant.Logger.#ctor*
+  commentId: Overload:Microsoft.Accordant.Logger.#ctor
+  href: Microsoft.Accordant.Logger.html#Microsoft_Accordant_Logger__ctor_System_Boolean_System_Nullable_System_Boolean__System_String_
+  name: Logger
+  nameWithType: Logger.Logger
+  fullName: Microsoft.Accordant.Logger.Logger
+  nameWithType.vb: Logger.New
+  fullName.vb: Microsoft.Accordant.Logger.New
+  name.vb: New
+- uid: System.Nullable{System.Boolean}
+  commentId: T:System.Nullable{System.Boolean}
+  parent: System
+  definition: System.Nullable`1
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool?
+  nameWithType: bool?
+  fullName: bool?
+  nameWithType.vb: Boolean?
+  fullName.vb: Boolean?
+  name.vb: Boolean?
+  spec.csharp:
+  - uid: System.Boolean
+    name: bool
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: '?'
+  spec.vb:
+  - uid: System.Boolean
+    name: Boolean
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: '?'
+- uid: System.Nullable`1
+  commentId: T:System.Nullable`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.nullable-1
+  name: Nullable<T>
+  nameWithType: Nullable<T>
+  fullName: System.Nullable<T>
+  nameWithType.vb: Nullable(Of T)
+  fullName.vb: System.Nullable(Of T)
+  name.vb: Nullable(Of T)
+  spec.csharp:
+  - uid: System.Nullable`1
+    name: Nullable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.nullable-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Nullable`1
+    name: Nullable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.nullable-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: Microsoft.Accordant.Logger.Log*
+  commentId: Overload:Microsoft.Accordant.Logger.Log
+  href: Microsoft.Accordant.Logger.html#Microsoft_Accordant_Logger_Log_System_String_
+  name: Log
+  nameWithType: Logger.Log
+  fullName: Microsoft.Accordant.Logger.Log
+- uid: Microsoft.Accordant.Logger.Serialize*
+  commentId: Overload:Microsoft.Accordant.Logger.Serialize
+  href: Microsoft.Accordant.Logger.html#Microsoft_Accordant_Logger_Serialize__1___0_System_Boolean_
+  name: Serialize
+  nameWithType: Logger.Serialize
+  fullName: Microsoft.Accordant.Logger.Serialize
+- uid: '{T}'
+  commentId: '!:T'
+  definition: T
+  name: T
+  nameWithType: T
+  fullName: T
+- uid: T
+  name: T
+  nameWithType: T
+  fullName: T
+- uid: Microsoft.Accordant.Logger.Dispose*
+  commentId: Overload:Microsoft.Accordant.Logger.Dispose
+  href: Microsoft.Accordant.Logger.html#Microsoft_Accordant_Logger_Dispose
+  name: Dispose
+  nameWithType: Logger.Dispose
+  fullName: Microsoft.Accordant.Logger.Dispose
+- uid: System.IDisposable.Dispose
+  commentId: M:System.IDisposable.Dispose
+  parent: System.IDisposable
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.idisposable.dispose
+  name: Dispose()
+  nameWithType: IDisposable.Dispose()
+  fullName: System.IDisposable.Dispose()
+  spec.csharp:
+  - uid: System.IDisposable.Dispose
+    name: Dispose
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.idisposable.dispose
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.IDisposable.Dispose
+    name: Dispose
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.idisposable.dispose
+  - name: (
+  - name: )

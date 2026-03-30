@@ -1,0 +1,6 @@
+namespace {{Name}};
+
+/// <summary>
+/// Simple wrapper for API responses: status code + optional data.
+/// </summary>
+public record ApiResult<T>(int StatusCode, T? Data = default);

@@ -1,0 +1,831 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.StateProfile
+  commentId: T:Microsoft.Accordant.StateProfile
+  id: StateProfile
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.StateProfile.#ctor(Microsoft.Accordant.State)
+  - Microsoft.Accordant.StateProfile.#ctor(System.Collections.Generic.IList{Microsoft.Accordant.State})
+  - Microsoft.Accordant.StateProfile.#ctor(System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}})
+  - Microsoft.Accordant.StateProfile.IsSingleState
+  - Microsoft.Accordant.StateProfile.SingleState
+  - Microsoft.Accordant.StateProfile.StatesAndStepFunctions
+  - Microsoft.Accordant.StateProfile.ToString
+  langs:
+  - csharp
+  - vb
+  name: StateProfile
+  nameWithType: StateProfile
+  fullName: Microsoft.Accordant.StateProfile
+  type: Class
+  source:
+    remote:
+      path: Accordant/StateProfile.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: StateProfile
+    path: Accordant/StateProfile.cs
+    startLine: 30
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    This class tracks the state or set of states the system could be in, as well
+
+    as active step functions that can further impact that state.
+
+
+    The most frequent use case is the system being in a single state, and each operation
+
+    optionally transitioning it to a single next state.
+
+
+    There are situations however where the system can be in one of a possible set of
+
+    states.  As an example, consider a web service endpoint that returns a timeout
+
+    error. A timeout error might not always mean the operation did not
+
+    finish. Maybe it didn't, or maybe it did but the server's timeout stopwatch
+
+    expired before it could return a successful response. So the system can be in one
+
+    of two states: one in which the operation never happened and the other in which it
+
+    did happen. This class can allow us to represent both the possibilities. In such
+
+    situations, further operations (say a GET call on the web service endpoint) can
+
+    help resolve the ambiguity the system is in.
+
+
+    Finally, certain operations can trigger active processes within the system that
+
+    can transition the system to possible next states without the user taking any
+
+    explicit action. As an example, consider a web service endpoint that starts a long
+
+    running background process that can transition the system through a sequence of 
+
+    states. This class can represent such processes by associating a set of step functions
+
+    associated with each possible state the system can be in.
+  example: []
+  syntax:
+    content: public class StateProfile
+    content.vb: Public Class StateProfile
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+- uid: Microsoft.Accordant.StateProfile.StatesAndStepFunctions
+  commentId: P:Microsoft.Accordant.StateProfile.StatesAndStepFunctions
+  id: StatesAndStepFunctions
+  parent: Microsoft.Accordant.StateProfile
+  langs:
+  - csharp
+  - vb
+  name: StatesAndStepFunctions
+  nameWithType: StateProfile.StatesAndStepFunctions
+  fullName: Microsoft.Accordant.StateProfile.StatesAndStepFunctions
+  type: Property
+  source:
+    remote:
+      path: Accordant/StateProfile.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: StatesAndStepFunctions
+    path: Accordant/StateProfile.cs
+    startLine: 36
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    The set of states the system can be and the set of step functions
+
+    associated with each of those states.
+  example: []
+  syntax:
+    content: public IList<(State State, IList<IStepFunction> StepFunctions)> StatesAndStepFunctions { get; set; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}}
+    content.vb: Public Property StatesAndStepFunctions As IList(Of (State As State, StepFunctions As IList(Of IStepFunction)))
+  overload: Microsoft.Accordant.StateProfile.StatesAndStepFunctions*
+- uid: Microsoft.Accordant.StateProfile.#ctor(Microsoft.Accordant.State)
+  commentId: M:Microsoft.Accordant.StateProfile.#ctor(Microsoft.Accordant.State)
+  id: '#ctor(Microsoft.Accordant.State)'
+  parent: Microsoft.Accordant.StateProfile
+  langs:
+  - csharp
+  - vb
+  name: StateProfile(State)
+  nameWithType: StateProfile.StateProfile(State)
+  fullName: Microsoft.Accordant.StateProfile.StateProfile(Microsoft.Accordant.State)
+  type: Constructor
+  source:
+    remote:
+      path: Accordant/StateProfile.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: .ctor
+    path: Accordant/StateProfile.cs
+    startLine: 41
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: Constructs an instance of this class given a single state.
+  example: []
+  syntax:
+    content: public StateProfile(State state)
+    parameters:
+    - id: state
+      type: Microsoft.Accordant.State
+    content.vb: Public Sub New(state As State)
+  overload: Microsoft.Accordant.StateProfile.#ctor*
+  nameWithType.vb: StateProfile.New(State)
+  fullName.vb: Microsoft.Accordant.StateProfile.New(Microsoft.Accordant.State)
+  name.vb: New(State)
+- uid: Microsoft.Accordant.StateProfile.#ctor(System.Collections.Generic.IList{Microsoft.Accordant.State})
+  commentId: M:Microsoft.Accordant.StateProfile.#ctor(System.Collections.Generic.IList{Microsoft.Accordant.State})
+  id: '#ctor(System.Collections.Generic.IList{Microsoft.Accordant.State})'
+  parent: Microsoft.Accordant.StateProfile
+  langs:
+  - csharp
+  - vb
+  name: StateProfile(IList<State>)
+  nameWithType: StateProfile.StateProfile(IList<State>)
+  fullName: Microsoft.Accordant.StateProfile.StateProfile(System.Collections.Generic.IList<Microsoft.Accordant.State>)
+  type: Constructor
+  source:
+    remote:
+      path: Accordant/StateProfile.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: .ctor
+    path: Accordant/StateProfile.cs
+    startLine: 53
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: Constructs an instance of this class given a set of states.
+  example: []
+  syntax:
+    content: public StateProfile(IList<State> states)
+    parameters:
+    - id: states
+      type: System.Collections.Generic.IList{Microsoft.Accordant.State}
+      description: ''
+    content.vb: Public Sub New(states As IList(Of State))
+  overload: Microsoft.Accordant.StateProfile.#ctor*
+  nameWithType.vb: StateProfile.New(IList(Of State))
+  fullName.vb: Microsoft.Accordant.StateProfile.New(System.Collections.Generic.IList(Of Microsoft.Accordant.State))
+  name.vb: New(IList(Of State))
+- uid: Microsoft.Accordant.StateProfile.#ctor(System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}})
+  commentId: M:Microsoft.Accordant.StateProfile.#ctor(System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}})
+  id: '#ctor(System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}})'
+  parent: Microsoft.Accordant.StateProfile
+  langs:
+  - csharp
+  - vb
+  name: StateProfile(IList<(State, IList<IStepFunction>)>)
+  nameWithType: StateProfile.StateProfile(IList<(State, IList<IStepFunction>)>)
+  fullName: Microsoft.Accordant.StateProfile.StateProfile(System.Collections.Generic.IList<(Microsoft.Accordant.State, System.Collections.Generic.IList<Microsoft.Accordant.IStepFunction>)>)
+  type: Constructor
+  source:
+    remote:
+      path: Accordant/StateProfile.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: .ctor
+    path: Accordant/StateProfile.cs
+    startLine: 63
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    Constructs an instance of this class given a set of states and associated
+
+    step functions.
+  example: []
+  syntax:
+    content: public StateProfile(IList<(State, IList<IStepFunction>)> statesAndStepFunctions)
+    parameters:
+    - id: statesAndStepFunctions
+      type: System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}}
+    content.vb: Public Sub New(statesAndStepFunctions As IList(Of (State, IList(Of IStepFunction))))
+  overload: Microsoft.Accordant.StateProfile.#ctor*
+  nameWithType.vb: StateProfile.New(IList(Of (State, IList(Of IStepFunction))))
+  fullName.vb: Microsoft.Accordant.StateProfile.New(System.Collections.Generic.IList(Of (Microsoft.Accordant.State, System.Collections.Generic.IList(Of Microsoft.Accordant.IStepFunction))))
+  name.vb: New(IList(Of (State, IList(Of IStepFunction))))
+- uid: Microsoft.Accordant.StateProfile.SingleState
+  commentId: M:Microsoft.Accordant.StateProfile.SingleState
+  id: SingleState
+  parent: Microsoft.Accordant.StateProfile
+  langs:
+  - csharp
+  - vb
+  name: SingleState()
+  nameWithType: StateProfile.SingleState()
+  fullName: Microsoft.Accordant.StateProfile.SingleState()
+  type: Method
+  source:
+    remote:
+      path: Accordant/StateProfile.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: SingleState
+    path: Accordant/StateProfile.cs
+    startLine: 84
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    This method returns the single next state but only if the set of next
+
+    states contains a single state. It throws the <xref href="Microsoft.Accordant.MultipleStateException" data-throw-if-not-resolved="false"></xref>
+
+    exception otherwise.
+  example: []
+  syntax:
+    content: public State SingleState()
+    return:
+      type: Microsoft.Accordant.State
+    content.vb: Public Function SingleState() As State
+  overload: Microsoft.Accordant.StateProfile.SingleState*
+- uid: Microsoft.Accordant.StateProfile.IsSingleState
+  commentId: M:Microsoft.Accordant.StateProfile.IsSingleState
+  id: IsSingleState
+  parent: Microsoft.Accordant.StateProfile
+  langs:
+  - csharp
+  - vb
+  name: IsSingleState()
+  nameWithType: StateProfile.IsSingleState()
+  fullName: Microsoft.Accordant.StateProfile.IsSingleState()
+  type: Method
+  source:
+    remote:
+      path: Accordant/StateProfile.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: IsSingleState
+    path: Accordant/StateProfile.cs
+    startLine: 101
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    This method indicates if a system is uniquely in a single state or if it could be in
+
+    more than one possible state.
+  example: []
+  syntax:
+    content: public bool IsSingleState()
+    return:
+      type: System.Boolean
+    content.vb: Public Function IsSingleState() As Boolean
+  overload: Microsoft.Accordant.StateProfile.IsSingleState*
+- uid: Microsoft.Accordant.StateProfile.ToString
+  commentId: M:Microsoft.Accordant.StateProfile.ToString
+  id: ToString
+  parent: Microsoft.Accordant.StateProfile
+  langs:
+  - csharp
+  - vb
+  name: ToString()
+  nameWithType: StateProfile.ToString()
+  fullName: Microsoft.Accordant.StateProfile.ToString()
+  type: Method
+  source:
+    remote:
+      path: Accordant/StateProfile.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ToString
+    path: Accordant/StateProfile.cs
+    startLine: 114
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: public override string ToString()
+    return:
+      type: System.String
+    content.vb: Public Overrides Function ToString() As String
+  overridden: System.Object.ToString
+  overload: Microsoft.Accordant.StateProfile.ToString*
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.StateProfile.StatesAndStepFunctions*
+  commentId: Overload:Microsoft.Accordant.StateProfile.StatesAndStepFunctions
+  href: Microsoft.Accordant.StateProfile.html#Microsoft_Accordant_StateProfile_StatesAndStepFunctions
+  name: StatesAndStepFunctions
+  nameWithType: StateProfile.StatesAndStepFunctions
+  fullName: Microsoft.Accordant.StateProfile.StatesAndStepFunctions
+- uid: System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}}
+  commentId: T:System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<(State State, IList<IStepFunction> StepFunctions)>
+  nameWithType: IList<(State State, IList<IStepFunction> StepFunctions)>
+  fullName: System.Collections.Generic.IList<(Microsoft.Accordant.State State, System.Collections.Generic.IList<Microsoft.Accordant.IStepFunction> StepFunctions)>
+  nameWithType.vb: IList(Of (State As State, StepFunctions As IList(Of IStepFunction)))
+  fullName.vb: System.Collections.Generic.IList(Of (State As Microsoft.Accordant.State, StepFunctions As System.Collections.Generic.IList(Of Microsoft.Accordant.IStepFunction)))
+  name.vb: IList(Of (State As State, StepFunctions As IList(Of IStepFunction)))
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - name: (
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: " "
+  - uid: System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}.State
+    name: State
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-microsoft.accordant.state,system.collections.generic.ilist-microsoft.accordant.istepfunction--.state
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.IStepFunction
+    name: IStepFunction
+    href: Microsoft.Accordant.IStepFunction.html
+  - name: '>'
+  - name: " "
+  - uid: System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}.StepFunctions
+    name: StepFunctions
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-microsoft.accordant.state,system.collections.generic.ilist-microsoft.accordant.istepfunction--.stepfunctions
+  - name: )
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: (
+  - uid: System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}.State
+    name: State
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-microsoft.accordant.state,system.collections.generic.ilist-microsoft.accordant.istepfunction--.state
+  - name: " "
+  - name: As
+  - name: " "
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: ','
+  - name: " "
+  - uid: System.ValueTuple{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}.StepFunctions
+    name: StepFunctions
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-microsoft.accordant.state,system.collections.generic.ilist-microsoft.accordant.istepfunction--.stepfunctions
+  - name: " "
+  - name: As
+  - name: " "
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.IStepFunction
+    name: IStepFunction
+    href: Microsoft.Accordant.IStepFunction.html
+  - name: )
+  - name: )
+  - name: )
+- uid: System.Collections.Generic.IList`1
+  commentId: T:System.Collections.Generic.IList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: Microsoft.Accordant.StateProfile.#ctor*
+  commentId: Overload:Microsoft.Accordant.StateProfile.#ctor
+  href: Microsoft.Accordant.StateProfile.html#Microsoft_Accordant_StateProfile__ctor_Microsoft_Accordant_State_
+  name: StateProfile
+  nameWithType: StateProfile.StateProfile
+  fullName: Microsoft.Accordant.StateProfile.StateProfile
+  nameWithType.vb: StateProfile.New
+  fullName.vb: Microsoft.Accordant.StateProfile.New
+  name.vb: New
+- uid: Microsoft.Accordant.State
+  commentId: T:Microsoft.Accordant.State
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.State.html
+  name: State
+  nameWithType: State
+  fullName: Microsoft.Accordant.State
+- uid: System.Collections.Generic.IList{Microsoft.Accordant.State}
+  commentId: T:System.Collections.Generic.IList{Microsoft.Accordant.State}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<State>
+  nameWithType: IList<State>
+  fullName: System.Collections.Generic.IList<Microsoft.Accordant.State>
+  nameWithType.vb: IList(Of State)
+  fullName.vb: System.Collections.Generic.IList(Of Microsoft.Accordant.State)
+  name.vb: IList(Of State)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: )
+- uid: Microsoft.Accordant.MultipleStateException
+  commentId: T:Microsoft.Accordant.MultipleStateException
+  href: Microsoft.Accordant.MultipleStateException.html
+  name: MultipleStateException
+  nameWithType: MultipleStateException
+  fullName: Microsoft.Accordant.MultipleStateException
+- uid: Microsoft.Accordant.StateProfile.SingleState*
+  commentId: Overload:Microsoft.Accordant.StateProfile.SingleState
+  href: Microsoft.Accordant.StateProfile.html#Microsoft_Accordant_StateProfile_SingleState
+  name: SingleState
+  nameWithType: StateProfile.SingleState
+  fullName: Microsoft.Accordant.StateProfile.SingleState
+- uid: Microsoft.Accordant.StateProfile.IsSingleState*
+  commentId: Overload:Microsoft.Accordant.StateProfile.IsSingleState
+  href: Microsoft.Accordant.StateProfile.html#Microsoft_Accordant_StateProfile_IsSingleState
+  name: IsSingleState
+  nameWithType: StateProfile.IsSingleState
+  fullName: Microsoft.Accordant.StateProfile.IsSingleState
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.StateProfile.ToString*
+  commentId: Overload:Microsoft.Accordant.StateProfile.ToString
+  href: Microsoft.Accordant.StateProfile.html#Microsoft_Accordant_StateProfile_ToString
+  name: ToString
+  nameWithType: StateProfile.ToString
+  fullName: Microsoft.Accordant.StateProfile.ToString
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String

@@ -1,0 +1,291 @@
+---
+name: Accordant Execute Tests
+description: How to execute auto-generated test cases against real implementations using RunTests, TestExecutionOptions, and lifecycle hooks
+---
+
+# Executing Generated Test Cases
+
+After generating test cases, execute them against your real system to validate behavior matches the spec.
+
+## Running Sequential Tests
+
+```csharp
+var spec = new MySpec();
+var initialState = new MyState();
+var context = spec.CreateTestingContext();
+
+// Register the real system under test
+context.Register(new MyApiClient());
+
+// Generate test cases
+var inputs = new InputSet() { /* ... */ };
+var testCases = spec.GenerateTests(initialState, inputs);
+
+// Execute
+var results = await spec.RunTests(
+    context,
+    initialState,
+    testCases,
+    new TestExecutionOptions
+    {
+        BeforeEach = info => context.Register(new MyApiClient())  // Fresh client per test
+    });
+
+// Assert all passed
+Assert.IsTrue(results.All(r => r.Success), "Some test cases failed");
+```
+
+## Running Concurrent Tests
+
+```csharp
+var concurrentTestCases = spec.GenerateConcurrentTests(initialState, inputs);
+
+var results = await spec.RunTests(
+    context,
+    initialState,
+    concurrentTestCases,
+    new TestExecutionOptions
+    {
+        BeforeEach = info => context.Register(new MyApiClient())
+    });
+
+Assert.IsTrue(results.All(r => r.Success));
+```
+
+## TestExecutionOptions
+
+### Lifecycle Hooks
+
+```csharp
+var options = new TestExecutionOptions
+{
+    // Called once before all tests
+    BeforeAll = info =>
+    {
+        Console.WriteLine($"Running {info.TotalTests} tests");
+    },
+
+    // Called before each test case
+    BeforeEach = info =>
+    {
+        // Reset the system to a clean state
+        // info.Context, info.TestCase, info.InitialState, info.TestIndex available
+        info.Context.Register(new Stack<int>());
+    },
+
+    // Called after each test case
+    AfterEach = info =>
+    {
+        if (!info.Success)
+            Console.WriteLine($"FAILED: {info.FailureMessage}");
+    },
+
+    // Called once after all tests complete
+    AfterAll = info =>
+    {
+        Console.WriteLine($"Results: {info.Passed}/{info.TotalTests} passed, " +
+                          $"{info.Failed} failed, {info.Skipped} skipped");
+    }
+};
+```
+
+### Async Lifecycle Hooks
+
+For systems requiring async setup/teardown:
+
+```csharp
+var options = new TestExecutionOptions
+{
+    BeforeEachAsync = async info =>
+    {
+        var client = info.Context.Get<TodoApiClient>();
+        // Clean up any leftover data before each test
+        foreach (var userId in userIds)
+            await client.DeleteUserAsync(userId);
+    },
+
+    AfterEachAsync = async info =>
+    {
+        // Async cleanup after each test
+        await Task.CompletedTask;
+    }
+};
+
+// Fluent builder syntax also available:
+var options = new TestExecutionOptions()
+    .WithBeforeEach(info => info.Context.Register(new Stack<int>()))
+    .WithAfterEach(info => { /* ... */ });
+```
+
+### Per-Step Hook
+
+Log or inspect every operation call during execution:
+
+```csharp
+var options = new TestExecutionOptions
+{
+    OnStepExecuted = info =>
+    {
+        if (info.IsSingleOperation)
+        {
+            Console.WriteLine($"  {info.Operation.Name}: {info.Request} -> {info.Response}");
+        }
+        else
+        {
+            // Concurrent step - multiple operations
+            foreach (var (op, req, resp) in info.Operations)
+                Console.WriteLine($"  [concurrent] {op.Name}: {req} -> {resp}");
+        }
+    }
+};
+```
+
+### Execution Control
+
+```csharp
+var options = new TestExecutionOptions
+{
+    StopOnFirstFailure = true,  // Default: true. Stop running remaining tests on first failure
+
+    ShouldRetry = (operation, request, response, retryCount) =>
+    {
+        // Retry transient failures up to 3 times
+        return retryCount < 3 && IsTransientError(response);
+    }
+};
+```
+
+## Test Execution Flow
+
+For each test case:
+
+1. **BeforeEach** hook runs (setup)
+2. For each operation in the test case:
+   a. Execute the operation against the real system: `operation.Execute(context, request)`
+   b. Validate the response: `spec.Allows(operation, request, response, stateProfile)`
+   c. If invalid, report failure
+   d. **OnStepExecuted** hook runs
+3. **AfterEach** hook runs (cleanup/reporting)
+
+For concurrent test cases:
+1. Sequential prefix runs first (steps 2a-2d above)
+2. All concurrent operations execute in parallel via `Task.WhenAll`
+3. Results validated via `spec.AllowsConcurrent()` (linearizability check)
+
+## TestCaseExecutionResult
+
+Each test returns a result:
+
+```csharp
+foreach (var result in results)
+{
+    if (result.Success)
+        Console.WriteLine("PASSED");
+    else
+        Console.WriteLine($"FAILED: {result.LastFailureMessage}");
+}
+```
+
+## Complete Example: Stack Tests
+
+```csharp
+[Test]
+public async Task AutoGeneratedTests()
+{
+    var spec = new StackSpec();
+    var initialState = new StackState<int>();
+
+    var inputs = new InputSet()
+    {
+        spec.Push.With(1, "Push 1"),
+        spec.Push.With(2, "Push 2"),
+        spec.Pop.With("Pop"),
+        spec.Peek.With("Peek"),
+        spec.IsEmpty.With("IsEmpty"),
+        spec.Count.With("Count")
+    };
+
+    var testCases = spec.GenerateTests(
+        initialState,
+        inputs,
+        new TestGenerationOptions
+        {
+            StateConstraint = s =>
+            {
+                var stack = (StackState<int>)s;
+                return stack.Items.Count < 3 &&
+                       stack.Items.Distinct().Count() == stack.Items.Count;
+            }
+        });
+
+    var context = spec.CreateTestingContext();
+
+    var results = await spec.RunTests(
+        context,
+        initialState,
+        testCases,
+        new TestExecutionOptions
+        {
+            BeforeEach = _ => context.Register(new Stack<int>())
+        });
+
+    Assert.IsTrue(results.All(r => r.Success), "Some test cases failed");
+}
+```
+
+## Complete Example: HTTP API Tests
+
+```csharp
+[Test]
+public async Task SequentialTests_UsersAndTodos()
+{
+    using var factory = new TodoServiceFactory();
+    var spec = CreateSpec();
+    var initialState = new AppState();
+    var client = new TodoApiClient(factory.CreateTestClient());
+
+    var inputs = new InputSet()
+    {
+        createUser.With(new User("alice", "Alice"), "Create Alice"),
+        getUser.With("alice", "Get Alice"),
+        getUser.With("unknown", "Get unknown user"),
+        createTodo.With(new Todo("alice", "todo-1", "Buy milk"), "Create todo"),
+        getTodo.With(("alice", "todo-1"), "Get todo"),
+    };
+
+    var testCases = spec.GenerateTests(
+        initialState, inputs,
+        new TestGenerationOptions { MaxDepth = 3 });
+
+    var context = spec.CreateTestingContext();
+    context.Register(client);
+
+    var results = await spec.RunTests(
+        context,
+        initialState,
+        testCases,
+        new TestExecutionOptions
+        {
+            BeforeEachAsync = async info =>
+            {
+                var c = info.Context.Get<TodoApiClient>();
+                // Reset system state before each test
+                await c.DeleteUserAsync("alice");
+                await c.DeleteUserAsync("unknown");
+            }
+        });
+
+    Assert.IsEmpty(
+        results.Where(r => !r.Success).ToList(),
+        "Some tests failed");
+}
+```
+
+## Key Points
+
+1. **BeforeEach is critical** — reset your system to match `initialState` before each test
+2. **Register all dependencies** the `Execute` methods need via `context.Register<T>()`
+3. **StopOnFirstFailure = true** (default) helps debug — fix one failure at a time
+4. **Use async hooks** for HTTP/database cleanup
+5. **OnStepExecuted** is valuable for debugging — log every request/response
+6. **Concurrent tests use linearizability** — they try all orderings to validate responses

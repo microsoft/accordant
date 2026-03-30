@@ -1,0 +1,701 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.ResponseValidator
+  commentId: T:Microsoft.Accordant.ResponseValidator
+  id: ResponseValidator
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.ResponseValidator.#ctor(System.Func{System.Object,Microsoft.Accordant.ValidationResult})
+  - Microsoft.Accordant.ResponseValidator.Explain(System.Object)
+  - Microsoft.Accordant.ResponseValidator.FromPredicate``1(System.Func{``0,Microsoft.Accordant.ValidationResult})
+  - Microsoft.Accordant.ResponseValidator.FromPredicate``1(System.Func{``0,System.Boolean})
+  - Microsoft.Accordant.ResponseValidator.Validate(System.Object)
+  langs:
+  - csharp
+  - vb
+  name: ResponseValidator
+  nameWithType: ResponseValidator
+  fullName: Microsoft.Accordant.ResponseValidator
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/ResponseValidator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ResponseValidator
+    path: Accordant.Operations/ResponseValidator.cs
+    startLine: 8
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    A wrapper type that can validate responses. Supports implicit conversion from
+
+    <xref href="System.Func%602" data-throw-if-not-resolved="false"></xref> predicates.
+  example: []
+  syntax:
+    content: public class ResponseValidator
+    content.vb: Public Class ResponseValidator
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.ResponseValidator.#ctor(System.Func{System.Object,Microsoft.Accordant.ValidationResult})
+  commentId: M:Microsoft.Accordant.ResponseValidator.#ctor(System.Func{System.Object,Microsoft.Accordant.ValidationResult})
+  id: '#ctor(System.Func{System.Object,Microsoft.Accordant.ValidationResult})'
+  parent: Microsoft.Accordant.ResponseValidator
+  langs:
+  - csharp
+  - vb
+  name: ResponseValidator(Func<object, ValidationResult>)
+  nameWithType: ResponseValidator.ResponseValidator(Func<object, ValidationResult>)
+  fullName: Microsoft.Accordant.ResponseValidator.ResponseValidator(System.Func<object, Microsoft.Accordant.ValidationResult>)
+  type: Constructor
+  source:
+    remote:
+      path: Accordant.Operations/ResponseValidator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: .ctor
+    path: Accordant.Operations/ResponseValidator.cs
+    startLine: 15
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Creates a ResponseValidator from a validation function.
+  example: []
+  syntax:
+    content: public ResponseValidator(Func<object, ValidationResult> func)
+    parameters:
+    - id: func
+      type: System.Func{System.Object,Microsoft.Accordant.ValidationResult}
+    content.vb: Public Sub New(func As Func(Of Object, ValidationResult))
+  overload: Microsoft.Accordant.ResponseValidator.#ctor*
+  nameWithType.vb: ResponseValidator.New(Func(Of Object, ValidationResult))
+  fullName.vb: Microsoft.Accordant.ResponseValidator.New(System.Func(Of Object, Microsoft.Accordant.ValidationResult))
+  name.vb: New(Func(Of Object, ValidationResult))
+- uid: Microsoft.Accordant.ResponseValidator.Validate(System.Object)
+  commentId: M:Microsoft.Accordant.ResponseValidator.Validate(System.Object)
+  id: Validate(System.Object)
+  parent: Microsoft.Accordant.ResponseValidator
+  langs:
+  - csharp
+  - vb
+  name: Validate(object)
+  nameWithType: ResponseValidator.Validate(object)
+  fullName: Microsoft.Accordant.ResponseValidator.Validate(object)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/ResponseValidator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Validate
+    path: Accordant.Operations/ResponseValidator.cs
+    startLine: 23
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Validates the given response.
+  example: []
+  syntax:
+    content: public ValidationResult Validate(object response)
+    parameters:
+    - id: response
+      type: System.Object
+    return:
+      type: Microsoft.Accordant.ValidationResult
+    content.vb: Public Function Validate(response As Object) As ValidationResult
+  overload: Microsoft.Accordant.ResponseValidator.Validate*
+  nameWithType.vb: ResponseValidator.Validate(Object)
+  fullName.vb: Microsoft.Accordant.ResponseValidator.Validate(Object)
+  name.vb: Validate(Object)
+- uid: Microsoft.Accordant.ResponseValidator.Explain(System.Object)
+  commentId: M:Microsoft.Accordant.ResponseValidator.Explain(System.Object)
+  id: Explain(System.Object)
+  parent: Microsoft.Accordant.ResponseValidator
+  langs:
+  - csharp
+  - vb
+  name: Explain(object)
+  nameWithType: ResponseValidator.Explain(object)
+  fullName: Microsoft.Accordant.ResponseValidator.Explain(object)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/ResponseValidator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Explain
+    path: Accordant.Operations/ResponseValidator.cs
+    startLine: 28
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Returns an explanation of why validation failed.
+  example: []
+  syntax:
+    content: public string Explain(object response)
+    parameters:
+    - id: response
+      type: System.Object
+    return:
+      type: System.String
+    content.vb: Public Function Explain(response As Object) As String
+  overload: Microsoft.Accordant.ResponseValidator.Explain*
+  nameWithType.vb: ResponseValidator.Explain(Object)
+  fullName.vb: Microsoft.Accordant.ResponseValidator.Explain(Object)
+  name.vb: Explain(Object)
+- uid: Microsoft.Accordant.ResponseValidator.FromPredicate``1(System.Func{``0,Microsoft.Accordant.ValidationResult})
+  commentId: M:Microsoft.Accordant.ResponseValidator.FromPredicate``1(System.Func{``0,Microsoft.Accordant.ValidationResult})
+  id: FromPredicate``1(System.Func{``0,Microsoft.Accordant.ValidationResult})
+  parent: Microsoft.Accordant.ResponseValidator
+  langs:
+  - csharp
+  - vb
+  name: FromPredicate<TResponse>(Func<TResponse, ValidationResult>)
+  nameWithType: ResponseValidator.FromPredicate<TResponse>(Func<TResponse, ValidationResult>)
+  fullName: Microsoft.Accordant.ResponseValidator.FromPredicate<TResponse>(System.Func<TResponse, Microsoft.Accordant.ValidationResult>)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/ResponseValidator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: FromPredicate
+    path: Accordant.Operations/ResponseValidator.cs
+    startLine: 37
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Creates a typed ResponseValidator from a typed predicate function.
+  example: []
+  syntax:
+    content: public static ResponseValidator FromPredicate<TResponse>(Func<TResponse, ValidationResult> predicate)
+    parameters:
+    - id: predicate
+      type: System.Func{{TResponse},Microsoft.Accordant.ValidationResult}
+    typeParameters:
+    - id: TResponse
+    return:
+      type: Microsoft.Accordant.ResponseValidator
+    content.vb: Public Shared Function FromPredicate(Of TResponse)(predicate As Func(Of TResponse, ValidationResult)) As ResponseValidator
+  overload: Microsoft.Accordant.ResponseValidator.FromPredicate*
+  nameWithType.vb: ResponseValidator.FromPredicate(Of TResponse)(Func(Of TResponse, ValidationResult))
+  fullName.vb: Microsoft.Accordant.ResponseValidator.FromPredicate(Of TResponse)(System.Func(Of TResponse, Microsoft.Accordant.ValidationResult))
+  name.vb: FromPredicate(Of TResponse)(Func(Of TResponse, ValidationResult))
+- uid: Microsoft.Accordant.ResponseValidator.FromPredicate``1(System.Func{``0,System.Boolean})
+  commentId: M:Microsoft.Accordant.ResponseValidator.FromPredicate``1(System.Func{``0,System.Boolean})
+  id: FromPredicate``1(System.Func{``0,System.Boolean})
+  parent: Microsoft.Accordant.ResponseValidator
+  langs:
+  - csharp
+  - vb
+  name: FromPredicate<TResponse>(Func<TResponse, bool>)
+  nameWithType: ResponseValidator.FromPredicate<TResponse>(Func<TResponse, bool>)
+  fullName: Microsoft.Accordant.ResponseValidator.FromPredicate<TResponse>(System.Func<TResponse, bool>)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/ResponseValidator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: FromPredicate
+    path: Accordant.Operations/ResponseValidator.cs
+    startLine: 48
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Creates a typed ResponseValidator from a typed boolean predicate function.
+  example: []
+  syntax:
+    content: public static ResponseValidator FromPredicate<TResponse>(Func<TResponse, bool> predicate)
+    parameters:
+    - id: predicate
+      type: System.Func{{TResponse},System.Boolean}
+    typeParameters:
+    - id: TResponse
+    return:
+      type: Microsoft.Accordant.ResponseValidator
+    content.vb: Public Shared Function FromPredicate(Of TResponse)(predicate As Func(Of TResponse, Boolean)) As ResponseValidator
+  overload: Microsoft.Accordant.ResponseValidator.FromPredicate*
+  nameWithType.vb: ResponseValidator.FromPredicate(Of TResponse)(Func(Of TResponse, Boolean))
+  fullName.vb: Microsoft.Accordant.ResponseValidator.FromPredicate(Of TResponse)(System.Func(Of TResponse, Boolean))
+  name.vb: FromPredicate(Of TResponse)(Func(Of TResponse, Boolean))
+references:
+- uid: System.Func`2
+  commentId: T:System.Func`2
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<T, TResult>
+  nameWithType: Func<T, TResult>
+  fullName: System.Func<T, TResult>
+  nameWithType.vb: Func(Of T, TResult)
+  fullName.vb: System.Func(Of T, TResult)
+  name.vb: Func(Of T, TResult)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - name: T
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.ResponseValidator.#ctor*
+  commentId: Overload:Microsoft.Accordant.ResponseValidator.#ctor
+  href: Microsoft.Accordant.ResponseValidator.html#Microsoft_Accordant_ResponseValidator__ctor_System_Func_System_Object_Microsoft_Accordant_ValidationResult__
+  name: ResponseValidator
+  nameWithType: ResponseValidator.ResponseValidator
+  fullName: Microsoft.Accordant.ResponseValidator.ResponseValidator
+  nameWithType.vb: ResponseValidator.New
+  fullName.vb: Microsoft.Accordant.ResponseValidator.New
+  name.vb: New
+- uid: System.Func{System.Object,Microsoft.Accordant.ValidationResult}
+  commentId: T:System.Func{System.Object,Microsoft.Accordant.ValidationResult}
+  parent: System
+  definition: System.Func`2
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<object, ValidationResult>
+  nameWithType: Func<object, ValidationResult>
+  fullName: System.Func<object, Microsoft.Accordant.ValidationResult>
+  nameWithType.vb: Func(Of Object, ValidationResult)
+  fullName.vb: System.Func(Of Object, Microsoft.Accordant.ValidationResult)
+  name.vb: Func(Of Object, ValidationResult)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.ValidationResult
+    name: ValidationResult
+    href: Microsoft.Accordant.ValidationResult.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.ValidationResult
+    name: ValidationResult
+    href: Microsoft.Accordant.ValidationResult.html
+  - name: )
+- uid: Microsoft.Accordant.ResponseValidator.Validate*
+  commentId: Overload:Microsoft.Accordant.ResponseValidator.Validate
+  href: Microsoft.Accordant.ResponseValidator.html#Microsoft_Accordant_ResponseValidator_Validate_System_Object_
+  name: Validate
+  nameWithType: ResponseValidator.Validate
+  fullName: Microsoft.Accordant.ResponseValidator.Validate
+- uid: Microsoft.Accordant.ValidationResult
+  commentId: T:Microsoft.Accordant.ValidationResult
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.ValidationResult.html
+  name: ValidationResult
+  nameWithType: ValidationResult
+  fullName: Microsoft.Accordant.ValidationResult
+- uid: Microsoft.Accordant.ResponseValidator.Explain*
+  commentId: Overload:Microsoft.Accordant.ResponseValidator.Explain
+  href: Microsoft.Accordant.ResponseValidator.html#Microsoft_Accordant_ResponseValidator_Explain_System_Object_
+  name: Explain
+  nameWithType: ResponseValidator.Explain
+  fullName: Microsoft.Accordant.ResponseValidator.Explain
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.ResponseValidator.FromPredicate*
+  commentId: Overload:Microsoft.Accordant.ResponseValidator.FromPredicate
+  href: Microsoft.Accordant.ResponseValidator.html#Microsoft_Accordant_ResponseValidator_FromPredicate__1_System_Func___0_Microsoft_Accordant_ValidationResult__
+  name: FromPredicate
+  nameWithType: ResponseValidator.FromPredicate
+  fullName: Microsoft.Accordant.ResponseValidator.FromPredicate
+- uid: System.Func{{TResponse},Microsoft.Accordant.ValidationResult}
+  commentId: T:System.Func{``0,Microsoft.Accordant.ValidationResult}
+  parent: System
+  definition: System.Func`2
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<TResponse, ValidationResult>
+  nameWithType: Func<TResponse, ValidationResult>
+  fullName: System.Func<TResponse, Microsoft.Accordant.ValidationResult>
+  nameWithType.vb: Func(Of TResponse, ValidationResult)
+  fullName.vb: System.Func(Of TResponse, Microsoft.Accordant.ValidationResult)
+  name.vb: Func(Of TResponse, ValidationResult)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - name: TResponse
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.ValidationResult
+    name: ValidationResult
+    href: Microsoft.Accordant.ValidationResult.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TResponse
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.ValidationResult
+    name: ValidationResult
+    href: Microsoft.Accordant.ValidationResult.html
+  - name: )
+- uid: Microsoft.Accordant.ResponseValidator
+  commentId: T:Microsoft.Accordant.ResponseValidator
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.ResponseValidator.html
+  name: ResponseValidator
+  nameWithType: ResponseValidator
+  fullName: Microsoft.Accordant.ResponseValidator
+- uid: System.Func{{TResponse},System.Boolean}
+  commentId: T:System.Func{``0,System.Boolean}
+  parent: System
+  definition: System.Func`2
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<TResponse, bool>
+  nameWithType: Func<TResponse, bool>
+  fullName: System.Func<TResponse, bool>
+  nameWithType.vb: Func(Of TResponse, Boolean)
+  fullName.vb: System.Func(Of TResponse, Boolean)
+  name.vb: Func(Of TResponse, Boolean)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - name: TResponse
+  - name: ','
+  - name: " "
+  - uid: System.Boolean
+    name: bool
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TResponse
+  - name: ','
+  - name: " "
+  - uid: System.Boolean
+    name: Boolean
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: )

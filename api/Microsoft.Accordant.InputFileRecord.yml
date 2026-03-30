@@ -1,0 +1,910 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.InputFileRecord
+  commentId: T:Microsoft.Accordant.InputFileRecord
+  id: InputFileRecord
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.InputFileRecord.DerivationVariant
+  - Microsoft.Accordant.InputFileRecord.DerivedFromOperationCalls
+  - Microsoft.Accordant.InputFileRecord.Name
+  - Microsoft.Accordant.InputFileRecord.OperationName
+  - Microsoft.Accordant.InputFileRecord.Polling
+  - Microsoft.Accordant.InputFileRecord.SerializedRequest
+  - Microsoft.Accordant.InputFileRecord.SkipPolling
+  langs:
+  - csharp
+  - vb
+  name: InputFileRecord
+  nameWithType: InputFileRecord
+  fullName: Microsoft.Accordant.InputFileRecord
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/Persistence/InputFileRecord.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: InputFileRecord
+    path: Accordant.Operations/Persistence/InputFileRecord.cs
+    startLine: 7
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: This class represents the file layout of an <xref href="Microsoft.Accordant.OperationInput" data-throw-if-not-resolved="false"></xref> when serialized.
+  example: []
+  syntax:
+    content: public class InputFileRecord
+    content.vb: Public Class InputFileRecord
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  extensionMethods:
+  - Microsoft.Accordant.InputFileRecord.Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.ISpec,System.Collections.Generic.Dictionary{System.String,Microsoft.Accordant.OperationCall})
+- uid: Microsoft.Accordant.InputFileRecord.OperationName
+  commentId: P:Microsoft.Accordant.InputFileRecord.OperationName
+  id: OperationName
+  parent: Microsoft.Accordant.InputFileRecord
+  langs:
+  - csharp
+  - vb
+  name: OperationName
+  nameWithType: InputFileRecord.OperationName
+  fullName: Microsoft.Accordant.InputFileRecord.OperationName
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Persistence/InputFileRecord.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: OperationName
+    path: Accordant.Operations/Persistence/InputFileRecord.cs
+    startLine: 15
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    The name of the <xref href="Microsoft.Accordant.IOperation" data-throw-if-not-resolved="false"></xref> under which it is
+
+    registered with the <xref href="Microsoft.Accordant.Spec" data-throw-if-not-resolved="false"></xref>. The spec
+
+    itself is not serialized and the spec must contain an operation
+
+    with this name when this file record is deserialized.
+  example: []
+  syntax:
+    content: public string OperationName { get; set; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public Property OperationName As String
+  overload: Microsoft.Accordant.InputFileRecord.OperationName*
+- uid: Microsoft.Accordant.InputFileRecord.Name
+  commentId: P:Microsoft.Accordant.InputFileRecord.Name
+  id: Name
+  parent: Microsoft.Accordant.InputFileRecord
+  langs:
+  - csharp
+  - vb
+  name: Name
+  nameWithType: InputFileRecord.Name
+  fullName: Microsoft.Accordant.InputFileRecord.Name
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Persistence/InputFileRecord.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Name
+    path: Accordant.Operations/Persistence/InputFileRecord.cs
+    startLine: 20
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: A unique name representing this input.
+  example: []
+  syntax:
+    content: public string Name { get; set; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public Property Name As String
+  overload: Microsoft.Accordant.InputFileRecord.Name*
+- uid: Microsoft.Accordant.InputFileRecord.SerializedRequest
+  commentId: P:Microsoft.Accordant.InputFileRecord.SerializedRequest
+  id: SerializedRequest
+  parent: Microsoft.Accordant.InputFileRecord
+  langs:
+  - csharp
+  - vb
+  name: SerializedRequest
+  nameWithType: InputFileRecord.SerializedRequest
+  fullName: Microsoft.Accordant.InputFileRecord.SerializedRequest
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Persistence/InputFileRecord.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: SerializedRequest
+    path: Accordant.Operations/Persistence/InputFileRecord.cs
+    startLine: 25
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Serialized request for this operation.
+  example: []
+  syntax:
+    content: public string SerializedRequest { get; set; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public Property SerializedRequest As String
+  overload: Microsoft.Accordant.InputFileRecord.SerializedRequest*
+- uid: Microsoft.Accordant.InputFileRecord.DerivedFromOperationCalls
+  commentId: P:Microsoft.Accordant.InputFileRecord.DerivedFromOperationCalls
+  id: DerivedFromOperationCalls
+  parent: Microsoft.Accordant.InputFileRecord
+  langs:
+  - csharp
+  - vb
+  name: DerivedFromOperationCalls
+  nameWithType: InputFileRecord.DerivedFromOperationCalls
+  fullName: Microsoft.Accordant.InputFileRecord.DerivedFromOperationCalls
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Persistence/InputFileRecord.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: DerivedFromOperationCalls
+    path: Accordant.Operations/Persistence/InputFileRecord.cs
+    startLine: 31
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    The names of the operation calls whose request/response can be used to
+
+    determine the request for this operation.
+  example: []
+  syntax:
+    content: public IList<string> DerivedFromOperationCalls { get; set; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.IList{System.String}
+    content.vb: Public Property DerivedFromOperationCalls As IList(Of String)
+  overload: Microsoft.Accordant.InputFileRecord.DerivedFromOperationCalls*
+- uid: Microsoft.Accordant.InputFileRecord.DerivationVariant
+  commentId: P:Microsoft.Accordant.InputFileRecord.DerivationVariant
+  id: DerivationVariant
+  parent: Microsoft.Accordant.InputFileRecord
+  langs:
+  - csharp
+  - vb
+  name: DerivationVariant
+  nameWithType: InputFileRecord.DerivationVariant
+  fullName: Microsoft.Accordant.InputFileRecord.DerivationVariant
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Persistence/InputFileRecord.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: DerivationVariant
+    path: Accordant.Operations/Persistence/InputFileRecord.cs
+    startLine: 39
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    The variant label if this operation's request is derived from
+
+    the requests/responses of other operations. The label is used to identify
+
+    the right derivation in <xref href="Microsoft.Accordant.IOperation.DerivedFrom" data-throw-if-not-resolved="false"></xref>
+
+    in case the operation can produce more than one derived request.
+  example: []
+  syntax:
+    content: public string DerivationVariant { get; set; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public Property DerivationVariant As String
+  overload: Microsoft.Accordant.InputFileRecord.DerivationVariant*
+- uid: Microsoft.Accordant.InputFileRecord.Polling
+  commentId: P:Microsoft.Accordant.InputFileRecord.Polling
+  id: Polling
+  parent: Microsoft.Accordant.InputFileRecord
+  langs:
+  - csharp
+  - vb
+  name: Polling
+  nameWithType: InputFileRecord.Polling
+  fullName: Microsoft.Accordant.InputFileRecord.Polling
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Persistence/InputFileRecord.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Polling
+    path: Accordant.Operations/Persistence/InputFileRecord.cs
+    startLine: 45
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    The polling setup for this operation input.
+
+    If set, overrides the operation's <xref href="Microsoft.Accordant.IOperation.Polling" data-throw-if-not-resolved="false"></xref> property.
+  example: []
+  syntax:
+    content: public PollingSetup Polling { get; set; }
+    parameters: []
+    return:
+      type: Microsoft.Accordant.PollingSetup
+    content.vb: Public Property Polling As PollingSetup
+  overload: Microsoft.Accordant.InputFileRecord.Polling*
+- uid: Microsoft.Accordant.InputFileRecord.SkipPolling
+  commentId: P:Microsoft.Accordant.InputFileRecord.SkipPolling
+  id: SkipPolling
+  parent: Microsoft.Accordant.InputFileRecord
+  langs:
+  - csharp
+  - vb
+  name: SkipPolling
+  nameWithType: InputFileRecord.SkipPolling
+  fullName: Microsoft.Accordant.InputFileRecord.SkipPolling
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Persistence/InputFileRecord.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: SkipPolling
+    path: Accordant.Operations/Persistence/InputFileRecord.cs
+    startLine: 51
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    If true, polling is skipped for this input even if the operation
+
+    has polling configured.
+  example: []
+  syntax:
+    content: public bool SkipPolling { get; set; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Property SkipPolling As Boolean
+  overload: Microsoft.Accordant.InputFileRecord.SkipPolling*
+references:
+- uid: Microsoft.Accordant.OperationInput
+  commentId: T:Microsoft.Accordant.OperationInput
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.OperationInput.html
+  name: OperationInput
+  nameWithType: OperationInput
+  fullName: Microsoft.Accordant.OperationInput
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.InputFileRecord.Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.ISpec,System.Collections.Generic.Dictionary{System.String,Microsoft.Accordant.OperationCall})
+  commentId: M:Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord,Microsoft.Accordant.ISpec,System.Collections.Generic.Dictionary{System.String,Microsoft.Accordant.OperationCall})
+  parent: Microsoft.Accordant.Conversions
+  definition: Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord,Microsoft.Accordant.ISpec,System.Collections.Generic.Dictionary{System.String,Microsoft.Accordant.OperationCall})
+  href: Microsoft.Accordant.Conversions.html#Microsoft_Accordant_Conversions_ToOperationInput_Microsoft_Accordant_InputFileRecord_Microsoft_Accordant_ISpec_System_Collections_Generic_Dictionary_System_String_Microsoft_Accordant_OperationCall__
+  name: ToOperationInput(InputFileRecord, ISpec, Dictionary<string, OperationCall>)
+  nameWithType: Conversions.ToOperationInput(InputFileRecord, ISpec, Dictionary<string, OperationCall>)
+  fullName: Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord, Microsoft.Accordant.ISpec, System.Collections.Generic.Dictionary<string, Microsoft.Accordant.OperationCall>)
+  nameWithType.vb: Conversions.ToOperationInput(InputFileRecord, ISpec, Dictionary(Of String, OperationCall))
+  fullName.vb: Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord, Microsoft.Accordant.ISpec, System.Collections.Generic.Dictionary(Of String, Microsoft.Accordant.OperationCall))
+  name.vb: ToOperationInput(InputFileRecord, ISpec, Dictionary(Of String, OperationCall))
+  spec.csharp:
+  - uid: Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord,Microsoft.Accordant.ISpec,System.Collections.Generic.Dictionary{System.String,Microsoft.Accordant.OperationCall})
+    name: ToOperationInput
+    href: Microsoft.Accordant.Conversions.html#Microsoft_Accordant_Conversions_ToOperationInput_Microsoft_Accordant_InputFileRecord_Microsoft_Accordant_ISpec_System_Collections_Generic_Dictionary_System_String_Microsoft_Accordant_OperationCall__
+  - name: (
+  - uid: Microsoft.Accordant.InputFileRecord
+    name: InputFileRecord
+    href: Microsoft.Accordant.InputFileRecord.html
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.ISpec
+    name: ISpec
+    href: Microsoft.Accordant.ISpec.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.OperationCall
+    name: OperationCall
+    href: Microsoft.Accordant.OperationCall.html
+  - name: '>'
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord,Microsoft.Accordant.ISpec,System.Collections.Generic.Dictionary{System.String,Microsoft.Accordant.OperationCall})
+    name: ToOperationInput
+    href: Microsoft.Accordant.Conversions.html#Microsoft_Accordant_Conversions_ToOperationInput_Microsoft_Accordant_InputFileRecord_Microsoft_Accordant_ISpec_System_Collections_Generic_Dictionary_System_String_Microsoft_Accordant_OperationCall__
+  - name: (
+  - uid: Microsoft.Accordant.InputFileRecord
+    name: InputFileRecord
+    href: Microsoft.Accordant.InputFileRecord.html
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.ISpec
+    name: ISpec
+    href: Microsoft.Accordant.ISpec.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.OperationCall
+    name: OperationCall
+    href: Microsoft.Accordant.OperationCall.html
+  - name: )
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord,Microsoft.Accordant.ISpec,System.Collections.Generic.Dictionary{System.String,Microsoft.Accordant.OperationCall})
+  commentId: M:Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord,Microsoft.Accordant.ISpec,System.Collections.Generic.Dictionary{System.String,Microsoft.Accordant.OperationCall})
+  isExternal: true
+  href: Microsoft.Accordant.Conversions.html#Microsoft_Accordant_Conversions_ToOperationInput_Microsoft_Accordant_InputFileRecord_Microsoft_Accordant_ISpec_System_Collections_Generic_Dictionary_System_String_Microsoft_Accordant_OperationCall__
+  name: ToOperationInput(InputFileRecord, ISpec, Dictionary<string, OperationCall>)
+  nameWithType: Conversions.ToOperationInput(InputFileRecord, ISpec, Dictionary<string, OperationCall>)
+  fullName: Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord, Microsoft.Accordant.ISpec, System.Collections.Generic.Dictionary<string, Microsoft.Accordant.OperationCall>)
+  nameWithType.vb: Conversions.ToOperationInput(InputFileRecord, ISpec, Dictionary(Of String, OperationCall))
+  fullName.vb: Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord, Microsoft.Accordant.ISpec, System.Collections.Generic.Dictionary(Of String, Microsoft.Accordant.OperationCall))
+  name.vb: ToOperationInput(InputFileRecord, ISpec, Dictionary(Of String, OperationCall))
+  spec.csharp:
+  - uid: Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord,Microsoft.Accordant.ISpec,System.Collections.Generic.Dictionary{System.String,Microsoft.Accordant.OperationCall})
+    name: ToOperationInput
+    href: Microsoft.Accordant.Conversions.html#Microsoft_Accordant_Conversions_ToOperationInput_Microsoft_Accordant_InputFileRecord_Microsoft_Accordant_ISpec_System_Collections_Generic_Dictionary_System_String_Microsoft_Accordant_OperationCall__
+  - name: (
+  - uid: Microsoft.Accordant.InputFileRecord
+    name: InputFileRecord
+    href: Microsoft.Accordant.InputFileRecord.html
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.ISpec
+    name: ISpec
+    href: Microsoft.Accordant.ISpec.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.OperationCall
+    name: OperationCall
+    href: Microsoft.Accordant.OperationCall.html
+  - name: '>'
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.Conversions.ToOperationInput(Microsoft.Accordant.InputFileRecord,Microsoft.Accordant.ISpec,System.Collections.Generic.Dictionary{System.String,Microsoft.Accordant.OperationCall})
+    name: ToOperationInput
+    href: Microsoft.Accordant.Conversions.html#Microsoft_Accordant_Conversions_ToOperationInput_Microsoft_Accordant_InputFileRecord_Microsoft_Accordant_ISpec_System_Collections_Generic_Dictionary_System_String_Microsoft_Accordant_OperationCall__
+  - name: (
+  - uid: Microsoft.Accordant.InputFileRecord
+    name: InputFileRecord
+    href: Microsoft.Accordant.InputFileRecord.html
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.ISpec
+    name: ISpec
+    href: Microsoft.Accordant.ISpec.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.OperationCall
+    name: OperationCall
+    href: Microsoft.Accordant.OperationCall.html
+  - name: )
+  - name: )
+- uid: Microsoft.Accordant.Conversions
+  commentId: T:Microsoft.Accordant.Conversions
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.Conversions.html
+  name: Conversions
+  nameWithType: Conversions
+  fullName: Microsoft.Accordant.Conversions
+- uid: Microsoft.Accordant.IOperation
+  commentId: T:Microsoft.Accordant.IOperation
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.IOperation.html
+  name: IOperation
+  nameWithType: IOperation
+  fullName: Microsoft.Accordant.IOperation
+- uid: Microsoft.Accordant.Spec
+  commentId: T:Microsoft.Accordant.Spec
+  href: Microsoft.Accordant.Spec.html
+  name: Spec
+  nameWithType: Spec
+  fullName: Microsoft.Accordant.Spec
+- uid: Microsoft.Accordant.InputFileRecord.OperationName*
+  commentId: Overload:Microsoft.Accordant.InputFileRecord.OperationName
+  href: Microsoft.Accordant.InputFileRecord.html#Microsoft_Accordant_InputFileRecord_OperationName
+  name: OperationName
+  nameWithType: InputFileRecord.OperationName
+  fullName: Microsoft.Accordant.InputFileRecord.OperationName
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.InputFileRecord.Name*
+  commentId: Overload:Microsoft.Accordant.InputFileRecord.Name
+  href: Microsoft.Accordant.InputFileRecord.html#Microsoft_Accordant_InputFileRecord_Name
+  name: Name
+  nameWithType: InputFileRecord.Name
+  fullName: Microsoft.Accordant.InputFileRecord.Name
+- uid: Microsoft.Accordant.InputFileRecord.SerializedRequest*
+  commentId: Overload:Microsoft.Accordant.InputFileRecord.SerializedRequest
+  href: Microsoft.Accordant.InputFileRecord.html#Microsoft_Accordant_InputFileRecord_SerializedRequest
+  name: SerializedRequest
+  nameWithType: InputFileRecord.SerializedRequest
+  fullName: Microsoft.Accordant.InputFileRecord.SerializedRequest
+- uid: Microsoft.Accordant.InputFileRecord.DerivedFromOperationCalls*
+  commentId: Overload:Microsoft.Accordant.InputFileRecord.DerivedFromOperationCalls
+  href: Microsoft.Accordant.InputFileRecord.html#Microsoft_Accordant_InputFileRecord_DerivedFromOperationCalls
+  name: DerivedFromOperationCalls
+  nameWithType: InputFileRecord.DerivedFromOperationCalls
+  fullName: Microsoft.Accordant.InputFileRecord.DerivedFromOperationCalls
+- uid: System.Collections.Generic.IList{System.String}
+  commentId: T:System.Collections.Generic.IList{System.String}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<string>
+  nameWithType: IList<string>
+  fullName: System.Collections.Generic.IList<string>
+  nameWithType.vb: IList(Of String)
+  fullName.vb: System.Collections.Generic.IList(Of String)
+  name.vb: IList(Of String)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: System.Collections.Generic.IList`1
+  commentId: T:System.Collections.Generic.IList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: Microsoft.Accordant.IOperation.DerivedFrom
+  commentId: P:Microsoft.Accordant.IOperation.DerivedFrom
+  parent: Microsoft.Accordant.IOperation
+  href: Microsoft.Accordant.IOperation.html#Microsoft_Accordant_IOperation_DerivedFrom
+  name: DerivedFrom
+  nameWithType: IOperation.DerivedFrom
+  fullName: Microsoft.Accordant.IOperation.DerivedFrom
+- uid: Microsoft.Accordant.InputFileRecord.DerivationVariant*
+  commentId: Overload:Microsoft.Accordant.InputFileRecord.DerivationVariant
+  href: Microsoft.Accordant.InputFileRecord.html#Microsoft_Accordant_InputFileRecord_DerivationVariant
+  name: DerivationVariant
+  nameWithType: InputFileRecord.DerivationVariant
+  fullName: Microsoft.Accordant.InputFileRecord.DerivationVariant
+- uid: Microsoft.Accordant.IOperation.Polling
+  commentId: P:Microsoft.Accordant.IOperation.Polling
+  parent: Microsoft.Accordant.IOperation
+  href: Microsoft.Accordant.IOperation.html#Microsoft_Accordant_IOperation_Polling
+  name: Polling
+  nameWithType: IOperation.Polling
+  fullName: Microsoft.Accordant.IOperation.Polling
+- uid: Microsoft.Accordant.InputFileRecord.Polling*
+  commentId: Overload:Microsoft.Accordant.InputFileRecord.Polling
+  href: Microsoft.Accordant.InputFileRecord.html#Microsoft_Accordant_InputFileRecord_Polling
+  name: Polling
+  nameWithType: InputFileRecord.Polling
+  fullName: Microsoft.Accordant.InputFileRecord.Polling
+- uid: Microsoft.Accordant.PollingSetup
+  commentId: T:Microsoft.Accordant.PollingSetup
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.PollingSetup.html
+  name: PollingSetup
+  nameWithType: PollingSetup
+  fullName: Microsoft.Accordant.PollingSetup
+- uid: Microsoft.Accordant.InputFileRecord.SkipPolling*
+  commentId: Overload:Microsoft.Accordant.InputFileRecord.SkipPolling
+  href: Microsoft.Accordant.InputFileRecord.html#Microsoft_Accordant_InputFileRecord_SkipPolling
+  name: SkipPolling
+  nameWithType: InputFileRecord.SkipPolling
+  fullName: Microsoft.Accordant.InputFileRecord.SkipPolling
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean

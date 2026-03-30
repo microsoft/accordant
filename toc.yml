@@ -1,0 +1,6 @@
+- name: Docs
+  href: docs/
+- name: API Reference
+  href: api/
+- name: GitHub
+  href: https://github.com/microsoft/accordant

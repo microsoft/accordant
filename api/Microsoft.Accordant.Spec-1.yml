@@ -1,0 +1,2723 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.Spec`1
+  commentId: T:Microsoft.Accordant.Spec`1
+  id: Spec`1
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.Spec`1.Add(Microsoft.Accordant.IOperation)
+  - Microsoft.Accordant.Spec`1.Allows(Microsoft.Accordant.IOperation,System.Object,System.Object,Microsoft.Accordant.StateProfile)
+  - Microsoft.Accordant.Spec`1.Allows(Microsoft.Accordant.IOperation,System.Object,System.Object,`0)
+  - Microsoft.Accordant.Spec`1.AllowsConcurrent(Microsoft.Accordant.StateProfile,System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}})
+  - Microsoft.Accordant.Spec`1.Allows``2(Microsoft.Accordant.Operation{``0,``1,`0},``0,System.Object,Microsoft.Accordant.StateProfile)
+  - Microsoft.Accordant.Spec`1.Allows``2(Microsoft.Accordant.Operation{``0,``1,`0},``0,System.Object,`0)
+  - Microsoft.Accordant.Spec`1.ConfigureDerivations(System.String,Microsoft.Accordant.RequestDerivation[])
+  - Microsoft.Accordant.Spec`1.ConfigurePolling(System.String,Microsoft.Accordant.PollingSetup)
+  - Microsoft.Accordant.Spec`1.CreateTestingContext(System.String)
+  - Microsoft.Accordant.Spec`1.ExecuteWith``1
+  - Microsoft.Accordant.Spec`1.GenerateConcurrentTests(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions)
+  - Microsoft.Accordant.Spec`1.GenerateTests(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions)
+  - Microsoft.Accordant.Spec`1.GetOperation(System.String)
+  - Microsoft.Accordant.Spec`1.GetOperationName(Microsoft.Accordant.IOperation)
+  - Microsoft.Accordant.Spec`1.GetOperation``2(System.String)
+  - Microsoft.Accordant.Spec`1.Item(System.String)
+  - Microsoft.Accordant.Spec`1.Operation``2(System.String,System.Func{``0,`0,Microsoft.Accordant.ExpectedOutcomes})
+  - Microsoft.Accordant.Spec`1.Operations
+  - Microsoft.Accordant.Spec`1.RegisterOperation(System.String,Microsoft.Accordant.IOperation)
+  - Microsoft.Accordant.Spec`1.RegisterOperationProperties
+  - Microsoft.Accordant.Spec`1.RunTests(Microsoft.Accordant.TestingContext,`0,System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase},Microsoft.Accordant.TestExecutionOptions)
+  - Microsoft.Accordant.Spec`1.RunTests(Microsoft.Accordant.TestingContext,`0,System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase},Microsoft.Accordant.TestExecutionOptions)
+  - Microsoft.Accordant.Spec`1.VisualizeStateSpace(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions,Microsoft.Accordant.VisualizationOptions)
+  - Microsoft.Accordant.Spec`1.WithJsonPrinters
+  - Microsoft.Accordant.Spec`1.WithRequestPrinter(System.Func{System.Object,System.String})
+  - Microsoft.Accordant.Spec`1.WithResponsePrinter(System.Func{System.Object,System.String})
+  langs:
+  - csharp
+  - vb
+  name: Spec<TState>
+  nameWithType: Spec<TState>
+  fullName: Microsoft.Accordant.Spec<TState>
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Spec
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 30
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    A Spec contains the list of operations that define the behavior
+
+    of a stateful system. Each operation is registered under a unique name.
+  example: []
+  syntax:
+    content: 'public class Spec<TState> : ISpec where TState : State'
+    typeParameters:
+    - id: TState
+      description: The type of state the spec operates on.
+    content.vb: Public Class Spec(Of TState As State) Implements ISpec
+  inheritance:
+  - System.Object
+  implements:
+  - Microsoft.Accordant.ISpec
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  nameWithType.vb: Spec(Of TState)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState)
+  name.vb: Spec(Of TState)
+- uid: Microsoft.Accordant.Spec`1.Operations
+  commentId: P:Microsoft.Accordant.Spec`1.Operations
+  id: Operations
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: Operations
+  nameWithType: Spec<TState>.Operations
+  fullName: Microsoft.Accordant.Spec<TState>.Operations
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Operations
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 41
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: The operations registered in this spec.
+  example: []
+  syntax:
+    content: public IEnumerable<IOperation> Operations { get; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.IEnumerable{Microsoft.Accordant.IOperation}
+    content.vb: Public ReadOnly Property Operations As IEnumerable(Of IOperation)
+  overload: Microsoft.Accordant.Spec`1.Operations*
+  implements:
+  - Microsoft.Accordant.ISpec.Operations
+  nameWithType.vb: Spec(Of TState).Operations
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).Operations
+- uid: Microsoft.Accordant.Spec`1.RegisterOperation(System.String,Microsoft.Accordant.IOperation)
+  commentId: M:Microsoft.Accordant.Spec`1.RegisterOperation(System.String,Microsoft.Accordant.IOperation)
+  id: RegisterOperation(System.String,Microsoft.Accordant.IOperation)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: RegisterOperation(string, IOperation)
+  nameWithType: Spec<TState>.RegisterOperation(string, IOperation)
+  fullName: Microsoft.Accordant.Spec<TState>.RegisterOperation(string, Microsoft.Accordant.IOperation)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: RegisterOperation
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 46
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: This method registers the given operation under the given name.
+  example: []
+  syntax:
+    content: public void RegisterOperation(string name, IOperation operation)
+    parameters:
+    - id: name
+      type: System.String
+    - id: operation
+      type: Microsoft.Accordant.IOperation
+    content.vb: Public Sub RegisterOperation(name As String, operation As IOperation)
+  overload: Microsoft.Accordant.Spec`1.RegisterOperation*
+  nameWithType.vb: Spec(Of TState).RegisterOperation(String, IOperation)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).RegisterOperation(String, Microsoft.Accordant.IOperation)
+  name.vb: RegisterOperation(String, IOperation)
+- uid: Microsoft.Accordant.Spec`1.GetOperation(System.String)
+  commentId: M:Microsoft.Accordant.Spec`1.GetOperation(System.String)
+  id: GetOperation(System.String)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: GetOperation(string)
+  nameWithType: Spec<TState>.GetOperation(string)
+  fullName: Microsoft.Accordant.Spec<TState>.GetOperation(string)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GetOperation
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 71
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: This method returns the operation registered under the given name.
+  example: []
+  syntax:
+    content: public IOperation GetOperation(string name)
+    parameters:
+    - id: name
+      type: System.String
+    return:
+      type: Microsoft.Accordant.IOperation
+    content.vb: Public Function GetOperation(name As String) As IOperation
+  overload: Microsoft.Accordant.Spec`1.GetOperation*
+  implements:
+  - Microsoft.Accordant.ISpec.GetOperation(System.String)
+  nameWithType.vb: Spec(Of TState).GetOperation(String)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).GetOperation(String)
+  name.vb: GetOperation(String)
+- uid: Microsoft.Accordant.Spec`1.GetOperationName(Microsoft.Accordant.IOperation)
+  commentId: M:Microsoft.Accordant.Spec`1.GetOperationName(Microsoft.Accordant.IOperation)
+  id: GetOperationName(Microsoft.Accordant.IOperation)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: GetOperationName(IOperation)
+  nameWithType: Spec<TState>.GetOperationName(IOperation)
+  fullName: Microsoft.Accordant.Spec<TState>.GetOperationName(Microsoft.Accordant.IOperation)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GetOperationName
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 85
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: This method returns the name the given operation was registered under.
+  example: []
+  syntax:
+    content: public string GetOperationName(IOperation operation)
+    parameters:
+    - id: operation
+      type: Microsoft.Accordant.IOperation
+    return:
+      type: System.String
+    content.vb: Public Function GetOperationName(operation As IOperation) As String
+  overload: Microsoft.Accordant.Spec`1.GetOperationName*
+  implements:
+  - Microsoft.Accordant.ISpec.GetOperationName(Microsoft.Accordant.IOperation)
+  nameWithType.vb: Spec(Of TState).GetOperationName(IOperation)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).GetOperationName(Microsoft.Accordant.IOperation)
+- uid: Microsoft.Accordant.Spec`1.Item(System.String)
+  commentId: P:Microsoft.Accordant.Spec`1.Item(System.String)
+  id: Item(System.String)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: this[string]
+  nameWithType: Spec<TState>.this[string]
+  fullName: Microsoft.Accordant.Spec<TState>.this[string]
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: this[]
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 100
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    The indexer property can be used to register operations under a given
+
+    name and retrieve them given the registered name.
+  example: []
+  syntax:
+    content: public IOperation this[string name] { get; set; }
+    parameters:
+    - id: name
+      type: System.String
+    return:
+      type: Microsoft.Accordant.IOperation
+    content.vb: Public Default Property this[](name As String) As IOperation
+  overload: Microsoft.Accordant.Spec`1.Item*
+  implements:
+  - Microsoft.Accordant.ISpec.Item(System.String)
+  nameWithType.vb: Spec(Of TState).this[](String)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).this[](String)
+  name.vb: this[](String)
+- uid: Microsoft.Accordant.Spec`1.Add(Microsoft.Accordant.IOperation)
+  commentId: M:Microsoft.Accordant.Spec`1.Add(Microsoft.Accordant.IOperation)
+  id: Add(Microsoft.Accordant.IOperation)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: Add(IOperation)
+  nameWithType: Spec<TState>.Add(IOperation)
+  fullName: Microsoft.Accordant.Spec<TState>.Add(Microsoft.Accordant.IOperation)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Add
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 110
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Registers an <xref href="Microsoft.Accordant.IOperation" data-throw-if-not-resolved="false"></xref> with this spec.
+  example: []
+  syntax:
+    content: public void Add(IOperation operation)
+    parameters:
+    - id: operation
+      type: Microsoft.Accordant.IOperation
+      description: The operation to register.
+    content.vb: Public Sub Add(operation As IOperation)
+  overload: Microsoft.Accordant.Spec`1.Add*
+  implements:
+  - Microsoft.Accordant.ISpec.Add(Microsoft.Accordant.IOperation)
+  nameWithType.vb: Spec(Of TState).Add(IOperation)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).Add(Microsoft.Accordant.IOperation)
+- uid: Microsoft.Accordant.Spec`1.Allows``2(Microsoft.Accordant.Operation{``0,``1,`0},``0,System.Object,`0)
+  commentId: M:Microsoft.Accordant.Spec`1.Allows``2(Microsoft.Accordant.Operation{``0,``1,`0},``0,System.Object,`0)
+  id: Allows``2(Microsoft.Accordant.Operation{``0,``1,`0},``0,System.Object,`0)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: Allows<TRequest, TResponse>(Operation<TRequest, TResponse, TState>, TRequest, object, TState)
+  nameWithType: Spec<TState>.Allows<TRequest, TResponse>(Operation<TRequest, TResponse, TState>, TRequest, object, TState)
+  fullName: Microsoft.Accordant.Spec<TState>.Allows<TRequest, TResponse>(Microsoft.Accordant.Operation<TRequest, TResponse, TState>, TRequest, object, TState)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Allows
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 134
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Validates whether the spec allows the observed response for the given operation,
+
+    request, and state. If valid, returns the updated state profile
+
+    reflecting any state transitions. If not valid, returns an explanation message.
+  example: []
+  syntax:
+    content: public (bool IsValid, string Message, StateProfile UpdatedStateProfile) Allows<TRequest, TResponse>(Operation<TRequest, TResponse, TState> operation, TRequest request, object response, TState state)
+    parameters:
+    - id: operation
+      type: Microsoft.Accordant.Operation{{TRequest},{TResponse},{TState}}
+      description: The operation that was invoked.
+    - id: request
+      type: '{TRequest}'
+      description: The request that was sent.
+    - id: response
+      type: System.Object
+      description: The observed response from the system.
+    - id: state
+      type: '{TState}'
+      description: The state the system was in before the operation.
+    typeParameters:
+    - id: TRequest
+      description: The type of request.
+    - id: TResponse
+      description: The type of response.
+    return:
+      type: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}
+      description: A tuple of (isValid, explanationMessage, updatedStateProfile).
+    content.vb: Public Function Allows(Of TRequest, TResponse)(operation As Operation(Of TRequest, TResponse, TState), request As TRequest, response As Object, state As TState) As (IsValid As Boolean, Message As String, UpdatedStateProfile As StateProfile)
+  overload: Microsoft.Accordant.Spec`1.Allows*
+  nameWithType.vb: Spec(Of TState).Allows(Of TRequest, TResponse)(Operation(Of TRequest, TResponse, TState), TRequest, Object, TState)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).Allows(Of TRequest, TResponse)(Microsoft.Accordant.Operation(Of TRequest, TResponse, TState), TRequest, Object, TState)
+  name.vb: Allows(Of TRequest, TResponse)(Operation(Of TRequest, TResponse, TState), TRequest, Object, TState)
+- uid: Microsoft.Accordant.Spec`1.Allows``2(Microsoft.Accordant.Operation{``0,``1,`0},``0,System.Object,Microsoft.Accordant.StateProfile)
+  commentId: M:Microsoft.Accordant.Spec`1.Allows``2(Microsoft.Accordant.Operation{``0,``1,`0},``0,System.Object,Microsoft.Accordant.StateProfile)
+  id: Allows``2(Microsoft.Accordant.Operation{``0,``1,`0},``0,System.Object,Microsoft.Accordant.StateProfile)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: Allows<TRequest, TResponse>(Operation<TRequest, TResponse, TState>, TRequest, object, StateProfile)
+  nameWithType: Spec<TState>.Allows<TRequest, TResponse>(Operation<TRequest, TResponse, TState>, TRequest, object, StateProfile)
+  fullName: Microsoft.Accordant.Spec<TState>.Allows<TRequest, TResponse>(Microsoft.Accordant.Operation<TRequest, TResponse, TState>, TRequest, object, Microsoft.Accordant.StateProfile)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Allows
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 155
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Validates whether the spec allows the observed response for the given operation,
+
+    request, and state profile. If valid, returns the updated state profile
+
+    reflecting any state transitions. If not valid, returns an explanation message.
+  example: []
+  syntax:
+    content: public (bool IsValid, string Message, StateProfile UpdatedStateProfile) Allows<TRequest, TResponse>(Operation<TRequest, TResponse, TState> operation, TRequest request, object response, StateProfile stateProfile)
+    parameters:
+    - id: operation
+      type: Microsoft.Accordant.Operation{{TRequest},{TResponse},{TState}}
+      description: The operation that was invoked.
+    - id: request
+      type: '{TRequest}'
+      description: The request that was sent.
+    - id: response
+      type: System.Object
+      description: The observed response from the system.
+    - id: stateProfile
+      type: Microsoft.Accordant.StateProfile
+      description: The state profile representing possible states before the operation.
+    typeParameters:
+    - id: TRequest
+      description: The type of request.
+    - id: TResponse
+      description: The type of response.
+    return:
+      type: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}
+      description: A tuple of (isValid, explanationMessage, updatedStateProfile).
+    content.vb: Public Function Allows(Of TRequest, TResponse)(operation As Operation(Of TRequest, TResponse, TState), request As TRequest, response As Object, stateProfile As StateProfile) As (IsValid As Boolean, Message As String, UpdatedStateProfile As StateProfile)
+  overload: Microsoft.Accordant.Spec`1.Allows*
+  nameWithType.vb: Spec(Of TState).Allows(Of TRequest, TResponse)(Operation(Of TRequest, TResponse, TState), TRequest, Object, StateProfile)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).Allows(Of TRequest, TResponse)(Microsoft.Accordant.Operation(Of TRequest, TResponse, TState), TRequest, Object, Microsoft.Accordant.StateProfile)
+  name.vb: Allows(Of TRequest, TResponse)(Operation(Of TRequest, TResponse, TState), TRequest, Object, StateProfile)
+- uid: Microsoft.Accordant.Spec`1.Allows(Microsoft.Accordant.IOperation,System.Object,System.Object,`0)
+  commentId: M:Microsoft.Accordant.Spec`1.Allows(Microsoft.Accordant.IOperation,System.Object,System.Object,`0)
+  id: Allows(Microsoft.Accordant.IOperation,System.Object,System.Object,`0)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: Allows(IOperation, object, object, TState)
+  nameWithType: Spec<TState>.Allows(IOperation, object, object, TState)
+  fullName: Microsoft.Accordant.Spec<TState>.Allows(Microsoft.Accordant.IOperation, object, object, TState)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Allows
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 211
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Validates whether the spec allows the observed response for the given operation,
+
+    request, and state. This non-generic overload accepts object types for request and response,
+
+    useful when the caller doesn't know the exact types at compile time.
+  example: []
+  syntax:
+    content: public (bool IsValid, string Message, StateProfile UpdatedStateProfile) Allows(IOperation operation, object request, object response, TState state)
+    parameters:
+    - id: operation
+      type: Microsoft.Accordant.IOperation
+      description: The operation that was invoked.
+    - id: request
+      type: System.Object
+      description: The request that was sent.
+    - id: response
+      type: System.Object
+      description: The observed response from the system.
+    - id: state
+      type: '{TState}'
+      description: The state the system was in before the operation.
+    return:
+      type: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}
+      description: A tuple of (isValid, explanationMessage, updatedStateProfile).
+    content.vb: Public Function Allows(operation As IOperation, request As Object, response As Object, state As TState) As (IsValid As Boolean, Message As String, UpdatedStateProfile As StateProfile)
+  overload: Microsoft.Accordant.Spec`1.Allows*
+  nameWithType.vb: Spec(Of TState).Allows(IOperation, Object, Object, TState)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).Allows(Microsoft.Accordant.IOperation, Object, Object, TState)
+  name.vb: Allows(IOperation, Object, Object, TState)
+- uid: Microsoft.Accordant.Spec`1.Allows(Microsoft.Accordant.IOperation,System.Object,System.Object,Microsoft.Accordant.StateProfile)
+  commentId: M:Microsoft.Accordant.Spec`1.Allows(Microsoft.Accordant.IOperation,System.Object,System.Object,Microsoft.Accordant.StateProfile)
+  id: Allows(Microsoft.Accordant.IOperation,System.Object,System.Object,Microsoft.Accordant.StateProfile)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: Allows(IOperation, object, object, StateProfile)
+  nameWithType: Spec<TState>.Allows(IOperation, object, object, StateProfile)
+  fullName: Microsoft.Accordant.Spec<TState>.Allows(Microsoft.Accordant.IOperation, object, object, Microsoft.Accordant.StateProfile)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Allows
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 230
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Validates whether the spec allows the observed response for the given operation,
+
+    request, and state profile. This non-generic overload accepts object types for request and response,
+
+    useful when the caller doesn't know the exact types at compile time.
+  example: []
+  syntax:
+    content: public (bool IsValid, string Message, StateProfile UpdatedStateProfile) Allows(IOperation operation, object request, object response, StateProfile stateProfile)
+    parameters:
+    - id: operation
+      type: Microsoft.Accordant.IOperation
+      description: The operation that was invoked.
+    - id: request
+      type: System.Object
+      description: The request that was sent.
+    - id: response
+      type: System.Object
+      description: The observed response from the system.
+    - id: stateProfile
+      type: Microsoft.Accordant.StateProfile
+      description: The state profile representing possible states before the operation.
+    return:
+      type: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}
+      description: A tuple of (isValid, explanationMessage, updatedStateProfile).
+    content.vb: Public Function Allows(operation As IOperation, request As Object, response As Object, stateProfile As StateProfile) As (IsValid As Boolean, Message As String, UpdatedStateProfile As StateProfile)
+  overload: Microsoft.Accordant.Spec`1.Allows*
+  nameWithType.vb: Spec(Of TState).Allows(IOperation, Object, Object, StateProfile)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).Allows(Microsoft.Accordant.IOperation, Object, Object, Microsoft.Accordant.StateProfile)
+  name.vb: Allows(IOperation, Object, Object, StateProfile)
+- uid: Microsoft.Accordant.Spec`1.AllowsConcurrent(Microsoft.Accordant.StateProfile,System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}})
+  commentId: M:Microsoft.Accordant.Spec`1.AllowsConcurrent(Microsoft.Accordant.StateProfile,System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}})
+  id: AllowsConcurrent(Microsoft.Accordant.StateProfile,System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}})
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: AllowsConcurrent(StateProfile, IList<(IOperation operation, object request, object response)>)
+  nameWithType: Spec<TState>.AllowsConcurrent(StateProfile, IList<(IOperation operation, object request, object response)>)
+  fullName: Microsoft.Accordant.Spec<TState>.AllowsConcurrent(Microsoft.Accordant.StateProfile, System.Collections.Generic.IList<(Microsoft.Accordant.IOperation operation, object request, object response)>)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: AllowsConcurrent
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 279
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Validates whether the spec allows the observed responses for a set of operations
+
+    that were invoked concurrently. If the responses can be explained by some logical
+
+    ordering of the operations, returns the updated state profile. If not, returns
+
+    an explanation message.
+  example: []
+  syntax:
+    content: public (bool IsValid, string Message, StateProfile UpdatedStateProfile) AllowsConcurrent(StateProfile stateProfile, IList<(IOperation operation, object request, object response)> concurrentCalls)
+    parameters:
+    - id: stateProfile
+      type: Microsoft.Accordant.StateProfile
+      description: The state profile representing possible states before the concurrent operations.
+    - id: concurrentCalls
+      type: System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}}
+      description: The list of concurrent operation calls with their requests and responses.
+    return:
+      type: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}
+      description: A tuple of (isValid, explanationMessage, updatedStateProfile).
+    content.vb: Public Function AllowsConcurrent(stateProfile As StateProfile, concurrentCalls As IList(Of (operation As IOperation, request As Object, response As Object))) As (IsValid As Boolean, Message As String, UpdatedStateProfile As StateProfile)
+  overload: Microsoft.Accordant.Spec`1.AllowsConcurrent*
+  nameWithType.vb: Spec(Of TState).AllowsConcurrent(StateProfile, IList(Of (operation As IOperation, request As Object, response As Object)))
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).AllowsConcurrent(Microsoft.Accordant.StateProfile, System.Collections.Generic.IList(Of (operation As Microsoft.Accordant.IOperation, request As Object, response As Object)))
+  name.vb: AllowsConcurrent(StateProfile, IList(Of (operation As IOperation, request As Object, response As Object)))
+- uid: Microsoft.Accordant.Spec`1.GetOperation``2(System.String)
+  commentId: M:Microsoft.Accordant.Spec`1.GetOperation``2(System.String)
+  id: GetOperation``2(System.String)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: GetOperation<TRequest, TResponse>(string)
+  nameWithType: Spec<TState>.GetOperation<TRequest, TResponse>(string)
+  fullName: Microsoft.Accordant.Spec<TState>.GetOperation<TRequest, TResponse>(string)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GetOperation
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 328
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Gets a typed operation by name.
+  example: []
+  syntax:
+    content: public Operation<TRequest, TResponse, TState> GetOperation<TRequest, TResponse>(string name)
+    parameters:
+    - id: name
+      type: System.String
+      description: The name of the operation.
+    typeParameters:
+    - id: TRequest
+      description: The request type.
+    - id: TResponse
+      description: The response type.
+    return:
+      type: Microsoft.Accordant.Operation{{TRequest},{TResponse},{TState}}
+      description: The typed operation.
+    content.vb: Public Function GetOperation(Of TRequest, TResponse)(name As String) As Operation(Of TRequest, TResponse, TState)
+  overload: Microsoft.Accordant.Spec`1.GetOperation*
+  nameWithType.vb: Spec(Of TState).GetOperation(Of TRequest, TResponse)(String)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).GetOperation(Of TRequest, TResponse)(String)
+  name.vb: GetOperation(Of TRequest, TResponse)(String)
+- uid: Microsoft.Accordant.Spec`1.Operation``2(System.String,System.Func{``0,`0,Microsoft.Accordant.ExpectedOutcomes})
+  commentId: M:Microsoft.Accordant.Spec`1.Operation``2(System.String,System.Func{``0,`0,Microsoft.Accordant.ExpectedOutcomes})
+  id: Operation``2(System.String,System.Func{``0,`0,Microsoft.Accordant.ExpectedOutcomes})
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: Operation<TRequest, TResponse>(string, Func<TRequest, TState, ExpectedOutcomes>)
+  nameWithType: Spec<TState>.Operation<TRequest, TResponse>(string, Func<TRequest, TState, ExpectedOutcomes>)
+  fullName: Microsoft.Accordant.Spec<TState>.Operation<TRequest, TResponse>(string, System.Func<TRequest, TState, Microsoft.Accordant.ExpectedOutcomes>)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Operation
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 342
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Creates and registers an inline operation using a lambda expression.
+
+    Returns the spec for fluent chaining.
+  example: []
+  syntax:
+    content: public Spec<TState> Operation<TRequest, TResponse>(string name, Func<TRequest, TState, ExpectedOutcomes> apply)
+    parameters:
+    - id: name
+      type: System.String
+      description: The name of the operation.
+    - id: apply
+      type: System.Func{{TRequest},{TState},Microsoft.Accordant.ExpectedOutcomes}
+      description: The function that defines the operation's behavior.
+    typeParameters:
+    - id: TRequest
+      description: The type of request.
+    - id: TResponse
+      description: The type of response.
+    return:
+      type: Microsoft.Accordant.Spec`1
+      description: This spec for fluent chaining.
+    content.vb: Public Function Operation(Of TRequest, TResponse)(name As String, apply As Func(Of TRequest, TState, ExpectedOutcomes)) As Spec(Of TState)
+  overload: Microsoft.Accordant.Spec`1.Operation*
+  nameWithType.vb: Spec(Of TState).Operation(Of TRequest, TResponse)(String, Func(Of TRequest, TState, ExpectedOutcomes))
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).Operation(Of TRequest, TResponse)(String, System.Func(Of TRequest, TState, Microsoft.Accordant.ExpectedOutcomes))
+  name.vb: Operation(Of TRequest, TResponse)(String, Func(Of TRequest, TState, ExpectedOutcomes))
+- uid: Microsoft.Accordant.Spec`1.ConfigureDerivations(System.String,Microsoft.Accordant.RequestDerivation[])
+  commentId: M:Microsoft.Accordant.Spec`1.ConfigureDerivations(System.String,Microsoft.Accordant.RequestDerivation[])
+  id: ConfigureDerivations(System.String,Microsoft.Accordant.RequestDerivation[])
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: ConfigureDerivations(string, params RequestDerivation[])
+  nameWithType: Spec<TState>.ConfigureDerivations(string, params RequestDerivation[])
+  fullName: Microsoft.Accordant.Spec<TState>.ConfigureDerivations(string, params Microsoft.Accordant.RequestDerivation[])
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ConfigureDerivations
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 371
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Configures request derivations for an inline operation.
+
+    This allows inline operations to have derivations without needing a class-based definition.
+  example:
+  - >-
+    <pre><code class="lang-csharp">spec.Operation&lt;(string, string), ApiResult&lt;Todo&gt;&gt;("GetTodo", (req, state) =&gt; { ... });
+
+
+    spec.ConfigureDerivations("GetTodo",
+        Derive.From&lt;Todo, ApiResult&lt;Todo&gt;, (string, string)&gt;("CreateTodo")
+            .When((req, resp) =&gt; resp.IsSuccess)
+            .As((req, resp) =&gt; (resp.Data.UserId, resp.Data.TodoId)));</code></pre>
+  syntax:
+    content: public Spec<TState> ConfigureDerivations(string operationName, params RequestDerivation[] derivations)
+    parameters:
+    - id: operationName
+      type: System.String
+      description: The name of the operation to configure derivations for.
+    - id: derivations
+      type: Microsoft.Accordant.RequestDerivation[]
+      description: The derivations to set for this operation.
+    return:
+      type: Microsoft.Accordant.Spec`1
+      description: This spec for fluent chaining.
+    content.vb: Public Function ConfigureDerivations(operationName As String, ParamArray derivations As RequestDerivation()) As Spec(Of TState)
+  overload: Microsoft.Accordant.Spec`1.ConfigureDerivations*
+  exceptions:
+  - type: System.InvalidOperationException
+    commentId: T:System.InvalidOperationException
+    description: Thrown if the operation is not an inline operation (class-based operations should override DerivedFrom instead).
+  nameWithType.vb: Spec(Of TState).ConfigureDerivations(String, ParamArray RequestDerivation())
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).ConfigureDerivations(String, ParamArray Microsoft.Accordant.RequestDerivation())
+  name.vb: ConfigureDerivations(String, ParamArray RequestDerivation())
+- uid: Microsoft.Accordant.Spec`1.ConfigurePolling(System.String,Microsoft.Accordant.PollingSetup)
+  commentId: M:Microsoft.Accordant.Spec`1.ConfigurePolling(System.String,Microsoft.Accordant.PollingSetup)
+  id: ConfigurePolling(System.String,Microsoft.Accordant.PollingSetup)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: ConfigurePolling(string, PollingSetup)
+  nameWithType: Spec<TState>.ConfigurePolling(string, PollingSetup)
+  fullName: Microsoft.Accordant.Spec<TState>.ConfigurePolling(string, Microsoft.Accordant.PollingSetup)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ConfigurePolling
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 411
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Configures polling for an inline operation.
+
+    This allows inline operations to have polling without needing a class-based definition.
+  example:
+  - >-
+    <pre><code class="lang-csharp">spec.Operation&lt;string, ApiResult&lt;Job&gt;&gt;("CreateJob", (req, state) =&gt; { ... });
+
+
+    spec.ConfigurePolling("CreateJob", new PollingSetup
+
+    {
+        Operation = "GetJob",
+        WaitTimeInMs = 100,
+        MaxRetryCount = 100
+    });</code></pre>
+  syntax:
+    content: public Spec<TState> ConfigurePolling(string operationName, PollingSetup polling)
+    parameters:
+    - id: operationName
+      type: System.String
+      description: The name of the operation to configure polling for.
+    - id: polling
+      type: Microsoft.Accordant.PollingSetup
+      description: The polling setup for this operation.
+    return:
+      type: Microsoft.Accordant.Spec`1
+      description: This spec for fluent chaining.
+    content.vb: Public Function ConfigurePolling(operationName As String, polling As PollingSetup) As Spec(Of TState)
+  overload: Microsoft.Accordant.Spec`1.ConfigurePolling*
+  exceptions:
+  - type: System.InvalidOperationException
+    commentId: T:System.InvalidOperationException
+    description: Thrown if the operation is not an inline operation (class-based operations should override Polling instead).
+  nameWithType.vb: Spec(Of TState).ConfigurePolling(String, PollingSetup)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).ConfigurePolling(String, Microsoft.Accordant.PollingSetup)
+  name.vb: ConfigurePolling(String, PollingSetup)
+- uid: Microsoft.Accordant.Spec`1.ExecuteWith``1
+  commentId: M:Microsoft.Accordant.Spec`1.ExecuteWith``1
+  id: ExecuteWith``1
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: ExecuteWith<TTarget>()
+  nameWithType: Spec<TState>.ExecuteWith<TTarget>()
+  fullName: Microsoft.Accordant.Spec<TState>.ExecuteWith<TTarget>()
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ExecuteWith
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 437
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Creates an <xref href="Microsoft.Accordant.ExecuteBuilder%602" data-throw-if-not-resolved="false"></xref> for binding execution logic
+
+    to operations in this spec.
+  example: []
+  syntax:
+    content: public ExecuteBuilder<TTarget, TState> ExecuteWith<TTarget>()
+    typeParameters:
+    - id: TTarget
+      description: The type of the system under test.
+    return:
+      type: Microsoft.Accordant.ExecuteBuilder{{TTarget},{TState}}
+      description: An <xref href="Microsoft.Accordant.ExecuteBuilder%602" data-throw-if-not-resolved="false"></xref> for fluent binding.
+    content.vb: Public Function ExecuteWith(Of TTarget)() As ExecuteBuilder(Of TTarget, TState)
+  overload: Microsoft.Accordant.Spec`1.ExecuteWith*
+  nameWithType.vb: Spec(Of TState).ExecuteWith(Of TTarget)()
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).ExecuteWith(Of TTarget)()
+  name.vb: ExecuteWith(Of TTarget)()
+- uid: Microsoft.Accordant.Spec`1.WithRequestPrinter(System.Func{System.Object,System.String})
+  commentId: M:Microsoft.Accordant.Spec`1.WithRequestPrinter(System.Func{System.Object,System.String})
+  id: WithRequestPrinter(System.Func{System.Object,System.String})
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: WithRequestPrinter(Func<object, string>)
+  nameWithType: Spec<TState>.WithRequestPrinter(Func<object, string>)
+  fullName: Microsoft.Accordant.Spec<TState>.WithRequestPrinter(System.Func<object, string>)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: WithRequestPrinter
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 454
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Configures a custom request printer for logging during test execution.
+  example: []
+  syntax:
+    content: public Spec<TState> WithRequestPrinter(Func<object, string> printer)
+    parameters:
+    - id: printer
+      type: System.Func{System.Object,System.String}
+      description: A function that converts a request to a string for logging.
+    return:
+      type: Microsoft.Accordant.Spec`1
+      description: This spec for fluent chaining.
+    content.vb: Public Function WithRequestPrinter(printer As Func(Of Object, String)) As Spec(Of TState)
+  overload: Microsoft.Accordant.Spec`1.WithRequestPrinter*
+  nameWithType.vb: Spec(Of TState).WithRequestPrinter(Func(Of Object, String))
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).WithRequestPrinter(System.Func(Of Object, String))
+  name.vb: WithRequestPrinter(Func(Of Object, String))
+- uid: Microsoft.Accordant.Spec`1.WithResponsePrinter(System.Func{System.Object,System.String})
+  commentId: M:Microsoft.Accordant.Spec`1.WithResponsePrinter(System.Func{System.Object,System.String})
+  id: WithResponsePrinter(System.Func{System.Object,System.String})
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: WithResponsePrinter(Func<object, string>)
+  nameWithType: Spec<TState>.WithResponsePrinter(Func<object, string>)
+  fullName: Microsoft.Accordant.Spec<TState>.WithResponsePrinter(System.Func<object, string>)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: WithResponsePrinter
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 465
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Configures a custom response printer for logging during test execution.
+  example: []
+  syntax:
+    content: public Spec<TState> WithResponsePrinter(Func<object, string> printer)
+    parameters:
+    - id: printer
+      type: System.Func{System.Object,System.String}
+      description: A function that converts a response to a string for logging.
+    return:
+      type: Microsoft.Accordant.Spec`1
+      description: This spec for fluent chaining.
+    content.vb: Public Function WithResponsePrinter(printer As Func(Of Object, String)) As Spec(Of TState)
+  overload: Microsoft.Accordant.Spec`1.WithResponsePrinter*
+  nameWithType.vb: Spec(Of TState).WithResponsePrinter(Func(Of Object, String))
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).WithResponsePrinter(System.Func(Of Object, String))
+  name.vb: WithResponsePrinter(Func(Of Object, String))
+- uid: Microsoft.Accordant.Spec`1.WithJsonPrinters
+  commentId: M:Microsoft.Accordant.Spec`1.WithJsonPrinters
+  id: WithJsonPrinters
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: WithJsonPrinters()
+  nameWithType: Spec<TState>.WithJsonPrinters()
+  fullName: Microsoft.Accordant.Spec<TState>.WithJsonPrinters()
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: WithJsonPrinters
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 476
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Configures JSON serialization for both request and response logging.
+
+    Uses System.Text.Json with default options.
+  example: []
+  syntax:
+    content: public Spec<TState> WithJsonPrinters()
+    return:
+      type: Microsoft.Accordant.Spec`1
+      description: This spec for fluent chaining.
+    content.vb: Public Function WithJsonPrinters() As Spec(Of TState)
+  overload: Microsoft.Accordant.Spec`1.WithJsonPrinters*
+  nameWithType.vb: Spec(Of TState).WithJsonPrinters()
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).WithJsonPrinters()
+- uid: Microsoft.Accordant.Spec`1.GenerateTests(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions)
+  commentId: M:Microsoft.Accordant.Spec`1.GenerateTests(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions)
+  id: GenerateTests(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: GenerateTests(TState, InputSet, TestGenerationOptions)
+  nameWithType: Spec<TState>.GenerateTests(TState, InputSet, TestGenerationOptions)
+  fullName: Microsoft.Accordant.Spec<TState>.GenerateTests(TState, Microsoft.Accordant.InputSet, Microsoft.Accordant.TestGenerationOptions)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GenerateTests
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 494
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Generates sequential test cases from the given inputs.
+  example: []
+  syntax:
+    content: public IList<SequentialTestCase> GenerateTests(TState initialState, InputSet inputs, TestGenerationOptions options = null)
+    parameters:
+    - id: initialState
+      type: '{TState}'
+      description: The initial state for test generation.
+    - id: inputs
+      type: Microsoft.Accordant.InputSet
+      description: The input set containing operation inputs to use.
+    - id: options
+      type: Microsoft.Accordant.TestGenerationOptions
+      description: Additional test generation options.
+    return:
+      type: System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase}
+      description: A list of sequential test cases.
+    content.vb: Public Function GenerateTests(initialState As TState, inputs As InputSet, options As TestGenerationOptions = Nothing) As IList(Of SequentialTestCase)
+  overload: Microsoft.Accordant.Spec`1.GenerateTests*
+  nameWithType.vb: Spec(Of TState).GenerateTests(TState, InputSet, TestGenerationOptions)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).GenerateTests(TState, Microsoft.Accordant.InputSet, Microsoft.Accordant.TestGenerationOptions)
+- uid: Microsoft.Accordant.Spec`1.GenerateConcurrentTests(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions)
+  commentId: M:Microsoft.Accordant.Spec`1.GenerateConcurrentTests(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions)
+  id: GenerateConcurrentTests(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: GenerateConcurrentTests(TState, InputSet, TestGenerationOptions)
+  nameWithType: Spec<TState>.GenerateConcurrentTests(TState, InputSet, TestGenerationOptions)
+  fullName: Microsoft.Accordant.Spec<TState>.GenerateConcurrentTests(TState, Microsoft.Accordant.InputSet, Microsoft.Accordant.TestGenerationOptions)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GenerateConcurrentTests
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 517
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Generates concurrent test cases from the given inputs.
+  example: []
+  syntax:
+    content: public IList<ConcurrentTestCase> GenerateConcurrentTests(TState initialState, InputSet inputs, TestGenerationOptions options = null)
+    parameters:
+    - id: initialState
+      type: '{TState}'
+      description: The initial state for test generation.
+    - id: inputs
+      type: Microsoft.Accordant.InputSet
+      description: The input set containing operation inputs to use.
+    - id: options
+      type: Microsoft.Accordant.TestGenerationOptions
+      description: Additional test generation options.
+    return:
+      type: System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase}
+      description: A list of concurrent test cases.
+    content.vb: Public Function GenerateConcurrentTests(initialState As TState, inputs As InputSet, options As TestGenerationOptions = Nothing) As IList(Of ConcurrentTestCase)
+  overload: Microsoft.Accordant.Spec`1.GenerateConcurrentTests*
+  nameWithType.vb: Spec(Of TState).GenerateConcurrentTests(TState, InputSet, TestGenerationOptions)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).GenerateConcurrentTests(TState, Microsoft.Accordant.InputSet, Microsoft.Accordant.TestGenerationOptions)
+- uid: Microsoft.Accordant.Spec`1.VisualizeStateSpace(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions,Microsoft.Accordant.VisualizationOptions)
+  commentId: M:Microsoft.Accordant.Spec`1.VisualizeStateSpace(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions,Microsoft.Accordant.VisualizationOptions)
+  id: VisualizeStateSpace(`0,Microsoft.Accordant.InputSet,Microsoft.Accordant.TestGenerationOptions,Microsoft.Accordant.VisualizationOptions)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: VisualizeStateSpace(TState, InputSet, TestGenerationOptions, VisualizationOptions)
+  nameWithType: Spec<TState>.VisualizeStateSpace(TState, InputSet, TestGenerationOptions, VisualizationOptions)
+  fullName: Microsoft.Accordant.Spec<TState>.VisualizeStateSpace(TState, Microsoft.Accordant.InputSet, Microsoft.Accordant.TestGenerationOptions, Microsoft.Accordant.VisualizationOptions)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: VisualizeStateSpace
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 542
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Generates a GraphViz DOT visualization of the state space explored during test generation.
+
+    This is useful for understanding how test cases are generated and debugging state transitions.
+  example: []
+  syntax:
+    content: public string VisualizeStateSpace(TState initialState, InputSet inputs, TestGenerationOptions generationOptions = null, VisualizationOptions visualizationOptions = null)
+    parameters:
+    - id: initialState
+      type: '{TState}'
+      description: The initial state for visualization.
+    - id: inputs
+      type: Microsoft.Accordant.InputSet
+      description: The input set containing operation inputs to use.
+    - id: generationOptions
+      type: Microsoft.Accordant.TestGenerationOptions
+      description: Test generation options that control state space exploration.
+    - id: visualizationOptions
+      type: Microsoft.Accordant.VisualizationOptions
+      description: Options for customizing the visualization output.
+    return:
+      type: System.String
+      description: A string containing the GraphViz DOT file content.
+    content.vb: Public Function VisualizeStateSpace(initialState As TState, inputs As InputSet, generationOptions As TestGenerationOptions = Nothing, visualizationOptions As VisualizationOptions = Nothing) As String
+  overload: Microsoft.Accordant.Spec`1.VisualizeStateSpace*
+  nameWithType.vb: Spec(Of TState).VisualizeStateSpace(TState, InputSet, TestGenerationOptions, VisualizationOptions)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).VisualizeStateSpace(TState, Microsoft.Accordant.InputSet, Microsoft.Accordant.TestGenerationOptions, Microsoft.Accordant.VisualizationOptions)
+- uid: Microsoft.Accordant.Spec`1.RunTests(Microsoft.Accordant.TestingContext,`0,System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase},Microsoft.Accordant.TestExecutionOptions)
+  commentId: M:Microsoft.Accordant.Spec`1.RunTests(Microsoft.Accordant.TestingContext,`0,System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase},Microsoft.Accordant.TestExecutionOptions)
+  id: RunTests(Microsoft.Accordant.TestingContext,`0,System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase},Microsoft.Accordant.TestExecutionOptions)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: RunTests(TestingContext, TState, IList<SequentialTestCase>, TestExecutionOptions)
+  nameWithType: Spec<TState>.RunTests(TestingContext, TState, IList<SequentialTestCase>, TestExecutionOptions)
+  fullName: Microsoft.Accordant.Spec<TState>.RunTests(Microsoft.Accordant.TestingContext, TState, System.Collections.Generic.IList<Microsoft.Accordant.SequentialTestCase>, Microsoft.Accordant.TestExecutionOptions)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: RunTests
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 572
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Runs the given sequential test cases.
+  example: []
+  syntax:
+    content: public Task<IList<TestCaseExecutionResult>> RunTests(TestingContext context, TState initialState, IList<SequentialTestCase> testCases, TestExecutionOptions options = null)
+    parameters:
+    - id: context
+      type: Microsoft.Accordant.TestingContext
+      description: The testing context with registered services.
+    - id: initialState
+      type: '{TState}'
+      description: The initial state for each test.
+    - id: testCases
+      type: System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase}
+      description: The test cases to run.
+    - id: options
+      type: Microsoft.Accordant.TestExecutionOptions
+      description: Execution options.
+    return:
+      type: System.Threading.Tasks.Task{System.Collections.Generic.IList{Microsoft.Accordant.TestCaseExecutionResult}}
+      description: The execution results.
+    content.vb: Public Function RunTests(context As TestingContext, initialState As TState, testCases As IList(Of SequentialTestCase), options As TestExecutionOptions = Nothing) As Task(Of IList(Of TestCaseExecutionResult))
+  overload: Microsoft.Accordant.Spec`1.RunTests*
+  nameWithType.vb: Spec(Of TState).RunTests(TestingContext, TState, IList(Of SequentialTestCase), TestExecutionOptions)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).RunTests(Microsoft.Accordant.TestingContext, TState, System.Collections.Generic.IList(Of Microsoft.Accordant.SequentialTestCase), Microsoft.Accordant.TestExecutionOptions)
+  name.vb: RunTests(TestingContext, TState, IList(Of SequentialTestCase), TestExecutionOptions)
+- uid: Microsoft.Accordant.Spec`1.RunTests(Microsoft.Accordant.TestingContext,`0,System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase},Microsoft.Accordant.TestExecutionOptions)
+  commentId: M:Microsoft.Accordant.Spec`1.RunTests(Microsoft.Accordant.TestingContext,`0,System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase},Microsoft.Accordant.TestExecutionOptions)
+  id: RunTests(Microsoft.Accordant.TestingContext,`0,System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase},Microsoft.Accordant.TestExecutionOptions)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: RunTests(TestingContext, TState, IList<ConcurrentTestCase>, TestExecutionOptions)
+  nameWithType: Spec<TState>.RunTests(TestingContext, TState, IList<ConcurrentTestCase>, TestExecutionOptions)
+  fullName: Microsoft.Accordant.Spec<TState>.RunTests(Microsoft.Accordant.TestingContext, TState, System.Collections.Generic.IList<Microsoft.Accordant.ConcurrentTestCase>, Microsoft.Accordant.TestExecutionOptions)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: RunTests
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 596
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Runs the given concurrent test cases.
+  example: []
+  syntax:
+    content: public Task<IList<TestCaseExecutionResult>> RunTests(TestingContext context, TState initialState, IList<ConcurrentTestCase> testCases, TestExecutionOptions options = null)
+    parameters:
+    - id: context
+      type: Microsoft.Accordant.TestingContext
+      description: The testing context with registered services.
+    - id: initialState
+      type: '{TState}'
+      description: The initial state for each test.
+    - id: testCases
+      type: System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase}
+      description: The test cases to run.
+    - id: options
+      type: Microsoft.Accordant.TestExecutionOptions
+      description: Execution options.
+    return:
+      type: System.Threading.Tasks.Task{System.Collections.Generic.IList{Microsoft.Accordant.TestCaseExecutionResult}}
+      description: The execution results.
+    content.vb: Public Function RunTests(context As TestingContext, initialState As TState, testCases As IList(Of ConcurrentTestCase), options As TestExecutionOptions = Nothing) As Task(Of IList(Of TestCaseExecutionResult))
+  overload: Microsoft.Accordant.Spec`1.RunTests*
+  nameWithType.vb: Spec(Of TState).RunTests(TestingContext, TState, IList(Of ConcurrentTestCase), TestExecutionOptions)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).RunTests(Microsoft.Accordant.TestingContext, TState, System.Collections.Generic.IList(Of Microsoft.Accordant.ConcurrentTestCase), Microsoft.Accordant.TestExecutionOptions)
+  name.vb: RunTests(TestingContext, TState, IList(Of ConcurrentTestCase), TestExecutionOptions)
+- uid: Microsoft.Accordant.Spec`1.CreateTestingContext(System.String)
+  commentId: M:Microsoft.Accordant.Spec`1.CreateTestingContext(System.String)
+  id: CreateTestingContext(System.String)
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: CreateTestingContext(string)
+  nameWithType: Spec<TState>.CreateTestingContext(string)
+  fullName: Microsoft.Accordant.Spec<TState>.CreateTestingContext(string)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: CreateTestingContext
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 628
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Creates a new <xref href="Microsoft.Accordant.TestingContext" data-throw-if-not-resolved="false"></xref> for this spec.
+  example: []
+  syntax:
+    content: public TestingContext CreateTestingContext(string testDirectoryPath = null)
+    parameters:
+    - id: testDirectoryPath
+      type: System.String
+      description: Optional path for test output.
+    return:
+      type: Microsoft.Accordant.TestingContext
+      description: A new testing context.
+    content.vb: Public Function CreateTestingContext(testDirectoryPath As String = Nothing) As TestingContext
+  overload: Microsoft.Accordant.Spec`1.CreateTestingContext*
+  nameWithType.vb: Spec(Of TState).CreateTestingContext(String)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).CreateTestingContext(String)
+  name.vb: CreateTestingContext(String)
+- uid: Microsoft.Accordant.Spec`1.RegisterOperationProperties
+  commentId: M:Microsoft.Accordant.Spec`1.RegisterOperationProperties
+  id: RegisterOperationProperties
+  parent: Microsoft.Accordant.Spec`1
+  langs:
+  - csharp
+  - vb
+  name: RegisterOperationProperties()
+  nameWithType: Spec<TState>.RegisterOperationProperties()
+  fullName: Microsoft.Accordant.Spec<TState>.RegisterOperationProperties()
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/Spec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: RegisterOperationProperties
+    path: Accordant.Operations/Operation/Spec.cs
+    startLine: 651
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Automatically registers all public properties that implement <xref href="Microsoft.Accordant.IOperation" data-throw-if-not-resolved="false"></xref>.
+
+    Call this in the derived Spec constructor after initializing operation properties.
+  example: []
+  syntax:
+    content: protected void RegisterOperationProperties()
+    content.vb: Protected Sub RegisterOperationProperties()
+  overload: Microsoft.Accordant.Spec`1.RegisterOperationProperties*
+  nameWithType.vb: Spec(Of TState).RegisterOperationProperties()
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).RegisterOperationProperties()
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: Microsoft.Accordant.ISpec
+  commentId: T:Microsoft.Accordant.ISpec
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.ISpec.html
+  name: ISpec
+  nameWithType: ISpec
+  fullName: Microsoft.Accordant.ISpec
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.Spec`1.Operations*
+  commentId: Overload:Microsoft.Accordant.Spec`1.Operations
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_Operations
+  name: Operations
+  nameWithType: Spec<TState>.Operations
+  fullName: Microsoft.Accordant.Spec<TState>.Operations
+  nameWithType.vb: Spec(Of TState).Operations
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).Operations
+- uid: Microsoft.Accordant.ISpec.Operations
+  commentId: P:Microsoft.Accordant.ISpec.Operations
+  parent: Microsoft.Accordant.ISpec
+  href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_Operations
+  name: Operations
+  nameWithType: ISpec.Operations
+  fullName: Microsoft.Accordant.ISpec.Operations
+- uid: System.Collections.Generic.IEnumerable{Microsoft.Accordant.IOperation}
+  commentId: T:System.Collections.Generic.IEnumerable{Microsoft.Accordant.IOperation}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IEnumerable`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  name: IEnumerable<IOperation>
+  nameWithType: IEnumerable<IOperation>
+  fullName: System.Collections.Generic.IEnumerable<Microsoft.Accordant.IOperation>
+  nameWithType.vb: IEnumerable(Of IOperation)
+  fullName.vb: System.Collections.Generic.IEnumerable(Of Microsoft.Accordant.IOperation)
+  name.vb: IEnumerable(Of IOperation)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: <
+  - uid: Microsoft.Accordant.IOperation
+    name: IOperation
+    href: Microsoft.Accordant.IOperation.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.IOperation
+    name: IOperation
+    href: Microsoft.Accordant.IOperation.html
+  - name: )
+- uid: System.Collections.Generic.IEnumerable`1
+  commentId: T:System.Collections.Generic.IEnumerable`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  name: IEnumerable<T>
+  nameWithType: IEnumerable<T>
+  fullName: System.Collections.Generic.IEnumerable<T>
+  nameWithType.vb: IEnumerable(Of T)
+  fullName.vb: System.Collections.Generic.IEnumerable(Of T)
+  name.vb: IEnumerable(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: Microsoft.Accordant.Spec`1.RegisterOperation*
+  commentId: Overload:Microsoft.Accordant.Spec`1.RegisterOperation
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_RegisterOperation_System_String_Microsoft_Accordant_IOperation_
+  name: RegisterOperation
+  nameWithType: Spec<TState>.RegisterOperation
+  fullName: Microsoft.Accordant.Spec<TState>.RegisterOperation
+  nameWithType.vb: Spec(Of TState).RegisterOperation
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).RegisterOperation
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.IOperation
+  commentId: T:Microsoft.Accordant.IOperation
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.IOperation.html
+  name: IOperation
+  nameWithType: IOperation
+  fullName: Microsoft.Accordant.IOperation
+- uid: Microsoft.Accordant.Spec`1.GetOperation*
+  commentId: Overload:Microsoft.Accordant.Spec`1.GetOperation
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_GetOperation_System_String_
+  name: GetOperation
+  nameWithType: Spec<TState>.GetOperation
+  fullName: Microsoft.Accordant.Spec<TState>.GetOperation
+  nameWithType.vb: Spec(Of TState).GetOperation
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).GetOperation
+- uid: Microsoft.Accordant.ISpec.GetOperation(System.String)
+  commentId: M:Microsoft.Accordant.ISpec.GetOperation(System.String)
+  parent: Microsoft.Accordant.ISpec
+  isExternal: true
+  href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_GetOperation_System_String_
+  name: GetOperation(string)
+  nameWithType: ISpec.GetOperation(string)
+  fullName: Microsoft.Accordant.ISpec.GetOperation(string)
+  nameWithType.vb: ISpec.GetOperation(String)
+  fullName.vb: Microsoft.Accordant.ISpec.GetOperation(String)
+  name.vb: GetOperation(String)
+  spec.csharp:
+  - uid: Microsoft.Accordant.ISpec.GetOperation(System.String)
+    name: GetOperation
+    href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_GetOperation_System_String_
+  - name: (
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.ISpec.GetOperation(System.String)
+    name: GetOperation
+    href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_GetOperation_System_String_
+  - name: (
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: Microsoft.Accordant.Spec`1.GetOperationName*
+  commentId: Overload:Microsoft.Accordant.Spec`1.GetOperationName
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_GetOperationName_Microsoft_Accordant_IOperation_
+  name: GetOperationName
+  nameWithType: Spec<TState>.GetOperationName
+  fullName: Microsoft.Accordant.Spec<TState>.GetOperationName
+  nameWithType.vb: Spec(Of TState).GetOperationName
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).GetOperationName
+- uid: Microsoft.Accordant.ISpec.GetOperationName(Microsoft.Accordant.IOperation)
+  commentId: M:Microsoft.Accordant.ISpec.GetOperationName(Microsoft.Accordant.IOperation)
+  parent: Microsoft.Accordant.ISpec
+  href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_GetOperationName_Microsoft_Accordant_IOperation_
+  name: GetOperationName(IOperation)
+  nameWithType: ISpec.GetOperationName(IOperation)
+  fullName: Microsoft.Accordant.ISpec.GetOperationName(Microsoft.Accordant.IOperation)
+  spec.csharp:
+  - uid: Microsoft.Accordant.ISpec.GetOperationName(Microsoft.Accordant.IOperation)
+    name: GetOperationName
+    href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_GetOperationName_Microsoft_Accordant_IOperation_
+  - name: (
+  - uid: Microsoft.Accordant.IOperation
+    name: IOperation
+    href: Microsoft.Accordant.IOperation.html
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.ISpec.GetOperationName(Microsoft.Accordant.IOperation)
+    name: GetOperationName
+    href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_GetOperationName_Microsoft_Accordant_IOperation_
+  - name: (
+  - uid: Microsoft.Accordant.IOperation
+    name: IOperation
+    href: Microsoft.Accordant.IOperation.html
+  - name: )
+- uid: Microsoft.Accordant.Spec`1.Item*
+  commentId: Overload:Microsoft.Accordant.Spec`1.Item
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_Item_System_String_
+  name: this
+  nameWithType: Spec<TState>.this
+  fullName: Microsoft.Accordant.Spec<TState>.this
+  nameWithType.vb: Spec(Of TState).this[]
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).this[]
+  name.vb: this[]
+- uid: Microsoft.Accordant.ISpec.Item(System.String)
+  commentId: P:Microsoft.Accordant.ISpec.Item(System.String)
+  parent: Microsoft.Accordant.ISpec
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: this[string]
+  nameWithType: ISpec.this[string]
+  fullName: Microsoft.Accordant.ISpec.this[string]
+  nameWithType.vb: ISpec.this[](String)
+  fullName.vb: Microsoft.Accordant.ISpec.this[](String)
+  name.vb: this[](String)
+  spec.csharp:
+  - name: this
+  - name: '['
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ']'
+  spec.vb:
+  - uid: Microsoft.Accordant.ISpec.Item(System.String)
+    name: this[]
+    href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_Item_System_String_
+  - name: (
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: Microsoft.Accordant.Spec`1.Add*
+  commentId: Overload:Microsoft.Accordant.Spec`1.Add
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_Add_Microsoft_Accordant_IOperation_
+  name: Add
+  nameWithType: Spec<TState>.Add
+  fullName: Microsoft.Accordant.Spec<TState>.Add
+  nameWithType.vb: Spec(Of TState).Add
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).Add
+- uid: Microsoft.Accordant.ISpec.Add(Microsoft.Accordant.IOperation)
+  commentId: M:Microsoft.Accordant.ISpec.Add(Microsoft.Accordant.IOperation)
+  parent: Microsoft.Accordant.ISpec
+  href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_Add_Microsoft_Accordant_IOperation_
+  name: Add(IOperation)
+  nameWithType: ISpec.Add(IOperation)
+  fullName: Microsoft.Accordant.ISpec.Add(Microsoft.Accordant.IOperation)
+  spec.csharp:
+  - uid: Microsoft.Accordant.ISpec.Add(Microsoft.Accordant.IOperation)
+    name: Add
+    href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_Add_Microsoft_Accordant_IOperation_
+  - name: (
+  - uid: Microsoft.Accordant.IOperation
+    name: IOperation
+    href: Microsoft.Accordant.IOperation.html
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.ISpec.Add(Microsoft.Accordant.IOperation)
+    name: Add
+    href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_Add_Microsoft_Accordant_IOperation_
+  - name: (
+  - uid: Microsoft.Accordant.IOperation
+    name: IOperation
+    href: Microsoft.Accordant.IOperation.html
+  - name: )
+- uid: Microsoft.Accordant.Spec`1.Allows*
+  commentId: Overload:Microsoft.Accordant.Spec`1.Allows
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_Allows__2_Microsoft_Accordant_Operation___0___1__0____0_System_Object__0_
+  name: Allows
+  nameWithType: Spec<TState>.Allows
+  fullName: Microsoft.Accordant.Spec<TState>.Allows
+  nameWithType.vb: Spec(Of TState).Allows
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).Allows
+- uid: Microsoft.Accordant.Operation{{TRequest},{TResponse},{TState}}
+  commentId: T:Microsoft.Accordant.Operation{``0,``1,`1}
+  parent: Microsoft.Accordant
+  definition: Microsoft.Accordant.Operation`3
+  href: Microsoft.Accordant.Operation-3.html
+  name: Operation<TRequest, TResponse, TState>
+  nameWithType: Operation<TRequest, TResponse, TState>
+  fullName: Microsoft.Accordant.Operation<TRequest, TResponse, TState>
+  nameWithType.vb: Operation(Of TRequest, TResponse, TState)
+  fullName.vb: Microsoft.Accordant.Operation(Of TRequest, TResponse, TState)
+  name.vb: Operation(Of TRequest, TResponse, TState)
+  spec.csharp:
+  - uid: Microsoft.Accordant.Operation`3
+    name: Operation
+    href: Microsoft.Accordant.Operation-3.html
+  - name: <
+  - name: TRequest
+  - name: ','
+  - name: " "
+  - name: TResponse
+  - name: ','
+  - name: " "
+  - name: TState
+  - name: '>'
+  spec.vb:
+  - uid: Microsoft.Accordant.Operation`3
+    name: Operation
+    href: Microsoft.Accordant.Operation-3.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TRequest
+  - name: ','
+  - name: " "
+  - name: TResponse
+  - name: ','
+  - name: " "
+  - name: TState
+  - name: )
+- uid: '{TRequest}'
+  commentId: '!:TRequest'
+  definition: TRequest
+  name: TRequest
+  nameWithType: TRequest
+  fullName: TRequest
+- uid: '{TState}'
+  commentId: '!:TState'
+  definition: TState
+  name: TState
+  nameWithType: TState
+  fullName: TState
+- uid: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}
+  commentId: T:System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}
+  parent: System
+  definition: System.ValueTuple`3
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: (bool IsValid, string Message, StateProfile UpdatedStateProfile)
+  nameWithType: (bool IsValid, string Message, StateProfile UpdatedStateProfile)
+  fullName: (bool IsValid, string Message, Microsoft.Accordant.StateProfile UpdatedStateProfile)
+  nameWithType.vb: (IsValid As Boolean, Message As String, UpdatedStateProfile As StateProfile)
+  fullName.vb: (IsValid As Boolean, Message As String, UpdatedStateProfile As Microsoft.Accordant.StateProfile)
+  name.vb: (IsValid As Boolean, Message As String, UpdatedStateProfile As StateProfile)
+  spec.csharp:
+  - name: (
+  - uid: System.Boolean
+    name: bool
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: " "
+  - uid: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}.IsValid
+    name: IsValid
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.boolean,system.string,microsoft.accordant.stateprofile-.isvalid
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: " "
+  - uid: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}.Message
+    name: Message
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.boolean,system.string,microsoft.accordant.stateprofile-.message
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: " "
+  - uid: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}.UpdatedStateProfile
+    name: UpdatedStateProfile
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.boolean,system.string,microsoft.accordant.stateprofile-.updatedstateprofile
+  - name: )
+  spec.vb:
+  - name: (
+  - uid: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}.IsValid
+    name: IsValid
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.boolean,system.string,microsoft.accordant.stateprofile-.isvalid
+  - name: " "
+  - name: As
+  - name: " "
+  - uid: System.Boolean
+    name: Boolean
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: ','
+  - name: " "
+  - uid: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}.Message
+    name: Message
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.boolean,system.string,microsoft.accordant.stateprofile-.message
+  - name: " "
+  - name: As
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - uid: System.ValueTuple{System.Boolean,System.String,Microsoft.Accordant.StateProfile}.UpdatedStateProfile
+    name: UpdatedStateProfile
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.boolean,system.string,microsoft.accordant.stateprofile-.updatedstateprofile
+  - name: " "
+  - name: As
+  - name: " "
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: )
+- uid: Microsoft.Accordant.Operation`3
+  commentId: T:Microsoft.Accordant.Operation`3
+  href: Microsoft.Accordant.Operation-3.html
+  name: Operation<TRequest, TResponse, TState>
+  nameWithType: Operation<TRequest, TResponse, TState>
+  fullName: Microsoft.Accordant.Operation<TRequest, TResponse, TState>
+  nameWithType.vb: Operation(Of TRequest, TResponse, TState)
+  fullName.vb: Microsoft.Accordant.Operation(Of TRequest, TResponse, TState)
+  name.vb: Operation(Of TRequest, TResponse, TState)
+  spec.csharp:
+  - uid: Microsoft.Accordant.Operation`3
+    name: Operation
+    href: Microsoft.Accordant.Operation-3.html
+  - name: <
+  - name: TRequest
+  - name: ','
+  - name: " "
+  - name: TResponse
+  - name: ','
+  - name: " "
+  - name: TState
+  - name: '>'
+  spec.vb:
+  - uid: Microsoft.Accordant.Operation`3
+    name: Operation
+    href: Microsoft.Accordant.Operation-3.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TRequest
+  - name: ','
+  - name: " "
+  - name: TResponse
+  - name: ','
+  - name: " "
+  - name: TState
+  - name: )
+- uid: TRequest
+  name: TRequest
+  nameWithType: TRequest
+  fullName: TRequest
+- uid: TState
+  name: TState
+  nameWithType: TState
+  fullName: TState
+- uid: System.ValueTuple`3
+  commentId: T:System.ValueTuple`3
+  name: (T1, T2, T3)
+  nameWithType: (T1, T2, T3)
+  fullName: (T1, T2, T3)
+  spec.csharp:
+  - name: (
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: T3
+  - name: )
+  spec.vb:
+  - name: (
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: T3
+  - name: )
+- uid: Microsoft.Accordant.StateProfile
+  commentId: T:Microsoft.Accordant.StateProfile
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.StateProfile.html
+  name: StateProfile
+  nameWithType: StateProfile
+  fullName: Microsoft.Accordant.StateProfile
+- uid: Microsoft.Accordant.Spec`1.AllowsConcurrent*
+  commentId: Overload:Microsoft.Accordant.Spec`1.AllowsConcurrent
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_AllowsConcurrent_Microsoft_Accordant_StateProfile_System_Collections_Generic_IList_System_ValueTuple_Microsoft_Accordant_IOperation_System_Object_System_Object___
+  name: AllowsConcurrent
+  nameWithType: Spec<TState>.AllowsConcurrent
+  fullName: Microsoft.Accordant.Spec<TState>.AllowsConcurrent
+  nameWithType.vb: Spec(Of TState).AllowsConcurrent
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).AllowsConcurrent
+- uid: System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}}
+  commentId: T:System.Collections.Generic.IList{System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<(IOperation operation, object request, object response)>
+  nameWithType: IList<(IOperation operation, object request, object response)>
+  fullName: System.Collections.Generic.IList<(Microsoft.Accordant.IOperation operation, object request, object response)>
+  nameWithType.vb: IList(Of (operation As IOperation, request As Object, response As Object))
+  fullName.vb: System.Collections.Generic.IList(Of (operation As Microsoft.Accordant.IOperation, request As Object, response As Object))
+  name.vb: IList(Of (operation As IOperation, request As Object, response As Object))
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - name: (
+  - uid: Microsoft.Accordant.IOperation
+    name: IOperation
+    href: Microsoft.Accordant.IOperation.html
+  - name: " "
+  - uid: System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}.operation
+    name: operation
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-microsoft.accordant.ioperation,system.object,system.object-.operation
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: " "
+  - uid: System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}.request
+    name: request
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-microsoft.accordant.ioperation,system.object,system.object-.request
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: " "
+  - uid: System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}.response
+    name: response
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-microsoft.accordant.ioperation,system.object,system.object-.response
+  - name: )
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: (
+  - uid: System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}.operation
+    name: operation
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-microsoft.accordant.ioperation,system.object,system.object-.operation
+  - name: " "
+  - name: As
+  - name: " "
+  - uid: Microsoft.Accordant.IOperation
+    name: IOperation
+    href: Microsoft.Accordant.IOperation.html
+  - name: ','
+  - name: " "
+  - uid: System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}.request
+    name: request
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-microsoft.accordant.ioperation,system.object,system.object-.request
+  - name: " "
+  - name: As
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.ValueTuple{Microsoft.Accordant.IOperation,System.Object,System.Object}.response
+    name: response
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-microsoft.accordant.ioperation,system.object,system.object-.response
+  - name: " "
+  - name: As
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  - name: )
+- uid: System.Collections.Generic.IList`1
+  commentId: T:System.Collections.Generic.IList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: Microsoft.Accordant.Spec`1.Operation*
+  commentId: Overload:Microsoft.Accordant.Spec`1.Operation
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_Operation__2_System_String_System_Func___0__0_Microsoft_Accordant_ExpectedOutcomes__
+  name: Operation
+  nameWithType: Spec<TState>.Operation
+  fullName: Microsoft.Accordant.Spec<TState>.Operation
+  nameWithType.vb: Spec(Of TState).Operation
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).Operation
+- uid: System.Func{{TRequest},{TState},Microsoft.Accordant.ExpectedOutcomes}
+  commentId: T:System.Func{``0,`0,Microsoft.Accordant.ExpectedOutcomes}
+  parent: System
+  definition: System.Func`3
+  href: https://learn.microsoft.com/dotnet/api/system.func-3
+  name: Func<TRequest, TState, ExpectedOutcomes>
+  nameWithType: Func<TRequest, TState, ExpectedOutcomes>
+  fullName: System.Func<TRequest, TState, Microsoft.Accordant.ExpectedOutcomes>
+  nameWithType.vb: Func(Of TRequest, TState, ExpectedOutcomes)
+  fullName.vb: System.Func(Of TRequest, TState, Microsoft.Accordant.ExpectedOutcomes)
+  name.vb: Func(Of TRequest, TState, ExpectedOutcomes)
+  spec.csharp:
+  - uid: System.Func`3
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-3
+  - name: <
+  - name: TRequest
+  - name: ','
+  - name: " "
+  - name: TState
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.ExpectedOutcomes
+    name: ExpectedOutcomes
+    href: Microsoft.Accordant.ExpectedOutcomes.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`3
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-3
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TRequest
+  - name: ','
+  - name: " "
+  - name: TState
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.ExpectedOutcomes
+    name: ExpectedOutcomes
+    href: Microsoft.Accordant.ExpectedOutcomes.html
+  - name: )
+- uid: Microsoft.Accordant.Spec`1
+  commentId: T:Microsoft.Accordant.Spec`1
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.Spec-1.html
+  name: Spec<TState>
+  nameWithType: Spec<TState>
+  fullName: Microsoft.Accordant.Spec<TState>
+  nameWithType.vb: Spec(Of TState)
+  fullName.vb: Microsoft.Accordant.Spec(Of TState)
+  name.vb: Spec(Of TState)
+  spec.csharp:
+  - uid: Microsoft.Accordant.Spec`1
+    name: Spec
+    href: Microsoft.Accordant.Spec-1.html
+  - name: <
+  - name: TState
+  - name: '>'
+  spec.vb:
+  - uid: Microsoft.Accordant.Spec`1
+    name: Spec
+    href: Microsoft.Accordant.Spec-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TState
+  - name: )
+- uid: System.Func`3
+  commentId: T:System.Func`3
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.func-3
+  name: Func<T1, T2, TResult>
+  nameWithType: Func<T1, T2, TResult>
+  fullName: System.Func<T1, T2, TResult>
+  nameWithType.vb: Func(Of T1, T2, TResult)
+  fullName.vb: System.Func(Of T1, T2, TResult)
+  name.vb: Func(Of T1, T2, TResult)
+  spec.csharp:
+  - uid: System.Func`3
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-3
+  - name: <
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`3
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-3
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: System.InvalidOperationException
+  commentId: T:System.InvalidOperationException
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.invalidoperationexception
+  name: InvalidOperationException
+  nameWithType: InvalidOperationException
+  fullName: System.InvalidOperationException
+- uid: Microsoft.Accordant.Spec`1.ConfigureDerivations*
+  commentId: Overload:Microsoft.Accordant.Spec`1.ConfigureDerivations
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_ConfigureDerivations_System_String_Microsoft_Accordant_RequestDerivation___
+  name: ConfigureDerivations
+  nameWithType: Spec<TState>.ConfigureDerivations
+  fullName: Microsoft.Accordant.Spec<TState>.ConfigureDerivations
+  nameWithType.vb: Spec(Of TState).ConfigureDerivations
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).ConfigureDerivations
+- uid: Microsoft.Accordant.RequestDerivation[]
+  isExternal: true
+  href: Microsoft.Accordant.RequestDerivation.html
+  name: RequestDerivation[]
+  nameWithType: RequestDerivation[]
+  fullName: Microsoft.Accordant.RequestDerivation[]
+  nameWithType.vb: RequestDerivation()
+  fullName.vb: Microsoft.Accordant.RequestDerivation()
+  name.vb: RequestDerivation()
+  spec.csharp:
+  - uid: Microsoft.Accordant.RequestDerivation
+    name: RequestDerivation
+    href: Microsoft.Accordant.RequestDerivation.html
+  - name: '['
+  - name: ']'
+  spec.vb:
+  - uid: Microsoft.Accordant.RequestDerivation
+    name: RequestDerivation
+    href: Microsoft.Accordant.RequestDerivation.html
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.Spec`1.ConfigurePolling*
+  commentId: Overload:Microsoft.Accordant.Spec`1.ConfigurePolling
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_ConfigurePolling_System_String_Microsoft_Accordant_PollingSetup_
+  name: ConfigurePolling
+  nameWithType: Spec<TState>.ConfigurePolling
+  fullName: Microsoft.Accordant.Spec<TState>.ConfigurePolling
+  nameWithType.vb: Spec(Of TState).ConfigurePolling
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).ConfigurePolling
+- uid: Microsoft.Accordant.PollingSetup
+  commentId: T:Microsoft.Accordant.PollingSetup
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.PollingSetup.html
+  name: PollingSetup
+  nameWithType: PollingSetup
+  fullName: Microsoft.Accordant.PollingSetup
+- uid: Microsoft.Accordant.ExecuteBuilder`2
+  commentId: T:Microsoft.Accordant.ExecuteBuilder`2
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.ExecuteBuilder-2.html
+  name: ExecuteBuilder<TTarget, TState>
+  nameWithType: ExecuteBuilder<TTarget, TState>
+  fullName: Microsoft.Accordant.ExecuteBuilder<TTarget, TState>
+  nameWithType.vb: ExecuteBuilder(Of TTarget, TState)
+  fullName.vb: Microsoft.Accordant.ExecuteBuilder(Of TTarget, TState)
+  name.vb: ExecuteBuilder(Of TTarget, TState)
+  spec.csharp:
+  - uid: Microsoft.Accordant.ExecuteBuilder`2
+    name: ExecuteBuilder
+    href: Microsoft.Accordant.ExecuteBuilder-2.html
+  - name: <
+  - name: TTarget
+  - name: ','
+  - name: " "
+  - name: TState
+  - name: '>'
+  spec.vb:
+  - uid: Microsoft.Accordant.ExecuteBuilder`2
+    name: ExecuteBuilder
+    href: Microsoft.Accordant.ExecuteBuilder-2.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TTarget
+  - name: ','
+  - name: " "
+  - name: TState
+  - name: )
+- uid: Microsoft.Accordant.Spec`1.ExecuteWith*
+  commentId: Overload:Microsoft.Accordant.Spec`1.ExecuteWith
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_ExecuteWith__1
+  name: ExecuteWith
+  nameWithType: Spec<TState>.ExecuteWith
+  fullName: Microsoft.Accordant.Spec<TState>.ExecuteWith
+  nameWithType.vb: Spec(Of TState).ExecuteWith
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).ExecuteWith
+- uid: Microsoft.Accordant.ExecuteBuilder{{TTarget},{TState}}
+  commentId: T:Microsoft.Accordant.ExecuteBuilder{``0,`0}
+  parent: Microsoft.Accordant
+  definition: Microsoft.Accordant.ExecuteBuilder`2
+  href: Microsoft.Accordant.ExecuteBuilder-2.html
+  name: ExecuteBuilder<TTarget, TState>
+  nameWithType: ExecuteBuilder<TTarget, TState>
+  fullName: Microsoft.Accordant.ExecuteBuilder<TTarget, TState>
+  nameWithType.vb: ExecuteBuilder(Of TTarget, TState)
+  fullName.vb: Microsoft.Accordant.ExecuteBuilder(Of TTarget, TState)
+  name.vb: ExecuteBuilder(Of TTarget, TState)
+  spec.csharp:
+  - uid: Microsoft.Accordant.ExecuteBuilder`2
+    name: ExecuteBuilder
+    href: Microsoft.Accordant.ExecuteBuilder-2.html
+  - name: <
+  - name: TTarget
+  - name: ','
+  - name: " "
+  - name: TState
+  - name: '>'
+  spec.vb:
+  - uid: Microsoft.Accordant.ExecuteBuilder`2
+    name: ExecuteBuilder
+    href: Microsoft.Accordant.ExecuteBuilder-2.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TTarget
+  - name: ','
+  - name: " "
+  - name: TState
+  - name: )
+- uid: Microsoft.Accordant.Spec`1.WithRequestPrinter*
+  commentId: Overload:Microsoft.Accordant.Spec`1.WithRequestPrinter
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_WithRequestPrinter_System_Func_System_Object_System_String__
+  name: WithRequestPrinter
+  nameWithType: Spec<TState>.WithRequestPrinter
+  fullName: Microsoft.Accordant.Spec<TState>.WithRequestPrinter
+  nameWithType.vb: Spec(Of TState).WithRequestPrinter
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).WithRequestPrinter
+- uid: System.Func{System.Object,System.String}
+  commentId: T:System.Func{System.Object,System.String}
+  parent: System
+  definition: System.Func`2
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<object, string>
+  nameWithType: Func<object, string>
+  fullName: System.Func<object, string>
+  nameWithType.vb: Func(Of Object, String)
+  fullName.vb: System.Func(Of Object, String)
+  name.vb: Func(Of Object, String)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: System.Func`2
+  commentId: T:System.Func`2
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<T, TResult>
+  nameWithType: Func<T, TResult>
+  fullName: System.Func<T, TResult>
+  nameWithType.vb: Func(Of T, TResult)
+  fullName.vb: System.Func(Of T, TResult)
+  name.vb: Func(Of T, TResult)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - name: T
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: Microsoft.Accordant.Spec`1.WithResponsePrinter*
+  commentId: Overload:Microsoft.Accordant.Spec`1.WithResponsePrinter
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_WithResponsePrinter_System_Func_System_Object_System_String__
+  name: WithResponsePrinter
+  nameWithType: Spec<TState>.WithResponsePrinter
+  fullName: Microsoft.Accordant.Spec<TState>.WithResponsePrinter
+  nameWithType.vb: Spec(Of TState).WithResponsePrinter
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).WithResponsePrinter
+- uid: Microsoft.Accordant.Spec`1.WithJsonPrinters*
+  commentId: Overload:Microsoft.Accordant.Spec`1.WithJsonPrinters
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_WithJsonPrinters
+  name: WithJsonPrinters
+  nameWithType: Spec<TState>.WithJsonPrinters
+  fullName: Microsoft.Accordant.Spec<TState>.WithJsonPrinters
+  nameWithType.vb: Spec(Of TState).WithJsonPrinters
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).WithJsonPrinters
+- uid: Microsoft.Accordant.Spec`1.GenerateTests*
+  commentId: Overload:Microsoft.Accordant.Spec`1.GenerateTests
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_GenerateTests__0_Microsoft_Accordant_InputSet_Microsoft_Accordant_TestGenerationOptions_
+  name: GenerateTests
+  nameWithType: Spec<TState>.GenerateTests
+  fullName: Microsoft.Accordant.Spec<TState>.GenerateTests
+  nameWithType.vb: Spec(Of TState).GenerateTests
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).GenerateTests
+- uid: Microsoft.Accordant.InputSet
+  commentId: T:Microsoft.Accordant.InputSet
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.InputSet.html
+  name: InputSet
+  nameWithType: InputSet
+  fullName: Microsoft.Accordant.InputSet
+- uid: Microsoft.Accordant.TestGenerationOptions
+  commentId: T:Microsoft.Accordant.TestGenerationOptions
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.TestGenerationOptions.html
+  name: TestGenerationOptions
+  nameWithType: TestGenerationOptions
+  fullName: Microsoft.Accordant.TestGenerationOptions
+- uid: System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase}
+  commentId: T:System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<SequentialTestCase>
+  nameWithType: IList<SequentialTestCase>
+  fullName: System.Collections.Generic.IList<Microsoft.Accordant.SequentialTestCase>
+  nameWithType.vb: IList(Of SequentialTestCase)
+  fullName.vb: System.Collections.Generic.IList(Of Microsoft.Accordant.SequentialTestCase)
+  name.vb: IList(Of SequentialTestCase)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.SequentialTestCase
+    name: SequentialTestCase
+    href: Microsoft.Accordant.SequentialTestCase.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.SequentialTestCase
+    name: SequentialTestCase
+    href: Microsoft.Accordant.SequentialTestCase.html
+  - name: )
+- uid: Microsoft.Accordant.Spec`1.GenerateConcurrentTests*
+  commentId: Overload:Microsoft.Accordant.Spec`1.GenerateConcurrentTests
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_GenerateConcurrentTests__0_Microsoft_Accordant_InputSet_Microsoft_Accordant_TestGenerationOptions_
+  name: GenerateConcurrentTests
+  nameWithType: Spec<TState>.GenerateConcurrentTests
+  fullName: Microsoft.Accordant.Spec<TState>.GenerateConcurrentTests
+  nameWithType.vb: Spec(Of TState).GenerateConcurrentTests
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).GenerateConcurrentTests
+- uid: System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase}
+  commentId: T:System.Collections.Generic.IList{Microsoft.Accordant.ConcurrentTestCase}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<ConcurrentTestCase>
+  nameWithType: IList<ConcurrentTestCase>
+  fullName: System.Collections.Generic.IList<Microsoft.Accordant.ConcurrentTestCase>
+  nameWithType.vb: IList(Of ConcurrentTestCase)
+  fullName.vb: System.Collections.Generic.IList(Of Microsoft.Accordant.ConcurrentTestCase)
+  name.vb: IList(Of ConcurrentTestCase)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.ConcurrentTestCase
+    name: ConcurrentTestCase
+    href: Microsoft.Accordant.ConcurrentTestCase.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.ConcurrentTestCase
+    name: ConcurrentTestCase
+    href: Microsoft.Accordant.ConcurrentTestCase.html
+  - name: )
+- uid: Microsoft.Accordant.Spec`1.VisualizeStateSpace*
+  commentId: Overload:Microsoft.Accordant.Spec`1.VisualizeStateSpace
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_VisualizeStateSpace__0_Microsoft_Accordant_InputSet_Microsoft_Accordant_TestGenerationOptions_Microsoft_Accordant_VisualizationOptions_
+  name: VisualizeStateSpace
+  nameWithType: Spec<TState>.VisualizeStateSpace
+  fullName: Microsoft.Accordant.Spec<TState>.VisualizeStateSpace
+  nameWithType.vb: Spec(Of TState).VisualizeStateSpace
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).VisualizeStateSpace
+- uid: Microsoft.Accordant.VisualizationOptions
+  commentId: T:Microsoft.Accordant.VisualizationOptions
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.VisualizationOptions.html
+  name: VisualizationOptions
+  nameWithType: VisualizationOptions
+  fullName: Microsoft.Accordant.VisualizationOptions
+- uid: Microsoft.Accordant.Spec`1.RunTests*
+  commentId: Overload:Microsoft.Accordant.Spec`1.RunTests
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_RunTests_Microsoft_Accordant_TestingContext__0_System_Collections_Generic_IList_Microsoft_Accordant_SequentialTestCase__Microsoft_Accordant_TestExecutionOptions_
+  name: RunTests
+  nameWithType: Spec<TState>.RunTests
+  fullName: Microsoft.Accordant.Spec<TState>.RunTests
+  nameWithType.vb: Spec(Of TState).RunTests
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).RunTests
+- uid: Microsoft.Accordant.TestingContext
+  commentId: T:Microsoft.Accordant.TestingContext
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.TestingContext.html
+  name: TestingContext
+  nameWithType: TestingContext
+  fullName: Microsoft.Accordant.TestingContext
+- uid: Microsoft.Accordant.TestExecutionOptions
+  commentId: T:Microsoft.Accordant.TestExecutionOptions
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.TestExecutionOptions.html
+  name: TestExecutionOptions
+  nameWithType: TestExecutionOptions
+  fullName: Microsoft.Accordant.TestExecutionOptions
+- uid: System.Threading.Tasks.Task{System.Collections.Generic.IList{Microsoft.Accordant.TestCaseExecutionResult}}
+  commentId: T:System.Threading.Tasks.Task{System.Collections.Generic.IList{Microsoft.Accordant.TestCaseExecutionResult}}
+  parent: System.Threading.Tasks
+  definition: System.Threading.Tasks.Task`1
+  href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  name: Task<IList<TestCaseExecutionResult>>
+  nameWithType: Task<IList<TestCaseExecutionResult>>
+  fullName: System.Threading.Tasks.Task<System.Collections.Generic.IList<Microsoft.Accordant.TestCaseExecutionResult>>
+  nameWithType.vb: Task(Of IList(Of TestCaseExecutionResult))
+  fullName.vb: System.Threading.Tasks.Task(Of System.Collections.Generic.IList(Of Microsoft.Accordant.TestCaseExecutionResult))
+  name.vb: Task(Of IList(Of TestCaseExecutionResult))
+  spec.csharp:
+  - uid: System.Threading.Tasks.Task`1
+    name: Task
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  - name: <
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.TestCaseExecutionResult
+    name: TestCaseExecutionResult
+    href: Microsoft.Accordant.TestCaseExecutionResult.html
+  - name: '>'
+  - name: '>'
+  spec.vb:
+  - uid: System.Threading.Tasks.Task`1
+    name: Task
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.TestCaseExecutionResult
+    name: TestCaseExecutionResult
+    href: Microsoft.Accordant.TestCaseExecutionResult.html
+  - name: )
+  - name: )
+- uid: System.Threading.Tasks.Task`1
+  commentId: T:System.Threading.Tasks.Task`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  name: Task<TResult>
+  nameWithType: Task<TResult>
+  fullName: System.Threading.Tasks.Task<TResult>
+  nameWithType.vb: Task(Of TResult)
+  fullName.vb: System.Threading.Tasks.Task(Of TResult)
+  name.vb: Task(Of TResult)
+  spec.csharp:
+  - uid: System.Threading.Tasks.Task`1
+    name: Task
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  - name: <
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Threading.Tasks.Task`1
+    name: Task
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: System.Threading.Tasks
+  commentId: N:System.Threading.Tasks
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Threading.Tasks
+  nameWithType: System.Threading.Tasks
+  fullName: System.Threading.Tasks
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Threading
+    name: Threading
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading
+  - name: .
+  - uid: System.Threading.Tasks
+    name: Tasks
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Threading
+    name: Threading
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading
+  - name: .
+  - uid: System.Threading.Tasks
+    name: Tasks
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.threading.tasks
+- uid: Microsoft.Accordant.Spec`1.CreateTestingContext*
+  commentId: Overload:Microsoft.Accordant.Spec`1.CreateTestingContext
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_CreateTestingContext_System_String_
+  name: CreateTestingContext
+  nameWithType: Spec<TState>.CreateTestingContext
+  fullName: Microsoft.Accordant.Spec<TState>.CreateTestingContext
+  nameWithType.vb: Spec(Of TState).CreateTestingContext
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).CreateTestingContext
+- uid: Microsoft.Accordant.Spec`1.RegisterOperationProperties*
+  commentId: Overload:Microsoft.Accordant.Spec`1.RegisterOperationProperties
+  href: Microsoft.Accordant.Spec-1.html#Microsoft_Accordant_Spec_1_RegisterOperationProperties
+  name: RegisterOperationProperties
+  nameWithType: Spec<TState>.RegisterOperationProperties
+  fullName: Microsoft.Accordant.Spec<TState>.RegisterOperationProperties
+  nameWithType.vb: Spec(Of TState).RegisterOperationProperties
+  fullName.vb: Microsoft.Accordant.Spec(Of TState).RegisterOperationProperties

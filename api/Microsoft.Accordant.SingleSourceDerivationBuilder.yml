@@ -1,0 +1,827 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.SingleSourceDerivationBuilder
+  commentId: T:Microsoft.Accordant.SingleSourceDerivationBuilder
+  id: SingleSourceDerivationBuilder
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants``3(System.Func{``0,``1,System.Collections.Generic.Dictionary{System.String,``2}})
+  - Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants``3(System.Func{``0,``1,``2,System.Collections.Generic.Dictionary{System.String,``2}})
+  - Microsoft.Accordant.SingleSourceDerivationBuilder.As``3(System.Func{``0,``1,``2,``2})
+  - Microsoft.Accordant.SingleSourceDerivationBuilder.As``3(System.Func{``0,``1,``2})
+  langs:
+  - csharp
+  - vb
+  name: SingleSourceDerivationBuilder
+  nameWithType: SingleSourceDerivationBuilder
+  fullName: Microsoft.Accordant.SingleSourceDerivationBuilder
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/Operation/RequestDerivation.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: SingleSourceDerivationBuilder
+    path: Accordant.Operations/Operation/RequestDerivation.cs
+    startLine: 405
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Builder for single-source derivations (legacy API - types specified on As()).
+  example: []
+  syntax:
+    content: public class SingleSourceDerivationBuilder
+    content.vb: Public Class SingleSourceDerivationBuilder
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.SingleSourceDerivationBuilder.As``3(System.Func{``0,``1,``2})
+  commentId: M:Microsoft.Accordant.SingleSourceDerivationBuilder.As``3(System.Func{``0,``1,``2})
+  id: As``3(System.Func{``0,``1,``2})
+  parent: Microsoft.Accordant.SingleSourceDerivationBuilder
+  langs:
+  - csharp
+  - vb
+  name: As<TReq, TResp, TResult>(Func<TReq, TResp, TResult>)
+  nameWithType: SingleSourceDerivationBuilder.As<TReq, TResp, TResult>(Func<TReq, TResp, TResult>)
+  fullName: Microsoft.Accordant.SingleSourceDerivationBuilder.As<TReq, TResp, TResult>(System.Func<TReq, TResp, TResult>)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/RequestDerivation.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: As
+    path: Accordant.Operations/Operation/RequestDerivation.cs
+    startLine: 421
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Define the derivation that creates a single request (no template).
+  example: []
+  syntax:
+    content: public RequestDerivation As<TReq, TResp, TResult>(Func<TReq, TResp, TResult> factory)
+    parameters:
+    - id: factory
+      type: System.Func{{TReq},{TResp},{TResult}}
+      description: Function that creates the derived request from source request/response.
+    typeParameters:
+    - id: TReq
+      description: The source operation's request type.
+    - id: TResp
+      description: The source operation's response type.
+    - id: TResult
+      description: The derived request type.
+    return:
+      type: Microsoft.Accordant.RequestDerivation
+    content.vb: Public Function [As](Of TReq, TResp, TResult)(factory As Func(Of TReq, TResp, TResult)) As RequestDerivation
+  overload: Microsoft.Accordant.SingleSourceDerivationBuilder.As*
+  nameWithType.vb: SingleSourceDerivationBuilder.As(Of TReq, TResp, TResult)(Func(Of TReq, TResp, TResult))
+  fullName.vb: Microsoft.Accordant.SingleSourceDerivationBuilder.As(Of TReq, TResp, TResult)(System.Func(Of TReq, TResp, TResult))
+  name.vb: As(Of TReq, TResp, TResult)(Func(Of TReq, TResp, TResult))
+- uid: Microsoft.Accordant.SingleSourceDerivationBuilder.As``3(System.Func{``0,``1,``2,``2})
+  commentId: M:Microsoft.Accordant.SingleSourceDerivationBuilder.As``3(System.Func{``0,``1,``2,``2})
+  id: As``3(System.Func{``0,``1,``2,``2})
+  parent: Microsoft.Accordant.SingleSourceDerivationBuilder
+  langs:
+  - csharp
+  - vb
+  name: As<TReq, TResp, TResult>(Func<TReq, TResp, TResult, TResult>)
+  nameWithType: SingleSourceDerivationBuilder.As<TReq, TResp, TResult>(Func<TReq, TResp, TResult, TResult>)
+  fullName: Microsoft.Accordant.SingleSourceDerivationBuilder.As<TReq, TResp, TResult>(System.Func<TReq, TResp, TResult, TResult>)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/RequestDerivation.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: As
+    path: Accordant.Operations/Operation/RequestDerivation.cs
+    startLine: 444
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Define the derivation that creates a single request with template support.
+
+    The template is provided externally via <xref href="Microsoft.Accordant.TestGenerationOptions.RequestTemplates" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public RequestDerivation As<TReq, TResp, TResult>(Func<TReq, TResp, TResult, TResult> factory)
+    parameters:
+    - id: factory
+      type: System.Func{{TReq},{TResp},{TResult},{TResult}}
+      description: Function that creates the derived request from source request/response and template.
+    typeParameters:
+    - id: TReq
+      description: The source operation's request type.
+    - id: TResp
+      description: The source operation's response type.
+    - id: TResult
+      description: The derived request type (also used as template type).
+    return:
+      type: Microsoft.Accordant.RequestDerivation
+    content.vb: Public Function [As](Of TReq, TResp, TResult)(factory As Func(Of TReq, TResp, TResult, TResult)) As RequestDerivation
+  overload: Microsoft.Accordant.SingleSourceDerivationBuilder.As*
+  nameWithType.vb: SingleSourceDerivationBuilder.As(Of TReq, TResp, TResult)(Func(Of TReq, TResp, TResult, TResult))
+  fullName.vb: Microsoft.Accordant.SingleSourceDerivationBuilder.As(Of TReq, TResp, TResult)(System.Func(Of TReq, TResp, TResult, TResult))
+  name.vb: As(Of TReq, TResp, TResult)(Func(Of TReq, TResp, TResult, TResult))
+- uid: Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants``3(System.Func{``0,``1,System.Collections.Generic.Dictionary{System.String,``2}})
+  commentId: M:Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants``3(System.Func{``0,``1,System.Collections.Generic.Dictionary{System.String,``2}})
+  id: AsVariants``3(System.Func{``0,``1,System.Collections.Generic.Dictionary{System.String,``2}})
+  parent: Microsoft.Accordant.SingleSourceDerivationBuilder
+  langs:
+  - csharp
+  - vb
+  name: AsVariants<TReq, TResp, TResult>(Func<TReq, TResp, Dictionary<string, TResult>>)
+  nameWithType: SingleSourceDerivationBuilder.AsVariants<TReq, TResp, TResult>(Func<TReq, TResp, Dictionary<string, TResult>>)
+  fullName: Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants<TReq, TResp, TResult>(System.Func<TReq, TResp, System.Collections.Generic.Dictionary<string, TResult>>)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/RequestDerivation.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: AsVariants
+    path: Accordant.Operations/Operation/RequestDerivation.cs
+    startLine: 468
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Define a derivation that produces multiple request variants (no template).
+
+    Use this for cases like generating both IfMatch and IfNoneMatch requests,
+
+    or return an empty dictionary to skip derivation.
+  example: []
+  syntax:
+    content: public RequestDerivation AsVariants<TReq, TResp, TResult>(Func<TReq, TResp, Dictionary<string, TResult>> factory)
+    parameters:
+    - id: factory
+      type: System.Func{{TReq},{TResp},System.Collections.Generic.Dictionary{System.String,{TResult}}}
+      description: Function that creates a dictionary of variant label to derived request.
+    typeParameters:
+    - id: TReq
+      description: The source operation's request type.
+    - id: TResp
+      description: The source operation's response type.
+    - id: TResult
+      description: The derived request type.
+    return:
+      type: Microsoft.Accordant.RequestDerivation
+    content.vb: Public Function AsVariants(Of TReq, TResp, TResult)(factory As Func(Of TReq, TResp, Dictionary(Of String, TResult))) As RequestDerivation
+  overload: Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants*
+  nameWithType.vb: SingleSourceDerivationBuilder.AsVariants(Of TReq, TResp, TResult)(Func(Of TReq, TResp, Dictionary(Of String, TResult)))
+  fullName.vb: Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants(Of TReq, TResp, TResult)(System.Func(Of TReq, TResp, System.Collections.Generic.Dictionary(Of String, TResult)))
+  name.vb: AsVariants(Of TReq, TResp, TResult)(Func(Of TReq, TResp, Dictionary(Of String, TResult)))
+- uid: Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants``3(System.Func{``0,``1,``2,System.Collections.Generic.Dictionary{System.String,``2}})
+  commentId: M:Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants``3(System.Func{``0,``1,``2,System.Collections.Generic.Dictionary{System.String,``2}})
+  id: AsVariants``3(System.Func{``0,``1,``2,System.Collections.Generic.Dictionary{System.String,``2}})
+  parent: Microsoft.Accordant.SingleSourceDerivationBuilder
+  langs:
+  - csharp
+  - vb
+  name: AsVariants<TReq, TResp, TResult>(Func<TReq, TResp, TResult, Dictionary<string, TResult>>)
+  nameWithType: SingleSourceDerivationBuilder.AsVariants<TReq, TResp, TResult>(Func<TReq, TResp, TResult, Dictionary<string, TResult>>)
+  fullName: Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants<TReq, TResp, TResult>(System.Func<TReq, TResp, TResult, System.Collections.Generic.Dictionary<string, TResult>>)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/RequestDerivation.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: AsVariants
+    path: Accordant.Operations/Operation/RequestDerivation.cs
+    startLine: 491
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Define a derivation that produces multiple request variants with template support.
+  example: []
+  syntax:
+    content: public RequestDerivation AsVariants<TReq, TResp, TResult>(Func<TReq, TResp, TResult, Dictionary<string, TResult>> factory)
+    parameters:
+    - id: factory
+      type: System.Func{{TReq},{TResp},{TResult},System.Collections.Generic.Dictionary{System.String,{TResult}}}
+      description: Function that creates a dictionary of variant label to derived request.
+    typeParameters:
+    - id: TReq
+      description: The source operation's request type.
+    - id: TResp
+      description: The source operation's response type.
+    - id: TResult
+      description: The derived request type (also used as template type).
+    return:
+      type: Microsoft.Accordant.RequestDerivation
+    content.vb: Public Function AsVariants(Of TReq, TResp, TResult)(factory As Func(Of TReq, TResp, TResult, Dictionary(Of String, TResult))) As RequestDerivation
+  overload: Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants*
+  nameWithType.vb: SingleSourceDerivationBuilder.AsVariants(Of TReq, TResp, TResult)(Func(Of TReq, TResp, TResult, Dictionary(Of String, TResult)))
+  fullName.vb: Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants(Of TReq, TResp, TResult)(System.Func(Of TReq, TResp, TResult, System.Collections.Generic.Dictionary(Of String, TResult)))
+  name.vb: AsVariants(Of TReq, TResp, TResult)(Func(Of TReq, TResp, TResult, Dictionary(Of String, TResult)))
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.SingleSourceDerivationBuilder.As*
+  commentId: Overload:Microsoft.Accordant.SingleSourceDerivationBuilder.As
+  href: Microsoft.Accordant.SingleSourceDerivationBuilder.html#Microsoft_Accordant_SingleSourceDerivationBuilder_As__3_System_Func___0___1___2__
+  name: As
+  nameWithType: SingleSourceDerivationBuilder.As
+  fullName: Microsoft.Accordant.SingleSourceDerivationBuilder.As
+- uid: System.Func{{TReq},{TResp},{TResult}}
+  commentId: T:System.Func{`0,`1,`2}
+  parent: System
+  definition: System.Func`3
+  href: https://learn.microsoft.com/dotnet/api/system.func-3
+  name: Func<TReq, TResp, TResult>
+  nameWithType: Func<TReq, TResp, TResult>
+  fullName: System.Func<TReq, TResp, TResult>
+  nameWithType.vb: Func(Of TReq, TResp, TResult)
+  fullName.vb: System.Func(Of TReq, TResp, TResult)
+  name.vb: Func(Of TReq, TResp, TResult)
+  spec.csharp:
+  - uid: System.Func`3
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-3
+  - name: <
+  - name: TReq
+  - name: ','
+  - name: " "
+  - name: TResp
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`3
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-3
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TReq
+  - name: ','
+  - name: " "
+  - name: TResp
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: Microsoft.Accordant.RequestDerivation
+  commentId: T:Microsoft.Accordant.RequestDerivation
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.RequestDerivation.html
+  name: RequestDerivation
+  nameWithType: RequestDerivation
+  fullName: Microsoft.Accordant.RequestDerivation
+- uid: System.Func`3
+  commentId: T:System.Func`3
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.func-3
+  name: Func<T1, T2, TResult>
+  nameWithType: Func<T1, T2, TResult>
+  fullName: System.Func<T1, T2, TResult>
+  nameWithType.vb: Func(Of T1, T2, TResult)
+  fullName.vb: System.Func(Of T1, T2, TResult)
+  name.vb: Func(Of T1, T2, TResult)
+  spec.csharp:
+  - uid: System.Func`3
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-3
+  - name: <
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`3
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-3
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: Microsoft.Accordant.TestGenerationOptions.RequestTemplates
+  commentId: P:Microsoft.Accordant.TestGenerationOptions.RequestTemplates
+  href: Microsoft.Accordant.TestGenerationOptions.html#Microsoft_Accordant_TestGenerationOptions_RequestTemplates
+  name: RequestTemplates
+  nameWithType: TestGenerationOptions.RequestTemplates
+  fullName: Microsoft.Accordant.TestGenerationOptions.RequestTemplates
+- uid: System.Func{{TReq},{TResp},{TResult},{TResult}}
+  commentId: T:System.Func{`0,`1,`2,`2}
+  parent: System
+  definition: System.Func`4
+  href: https://learn.microsoft.com/dotnet/api/system.func-4
+  name: Func<TReq, TResp, TResult, TResult>
+  nameWithType: Func<TReq, TResp, TResult, TResult>
+  fullName: System.Func<TReq, TResp, TResult, TResult>
+  nameWithType.vb: Func(Of TReq, TResp, TResult, TResult)
+  fullName.vb: System.Func(Of TReq, TResp, TResult, TResult)
+  name.vb: Func(Of TReq, TResp, TResult, TResult)
+  spec.csharp:
+  - uid: System.Func`4
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-4
+  - name: <
+  - name: TReq
+  - name: ','
+  - name: " "
+  - name: TResp
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`4
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-4
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TReq
+  - name: ','
+  - name: " "
+  - name: TResp
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: System.Func`4
+  commentId: T:System.Func`4
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.func-4
+  name: Func<T1, T2, T3, TResult>
+  nameWithType: Func<T1, T2, T3, TResult>
+  fullName: System.Func<T1, T2, T3, TResult>
+  nameWithType.vb: Func(Of T1, T2, T3, TResult)
+  fullName.vb: System.Func(Of T1, T2, T3, TResult)
+  name.vb: Func(Of T1, T2, T3, TResult)
+  spec.csharp:
+  - uid: System.Func`4
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-4
+  - name: <
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: T3
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`4
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-4
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: T3
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants*
+  commentId: Overload:Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants
+  href: Microsoft.Accordant.SingleSourceDerivationBuilder.html#Microsoft_Accordant_SingleSourceDerivationBuilder_AsVariants__3_System_Func___0___1_System_Collections_Generic_Dictionary_System_String___2___
+  name: AsVariants
+  nameWithType: SingleSourceDerivationBuilder.AsVariants
+  fullName: Microsoft.Accordant.SingleSourceDerivationBuilder.AsVariants
+- uid: System.Func{{TReq},{TResp},System.Collections.Generic.Dictionary{System.String,{TResult}}}
+  commentId: T:System.Func{`0,`1,System.Collections.Generic.Dictionary{System.String,`2}}
+  parent: System
+  definition: System.Func`3
+  href: https://learn.microsoft.com/dotnet/api/system.func-3
+  name: Func<TReq, TResp, Dictionary<string, TResult>>
+  nameWithType: Func<TReq, TResp, Dictionary<string, TResult>>
+  fullName: System.Func<TReq, TResp, System.Collections.Generic.Dictionary<string, TResult>>
+  nameWithType.vb: Func(Of TReq, TResp, Dictionary(Of String, TResult))
+  fullName.vb: System.Func(Of TReq, TResp, System.Collections.Generic.Dictionary(Of String, TResult))
+  name.vb: Func(Of TReq, TResp, Dictionary(Of String, TResult))
+  spec.csharp:
+  - uid: System.Func`3
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-3
+  - name: <
+  - name: TReq
+  - name: ','
+  - name: " "
+  - name: TResp
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`3
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-3
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TReq
+  - name: ','
+  - name: " "
+  - name: TResp
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+  - name: )
+- uid: System.Func{{TReq},{TResp},{TResult},System.Collections.Generic.Dictionary{System.String,{TResult}}}
+  commentId: T:System.Func{`0,`1,`2,System.Collections.Generic.Dictionary{System.String,`2}}
+  parent: System
+  definition: System.Func`4
+  href: https://learn.microsoft.com/dotnet/api/system.func-4
+  name: Func<TReq, TResp, TResult, Dictionary<string, TResult>>
+  nameWithType: Func<TReq, TResp, TResult, Dictionary<string, TResult>>
+  fullName: System.Func<TReq, TResp, TResult, System.Collections.Generic.Dictionary<string, TResult>>
+  nameWithType.vb: Func(Of TReq, TResp, TResult, Dictionary(Of String, TResult))
+  fullName.vb: System.Func(Of TReq, TResp, TResult, System.Collections.Generic.Dictionary(Of String, TResult))
+  name.vb: Func(Of TReq, TResp, TResult, Dictionary(Of String, TResult))
+  spec.csharp:
+  - uid: System.Func`4
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-4
+  - name: <
+  - name: TReq
+  - name: ','
+  - name: " "
+  - name: TResp
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`4
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-4
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TReq
+  - name: ','
+  - name: " "
+  - name: TResp
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+  - name: )

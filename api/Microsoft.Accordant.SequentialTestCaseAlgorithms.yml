@@ -1,0 +1,641 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.SequentialTestCaseAlgorithms
+  commentId: T:Microsoft.Accordant.SequentialTestCaseAlgorithms
+  id: SequentialTestCaseAlgorithms
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateRandomWalk(System.Int32,System.Int32,System.Nullable{System.Int32})
+  - Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateTransitionCoverage(System.Int32)
+  - Microsoft.Accordant.SequentialTestCaseAlgorithms.StateCoverage(Microsoft.Accordant.TestingContext,Microsoft.Accordant.StateGraphNode)
+  langs:
+  - csharp
+  - vb
+  name: SequentialTestCaseAlgorithms
+  nameWithType: SequentialTestCaseAlgorithms
+  fullName: Microsoft.Accordant.SequentialTestCaseAlgorithms
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/GenerationAlgorithms/SequentialTestCaseAlgorithms.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: SequentialTestCaseAlgorithms
+    path: Accordant.Operations/GenerationAlgorithms/SequentialTestCaseAlgorithms.cs
+    startLine: 13
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public class SequentialTestCaseAlgorithms
+    content.vb: Public Class SequentialTestCaseAlgorithms
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.SequentialTestCaseAlgorithms.StateCoverage(Microsoft.Accordant.TestingContext,Microsoft.Accordant.StateGraphNode)
+  commentId: M:Microsoft.Accordant.SequentialTestCaseAlgorithms.StateCoverage(Microsoft.Accordant.TestingContext,Microsoft.Accordant.StateGraphNode)
+  id: StateCoverage(Microsoft.Accordant.TestingContext,Microsoft.Accordant.StateGraphNode)
+  parent: Microsoft.Accordant.SequentialTestCaseAlgorithms
+  langs:
+  - csharp
+  - vb
+  name: StateCoverage(TestingContext, StateGraphNode)
+  nameWithType: SequentialTestCaseAlgorithms.StateCoverage(TestingContext, StateGraphNode)
+  fullName: Microsoft.Accordant.SequentialTestCaseAlgorithms.StateCoverage(Microsoft.Accordant.TestingContext, Microsoft.Accordant.StateGraphNode)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/GenerationAlgorithms/SequentialTestCaseAlgorithms.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: StateCoverage
+    path: Accordant.Operations/GenerationAlgorithms/SequentialTestCaseAlgorithms.cs
+    startLine: 21
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    This algorithm ensures that each reachable state in the state space graph is
+
+    visited at least once. It does not generate all possible operation call
+
+    sequences - it only ensures that the set of generated test cases drive the system
+
+    to each unique reachable state.
+  example: []
+  syntax:
+    content: public static IList<SequentialTestCase> StateCoverage(TestingContext context, StateGraphNode rootNode)
+    parameters:
+    - id: context
+      type: Microsoft.Accordant.TestingContext
+    - id: rootNode
+      type: Microsoft.Accordant.StateGraphNode
+    return:
+      type: System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase}
+    content.vb: Public Shared Function StateCoverage(context As TestingContext, rootNode As StateGraphNode) As IList(Of SequentialTestCase)
+  overload: Microsoft.Accordant.SequentialTestCaseAlgorithms.StateCoverage*
+- uid: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateTransitionCoverage(System.Int32)
+  commentId: M:Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateTransitionCoverage(System.Int32)
+  id: CreateTransitionCoverage(System.Int32)
+  parent: Microsoft.Accordant.SequentialTestCaseAlgorithms
+  langs:
+  - csharp
+  - vb
+  name: CreateTransitionCoverage(int)
+  nameWithType: SequentialTestCaseAlgorithms.CreateTransitionCoverage(int)
+  fullName: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateTransitionCoverage(int)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/GenerationAlgorithms/SequentialTestCaseAlgorithms.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: CreateTransitionCoverage
+    path: Accordant.Operations/GenerationAlgorithms/SequentialTestCaseAlgorithms.cs
+    startLine: 69
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    This algorithm generates all possible edge traversals starting from the given node.
+
+    This maximizes coverage of all possible transitions but can result
+
+    in a very large number of test cases, therefore the default value of maxSequenceLength is set
+
+    to 3. It can be passed as -1 to generate all possible edge sequences (the number of all
+
+    possible edge sequences can be exceedingly large however).
+  example: []
+  syntax:
+    content: public static SequentialTestCaseAlgorithm CreateTransitionCoverage(int maxSequenceLength = 3)
+    parameters:
+    - id: maxSequenceLength
+      type: System.Int32
+    return:
+      type: Microsoft.Accordant.SequentialTestCaseAlgorithm
+    content.vb: Public Shared Function CreateTransitionCoverage(maxSequenceLength As Integer = 3) As SequentialTestCaseAlgorithm
+  overload: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateTransitionCoverage*
+  nameWithType.vb: SequentialTestCaseAlgorithms.CreateTransitionCoverage(Integer)
+  fullName.vb: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateTransitionCoverage(Integer)
+  name.vb: CreateTransitionCoverage(Integer)
+- uid: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateRandomWalk(System.Int32,System.Int32,System.Nullable{System.Int32})
+  commentId: M:Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateRandomWalk(System.Int32,System.Int32,System.Nullable{System.Int32})
+  id: CreateRandomWalk(System.Int32,System.Int32,System.Nullable{System.Int32})
+  parent: Microsoft.Accordant.SequentialTestCaseAlgorithms
+  langs:
+  - csharp
+  - vb
+  name: CreateRandomWalk(int, int, int?)
+  nameWithType: SequentialTestCaseAlgorithms.CreateRandomWalk(int, int, int?)
+  fullName: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateRandomWalk(int, int, int?)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/GenerationAlgorithms/SequentialTestCaseAlgorithms.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: CreateRandomWalk
+    path: Accordant.Operations/GenerationAlgorithms/SequentialTestCaseAlgorithms.cs
+    startLine: 141
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    This algorithm generates test cases by performing random walks through the state graph.
+
+    Each walk starts from the root and randomly selects edges until reaching a terminal state
+
+    or the maximum walk length. Within a walk, each operation call can only appear once
+
+    (edges leading to already-used operation calls are excluded). Duplicate test cases
+
+    across walks are eliminated. This is useful for exploring large state spaces
+
+    where exhaustive coverage is impractical.
+  example: []
+  syntax:
+    content: public static SequentialTestCaseAlgorithm CreateRandomWalk(int numberOfWalks = 100, int maxWalkLength = 10, int? seed = null)
+    parameters:
+    - id: numberOfWalks
+      type: System.Int32
+      description: The number of random walks to perform.
+    - id: maxWalkLength
+      type: System.Int32
+      description: Maximum steps per walk. -1 for unlimited (walks until no edges).
+    - id: seed
+      type: System.Nullable{System.Int32}
+      description: Optional random seed for reproducibility. Null uses a random seed.
+    return:
+      type: Microsoft.Accordant.SequentialTestCaseAlgorithm
+    content.vb: Public Shared Function CreateRandomWalk(numberOfWalks As Integer = 100, maxWalkLength As Integer = 10, seed As Integer? = Nothing) As SequentialTestCaseAlgorithm
+  overload: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateRandomWalk*
+  nameWithType.vb: SequentialTestCaseAlgorithms.CreateRandomWalk(Integer, Integer, Integer?)
+  fullName.vb: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateRandomWalk(Integer, Integer, Integer?)
+  name.vb: CreateRandomWalk(Integer, Integer, Integer?)
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.SequentialTestCaseAlgorithms.StateCoverage*
+  commentId: Overload:Microsoft.Accordant.SequentialTestCaseAlgorithms.StateCoverage
+  href: Microsoft.Accordant.SequentialTestCaseAlgorithms.html#Microsoft_Accordant_SequentialTestCaseAlgorithms_StateCoverage_Microsoft_Accordant_TestingContext_Microsoft_Accordant_StateGraphNode_
+  name: StateCoverage
+  nameWithType: SequentialTestCaseAlgorithms.StateCoverage
+  fullName: Microsoft.Accordant.SequentialTestCaseAlgorithms.StateCoverage
+- uid: Microsoft.Accordant.TestingContext
+  commentId: T:Microsoft.Accordant.TestingContext
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.TestingContext.html
+  name: TestingContext
+  nameWithType: TestingContext
+  fullName: Microsoft.Accordant.TestingContext
+- uid: Microsoft.Accordant.StateGraphNode
+  commentId: T:Microsoft.Accordant.StateGraphNode
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.StateGraphNode.html
+  name: StateGraphNode
+  nameWithType: StateGraphNode
+  fullName: Microsoft.Accordant.StateGraphNode
+- uid: System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase}
+  commentId: T:System.Collections.Generic.IList{Microsoft.Accordant.SequentialTestCase}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<SequentialTestCase>
+  nameWithType: IList<SequentialTestCase>
+  fullName: System.Collections.Generic.IList<Microsoft.Accordant.SequentialTestCase>
+  nameWithType.vb: IList(Of SequentialTestCase)
+  fullName.vb: System.Collections.Generic.IList(Of Microsoft.Accordant.SequentialTestCase)
+  name.vb: IList(Of SequentialTestCase)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.SequentialTestCase
+    name: SequentialTestCase
+    href: Microsoft.Accordant.SequentialTestCase.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.SequentialTestCase
+    name: SequentialTestCase
+    href: Microsoft.Accordant.SequentialTestCase.html
+  - name: )
+- uid: System.Collections.Generic.IList`1
+  commentId: T:System.Collections.Generic.IList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateTransitionCoverage*
+  commentId: Overload:Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateTransitionCoverage
+  href: Microsoft.Accordant.SequentialTestCaseAlgorithms.html#Microsoft_Accordant_SequentialTestCaseAlgorithms_CreateTransitionCoverage_System_Int32_
+  name: CreateTransitionCoverage
+  nameWithType: SequentialTestCaseAlgorithms.CreateTransitionCoverage
+  fullName: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateTransitionCoverage
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: Microsoft.Accordant.SequentialTestCaseAlgorithm
+  commentId: T:Microsoft.Accordant.SequentialTestCaseAlgorithm
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.SequentialTestCaseAlgorithm.html
+  name: SequentialTestCaseAlgorithm
+  nameWithType: SequentialTestCaseAlgorithm
+  fullName: Microsoft.Accordant.SequentialTestCaseAlgorithm
+- uid: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateRandomWalk*
+  commentId: Overload:Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateRandomWalk
+  href: Microsoft.Accordant.SequentialTestCaseAlgorithms.html#Microsoft_Accordant_SequentialTestCaseAlgorithms_CreateRandomWalk_System_Int32_System_Int32_System_Nullable_System_Int32__
+  name: CreateRandomWalk
+  nameWithType: SequentialTestCaseAlgorithms.CreateRandomWalk
+  fullName: Microsoft.Accordant.SequentialTestCaseAlgorithms.CreateRandomWalk
+- uid: System.Nullable{System.Int32}
+  commentId: T:System.Nullable{System.Int32}
+  parent: System
+  definition: System.Nullable`1
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int?
+  nameWithType: int?
+  fullName: int?
+  nameWithType.vb: Integer?
+  fullName.vb: Integer?
+  name.vb: Integer?
+  spec.csharp:
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: '?'
+  spec.vb:
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: '?'
+- uid: System.Nullable`1
+  commentId: T:System.Nullable`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.nullable-1
+  name: Nullable<T>
+  nameWithType: Nullable<T>
+  fullName: System.Nullable<T>
+  nameWithType.vb: Nullable(Of T)
+  fullName.vb: System.Nullable(Of T)
+  name.vb: Nullable(Of T)
+  spec.csharp:
+  - uid: System.Nullable`1
+    name: Nullable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.nullable-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Nullable`1
+    name: Nullable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.nullable-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )

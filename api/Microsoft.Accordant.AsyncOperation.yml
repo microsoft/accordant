@@ -1,0 +1,609 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.AsyncOperation
+  commentId: T:Microsoft.Accordant.AsyncOperation
+  id: AsyncOperation
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.AsyncOperation.Create``1(System.Func{``0,System.Boolean},System.Action{``0},System.String)
+  - Microsoft.Accordant.AsyncOperation.Create``1(System.Func{``0,System.Boolean},System.Action{``0}[],System.String)
+  langs:
+  - csharp
+  - vb
+  name: AsyncOperation
+  nameWithType: AsyncOperation
+  fullName: Microsoft.Accordant.AsyncOperation
+  type: Class
+  source:
+    remote:
+      path: Accordant/StepFunction/IStepFunction.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: AsyncOperation
+    path: Accordant/StepFunction/IStepFunction.cs
+    startLine: 161
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    Factory for creating inline async operations (terminating step functions).
+
+    Use this for simple cases where you don't need to create a separate class.
+  example: []
+  syntax:
+    content: public static class AsyncOperation
+    content.vb: Public Module AsyncOperation
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.AsyncOperation.Create``1(System.Func{``0,System.Boolean},System.Action{``0},System.String)
+  commentId: M:Microsoft.Accordant.AsyncOperation.Create``1(System.Func{``0,System.Boolean},System.Action{``0},System.String)
+  id: Create``1(System.Func{``0,System.Boolean},System.Action{``0},System.String)
+  parent: Microsoft.Accordant.AsyncOperation
+  langs:
+  - csharp
+  - vb
+  name: Create<TState>(Func<TState, bool>, Action<TState>, string)
+  nameWithType: AsyncOperation.Create<TState>(Func<TState, bool>, Action<TState>, string)
+  fullName: Microsoft.Accordant.AsyncOperation.Create<TState>(System.Func<TState, bool>, System.Action<TState>, string)
+  type: Method
+  source:
+    remote:
+      path: Accordant/StepFunction/IStepFunction.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Create
+    path: Accordant/StepFunction/IStepFunction.cs
+    startLine: 180
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    Creates an async operation with a single outcome.
+
+
+    Example:
+
+
+    <pre><code class="lang-csharp">.Triggers(AsyncOperation.Create&lt;PetImagesState&gt;(
+        isTerminal: s =&gt; s.Images[name].State != "Creating",
+        transition: nextState =&gt; {
+            nextState.Images[name].State = "Created";
+        }
+    ))</code></pre>
+  example: []
+  syntax:
+    content: 'public static TerminatingStepFunction Create<TState>(Func<TState, bool> isTerminal, Action<TState> transition, string name = null) where TState : State'
+    parameters:
+    - id: isTerminal
+      type: System.Func{{TState},System.Boolean}
+      description: Predicate that returns true when the background work is complete.
+    - id: transition
+      type: System.Action{{TState}}
+      description: Action that mutates a cloned state to the next state. Only called when isTerminal is false.
+    - id: name
+      type: System.String
+      description: Optional name for logging/debugging.
+    typeParameters:
+    - id: TState
+      description: The state type.
+    return:
+      type: Microsoft.Accordant.TerminatingStepFunction
+    content.vb: Public Shared Function Create(Of TState As State)(isTerminal As Func(Of TState, Boolean), transition As Action(Of TState), name As String = Nothing) As TerminatingStepFunction
+  overload: Microsoft.Accordant.AsyncOperation.Create*
+  nameWithType.vb: AsyncOperation.Create(Of TState)(Func(Of TState, Boolean), Action(Of TState), String)
+  fullName.vb: Microsoft.Accordant.AsyncOperation.Create(Of TState)(System.Func(Of TState, Boolean), System.Action(Of TState), String)
+  name.vb: Create(Of TState)(Func(Of TState, Boolean), Action(Of TState), String)
+- uid: Microsoft.Accordant.AsyncOperation.Create``1(System.Func{``0,System.Boolean},System.Action{``0}[],System.String)
+  commentId: M:Microsoft.Accordant.AsyncOperation.Create``1(System.Func{``0,System.Boolean},System.Action{``0}[],System.String)
+  id: Create``1(System.Func{``0,System.Boolean},System.Action{``0}[],System.String)
+  parent: Microsoft.Accordant.AsyncOperation
+  langs:
+  - csharp
+  - vb
+  name: Create<TState>(Func<TState, bool>, Action<TState>[], string)
+  nameWithType: AsyncOperation.Create<TState>(Func<TState, bool>, Action<TState>[], string)
+  fullName: Microsoft.Accordant.AsyncOperation.Create<TState>(System.Func<TState, bool>, System.Action<TState>[], string)
+  type: Method
+  source:
+    remote:
+      path: Accordant/StepFunction/IStepFunction.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Create
+    path: Accordant/StepFunction/IStepFunction.cs
+    startLine: 209
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    Creates an async operation with multiple non-deterministic outcomes.
+
+
+    Example:
+
+
+    <pre><code class="lang-csharp">.Triggers(AsyncOperation.Create&lt;PetImagesState&gt;(
+        isTerminal: s =&gt; s.Images[name].State != "Creating",
+        transitions: new Action&lt;PetImagesState&gt;[] {
+            nextState =&gt; { nextState.Images[name].State = "Created"; },
+            nextState =&gt; { nextState.Images[name].State = "Failed"; }
+        }
+    ))</code></pre>
+  example: []
+  syntax:
+    content: 'public static TerminatingStepFunction Create<TState>(Func<TState, bool> isTerminal, Action<TState>[] transitions, string name = null) where TState : State'
+    parameters:
+    - id: isTerminal
+      type: System.Func{{TState},System.Boolean}
+      description: Predicate that returns true when the background work is complete.
+    - id: transitions
+      type: System.Action{{TState}}[]
+      description: Array of actions, each defining one possible outcome. Each receives its own cloned state.
+    - id: name
+      type: System.String
+      description: Optional name for logging/debugging.
+    typeParameters:
+    - id: TState
+      description: The state type.
+    return:
+      type: Microsoft.Accordant.TerminatingStepFunction
+    content.vb: Public Shared Function Create(Of TState As State)(isTerminal As Func(Of TState, Boolean), transitions As Action(Of TState)(), name As String = Nothing) As TerminatingStepFunction
+  overload: Microsoft.Accordant.AsyncOperation.Create*
+  nameWithType.vb: AsyncOperation.Create(Of TState)(Func(Of TState, Boolean), Action(Of TState)(), String)
+  fullName.vb: Microsoft.Accordant.AsyncOperation.Create(Of TState)(System.Func(Of TState, Boolean), System.Action(Of TState)(), String)
+  name.vb: Create(Of TState)(Func(Of TState, Boolean), Action(Of TState)(), String)
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.AsyncOperation.Create*
+  commentId: Overload:Microsoft.Accordant.AsyncOperation.Create
+  href: Microsoft.Accordant.AsyncOperation.html#Microsoft_Accordant_AsyncOperation_Create__1_System_Func___0_System_Boolean__System_Action___0__System_String_
+  name: Create
+  nameWithType: AsyncOperation.Create
+  fullName: Microsoft.Accordant.AsyncOperation.Create
+- uid: System.Func{{TState},System.Boolean}
+  commentId: T:System.Func{``0,System.Boolean}
+  parent: System
+  definition: System.Func`2
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<TState, bool>
+  nameWithType: Func<TState, bool>
+  fullName: System.Func<TState, bool>
+  nameWithType.vb: Func(Of TState, Boolean)
+  fullName.vb: System.Func(Of TState, Boolean)
+  name.vb: Func(Of TState, Boolean)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - name: TState
+  - name: ','
+  - name: " "
+  - uid: System.Boolean
+    name: bool
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TState
+  - name: ','
+  - name: " "
+  - uid: System.Boolean
+    name: Boolean
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: )
+- uid: System.Action{{TState}}
+  commentId: T:System.Action{``0}
+  parent: System
+  definition: System.Action`1
+  href: https://learn.microsoft.com/dotnet/api/system.action-1
+  name: Action<TState>
+  nameWithType: Action<TState>
+  fullName: System.Action<TState>
+  nameWithType.vb: Action(Of TState)
+  fullName.vb: System.Action(Of TState)
+  name.vb: Action(Of TState)
+  spec.csharp:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: <
+  - name: TState
+  - name: '>'
+  spec.vb:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TState
+  - name: )
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.TerminatingStepFunction
+  commentId: T:Microsoft.Accordant.TerminatingStepFunction
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.TerminatingStepFunction.html
+  name: TerminatingStepFunction
+  nameWithType: TerminatingStepFunction
+  fullName: Microsoft.Accordant.TerminatingStepFunction
+- uid: System.Func`2
+  commentId: T:System.Func`2
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<T, TResult>
+  nameWithType: Func<T, TResult>
+  fullName: System.Func<T, TResult>
+  nameWithType.vb: Func(Of T, TResult)
+  fullName.vb: System.Func(Of T, TResult)
+  name.vb: Func(Of T, TResult)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - name: T
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: System.Action`1
+  commentId: T:System.Action`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.action-1
+  name: Action<T>
+  nameWithType: Action<T>
+  fullName: System.Action<T>
+  nameWithType.vb: Action(Of T)
+  fullName.vb: System.Action(Of T)
+  name.vb: Action(Of T)
+  spec.csharp:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Action{{TState}}[]
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.action-1
+  name: Action<TState>[]
+  nameWithType: Action<TState>[]
+  fullName: System.Action<TState>[]
+  nameWithType.vb: Action(Of TState)()
+  fullName.vb: System.Action(Of TState)()
+  name.vb: Action(Of TState)()
+  spec.csharp:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: <
+  - name: TState
+  - name: '>'
+  - name: '['
+  - name: ']'
+  spec.vb:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TState
+  - name: )
+  - name: (
+  - name: )

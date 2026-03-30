@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<OutputType>Library</OutputType>
+		<OutputPath>../bin</OutputPath>
+		<IsPackable>false</IsPackable>
+		<RootNamespace>Microsoft.Accordant</RootNamespace>
+	</PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Accordant\Accordant.csproj" />
+    </ItemGroup>
+	
+</Project>

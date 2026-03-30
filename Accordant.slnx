@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Accordant.Choose.Tests/Accordant.Choose.Tests.csproj" />
+    <Project Path="Tests/Accordant.Operations.Tests/Accordant.Operations.Tests.csproj" />
+    <Project Path="Tests/Accordant.Tests/Accordant.Tests.csproj" />
+  </Folder>
+  <Project Path="Accordant.Choose/Accordant.Choose.csproj" />
+  <Project Path="Microsoft.Accordant.Cli/Microsoft.Accordant.Cli.csproj" />
+  <Project Path="Accordant.Invariant/Accordant.Invariant.csproj" />
+  <Project Path="Accordant.ModelChecking/Accordant.ModelChecking.csproj" />
+  <Project Path="Accordant.Operations.Http/Accordant.Operations.Http.csproj" />
+  <Project Path="Accordant.Operations/Accordant.Operations.csproj" />
+  <Project Path="Microsoft.Accordant.StateSourceCodeGenerator/Microsoft.Accordant.StateSourceCodeGenerator.csproj" />
+  <Project Path="Accordant/Accordant.csproj" />
+  <Project Path="Microsoft.Accordant/Microsoft.Accordant.csproj" />
+</Solution>

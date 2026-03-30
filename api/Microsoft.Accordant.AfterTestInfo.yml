@@ -1,0 +1,770 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.AfterTestInfo
+  commentId: T:Microsoft.Accordant.AfterTestInfo
+  id: AfterTestInfo
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.AfterTestInfo.#ctor(Microsoft.Accordant.TestCase,System.Int32,System.Int32,System.Boolean,System.String,System.Exception,Microsoft.Accordant.StateProfile,System.TimeSpan,Microsoft.Accordant.TestingContext)
+  - Microsoft.Accordant.AfterTestInfo.Context
+  - Microsoft.Accordant.AfterTestInfo.Duration
+  - Microsoft.Accordant.AfterTestInfo.Exception
+  - Microsoft.Accordant.AfterTestInfo.FailureMessage
+  - Microsoft.Accordant.AfterTestInfo.FinalState
+  - Microsoft.Accordant.AfterTestInfo.Success
+  - Microsoft.Accordant.AfterTestInfo.TestCase
+  - Microsoft.Accordant.AfterTestInfo.TestIndex
+  - Microsoft.Accordant.AfterTestInfo.TotalTests
+  langs:
+  - csharp
+  - vb
+  name: AfterTestInfo
+  nameWithType: AfterTestInfo
+  fullName: Microsoft.Accordant.AfterTestInfo
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/TestExecutionOptions.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: AfterTestInfo
+    path: Accordant.Operations/TestExecutionOptions.cs
+    startLine: 137
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Information provided to AfterEach hooks.
+  example: []
+  syntax:
+    content: public class AfterTestInfo
+    content.vb: Public Class AfterTestInfo
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.AfterTestInfo.#ctor(Microsoft.Accordant.TestCase,System.Int32,System.Int32,System.Boolean,System.String,System.Exception,Microsoft.Accordant.StateProfile,System.TimeSpan,Microsoft.Accordant.TestingContext)
+  commentId: M:Microsoft.Accordant.AfterTestInfo.#ctor(Microsoft.Accordant.TestCase,System.Int32,System.Int32,System.Boolean,System.String,System.Exception,Microsoft.Accordant.StateProfile,System.TimeSpan,Microsoft.Accordant.TestingContext)
+  id: '#ctor(Microsoft.Accordant.TestCase,System.Int32,System.Int32,System.Boolean,System.String,System.Exception,Microsoft.Accordant.StateProfile,System.TimeSpan,Microsoft.Accordant.TestingContext)'
+  parent: Microsoft.Accordant.AfterTestInfo
+  langs:
+  - csharp
+  - vb
+  name: AfterTestInfo(TestCase, int, int, bool, string, Exception, StateProfile, TimeSpan, TestingContext)
+  nameWithType: AfterTestInfo.AfterTestInfo(TestCase, int, int, bool, string, Exception, StateProfile, TimeSpan, TestingContext)
+  fullName: Microsoft.Accordant.AfterTestInfo.AfterTestInfo(Microsoft.Accordant.TestCase, int, int, bool, string, System.Exception, Microsoft.Accordant.StateProfile, System.TimeSpan, Microsoft.Accordant.TestingContext)
+  type: Constructor
+  source:
+    remote:
+      path: Accordant.Operations/TestExecutionOptions.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: .ctor
+    path: Accordant.Operations/TestExecutionOptions.cs
+    startLine: 139
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public AfterTestInfo(TestCase testCase, int testIndex, int totalTests, bool success, string failureMessage, Exception exception, StateProfile finalState, TimeSpan duration, TestingContext context)
+    parameters:
+    - id: testCase
+      type: Microsoft.Accordant.TestCase
+    - id: testIndex
+      type: System.Int32
+    - id: totalTests
+      type: System.Int32
+    - id: success
+      type: System.Boolean
+    - id: failureMessage
+      type: System.String
+    - id: exception
+      type: System.Exception
+    - id: finalState
+      type: Microsoft.Accordant.StateProfile
+    - id: duration
+      type: System.TimeSpan
+    - id: context
+      type: Microsoft.Accordant.TestingContext
+    content.vb: Public Sub New(testCase As TestCase, testIndex As Integer, totalTests As Integer, success As Boolean, failureMessage As String, exception As Exception, finalState As StateProfile, duration As TimeSpan, context As TestingContext)
+  overload: Microsoft.Accordant.AfterTestInfo.#ctor*
+  nameWithType.vb: AfterTestInfo.New(TestCase, Integer, Integer, Boolean, String, Exception, StateProfile, TimeSpan, TestingContext)
+  fullName.vb: Microsoft.Accordant.AfterTestInfo.New(Microsoft.Accordant.TestCase, Integer, Integer, Boolean, String, System.Exception, Microsoft.Accordant.StateProfile, System.TimeSpan, Microsoft.Accordant.TestingContext)
+  name.vb: New(TestCase, Integer, Integer, Boolean, String, Exception, StateProfile, TimeSpan, TestingContext)
+- uid: Microsoft.Accordant.AfterTestInfo.TestCase
+  commentId: P:Microsoft.Accordant.AfterTestInfo.TestCase
+  id: TestCase
+  parent: Microsoft.Accordant.AfterTestInfo
+  langs:
+  - csharp
+  - vb
+  name: TestCase
+  nameWithType: AfterTestInfo.TestCase
+  fullName: Microsoft.Accordant.AfterTestInfo.TestCase
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestExecutionOptions.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: TestCase
+    path: Accordant.Operations/TestExecutionOptions.cs
+    startLine: 164
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: The test case that was executed.
+  example: []
+  syntax:
+    content: public TestCase TestCase { get; }
+    parameters: []
+    return:
+      type: Microsoft.Accordant.TestCase
+    content.vb: Public ReadOnly Property TestCase As TestCase
+  overload: Microsoft.Accordant.AfterTestInfo.TestCase*
+- uid: Microsoft.Accordant.AfterTestInfo.TestIndex
+  commentId: P:Microsoft.Accordant.AfterTestInfo.TestIndex
+  id: TestIndex
+  parent: Microsoft.Accordant.AfterTestInfo
+  langs:
+  - csharp
+  - vb
+  name: TestIndex
+  nameWithType: AfterTestInfo.TestIndex
+  fullName: Microsoft.Accordant.AfterTestInfo.TestIndex
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestExecutionOptions.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: TestIndex
+    path: Accordant.Operations/TestExecutionOptions.cs
+    startLine: 169
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Zero-based index of this test case.
+  example: []
+  syntax:
+    content: public int TestIndex { get; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public ReadOnly Property TestIndex As Integer
+  overload: Microsoft.Accordant.AfterTestInfo.TestIndex*
+- uid: Microsoft.Accordant.AfterTestInfo.TotalTests
+  commentId: P:Microsoft.Accordant.AfterTestInfo.TotalTests
+  id: TotalTests
+  parent: Microsoft.Accordant.AfterTestInfo
+  langs:
+  - csharp
+  - vb
+  name: TotalTests
+  nameWithType: AfterTestInfo.TotalTests
+  fullName: Microsoft.Accordant.AfterTestInfo.TotalTests
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestExecutionOptions.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: TotalTests
+    path: Accordant.Operations/TestExecutionOptions.cs
+    startLine: 174
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Total number of tests in this run.
+  example: []
+  syntax:
+    content: public int TotalTests { get; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public ReadOnly Property TotalTests As Integer
+  overload: Microsoft.Accordant.AfterTestInfo.TotalTests*
+- uid: Microsoft.Accordant.AfterTestInfo.Success
+  commentId: P:Microsoft.Accordant.AfterTestInfo.Success
+  id: Success
+  parent: Microsoft.Accordant.AfterTestInfo
+  langs:
+  - csharp
+  - vb
+  name: Success
+  nameWithType: AfterTestInfo.Success
+  fullName: Microsoft.Accordant.AfterTestInfo.Success
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestExecutionOptions.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Success
+    path: Accordant.Operations/TestExecutionOptions.cs
+    startLine: 179
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Whether the test passed.
+  example: []
+  syntax:
+    content: public bool Success { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly Property Success As Boolean
+  overload: Microsoft.Accordant.AfterTestInfo.Success*
+- uid: Microsoft.Accordant.AfterTestInfo.FailureMessage
+  commentId: P:Microsoft.Accordant.AfterTestInfo.FailureMessage
+  id: FailureMessage
+  parent: Microsoft.Accordant.AfterTestInfo
+  langs:
+  - csharp
+  - vb
+  name: FailureMessage
+  nameWithType: AfterTestInfo.FailureMessage
+  fullName: Microsoft.Accordant.AfterTestInfo.FailureMessage
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestExecutionOptions.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: FailureMessage
+    path: Accordant.Operations/TestExecutionOptions.cs
+    startLine: 184
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Failure message if the test failed, null otherwise.
+  example: []
+  syntax:
+    content: public string FailureMessage { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public ReadOnly Property FailureMessage As String
+  overload: Microsoft.Accordant.AfterTestInfo.FailureMessage*
+- uid: Microsoft.Accordant.AfterTestInfo.Exception
+  commentId: P:Microsoft.Accordant.AfterTestInfo.Exception
+  id: Exception
+  parent: Microsoft.Accordant.AfterTestInfo
+  langs:
+  - csharp
+  - vb
+  name: Exception
+  nameWithType: AfterTestInfo.Exception
+  fullName: Microsoft.Accordant.AfterTestInfo.Exception
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestExecutionOptions.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Exception
+    path: Accordant.Operations/TestExecutionOptions.cs
+    startLine: 189
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Exception if one was thrown, null otherwise.
+  example: []
+  syntax:
+    content: public Exception Exception { get; }
+    parameters: []
+    return:
+      type: System.Exception
+    content.vb: Public ReadOnly Property Exception As Exception
+  overload: Microsoft.Accordant.AfterTestInfo.Exception*
+- uid: Microsoft.Accordant.AfterTestInfo.FinalState
+  commentId: P:Microsoft.Accordant.AfterTestInfo.FinalState
+  id: FinalState
+  parent: Microsoft.Accordant.AfterTestInfo
+  langs:
+  - csharp
+  - vb
+  name: FinalState
+  nameWithType: AfterTestInfo.FinalState
+  fullName: Microsoft.Accordant.AfterTestInfo.FinalState
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestExecutionOptions.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: FinalState
+    path: Accordant.Operations/TestExecutionOptions.cs
+    startLine: 194
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: The final state after test execution.
+  example: []
+  syntax:
+    content: public StateProfile FinalState { get; }
+    parameters: []
+    return:
+      type: Microsoft.Accordant.StateProfile
+    content.vb: Public ReadOnly Property FinalState As StateProfile
+  overload: Microsoft.Accordant.AfterTestInfo.FinalState*
+- uid: Microsoft.Accordant.AfterTestInfo.Duration
+  commentId: P:Microsoft.Accordant.AfterTestInfo.Duration
+  id: Duration
+  parent: Microsoft.Accordant.AfterTestInfo
+  langs:
+  - csharp
+  - vb
+  name: Duration
+  nameWithType: AfterTestInfo.Duration
+  fullName: Microsoft.Accordant.AfterTestInfo.Duration
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestExecutionOptions.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Duration
+    path: Accordant.Operations/TestExecutionOptions.cs
+    startLine: 199
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Duration of this test case.
+  example: []
+  syntax:
+    content: public TimeSpan Duration { get; }
+    parameters: []
+    return:
+      type: System.TimeSpan
+    content.vb: Public ReadOnly Property Duration As TimeSpan
+  overload: Microsoft.Accordant.AfterTestInfo.Duration*
+- uid: Microsoft.Accordant.AfterTestInfo.Context
+  commentId: P:Microsoft.Accordant.AfterTestInfo.Context
+  id: Context
+  parent: Microsoft.Accordant.AfterTestInfo
+  langs:
+  - csharp
+  - vb
+  name: Context
+  nameWithType: AfterTestInfo.Context
+  fullName: Microsoft.Accordant.AfterTestInfo.Context
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestExecutionOptions.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Context
+    path: Accordant.Operations/TestExecutionOptions.cs
+    startLine: 204
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: The testing context. Use Context.Get&lt;T&gt;() to access registered services.
+  example: []
+  syntax:
+    content: public TestingContext Context { get; }
+    parameters: []
+    return:
+      type: Microsoft.Accordant.TestingContext
+    content.vb: Public ReadOnly Property Context As TestingContext
+  overload: Microsoft.Accordant.AfterTestInfo.Context*
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.AfterTestInfo.#ctor*
+  commentId: Overload:Microsoft.Accordant.AfterTestInfo.#ctor
+  href: Microsoft.Accordant.AfterTestInfo.html#Microsoft_Accordant_AfterTestInfo__ctor_Microsoft_Accordant_TestCase_System_Int32_System_Int32_System_Boolean_System_String_System_Exception_Microsoft_Accordant_StateProfile_System_TimeSpan_Microsoft_Accordant_TestingContext_
+  name: AfterTestInfo
+  nameWithType: AfterTestInfo.AfterTestInfo
+  fullName: Microsoft.Accordant.AfterTestInfo.AfterTestInfo
+  nameWithType.vb: AfterTestInfo.New
+  fullName.vb: Microsoft.Accordant.AfterTestInfo.New
+  name.vb: New
+- uid: Microsoft.Accordant.TestCase
+  commentId: T:Microsoft.Accordant.TestCase
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.TestCase.html
+  name: TestCase
+  nameWithType: TestCase
+  fullName: Microsoft.Accordant.TestCase
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: System.Exception
+  commentId: T:System.Exception
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.exception
+  name: Exception
+  nameWithType: Exception
+  fullName: System.Exception
+- uid: Microsoft.Accordant.StateProfile
+  commentId: T:Microsoft.Accordant.StateProfile
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.StateProfile.html
+  name: StateProfile
+  nameWithType: StateProfile
+  fullName: Microsoft.Accordant.StateProfile
+- uid: System.TimeSpan
+  commentId: T:System.TimeSpan
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.timespan
+  name: TimeSpan
+  nameWithType: TimeSpan
+  fullName: System.TimeSpan
+- uid: Microsoft.Accordant.TestingContext
+  commentId: T:Microsoft.Accordant.TestingContext
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.TestingContext.html
+  name: TestingContext
+  nameWithType: TestingContext
+  fullName: Microsoft.Accordant.TestingContext
+- uid: Microsoft.Accordant.AfterTestInfo.TestCase*
+  commentId: Overload:Microsoft.Accordant.AfterTestInfo.TestCase
+  href: Microsoft.Accordant.AfterTestInfo.html#Microsoft_Accordant_AfterTestInfo_TestCase
+  name: TestCase
+  nameWithType: AfterTestInfo.TestCase
+  fullName: Microsoft.Accordant.AfterTestInfo.TestCase
+- uid: Microsoft.Accordant.AfterTestInfo.TestIndex*
+  commentId: Overload:Microsoft.Accordant.AfterTestInfo.TestIndex
+  href: Microsoft.Accordant.AfterTestInfo.html#Microsoft_Accordant_AfterTestInfo_TestIndex
+  name: TestIndex
+  nameWithType: AfterTestInfo.TestIndex
+  fullName: Microsoft.Accordant.AfterTestInfo.TestIndex
+- uid: Microsoft.Accordant.AfterTestInfo.TotalTests*
+  commentId: Overload:Microsoft.Accordant.AfterTestInfo.TotalTests
+  href: Microsoft.Accordant.AfterTestInfo.html#Microsoft_Accordant_AfterTestInfo_TotalTests
+  name: TotalTests
+  nameWithType: AfterTestInfo.TotalTests
+  fullName: Microsoft.Accordant.AfterTestInfo.TotalTests
+- uid: Microsoft.Accordant.AfterTestInfo.Success*
+  commentId: Overload:Microsoft.Accordant.AfterTestInfo.Success
+  href: Microsoft.Accordant.AfterTestInfo.html#Microsoft_Accordant_AfterTestInfo_Success
+  name: Success
+  nameWithType: AfterTestInfo.Success
+  fullName: Microsoft.Accordant.AfterTestInfo.Success
+- uid: Microsoft.Accordant.AfterTestInfo.FailureMessage*
+  commentId: Overload:Microsoft.Accordant.AfterTestInfo.FailureMessage
+  href: Microsoft.Accordant.AfterTestInfo.html#Microsoft_Accordant_AfterTestInfo_FailureMessage
+  name: FailureMessage
+  nameWithType: AfterTestInfo.FailureMessage
+  fullName: Microsoft.Accordant.AfterTestInfo.FailureMessage
+- uid: Microsoft.Accordant.AfterTestInfo.Exception*
+  commentId: Overload:Microsoft.Accordant.AfterTestInfo.Exception
+  href: Microsoft.Accordant.AfterTestInfo.html#Microsoft_Accordant_AfterTestInfo_Exception
+  name: Exception
+  nameWithType: AfterTestInfo.Exception
+  fullName: Microsoft.Accordant.AfterTestInfo.Exception
+- uid: Microsoft.Accordant.AfterTestInfo.FinalState*
+  commentId: Overload:Microsoft.Accordant.AfterTestInfo.FinalState
+  href: Microsoft.Accordant.AfterTestInfo.html#Microsoft_Accordant_AfterTestInfo_FinalState
+  name: FinalState
+  nameWithType: AfterTestInfo.FinalState
+  fullName: Microsoft.Accordant.AfterTestInfo.FinalState
+- uid: Microsoft.Accordant.AfterTestInfo.Duration*
+  commentId: Overload:Microsoft.Accordant.AfterTestInfo.Duration
+  href: Microsoft.Accordant.AfterTestInfo.html#Microsoft_Accordant_AfterTestInfo_Duration
+  name: Duration
+  nameWithType: AfterTestInfo.Duration
+  fullName: Microsoft.Accordant.AfterTestInfo.Duration
+- uid: Microsoft.Accordant.AfterTestInfo.Context*
+  commentId: Overload:Microsoft.Accordant.AfterTestInfo.Context
+  href: Microsoft.Accordant.AfterTestInfo.html#Microsoft_Accordant_AfterTestInfo_Context
+  name: Context
+  nameWithType: AfterTestInfo.Context
+  fullName: Microsoft.Accordant.AfterTestInfo.Context

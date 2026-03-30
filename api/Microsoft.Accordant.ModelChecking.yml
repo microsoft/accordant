@@ -1,0 +1,75 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.ModelChecking
+  commentId: N:Microsoft.Accordant.ModelChecking
+  id: Microsoft.Accordant.ModelChecking
+  children:
+  - Microsoft.Accordant.ModelChecking.Property
+  - Microsoft.Accordant.ModelChecking.PropertyChecker
+  - Microsoft.Accordant.ModelChecking.PropertyCheckingResult
+  - Microsoft.Accordant.ModelChecking.TraceItem
+  langs:
+  - csharp
+  - vb
+  name: Microsoft.Accordant.ModelChecking
+  nameWithType: Microsoft.Accordant.ModelChecking
+  fullName: Microsoft.Accordant.ModelChecking
+  type: Namespace
+  assemblies:
+  - Accordant.ModelChecking
+references:
+- uid: Microsoft.Accordant.ModelChecking.Property
+  commentId: T:Microsoft.Accordant.ModelChecking.Property
+  href: Microsoft.Accordant.ModelChecking.Property.html
+  name: Property
+  nameWithType: Property
+  fullName: Microsoft.Accordant.ModelChecking.Property
+- uid: Microsoft.Accordant.ModelChecking.PropertyChecker
+  commentId: T:Microsoft.Accordant.ModelChecking.PropertyChecker
+  href: Microsoft.Accordant.ModelChecking.PropertyChecker.html
+  name: PropertyChecker
+  nameWithType: PropertyChecker
+  fullName: Microsoft.Accordant.ModelChecking.PropertyChecker
+- uid: Microsoft.Accordant.ModelChecking.PropertyCheckingResult
+  commentId: T:Microsoft.Accordant.ModelChecking.PropertyCheckingResult
+  parent: Microsoft.Accordant.ModelChecking
+  href: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.html
+  name: PropertyCheckingResult
+  nameWithType: PropertyCheckingResult
+  fullName: Microsoft.Accordant.ModelChecking.PropertyCheckingResult
+- uid: Microsoft.Accordant.ModelChecking.TraceItem
+  commentId: T:Microsoft.Accordant.ModelChecking.TraceItem
+  href: Microsoft.Accordant.ModelChecking.TraceItem.html
+  name: TraceItem
+  nameWithType: TraceItem
+  fullName: Microsoft.Accordant.ModelChecking.TraceItem
+- uid: Microsoft.Accordant.ModelChecking
+  commentId: N:Microsoft.Accordant.ModelChecking
+  href: Microsoft.html
+  name: Microsoft.Accordant.ModelChecking
+  nameWithType: Microsoft.Accordant.ModelChecking
+  fullName: Microsoft.Accordant.ModelChecking
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  - name: .
+  - uid: Microsoft.Accordant.ModelChecking
+    name: ModelChecking
+    href: Microsoft.Accordant.ModelChecking.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  - name: .
+  - uid: Microsoft.Accordant.ModelChecking
+    name: ModelChecking
+    href: Microsoft.Accordant.ModelChecking.html

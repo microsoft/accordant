@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Accordant wordmark — adaptive (light + dark via prefers-color-scheme) -->
+<!-- For print/vector production: convert text to outlines -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1520 216" width="395" height="56">
+  <defs>
+    <style><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400&display=swap');
+      .impl  { fill: #2e1c14; }
+      .model { fill: #edddd4; }
+      .acfil { fill: #a0624a; }
+      .acstk { stroke: #a0624a; fill: none; }
+      .txt   { fill: #2e1c14; }
+      @media (prefers-color-scheme: dark) {
+        .impl  { fill: #7a4e3a; }
+        .model { fill: #edddd4; }
+        .acfil { fill: #c07858; }
+        .acstk { stroke: #edddd4; }
+        .txt   { fill: #edddd4; }
+      }
+    ]]></style>
+    <clipPath id="wam"><polygon points="0,0 132,6 48,210 0,216"/></clipPath>
+    <clipPath id="wai"><polygon points="132,6 240,0 240,216 48,210"/></clipPath>
+  </defs>
+  <g clip-path="url(#wai)">
+    <polygon class="impl" points="108,6 4,210 48,210 132,6"/>
+    <polygon class="impl" points="132,6 236,210 192,210 108,6"/>
+  </g>
+  <g clip-path="url(#wam)">
+    <polygon class="model" points="108,6 4,210 48,210 132,6"/>
+    <polygon class="model" points="132,6 236,210 192,210 108,6"/>
+  </g>
+  <polygon class="acfil" points="49.4,121 190.6,121 201.8,143 38.2,143"/>
+  <line class="acstk" x1="132" y1="6"   x2="48"  y2="210" stroke-width="1.5" stroke-linecap="round"/>
+  <line class="acstk" x1="4"   y1="210" x2="48"  y2="210" stroke-width="1.5" stroke-linecap="round"/>
+  <text class="txt" x="254" y="210"
+    font-family="'Space Grotesk','Helvetica Neue',Arial,sans-serif"
+    font-size="276" font-weight="400" letter-spacing="2">ccordant</text>
+</svg>

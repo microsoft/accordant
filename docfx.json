@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": ["**/*.csproj"],
+          "exclude": ["**/bin/**", "**/obj/**", "Tests/**", "Samples/**"],
+          "src": "."
+        }
+      ],
+      "dest": "api",
+      "includePrivateMembers": false,
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": ["api/**.yml", "api/index.md"]
+      },
+      {
+        "files": ["docs/**.md", "docs/**/toc.yml", "toc.yml", "*.md"],
+        "exclude": ["**/PREPARE_FOR_OPEN_SOURCE.md", "**/DOCUMENTATION_CHECKLIST.md"]
+      }
+    ],
+    "resource": [
+      {
+        "files": ["images/**"],
+        "src": "docs"
+      }
+    ],
+    "output": "_site",
+    "template": ["default", "modern"],
+    "globalMetadata": {
+      "_appTitle": "Accordant",
+      "_appName": "",
+      "_appLogoPath": "images/accordant-mark-adaptive.svg",
+      "_appFaviconPath": "images/accordant-mark-adaptive.svg",
+      "_appFooter": "Accordant - Executable behavioral specifications for .NET",
+      "_enableSearch": true,
+      "_enableNewTab": true
+    },
+    "fileMetadata": {},
+    "postProcessors": [],
+    "keepFileLink": false,
+    "disableGitFeatures": false
+  }
+}

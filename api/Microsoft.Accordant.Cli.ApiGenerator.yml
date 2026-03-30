@@ -1,0 +1,823 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.Cli.ApiGenerator
+  commentId: T:Microsoft.Accordant.Cli.ApiGenerator
+  id: ApiGenerator
+  parent: Microsoft.Accordant.Cli
+  children:
+  - Microsoft.Accordant.Cli.ApiGenerator.AnalyzeResponses(NSwag.OpenApiOperation,NSwag.OpenApiDocument)
+  - Microsoft.Accordant.Cli.ApiGenerator.GenerateApiClient(System.String)
+  - Microsoft.Accordant.Cli.ApiGenerator.GenerateApiRequestBase(System.String)
+  - Microsoft.Accordant.Cli.ApiGenerator.GenerateApiResponseBase(System.String)
+  - Microsoft.Accordant.Cli.ApiGenerator.GetParameterInfo(NSwag.OpenApiParameter)
+  - Microsoft.Accordant.Cli.ApiGenerator.GetSchemaTypeName(NJsonSchema.JsonSchema,NSwag.OpenApiDocument)
+  - Microsoft.Accordant.Cli.ApiGenerator.GetStatusCodeName(System.Int32)
+  - Microsoft.Accordant.Cli.ApiGenerator.ToPascalCase(System.String)
+  langs:
+  - csharp
+  - vb
+  name: ApiGenerator
+  nameWithType: ApiGenerator
+  fullName: Microsoft.Accordant.Cli.ApiGenerator
+  type: Class
+  source:
+    remote:
+      path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ApiGenerator
+    path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+    startLine: 8
+  assemblies:
+  - Microsoft.Accordant.Cli
+  namespace: Microsoft.Accordant.Cli
+  summary: Generates API client infrastructure from OpenAPI specs.
+  example: []
+  syntax:
+    content: public static class ApiGenerator
+    content.vb: Public Module ApiGenerator
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiRequestBase(System.String)
+  commentId: M:Microsoft.Accordant.Cli.ApiGenerator.GenerateApiRequestBase(System.String)
+  id: GenerateApiRequestBase(System.String)
+  parent: Microsoft.Accordant.Cli.ApiGenerator
+  langs:
+  - csharp
+  - vb
+  name: GenerateApiRequestBase(string)
+  nameWithType: ApiGenerator.GenerateApiRequestBase(string)
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiRequestBase(string)
+  type: Method
+  source:
+    remote:
+      path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GenerateApiRequestBase
+    path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+    startLine: 13
+  assemblies:
+  - Microsoft.Accordant.Cli
+  namespace: Microsoft.Accordant.Cli
+  summary: Generates the base ApiRequest class.
+  example: []
+  syntax:
+    content: public static string GenerateApiRequestBase(string ns)
+    parameters:
+    - id: ns
+      type: System.String
+    return:
+      type: System.String
+    content.vb: Public Shared Function GenerateApiRequestBase(ns As String) As String
+  overload: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiRequestBase*
+  nameWithType.vb: ApiGenerator.GenerateApiRequestBase(String)
+  fullName.vb: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiRequestBase(String)
+  name.vb: GenerateApiRequestBase(String)
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiResponseBase(System.String)
+  commentId: M:Microsoft.Accordant.Cli.ApiGenerator.GenerateApiResponseBase(System.String)
+  id: GenerateApiResponseBase(System.String)
+  parent: Microsoft.Accordant.Cli.ApiGenerator
+  langs:
+  - csharp
+  - vb
+  name: GenerateApiResponseBase(string)
+  nameWithType: ApiGenerator.GenerateApiResponseBase(string)
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiResponseBase(string)
+  type: Method
+  source:
+    remote:
+      path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GenerateApiResponseBase
+    path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+    startLine: 79
+  assemblies:
+  - Microsoft.Accordant.Cli
+  namespace: Microsoft.Accordant.Cli
+  summary: Generates the ApiResponse discriminated union.
+  example: []
+  syntax:
+    content: public static string GenerateApiResponseBase(string ns)
+    parameters:
+    - id: ns
+      type: System.String
+    return:
+      type: System.String
+    content.vb: Public Shared Function GenerateApiResponseBase(ns As String) As String
+  overload: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiResponseBase*
+  nameWithType.vb: ApiGenerator.GenerateApiResponseBase(String)
+  fullName.vb: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiResponseBase(String)
+  name.vb: GenerateApiResponseBase(String)
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiClient(System.String)
+  commentId: M:Microsoft.Accordant.Cli.ApiGenerator.GenerateApiClient(System.String)
+  id: GenerateApiClient(System.String)
+  parent: Microsoft.Accordant.Cli.ApiGenerator
+  langs:
+  - csharp
+  - vb
+  name: GenerateApiClient(string)
+  nameWithType: ApiGenerator.GenerateApiClient(string)
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiClient(string)
+  type: Method
+  source:
+    remote:
+      path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GenerateApiClient
+    path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+    startLine: 144
+  assemblies:
+  - Microsoft.Accordant.Cli
+  namespace: Microsoft.Accordant.Cli
+  summary: Generates the ApiClient class.
+  example: []
+  syntax:
+    content: public static string GenerateApiClient(string ns)
+    parameters:
+    - id: ns
+      type: System.String
+    return:
+      type: System.String
+    content.vb: Public Shared Function GenerateApiClient(ns As String) As String
+  overload: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiClient*
+  nameWithType.vb: ApiGenerator.GenerateApiClient(String)
+  fullName.vb: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiClient(String)
+  name.vb: GenerateApiClient(String)
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GetStatusCodeName(System.Int32)
+  commentId: M:Microsoft.Accordant.Cli.ApiGenerator.GetStatusCodeName(System.Int32)
+  id: GetStatusCodeName(System.Int32)
+  parent: Microsoft.Accordant.Cli.ApiGenerator
+  langs:
+  - csharp
+  - vb
+  name: GetStatusCodeName(int)
+  nameWithType: ApiGenerator.GetStatusCodeName(int)
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GetStatusCodeName(int)
+  type: Method
+  source:
+    remote:
+      path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GetStatusCodeName
+    path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+    startLine: 211
+  assemblies:
+  - Microsoft.Accordant.Cli
+  namespace: Microsoft.Accordant.Cli
+  summary: Gets a friendly name for HTTP status codes.
+  example: []
+  syntax:
+    content: public static string GetStatusCodeName(int code)
+    parameters:
+    - id: code
+      type: System.Int32
+    return:
+      type: System.String
+    content.vb: Public Shared Function GetStatusCodeName(code As Integer) As String
+  overload: Microsoft.Accordant.Cli.ApiGenerator.GetStatusCodeName*
+  nameWithType.vb: ApiGenerator.GetStatusCodeName(Integer)
+  fullName.vb: Microsoft.Accordant.Cli.ApiGenerator.GetStatusCodeName(Integer)
+  name.vb: GetStatusCodeName(Integer)
+- uid: Microsoft.Accordant.Cli.ApiGenerator.ToPascalCase(System.String)
+  commentId: M:Microsoft.Accordant.Cli.ApiGenerator.ToPascalCase(System.String)
+  id: ToPascalCase(System.String)
+  parent: Microsoft.Accordant.Cli.ApiGenerator
+  langs:
+  - csharp
+  - vb
+  name: ToPascalCase(string)
+  nameWithType: ApiGenerator.ToPascalCase(string)
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.ToPascalCase(string)
+  type: Method
+  source:
+    remote:
+      path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ToPascalCase
+    path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+    startLine: 233
+  assemblies:
+  - Microsoft.Accordant.Cli
+  namespace: Microsoft.Accordant.Cli
+  summary: Converts a string to PascalCase.
+  example: []
+  syntax:
+    content: public static string ToPascalCase(string input)
+    parameters:
+    - id: input
+      type: System.String
+    return:
+      type: System.String
+    content.vb: Public Shared Function ToPascalCase(input As String) As String
+  overload: Microsoft.Accordant.Cli.ApiGenerator.ToPascalCase*
+  nameWithType.vb: ApiGenerator.ToPascalCase(String)
+  fullName.vb: Microsoft.Accordant.Cli.ApiGenerator.ToPascalCase(String)
+  name.vb: ToPascalCase(String)
+- uid: Microsoft.Accordant.Cli.ApiGenerator.AnalyzeResponses(NSwag.OpenApiOperation,NSwag.OpenApiDocument)
+  commentId: M:Microsoft.Accordant.Cli.ApiGenerator.AnalyzeResponses(NSwag.OpenApiOperation,NSwag.OpenApiDocument)
+  id: AnalyzeResponses(NSwag.OpenApiOperation,NSwag.OpenApiDocument)
+  parent: Microsoft.Accordant.Cli.ApiGenerator
+  langs:
+  - csharp
+  - vb
+  name: AnalyzeResponses(OpenApiOperation, OpenApiDocument)
+  nameWithType: ApiGenerator.AnalyzeResponses(OpenApiOperation, OpenApiDocument)
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.AnalyzeResponses(NSwag.OpenApiOperation, NSwag.OpenApiDocument)
+  type: Method
+  source:
+    remote:
+      path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: AnalyzeResponses
+    path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+    startLine: 259
+  assemblies:
+  - Microsoft.Accordant.Cli
+  namespace: Microsoft.Accordant.Cli
+  summary: Analyzes an operation's responses and determines response type strategy.
+  example: []
+  syntax:
+    content: public static ResponseTypeInfo AnalyzeResponses(OpenApiOperation operation, OpenApiDocument document)
+    parameters:
+    - id: operation
+      type: NSwag.OpenApiOperation
+    - id: document
+      type: NSwag.OpenApiDocument
+    return:
+      type: Microsoft.Accordant.Cli.ResponseTypeInfo
+    content.vb: Public Shared Function AnalyzeResponses(operation As OpenApiOperation, document As OpenApiDocument) As ResponseTypeInfo
+  overload: Microsoft.Accordant.Cli.ApiGenerator.AnalyzeResponses*
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GetSchemaTypeName(NJsonSchema.JsonSchema,NSwag.OpenApiDocument)
+  commentId: M:Microsoft.Accordant.Cli.ApiGenerator.GetSchemaTypeName(NJsonSchema.JsonSchema,NSwag.OpenApiDocument)
+  id: GetSchemaTypeName(NJsonSchema.JsonSchema,NSwag.OpenApiDocument)
+  parent: Microsoft.Accordant.Cli.ApiGenerator
+  langs:
+  - csharp
+  - vb
+  name: GetSchemaTypeName(JsonSchema?, OpenApiDocument)
+  nameWithType: ApiGenerator.GetSchemaTypeName(JsonSchema?, OpenApiDocument)
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GetSchemaTypeName(NJsonSchema.JsonSchema?, NSwag.OpenApiDocument)
+  type: Method
+  source:
+    remote:
+      path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GetSchemaTypeName
+    path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+    startLine: 301
+  assemblies:
+  - Microsoft.Accordant.Cli
+  namespace: Microsoft.Accordant.Cli
+  summary: Gets the C# type name for a schema.
+  example: []
+  syntax:
+    content: public static string GetSchemaTypeName(JsonSchema? schema, OpenApiDocument document)
+    parameters:
+    - id: schema
+      type: NJsonSchema.JsonSchema
+    - id: document
+      type: NSwag.OpenApiDocument
+    return:
+      type: System.String
+    content.vb: Public Shared Function GetSchemaTypeName(schema As JsonSchema, document As OpenApiDocument) As String
+  overload: Microsoft.Accordant.Cli.ApiGenerator.GetSchemaTypeName*
+  nameWithType.vb: ApiGenerator.GetSchemaTypeName(JsonSchema, OpenApiDocument)
+  fullName.vb: Microsoft.Accordant.Cli.ApiGenerator.GetSchemaTypeName(NJsonSchema.JsonSchema, NSwag.OpenApiDocument)
+  name.vb: GetSchemaTypeName(JsonSchema, OpenApiDocument)
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GetParameterInfo(NSwag.OpenApiParameter)
+  commentId: M:Microsoft.Accordant.Cli.ApiGenerator.GetParameterInfo(NSwag.OpenApiParameter)
+  id: GetParameterInfo(NSwag.OpenApiParameter)
+  parent: Microsoft.Accordant.Cli.ApiGenerator
+  langs:
+  - csharp
+  - vb
+  name: GetParameterInfo(OpenApiParameter)
+  nameWithType: ApiGenerator.GetParameterInfo(OpenApiParameter)
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GetParameterInfo(NSwag.OpenApiParameter)
+  type: Method
+  source:
+    remote:
+      path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GetParameterInfo
+    path: Microsoft.Accordant.Cli/Commands/ApiGenerator.cs
+    startLine: 336
+  assemblies:
+  - Microsoft.Accordant.Cli
+  namespace: Microsoft.Accordant.Cli
+  summary: Gets C# type for an OpenAPI parameter.
+  example: []
+  syntax:
+    content: public static (string type, string name, string serializedName) GetParameterInfo(OpenApiParameter param)
+    parameters:
+    - id: param
+      type: NSwag.OpenApiParameter
+    return:
+      type: System.ValueTuple{System.String,System.String,System.String}
+    content.vb: Public Shared Function GetParameterInfo(param As OpenApiParameter) As (type As String, name As String, serializedName As String)
+  overload: Microsoft.Accordant.Cli.ApiGenerator.GetParameterInfo*
+references:
+- uid: Microsoft.Accordant.Cli
+  commentId: N:Microsoft.Accordant.Cli
+  href: Microsoft.html
+  name: Microsoft.Accordant.Cli
+  nameWithType: Microsoft.Accordant.Cli
+  fullName: Microsoft.Accordant.Cli
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  - name: .
+  - uid: Microsoft.Accordant.Cli
+    name: Cli
+    href: Microsoft.Accordant.Cli.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  - name: .
+  - uid: Microsoft.Accordant.Cli
+    name: Cli
+    href: Microsoft.Accordant.Cli.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiRequestBase*
+  commentId: Overload:Microsoft.Accordant.Cli.ApiGenerator.GenerateApiRequestBase
+  href: Microsoft.Accordant.Cli.ApiGenerator.html#Microsoft_Accordant_Cli_ApiGenerator_GenerateApiRequestBase_System_String_
+  name: GenerateApiRequestBase
+  nameWithType: ApiGenerator.GenerateApiRequestBase
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiRequestBase
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiResponseBase*
+  commentId: Overload:Microsoft.Accordant.Cli.ApiGenerator.GenerateApiResponseBase
+  href: Microsoft.Accordant.Cli.ApiGenerator.html#Microsoft_Accordant_Cli_ApiGenerator_GenerateApiResponseBase_System_String_
+  name: GenerateApiResponseBase
+  nameWithType: ApiGenerator.GenerateApiResponseBase
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiResponseBase
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiClient*
+  commentId: Overload:Microsoft.Accordant.Cli.ApiGenerator.GenerateApiClient
+  href: Microsoft.Accordant.Cli.ApiGenerator.html#Microsoft_Accordant_Cli_ApiGenerator_GenerateApiClient_System_String_
+  name: GenerateApiClient
+  nameWithType: ApiGenerator.GenerateApiClient
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GenerateApiClient
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GetStatusCodeName*
+  commentId: Overload:Microsoft.Accordant.Cli.ApiGenerator.GetStatusCodeName
+  href: Microsoft.Accordant.Cli.ApiGenerator.html#Microsoft_Accordant_Cli_ApiGenerator_GetStatusCodeName_System_Int32_
+  name: GetStatusCodeName
+  nameWithType: ApiGenerator.GetStatusCodeName
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GetStatusCodeName
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: Microsoft.Accordant.Cli.ApiGenerator.ToPascalCase*
+  commentId: Overload:Microsoft.Accordant.Cli.ApiGenerator.ToPascalCase
+  href: Microsoft.Accordant.Cli.ApiGenerator.html#Microsoft_Accordant_Cli_ApiGenerator_ToPascalCase_System_String_
+  name: ToPascalCase
+  nameWithType: ApiGenerator.ToPascalCase
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.ToPascalCase
+- uid: Microsoft.Accordant.Cli.ApiGenerator.AnalyzeResponses*
+  commentId: Overload:Microsoft.Accordant.Cli.ApiGenerator.AnalyzeResponses
+  href: Microsoft.Accordant.Cli.ApiGenerator.html#Microsoft_Accordant_Cli_ApiGenerator_AnalyzeResponses_NSwag_OpenApiOperation_NSwag_OpenApiDocument_
+  name: AnalyzeResponses
+  nameWithType: ApiGenerator.AnalyzeResponses
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.AnalyzeResponses
+- uid: NSwag.OpenApiOperation
+  commentId: T:NSwag.OpenApiOperation
+  parent: NSwag
+  isExternal: true
+  name: OpenApiOperation
+  nameWithType: OpenApiOperation
+  fullName: NSwag.OpenApiOperation
+- uid: NSwag.OpenApiDocument
+  commentId: T:NSwag.OpenApiDocument
+  parent: NSwag
+  isExternal: true
+  name: OpenApiDocument
+  nameWithType: OpenApiDocument
+  fullName: NSwag.OpenApiDocument
+- uid: Microsoft.Accordant.Cli.ResponseTypeInfo
+  commentId: T:Microsoft.Accordant.Cli.ResponseTypeInfo
+  parent: Microsoft.Accordant.Cli
+  href: Microsoft.Accordant.Cli.ResponseTypeInfo.html
+  name: ResponseTypeInfo
+  nameWithType: ResponseTypeInfo
+  fullName: Microsoft.Accordant.Cli.ResponseTypeInfo
+- uid: NSwag
+  commentId: N:NSwag
+  isExternal: true
+  name: NSwag
+  nameWithType: NSwag
+  fullName: NSwag
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GetSchemaTypeName*
+  commentId: Overload:Microsoft.Accordant.Cli.ApiGenerator.GetSchemaTypeName
+  href: Microsoft.Accordant.Cli.ApiGenerator.html#Microsoft_Accordant_Cli_ApiGenerator_GetSchemaTypeName_NJsonSchema_JsonSchema_NSwag_OpenApiDocument_
+  name: GetSchemaTypeName
+  nameWithType: ApiGenerator.GetSchemaTypeName
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GetSchemaTypeName
+- uid: NJsonSchema.JsonSchema
+  commentId: T:NJsonSchema.JsonSchema
+  parent: NJsonSchema
+  isExternal: true
+  name: JsonSchema
+  nameWithType: JsonSchema
+  fullName: NJsonSchema.JsonSchema
+- uid: NJsonSchema
+  commentId: N:NJsonSchema
+  isExternal: true
+  name: NJsonSchema
+  nameWithType: NJsonSchema
+  fullName: NJsonSchema
+- uid: Microsoft.Accordant.Cli.ApiGenerator.GetParameterInfo*
+  commentId: Overload:Microsoft.Accordant.Cli.ApiGenerator.GetParameterInfo
+  href: Microsoft.Accordant.Cli.ApiGenerator.html#Microsoft_Accordant_Cli_ApiGenerator_GetParameterInfo_NSwag_OpenApiParameter_
+  name: GetParameterInfo
+  nameWithType: ApiGenerator.GetParameterInfo
+  fullName: Microsoft.Accordant.Cli.ApiGenerator.GetParameterInfo
+- uid: NSwag.OpenApiParameter
+  commentId: T:NSwag.OpenApiParameter
+  parent: NSwag
+  isExternal: true
+  name: OpenApiParameter
+  nameWithType: OpenApiParameter
+  fullName: NSwag.OpenApiParameter
+- uid: System.ValueTuple{System.String,System.String,System.String}
+  commentId: T:System.ValueTuple{System.String,System.String,System.String}
+  parent: System
+  definition: System.ValueTuple`3
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: (string type, string name, string serializedName)
+  nameWithType: (string type, string name, string serializedName)
+  fullName: (string type, string name, string serializedName)
+  nameWithType.vb: (type As String, name As String, serializedName As String)
+  fullName.vb: (type As String, name As String, serializedName As String)
+  name.vb: (type As String, name As String, serializedName As String)
+  spec.csharp:
+  - name: (
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: " "
+  - uid: System.ValueTuple{System.String,System.String,System.String}.type
+    name: type
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.string,system.string,system.string-.type
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: " "
+  - uid: System.ValueTuple{System.String,System.String,System.String}.name
+    name: name
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.string,system.string,system.string-.name
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: " "
+  - uid: System.ValueTuple{System.String,System.String,System.String}.serializedName
+    name: serializedName
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.string,system.string,system.string-.serializedname
+  - name: )
+  spec.vb:
+  - name: (
+  - uid: System.ValueTuple{System.String,System.String,System.String}.type
+    name: type
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.string,system.string,system.string-.type
+  - name: " "
+  - name: As
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - uid: System.ValueTuple{System.String,System.String,System.String}.name
+    name: name
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.string,system.string,system.string-.name
+  - name: " "
+  - name: As
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - uid: System.ValueTuple{System.String,System.String,System.String}.serializedName
+    name: serializedName
+    href: https://learn.microsoft.com/dotnet/api/system.valuetuple-system.string,system.string,system.string-.serializedname
+  - name: " "
+  - name: As
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: System.ValueTuple`3
+  commentId: T:System.ValueTuple`3
+  name: (T1, T2, T3)
+  nameWithType: (T1, T2, T3)
+  fullName: (T1, T2, T3)
+  spec.csharp:
+  - name: (
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: T3
+  - name: )
+  spec.vb:
+  - name: (
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: T3
+  - name: )

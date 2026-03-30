@@ -1,0 +1,435 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.ISpec
+  commentId: T:Microsoft.Accordant.ISpec
+  id: ISpec
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.ISpec.Add(Microsoft.Accordant.IOperation)
+  - Microsoft.Accordant.ISpec.CreateTestingContext(System.String)
+  - Microsoft.Accordant.ISpec.GetOperation(System.String)
+  - Microsoft.Accordant.ISpec.GetOperationName(Microsoft.Accordant.IOperation)
+  - Microsoft.Accordant.ISpec.Item(System.String)
+  - Microsoft.Accordant.ISpec.Operations
+  langs:
+  - csharp
+  - vb
+  name: ISpec
+  nameWithType: ISpec
+  fullName: Microsoft.Accordant.ISpec
+  type: Interface
+  source:
+    remote:
+      path: Accordant.Operations/Operation/ISpec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ISpec
+    path: Accordant.Operations/Operation/ISpec.cs
+    startLine: 9
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Non-generic interface for specs, allowing type-erased usage.
+  example: []
+  syntax:
+    content: public interface ISpec
+    content.vb: Public Interface ISpec
+  derivedClasses:
+  - Microsoft.Accordant.Spec`1
+- uid: Microsoft.Accordant.ISpec.Operations
+  commentId: P:Microsoft.Accordant.ISpec.Operations
+  id: Operations
+  parent: Microsoft.Accordant.ISpec
+  langs:
+  - csharp
+  - vb
+  name: Operations
+  nameWithType: ISpec.Operations
+  fullName: Microsoft.Accordant.ISpec.Operations
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Operation/ISpec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Operations
+    path: Accordant.Operations/Operation/ISpec.cs
+    startLine: 14
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: The operations registered in this spec.
+  example: []
+  syntax:
+    content: IEnumerable<IOperation> Operations { get; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.IEnumerable{Microsoft.Accordant.IOperation}
+    content.vb: ReadOnly Property Operations As IEnumerable(Of IOperation)
+  overload: Microsoft.Accordant.ISpec.Operations*
+- uid: Microsoft.Accordant.ISpec.Item(System.String)
+  commentId: P:Microsoft.Accordant.ISpec.Item(System.String)
+  id: Item(System.String)
+  parent: Microsoft.Accordant.ISpec
+  langs:
+  - csharp
+  - vb
+  name: this[string]
+  nameWithType: ISpec.this[string]
+  fullName: Microsoft.Accordant.ISpec.this[string]
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Operation/ISpec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: this[]
+    path: Accordant.Operations/Operation/ISpec.cs
+    startLine: 19
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Indexer to get/set operations by name.
+  example: []
+  syntax:
+    content: IOperation this[string name] { get; set; }
+    parameters:
+    - id: name
+      type: System.String
+    return:
+      type: Microsoft.Accordant.IOperation
+    content.vb: Default Property this[](name As String) As IOperation
+  overload: Microsoft.Accordant.ISpec.Item*
+  nameWithType.vb: ISpec.this[](String)
+  fullName.vb: Microsoft.Accordant.ISpec.this[](String)
+  name.vb: this[](String)
+- uid: Microsoft.Accordant.ISpec.Add(Microsoft.Accordant.IOperation)
+  commentId: M:Microsoft.Accordant.ISpec.Add(Microsoft.Accordant.IOperation)
+  id: Add(Microsoft.Accordant.IOperation)
+  parent: Microsoft.Accordant.ISpec
+  langs:
+  - csharp
+  - vb
+  name: Add(IOperation)
+  nameWithType: ISpec.Add(IOperation)
+  fullName: Microsoft.Accordant.ISpec.Add(Microsoft.Accordant.IOperation)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/ISpec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Add
+    path: Accordant.Operations/Operation/ISpec.cs
+    startLine: 24
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Registers an operation with this spec.
+  example: []
+  syntax:
+    content: void Add(IOperation operation)
+    parameters:
+    - id: operation
+      type: Microsoft.Accordant.IOperation
+    content.vb: Sub Add(operation As IOperation)
+  overload: Microsoft.Accordant.ISpec.Add*
+- uid: Microsoft.Accordant.ISpec.GetOperation(System.String)
+  commentId: M:Microsoft.Accordant.ISpec.GetOperation(System.String)
+  id: GetOperation(System.String)
+  parent: Microsoft.Accordant.ISpec
+  langs:
+  - csharp
+  - vb
+  name: GetOperation(string)
+  nameWithType: ISpec.GetOperation(string)
+  fullName: Microsoft.Accordant.ISpec.GetOperation(string)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/ISpec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GetOperation
+    path: Accordant.Operations/Operation/ISpec.cs
+    startLine: 29
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Gets an operation by name.
+  example: []
+  syntax:
+    content: IOperation GetOperation(string name)
+    parameters:
+    - id: name
+      type: System.String
+    return:
+      type: Microsoft.Accordant.IOperation
+    content.vb: Function GetOperation(name As String) As IOperation
+  overload: Microsoft.Accordant.ISpec.GetOperation*
+  nameWithType.vb: ISpec.GetOperation(String)
+  fullName.vb: Microsoft.Accordant.ISpec.GetOperation(String)
+  name.vb: GetOperation(String)
+- uid: Microsoft.Accordant.ISpec.GetOperationName(Microsoft.Accordant.IOperation)
+  commentId: M:Microsoft.Accordant.ISpec.GetOperationName(Microsoft.Accordant.IOperation)
+  id: GetOperationName(Microsoft.Accordant.IOperation)
+  parent: Microsoft.Accordant.ISpec
+  langs:
+  - csharp
+  - vb
+  name: GetOperationName(IOperation)
+  nameWithType: ISpec.GetOperationName(IOperation)
+  fullName: Microsoft.Accordant.ISpec.GetOperationName(Microsoft.Accordant.IOperation)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/ISpec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GetOperationName
+    path: Accordant.Operations/Operation/ISpec.cs
+    startLine: 34
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Gets the name the given operation was registered under.
+  example: []
+  syntax:
+    content: string GetOperationName(IOperation operation)
+    parameters:
+    - id: operation
+      type: Microsoft.Accordant.IOperation
+    return:
+      type: System.String
+    content.vb: Function GetOperationName(operation As IOperation) As String
+  overload: Microsoft.Accordant.ISpec.GetOperationName*
+- uid: Microsoft.Accordant.ISpec.CreateTestingContext(System.String)
+  commentId: M:Microsoft.Accordant.ISpec.CreateTestingContext(System.String)
+  id: CreateTestingContext(System.String)
+  parent: Microsoft.Accordant.ISpec
+  langs:
+  - csharp
+  - vb
+  name: CreateTestingContext(string)
+  nameWithType: ISpec.CreateTestingContext(string)
+  fullName: Microsoft.Accordant.ISpec.CreateTestingContext(string)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/ISpec.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: CreateTestingContext
+    path: Accordant.Operations/Operation/ISpec.cs
+    startLine: 41
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Creates a new testing context for this spec.
+  example: []
+  syntax:
+    content: TestingContext CreateTestingContext(string testDirectoryPath = null)
+    parameters:
+    - id: testDirectoryPath
+      type: System.String
+      description: Optional path for test output.
+    return:
+      type: Microsoft.Accordant.TestingContext
+      description: A new testing context.
+    content.vb: Function CreateTestingContext(testDirectoryPath As String = Nothing) As TestingContext
+  overload: Microsoft.Accordant.ISpec.CreateTestingContext*
+  nameWithType.vb: ISpec.CreateTestingContext(String)
+  fullName.vb: Microsoft.Accordant.ISpec.CreateTestingContext(String)
+  name.vb: CreateTestingContext(String)
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: Microsoft.Accordant.ISpec.Operations*
+  commentId: Overload:Microsoft.Accordant.ISpec.Operations
+  href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_Operations
+  name: Operations
+  nameWithType: ISpec.Operations
+  fullName: Microsoft.Accordant.ISpec.Operations
+- uid: System.Collections.Generic.IEnumerable{Microsoft.Accordant.IOperation}
+  commentId: T:System.Collections.Generic.IEnumerable{Microsoft.Accordant.IOperation}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IEnumerable`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  name: IEnumerable<IOperation>
+  nameWithType: IEnumerable<IOperation>
+  fullName: System.Collections.Generic.IEnumerable<Microsoft.Accordant.IOperation>
+  nameWithType.vb: IEnumerable(Of IOperation)
+  fullName.vb: System.Collections.Generic.IEnumerable(Of Microsoft.Accordant.IOperation)
+  name.vb: IEnumerable(Of IOperation)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: <
+  - uid: Microsoft.Accordant.IOperation
+    name: IOperation
+    href: Microsoft.Accordant.IOperation.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.IOperation
+    name: IOperation
+    href: Microsoft.Accordant.IOperation.html
+  - name: )
+- uid: System.Collections.Generic.IEnumerable`1
+  commentId: T:System.Collections.Generic.IEnumerable`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  name: IEnumerable<T>
+  nameWithType: IEnumerable<T>
+  fullName: System.Collections.Generic.IEnumerable<T>
+  nameWithType.vb: IEnumerable(Of T)
+  fullName.vb: System.Collections.Generic.IEnumerable(Of T)
+  name.vb: IEnumerable(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: Microsoft.Accordant.ISpec.Item*
+  commentId: Overload:Microsoft.Accordant.ISpec.Item
+  href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_Item_System_String_
+  name: this
+  nameWithType: ISpec.this
+  fullName: Microsoft.Accordant.ISpec.this
+  nameWithType.vb: ISpec.this[]
+  fullName.vb: Microsoft.Accordant.ISpec.this[]
+  name.vb: this[]
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.IOperation
+  commentId: T:Microsoft.Accordant.IOperation
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.IOperation.html
+  name: IOperation
+  nameWithType: IOperation
+  fullName: Microsoft.Accordant.IOperation
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.ISpec.Add*
+  commentId: Overload:Microsoft.Accordant.ISpec.Add
+  href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_Add_Microsoft_Accordant_IOperation_
+  name: Add
+  nameWithType: ISpec.Add
+  fullName: Microsoft.Accordant.ISpec.Add
+- uid: Microsoft.Accordant.ISpec.GetOperation*
+  commentId: Overload:Microsoft.Accordant.ISpec.GetOperation
+  href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_GetOperation_System_String_
+  name: GetOperation
+  nameWithType: ISpec.GetOperation
+  fullName: Microsoft.Accordant.ISpec.GetOperation
+- uid: Microsoft.Accordant.ISpec.GetOperationName*
+  commentId: Overload:Microsoft.Accordant.ISpec.GetOperationName
+  href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_GetOperationName_Microsoft_Accordant_IOperation_
+  name: GetOperationName
+  nameWithType: ISpec.GetOperationName
+  fullName: Microsoft.Accordant.ISpec.GetOperationName
+- uid: Microsoft.Accordant.ISpec.CreateTestingContext*
+  commentId: Overload:Microsoft.Accordant.ISpec.CreateTestingContext
+  href: Microsoft.Accordant.ISpec.html#Microsoft_Accordant_ISpec_CreateTestingContext_System_String_
+  name: CreateTestingContext
+  nameWithType: ISpec.CreateTestingContext
+  fullName: Microsoft.Accordant.ISpec.CreateTestingContext
+- uid: Microsoft.Accordant.TestingContext
+  commentId: T:Microsoft.Accordant.TestingContext
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.TestingContext.html
+  name: TestingContext
+  nameWithType: TestingContext
+  fullName: Microsoft.Accordant.TestingContext

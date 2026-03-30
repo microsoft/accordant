@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+		<OutputType>Exe</OutputType>
+		<OutputPath>../bin/tools/Accordant.StateSourceCodeGenerator</OutputPath>
+		
+		<!-- dotnet tool configuration -->
+		<PackAsTool>true</PackAsTool>
+		<ToolCommandName>accordant-stategen</ToolCommandName>
+		<PackageId>Microsoft.Accordant.StateSourceCodeGenerator</PackageId>
+		<Description>State source code generator for Accordant model-based testing</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../Accordant/Accordant.csproj"></ProjectReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="CommandLineParser" />
+	</ItemGroup>
+
+	<ItemGroup>
+      <None Update="DotnetToolSettings.xml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>

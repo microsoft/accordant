@@ -1,0 +1,72 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.Logger.LogDelegate
+  commentId: T:Microsoft.Accordant.Logger.LogDelegate
+  id: Logger.LogDelegate
+  parent: Microsoft.Accordant
+  children: []
+  langs:
+  - csharp
+  - vb
+  name: Logger.LogDelegate
+  nameWithType: Logger.LogDelegate
+  fullName: Microsoft.Accordant.Logger.LogDelegate
+  type: Delegate
+  source:
+    remote:
+      path: Accordant.Operations/Logger.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: LogDelegate
+    path: Accordant.Operations/Logger.cs
+    startLine: 11
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public delegate void Logger.LogDelegate(string logLine)
+    parameters:
+    - id: logLine
+      type: System.String
+    content.vb: Public Delegate Sub Logger.LogDelegate(logLine As String)
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System

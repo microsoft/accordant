@@ -1,0 +1,604 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.SystemChecker
+  commentId: T:Microsoft.Accordant.SystemChecker
+  id: SystemChecker
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.SystemChecker.Validate(System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}},Microsoft.Accordant.State,System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}})
+  - Microsoft.Accordant.SystemChecker.Validate(System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}},Microsoft.Accordant.StateProfile,System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}})
+  langs:
+  - csharp
+  - vb
+  name: SystemChecker
+  nameWithType: SystemChecker
+  fullName: Microsoft.Accordant.SystemChecker
+  type: Class
+  source:
+    remote:
+      path: Accordant/SystemChecker.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: SystemChecker
+    path: Accordant/SystemChecker.cs
+    startLine: 10
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    This class validates system responses by checking them against
+
+    stateful contracts (specs).
+  example: []
+  syntax:
+    content: public class SystemChecker
+    content.vb: Public Class SystemChecker
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.SystemChecker.Validate(System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}},Microsoft.Accordant.State,System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}})
+  commentId: M:Microsoft.Accordant.SystemChecker.Validate(System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}},Microsoft.Accordant.State,System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}})
+  id: Validate(System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}},Microsoft.Accordant.State,System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}})
+  parent: Microsoft.Accordant.SystemChecker
+  langs:
+  - csharp
+  - vb
+  name: Validate(IList<IList<IStepFunction>>, State, Action<State, IList<IStepFunction>>)
+  nameWithType: SystemChecker.Validate(IList<IList<IStepFunction>>, State, Action<State, IList<IStepFunction>>)
+  fullName: Microsoft.Accordant.SystemChecker.Validate(System.Collections.Generic.IList<System.Collections.Generic.IList<Microsoft.Accordant.IStepFunction>>, Microsoft.Accordant.State, System.Action<Microsoft.Accordant.State, System.Collections.Generic.IList<Microsoft.Accordant.IStepFunction>>)
+  type: Method
+  source:
+    remote:
+      path: Accordant/SystemChecker.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Validate
+    path: Accordant/SystemChecker.cs
+    startLine: 12
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static StateProfile Validate(IList<IList<IStepFunction>> sequenceOfConcurrentSteps, State startingState, Action<State, IList<IStepFunction>> hook = null)
+    parameters:
+    - id: sequenceOfConcurrentSteps
+      type: System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}
+    - id: startingState
+      type: Microsoft.Accordant.State
+    - id: hook
+      type: System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}
+    return:
+      type: Microsoft.Accordant.StateProfile
+    content.vb: Public Shared Function Validate(sequenceOfConcurrentSteps As IList(Of IList(Of IStepFunction)), startingState As State, hook As Action(Of State, IList(Of IStepFunction)) = Nothing) As StateProfile
+  overload: Microsoft.Accordant.SystemChecker.Validate*
+  nameWithType.vb: SystemChecker.Validate(IList(Of IList(Of IStepFunction)), State, Action(Of State, IList(Of IStepFunction)))
+  fullName.vb: Microsoft.Accordant.SystemChecker.Validate(System.Collections.Generic.IList(Of System.Collections.Generic.IList(Of Microsoft.Accordant.IStepFunction)), Microsoft.Accordant.State, System.Action(Of Microsoft.Accordant.State, System.Collections.Generic.IList(Of Microsoft.Accordant.IStepFunction)))
+  name.vb: Validate(IList(Of IList(Of IStepFunction)), State, Action(Of State, IList(Of IStepFunction)))
+- uid: Microsoft.Accordant.SystemChecker.Validate(System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}},Microsoft.Accordant.StateProfile,System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}})
+  commentId: M:Microsoft.Accordant.SystemChecker.Validate(System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}},Microsoft.Accordant.StateProfile,System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}})
+  id: Validate(System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}},Microsoft.Accordant.StateProfile,System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}})
+  parent: Microsoft.Accordant.SystemChecker
+  langs:
+  - csharp
+  - vb
+  name: Validate(IList<IList<IStepFunction>>, StateProfile, Action<State, IList<IStepFunction>>)
+  nameWithType: SystemChecker.Validate(IList<IList<IStepFunction>>, StateProfile, Action<State, IList<IStepFunction>>)
+  fullName: Microsoft.Accordant.SystemChecker.Validate(System.Collections.Generic.IList<System.Collections.Generic.IList<Microsoft.Accordant.IStepFunction>>, Microsoft.Accordant.StateProfile, System.Action<Microsoft.Accordant.State, System.Collections.Generic.IList<Microsoft.Accordant.IStepFunction>>)
+  type: Method
+  source:
+    remote:
+      path: Accordant/SystemChecker.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Validate
+    path: Accordant/SystemChecker.cs
+    startLine: 23
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static StateProfile Validate(IList<IList<IStepFunction>> sequenceOfConcurrentSteps, StateProfile stateProfile, Action<State, IList<IStepFunction>> hook = null)
+    parameters:
+    - id: sequenceOfConcurrentSteps
+      type: System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}
+    - id: stateProfile
+      type: Microsoft.Accordant.StateProfile
+    - id: hook
+      type: System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}
+    return:
+      type: Microsoft.Accordant.StateProfile
+    content.vb: Public Shared Function Validate(sequenceOfConcurrentSteps As IList(Of IList(Of IStepFunction)), stateProfile As StateProfile, hook As Action(Of State, IList(Of IStepFunction)) = Nothing) As StateProfile
+  overload: Microsoft.Accordant.SystemChecker.Validate*
+  nameWithType.vb: SystemChecker.Validate(IList(Of IList(Of IStepFunction)), StateProfile, Action(Of State, IList(Of IStepFunction)))
+  fullName.vb: Microsoft.Accordant.SystemChecker.Validate(System.Collections.Generic.IList(Of System.Collections.Generic.IList(Of Microsoft.Accordant.IStepFunction)), Microsoft.Accordant.StateProfile, System.Action(Of Microsoft.Accordant.State, System.Collections.Generic.IList(Of Microsoft.Accordant.IStepFunction)))
+  name.vb: Validate(IList(Of IList(Of IStepFunction)), StateProfile, Action(Of State, IList(Of IStepFunction)))
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.SystemChecker.Validate*
+  commentId: Overload:Microsoft.Accordant.SystemChecker.Validate
+  href: Microsoft.Accordant.SystemChecker.html#Microsoft_Accordant_SystemChecker_Validate_System_Collections_Generic_IList_System_Collections_Generic_IList_Microsoft_Accordant_IStepFunction___Microsoft_Accordant_State_System_Action_Microsoft_Accordant_State_System_Collections_Generic_IList_Microsoft_Accordant_IStepFunction___
+  name: Validate
+  nameWithType: SystemChecker.Validate
+  fullName: Microsoft.Accordant.SystemChecker.Validate
+- uid: System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}
+  commentId: T:System.Collections.Generic.IList{System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<IList<IStepFunction>>
+  nameWithType: IList<IList<IStepFunction>>
+  fullName: System.Collections.Generic.IList<System.Collections.Generic.IList<Microsoft.Accordant.IStepFunction>>
+  nameWithType.vb: IList(Of IList(Of IStepFunction))
+  fullName.vb: System.Collections.Generic.IList(Of System.Collections.Generic.IList(Of Microsoft.Accordant.IStepFunction))
+  name.vb: IList(Of IList(Of IStepFunction))
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.IStepFunction
+    name: IStepFunction
+    href: Microsoft.Accordant.IStepFunction.html
+  - name: '>'
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.IStepFunction
+    name: IStepFunction
+    href: Microsoft.Accordant.IStepFunction.html
+  - name: )
+  - name: )
+- uid: Microsoft.Accordant.State
+  commentId: T:Microsoft.Accordant.State
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.State.html
+  name: State
+  nameWithType: State
+  fullName: Microsoft.Accordant.State
+- uid: System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}
+  commentId: T:System.Action{Microsoft.Accordant.State,System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}}
+  parent: System
+  definition: System.Action`2
+  href: https://learn.microsoft.com/dotnet/api/system.action-2
+  name: Action<State, IList<IStepFunction>>
+  nameWithType: Action<State, IList<IStepFunction>>
+  fullName: System.Action<Microsoft.Accordant.State, System.Collections.Generic.IList<Microsoft.Accordant.IStepFunction>>
+  nameWithType.vb: Action(Of State, IList(Of IStepFunction))
+  fullName.vb: System.Action(Of Microsoft.Accordant.State, System.Collections.Generic.IList(Of Microsoft.Accordant.IStepFunction))
+  name.vb: Action(Of State, IList(Of IStepFunction))
+  spec.csharp:
+  - uid: System.Action`2
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-2
+  - name: <
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.IStepFunction
+    name: IStepFunction
+    href: Microsoft.Accordant.IStepFunction.html
+  - name: '>'
+  - name: '>'
+  spec.vb:
+  - uid: System.Action`2
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.IStepFunction
+    name: IStepFunction
+    href: Microsoft.Accordant.IStepFunction.html
+  - name: )
+  - name: )
+- uid: Microsoft.Accordant.StateProfile
+  commentId: T:Microsoft.Accordant.StateProfile
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.StateProfile.html
+  name: StateProfile
+  nameWithType: StateProfile
+  fullName: Microsoft.Accordant.StateProfile
+- uid: System.Collections.Generic.IList`1
+  commentId: T:System.Collections.Generic.IList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: System.Action`2
+  commentId: T:System.Action`2
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.action-2
+  name: Action<T1, T2>
+  nameWithType: Action<T1, T2>
+  fullName: System.Action<T1, T2>
+  nameWithType.vb: Action(Of T1, T2)
+  fullName.vb: System.Action(Of T1, T2)
+  name.vb: Action(Of T1, T2)
+  spec.csharp:
+  - uid: System.Action`2
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-2
+  - name: <
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: '>'
+  spec.vb:
+  - uid: System.Action`2
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: )

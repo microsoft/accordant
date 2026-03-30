@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    
+    <!-- NuGet Package Defaults -->
+    <Version>0.1.0-preview</Version>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <Copyright>Copyright (c) 2024-2026 Microsoft Corporation</Copyright>
+    <Description>Model-based testing framework for .NET</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/microsoft/accordant</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/microsoft/accordant</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>testing;model-based-testing;conformance-testing;specification</PackageTags>
+    
+    <!-- Generate NuGet packages on build -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)nupkgs</PackageOutputPath>
+  </PropertyGroup>
+</Project>

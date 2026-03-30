@@ -1,0 +1,60 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.ITestingMetadata
+  commentId: T:Microsoft.Accordant.ITestingMetadata
+  id: ITestingMetadata
+  parent: Microsoft.Accordant
+  children: []
+  langs:
+  - csharp
+  - vb
+  name: ITestingMetadata
+  nameWithType: ITestingMetadata
+  fullName: Microsoft.Accordant.ITestingMetadata
+  type: Interface
+  source:
+    remote:
+      path: Accordant.Operations/ITestingMetadata.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ITestingMetadata
+    path: Accordant.Operations/ITestingMetadata.cs
+    startLine: 8
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    This interface should be implemented by classes that store metadata that
+
+    is persisted along with serialized test cases to disk that contains the
+
+    information required to re-run those test cases (information that might
+
+    not be contained in the test cases themselves).
+  example: []
+  syntax:
+    content: public interface ITestingMetadata
+    content.vb: Public Interface ITestingMetadata
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html

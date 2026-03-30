@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <PackageId>Microsoft.Accordant</PackageId>
+    <Description>Model-based testing framework for .NET</Description>
+    
+    <!-- This is a packaging-only project -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+  </PropertyGroup>
+
+  <!-- Reference all library projects -->
+  <ItemGroup>
+    <ProjectReference Include="..\Accordant\Accordant.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Accordant.Invariant\Accordant.Invariant.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Accordant.Choose\Accordant.Choose.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Accordant.ModelChecking\Accordant.ModelChecking.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Accordant.Operations\Accordant.Operations.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Accordant.Operations.Http\Accordant.Operations.Http.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Include all DLLs in the package -->
+  <ItemGroup>
+    <None Include="..\bin\netstandard2.0\Accordant.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\bin\netstandard2.0\Accordant.Invariant.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\bin\netstandard2.0\Accordant.Choose.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\bin\netstandard2.0\Accordant.ModelChecking.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\bin\netstandard2.0\Accordant.Operations.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="..\bin\netstandard2.0\Accordant.Operations.Http.dll" Pack="true" PackagePath="lib\netstandard2.0" />
+  </ItemGroup>
+
+  <!-- External dependencies need to be declared -->
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" PrivateAssets="none" />
+    <PackageReference Include="System.Text.Json" PrivateAssets="none" />
+  </ItemGroup>
+
+</Project>

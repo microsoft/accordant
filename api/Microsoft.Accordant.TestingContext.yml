@@ -1,0 +1,769 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.TestingContext
+  commentId: T:Microsoft.Accordant.TestingContext
+  id: TestingContext
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.TestingContext.#ctor(Microsoft.Accordant.ISpec,System.String)
+  - Microsoft.Accordant.TestingContext.Get``1
+  - Microsoft.Accordant.TestingContext.Register``1(``0)
+  - Microsoft.Accordant.TestingContext.RequestPrinter
+  - Microsoft.Accordant.TestingContext.ResponsePrinter
+  - Microsoft.Accordant.TestingContext.Spec
+  - Microsoft.Accordant.TestingContext.Target``1
+  langs:
+  - csharp
+  - vb
+  name: TestingContext
+  nameWithType: TestingContext
+  fullName: Microsoft.Accordant.TestingContext
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/TestingContext.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: TestingContext
+    path: Accordant.Operations/TestingContext.cs
+    startLine: 9
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Testing context that provides access to the system under test during test execution.
+
+    Provides common functionality for all testing contexts.
+  example: []
+  syntax:
+    content: public sealed class TestingContext
+    content.vb: Public NotInheritable Class TestingContext
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.TestingContext.RequestPrinter
+  commentId: P:Microsoft.Accordant.TestingContext.RequestPrinter
+  id: RequestPrinter
+  parent: Microsoft.Accordant.TestingContext
+  langs:
+  - csharp
+  - vb
+  name: RequestPrinter
+  nameWithType: TestingContext.RequestPrinter
+  fullName: Microsoft.Accordant.TestingContext.RequestPrinter
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestingContext.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: RequestPrinter
+    path: Accordant.Operations/TestingContext.cs
+    startLine: 13
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public Func<object, string> RequestPrinter { get; set; }
+    parameters: []
+    return:
+      type: System.Func{System.Object,System.String}
+    content.vb: Public Property RequestPrinter As Func(Of Object, String)
+  overload: Microsoft.Accordant.TestingContext.RequestPrinter*
+- uid: Microsoft.Accordant.TestingContext.ResponsePrinter
+  commentId: P:Microsoft.Accordant.TestingContext.ResponsePrinter
+  id: ResponsePrinter
+  parent: Microsoft.Accordant.TestingContext
+  langs:
+  - csharp
+  - vb
+  name: ResponsePrinter
+  nameWithType: TestingContext.ResponsePrinter
+  fullName: Microsoft.Accordant.TestingContext.ResponsePrinter
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestingContext.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ResponsePrinter
+    path: Accordant.Operations/TestingContext.cs
+    startLine: 16
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public Func<object, string> ResponsePrinter { get; set; }
+    parameters: []
+    return:
+      type: System.Func{System.Object,System.String}
+    content.vb: Public Property ResponsePrinter As Func(Of Object, String)
+  overload: Microsoft.Accordant.TestingContext.ResponsePrinter*
+- uid: Microsoft.Accordant.TestingContext.Spec
+  commentId: P:Microsoft.Accordant.TestingContext.Spec
+  id: Spec
+  parent: Microsoft.Accordant.TestingContext
+  langs:
+  - csharp
+  - vb
+  name: Spec
+  nameWithType: TestingContext.Spec
+  fullName: Microsoft.Accordant.TestingContext.Spec
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/TestingContext.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Spec
+    path: Accordant.Operations/TestingContext.cs
+    startLine: 22
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: The spec being tested.
+  example: []
+  syntax:
+    content: public ISpec Spec { get; set; }
+    parameters: []
+    return:
+      type: Microsoft.Accordant.ISpec
+    content.vb: Public Property Spec As ISpec
+  overload: Microsoft.Accordant.TestingContext.Spec*
+- uid: Microsoft.Accordant.TestingContext.#ctor(Microsoft.Accordant.ISpec,System.String)
+  commentId: M:Microsoft.Accordant.TestingContext.#ctor(Microsoft.Accordant.ISpec,System.String)
+  id: '#ctor(Microsoft.Accordant.ISpec,System.String)'
+  parent: Microsoft.Accordant.TestingContext
+  langs:
+  - csharp
+  - vb
+  name: TestingContext(ISpec, string)
+  nameWithType: TestingContext.TestingContext(ISpec, string)
+  fullName: Microsoft.Accordant.TestingContext.TestingContext(Microsoft.Accordant.ISpec, string)
+  type: Constructor
+  source:
+    remote:
+      path: Accordant.Operations/TestingContext.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: .ctor
+    path: Accordant.Operations/TestingContext.cs
+    startLine: 24
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public TestingContext(ISpec spec, string testDirectoryPath = null)
+    parameters:
+    - id: spec
+      type: Microsoft.Accordant.ISpec
+    - id: testDirectoryPath
+      type: System.String
+    content.vb: Public Sub New(spec As ISpec, testDirectoryPath As String = Nothing)
+  overload: Microsoft.Accordant.TestingContext.#ctor*
+  nameWithType.vb: TestingContext.New(ISpec, String)
+  fullName.vb: Microsoft.Accordant.TestingContext.New(Microsoft.Accordant.ISpec, String)
+  name.vb: New(ISpec, String)
+- uid: Microsoft.Accordant.TestingContext.Register``1(``0)
+  commentId: M:Microsoft.Accordant.TestingContext.Register``1(``0)
+  id: Register``1(``0)
+  parent: Microsoft.Accordant.TestingContext
+  langs:
+  - csharp
+  - vb
+  name: Register<T>(T)
+  nameWithType: TestingContext.Register<T>(T)
+  fullName: Microsoft.Accordant.TestingContext.Register<T>(T)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/TestingContext.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Register
+    path: Accordant.Operations/TestingContext.cs
+    startLine: 38
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Registers a target instance that can be retrieved via <xref href="Microsoft.Accordant.TestingContext.Get%60%601" data-throw-if-not-resolved="false"></xref>.
+
+    This is typically called during test initialization to register the system under test.
+  example: []
+  syntax:
+    content: public void Register<T>(T instance)
+    parameters:
+    - id: instance
+      type: '{T}'
+      description: The target instance to register.
+    typeParameters:
+    - id: T
+      description: The type of the target.
+    content.vb: Public Sub Register(Of T)(instance As T)
+  overload: Microsoft.Accordant.TestingContext.Register*
+  nameWithType.vb: TestingContext.Register(Of T)(T)
+  fullName.vb: Microsoft.Accordant.TestingContext.Register(Of T)(T)
+  name.vb: Register(Of T)(T)
+- uid: Microsoft.Accordant.TestingContext.Get``1
+  commentId: M:Microsoft.Accordant.TestingContext.Get``1
+  id: Get``1
+  parent: Microsoft.Accordant.TestingContext
+  langs:
+  - csharp
+  - vb
+  name: Get<T>()
+  nameWithType: TestingContext.Get<T>()
+  fullName: Microsoft.Accordant.TestingContext.Get<T>()
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/TestingContext.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Get
+    path: Accordant.Operations/TestingContext.cs
+    startLine: 51
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Gets the registered service of the specified type.
+
+    Use this in <xref href="Microsoft.Accordant.Operation%603.ExecuteAsync(Microsoft.Accordant.TestingContext%2c%600)" data-throw-if-not-resolved="false"></xref> 
+
+    to access the system under test or other registered services.
+  example: []
+  syntax:
+    content: public T Get<T>()
+    typeParameters:
+    - id: T
+      description: The type of the service to retrieve.
+    return:
+      type: '{T}'
+      description: The registered service instance.
+    content.vb: Public Function [Get](Of T)() As T
+  overload: Microsoft.Accordant.TestingContext.Get*
+  exceptions:
+  - type: System.InvalidOperationException
+    commentId: T:System.InvalidOperationException
+    description: Thrown if no service of type T has been registered.
+  nameWithType.vb: TestingContext.Get(Of T)()
+  fullName.vb: Microsoft.Accordant.TestingContext.Get(Of T)()
+  name.vb: Get(Of T)()
+- uid: Microsoft.Accordant.TestingContext.Target``1
+  commentId: M:Microsoft.Accordant.TestingContext.Target``1
+  id: Target``1
+  parent: Microsoft.Accordant.TestingContext
+  langs:
+  - csharp
+  - vb
+  name: Target<T>()
+  nameWithType: TestingContext.Target<T>()
+  fullName: Microsoft.Accordant.TestingContext.Target<T>()
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/TestingContext.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Target
+    path: Accordant.Operations/TestingContext.cs
+    startLine: 69
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Gets the registered target of the specified type.
+
+    This is an alias for <xref href="Microsoft.Accordant.TestingContext.Get%60%601" data-throw-if-not-resolved="false"></xref> for backwards compatibility.
+  example: []
+  syntax:
+    content: >-
+      [Obsolete("Use Get<T>() instead. This method will be removed in a future version.")]
+
+      public T Target<T>()
+    typeParameters:
+    - id: T
+      description: The type of the target to retrieve.
+    return:
+      type: '{T}'
+      description: The registered target instance.
+    content.vb: >-
+      <Obsolete("Use Get<T>() instead. This method will be removed in a future version.")>
+
+      Public Function Target(Of T)() As T
+  overload: Microsoft.Accordant.TestingContext.Target*
+  attributes:
+  - type: System.ObsoleteAttribute
+    ctor: System.ObsoleteAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Use Get<T>() instead. This method will be removed in a future version.
+  nameWithType.vb: TestingContext.Target(Of T)()
+  fullName.vb: Microsoft.Accordant.TestingContext.Target(Of T)()
+  name.vb: Target(Of T)()
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.TestingContext.RequestPrinter*
+  commentId: Overload:Microsoft.Accordant.TestingContext.RequestPrinter
+  href: Microsoft.Accordant.TestingContext.html#Microsoft_Accordant_TestingContext_RequestPrinter
+  name: RequestPrinter
+  nameWithType: TestingContext.RequestPrinter
+  fullName: Microsoft.Accordant.TestingContext.RequestPrinter
+- uid: System.Func{System.Object,System.String}
+  commentId: T:System.Func{System.Object,System.String}
+  parent: System
+  definition: System.Func`2
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<object, string>
+  nameWithType: Func<object, string>
+  fullName: System.Func<object, string>
+  nameWithType.vb: Func(Of Object, String)
+  fullName.vb: System.Func(Of Object, String)
+  name.vb: Func(Of Object, String)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: System.Func`2
+  commentId: T:System.Func`2
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<T, TResult>
+  nameWithType: Func<T, TResult>
+  fullName: System.Func<T, TResult>
+  nameWithType.vb: Func(Of T, TResult)
+  fullName.vb: System.Func(Of T, TResult)
+  name.vb: Func(Of T, TResult)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - name: T
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: Microsoft.Accordant.TestingContext.ResponsePrinter*
+  commentId: Overload:Microsoft.Accordant.TestingContext.ResponsePrinter
+  href: Microsoft.Accordant.TestingContext.html#Microsoft_Accordant_TestingContext_ResponsePrinter
+  name: ResponsePrinter
+  nameWithType: TestingContext.ResponsePrinter
+  fullName: Microsoft.Accordant.TestingContext.ResponsePrinter
+- uid: Microsoft.Accordant.TestingContext.Spec*
+  commentId: Overload:Microsoft.Accordant.TestingContext.Spec
+  href: Microsoft.Accordant.TestingContext.html#Microsoft_Accordant_TestingContext_Spec
+  name: Spec
+  nameWithType: TestingContext.Spec
+  fullName: Microsoft.Accordant.TestingContext.Spec
+- uid: Microsoft.Accordant.ISpec
+  commentId: T:Microsoft.Accordant.ISpec
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.ISpec.html
+  name: ISpec
+  nameWithType: ISpec
+  fullName: Microsoft.Accordant.ISpec
+- uid: Microsoft.Accordant.TestingContext.#ctor*
+  commentId: Overload:Microsoft.Accordant.TestingContext.#ctor
+  href: Microsoft.Accordant.TestingContext.html#Microsoft_Accordant_TestingContext__ctor_Microsoft_Accordant_ISpec_System_String_
+  name: TestingContext
+  nameWithType: TestingContext.TestingContext
+  fullName: Microsoft.Accordant.TestingContext.TestingContext
+  nameWithType.vb: TestingContext.New
+  fullName.vb: Microsoft.Accordant.TestingContext.New
+  name.vb: New
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.TestingContext.Get``1
+  commentId: M:Microsoft.Accordant.TestingContext.Get``1
+  href: Microsoft.Accordant.TestingContext.html#Microsoft_Accordant_TestingContext_Get__1
+  name: Get<T>()
+  nameWithType: TestingContext.Get<T>()
+  fullName: Microsoft.Accordant.TestingContext.Get<T>()
+  nameWithType.vb: TestingContext.Get(Of T)()
+  fullName.vb: Microsoft.Accordant.TestingContext.Get(Of T)()
+  name.vb: Get(Of T)()
+  spec.csharp:
+  - uid: Microsoft.Accordant.TestingContext.Get``1
+    name: Get
+    href: Microsoft.Accordant.TestingContext.html#Microsoft_Accordant_TestingContext_Get__1
+  - name: <
+  - name: T
+  - name: '>'
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.TestingContext.Get``1
+    name: Get
+    href: Microsoft.Accordant.TestingContext.html#Microsoft_Accordant_TestingContext_Get__1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.TestingContext.Register*
+  commentId: Overload:Microsoft.Accordant.TestingContext.Register
+  href: Microsoft.Accordant.TestingContext.html#Microsoft_Accordant_TestingContext_Register__1___0_
+  name: Register
+  nameWithType: TestingContext.Register
+  fullName: Microsoft.Accordant.TestingContext.Register
+- uid: '{T}'
+  commentId: '!:T'
+  definition: T
+  name: T
+  nameWithType: T
+  fullName: T
+- uid: T
+  name: T
+  nameWithType: T
+  fullName: T
+- uid: Microsoft.Accordant.Operation`3.ExecuteAsync(Microsoft.Accordant.TestingContext,`0)
+  commentId: M:Microsoft.Accordant.Operation`3.ExecuteAsync(Microsoft.Accordant.TestingContext,`0)
+  href: Microsoft.Accordant.Operation-3.html#Microsoft_Accordant_Operation_3_ExecuteAsync_Microsoft_Accordant_TestingContext__0_
+  name: ExecuteAsync(TestingContext, TRequest)
+  nameWithType: Operation<TRequest, TResponse, TState>.ExecuteAsync(TestingContext, TRequest)
+  fullName: Microsoft.Accordant.Operation<TRequest, TResponse, TState>.ExecuteAsync(Microsoft.Accordant.TestingContext, TRequest)
+  nameWithType.vb: Operation(Of TRequest, TResponse, TState).ExecuteAsync(TestingContext, TRequest)
+  fullName.vb: Microsoft.Accordant.Operation(Of TRequest, TResponse, TState).ExecuteAsync(Microsoft.Accordant.TestingContext, TRequest)
+  spec.csharp:
+  - uid: Microsoft.Accordant.Operation`3.ExecuteAsync(Microsoft.Accordant.TestingContext,`0)
+    name: ExecuteAsync
+    href: Microsoft.Accordant.Operation-3.html#Microsoft_Accordant_Operation_3_ExecuteAsync_Microsoft_Accordant_TestingContext__0_
+  - name: (
+  - uid: Microsoft.Accordant.TestingContext
+    name: TestingContext
+    href: Microsoft.Accordant.TestingContext.html
+  - name: ','
+  - name: " "
+  - name: TRequest
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.Operation`3.ExecuteAsync(Microsoft.Accordant.TestingContext,`0)
+    name: ExecuteAsync
+    href: Microsoft.Accordant.Operation-3.html#Microsoft_Accordant_Operation_3_ExecuteAsync_Microsoft_Accordant_TestingContext__0_
+  - name: (
+  - uid: Microsoft.Accordant.TestingContext
+    name: TestingContext
+    href: Microsoft.Accordant.TestingContext.html
+  - name: ','
+  - name: " "
+  - name: TRequest
+  - name: )
+- uid: System.InvalidOperationException
+  commentId: T:System.InvalidOperationException
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.invalidoperationexception
+  name: InvalidOperationException
+  nameWithType: InvalidOperationException
+  fullName: System.InvalidOperationException
+- uid: Microsoft.Accordant.TestingContext.Get*
+  commentId: Overload:Microsoft.Accordant.TestingContext.Get
+  href: Microsoft.Accordant.TestingContext.html#Microsoft_Accordant_TestingContext_Get__1
+  name: Get
+  nameWithType: TestingContext.Get
+  fullName: Microsoft.Accordant.TestingContext.Get
+- uid: Microsoft.Accordant.TestingContext.Target*
+  commentId: Overload:Microsoft.Accordant.TestingContext.Target
+  href: Microsoft.Accordant.TestingContext.html#Microsoft_Accordant_TestingContext_Target__1
+  name: Target
+  nameWithType: TestingContext.Target
+  fullName: Microsoft.Accordant.TestingContext.Target

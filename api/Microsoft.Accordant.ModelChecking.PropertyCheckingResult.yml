@@ -1,0 +1,550 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.ModelChecking.PropertyCheckingResult
+  commentId: T:Microsoft.Accordant.ModelChecking.PropertyCheckingResult
+  id: PropertyCheckingResult
+  parent: Microsoft.Accordant.ModelChecking
+  children:
+  - Microsoft.Accordant.ModelChecking.PropertyCheckingResult.GetTraceString
+  - Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace
+  - Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Valid
+  langs:
+  - csharp
+  - vb
+  name: PropertyCheckingResult
+  nameWithType: PropertyCheckingResult
+  fullName: Microsoft.Accordant.ModelChecking.PropertyCheckingResult
+  type: Class
+  source:
+    remote:
+      path: Accordant.ModelChecking/PropertyCheckingResult.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: PropertyCheckingResult
+    path: Accordant.ModelChecking/PropertyCheckingResult.cs
+    startLine: 7
+  assemblies:
+  - Accordant.ModelChecking
+  namespace: Microsoft.Accordant.ModelChecking
+  summary: The result of checking a property over a state graph.
+  example: []
+  syntax:
+    content: public class PropertyCheckingResult
+    content.vb: Public Class PropertyCheckingResult
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Valid
+  commentId: P:Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Valid
+  id: Valid
+  parent: Microsoft.Accordant.ModelChecking.PropertyCheckingResult
+  langs:
+  - csharp
+  - vb
+  name: Valid
+  nameWithType: PropertyCheckingResult.Valid
+  fullName: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Valid
+  type: Property
+  source:
+    remote:
+      path: Accordant.ModelChecking/PropertyCheckingResult.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Valid
+    path: Accordant.ModelChecking/PropertyCheckingResult.cs
+    startLine: 12
+  assemblies:
+  - Accordant.ModelChecking
+  namespace: Microsoft.Accordant.ModelChecking
+  summary: This property indicates whether the property is valid or not.
+  example: []
+  syntax:
+    content: public bool Valid { get; set; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Property Valid As Boolean
+  overload: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Valid*
+- uid: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace
+  commentId: P:Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace
+  id: Trace
+  parent: Microsoft.Accordant.ModelChecking.PropertyCheckingResult
+  langs:
+  - csharp
+  - vb
+  name: Trace
+  nameWithType: PropertyCheckingResult.Trace
+  fullName: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace
+  type: Property
+  source:
+    remote:
+      path: Accordant.ModelChecking/PropertyCheckingResult.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Trace
+    path: Accordant.ModelChecking/PropertyCheckingResult.cs
+    startLine: 18
+  assemblies:
+  - Accordant.ModelChecking
+  namespace: Microsoft.Accordant.ModelChecking
+  summary: >-
+    This property contains the trace that leads to the violation of the property.
+
+    The Trace is null if the property is valid.
+  example: []
+  syntax:
+    content: public List<TraceItem> Trace { get; set; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.List{Microsoft.Accordant.ModelChecking.TraceItem}
+    content.vb: Public Property Trace As List(Of TraceItem)
+  overload: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace*
+- uid: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.GetTraceString
+  commentId: M:Microsoft.Accordant.ModelChecking.PropertyCheckingResult.GetTraceString
+  id: GetTraceString
+  parent: Microsoft.Accordant.ModelChecking.PropertyCheckingResult
+  langs:
+  - csharp
+  - vb
+  name: GetTraceString()
+  nameWithType: PropertyCheckingResult.GetTraceString()
+  fullName: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.GetTraceString()
+  type: Method
+  source:
+    remote:
+      path: Accordant.ModelChecking/PropertyCheckingResult.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: GetTraceString
+    path: Accordant.ModelChecking/PropertyCheckingResult.cs
+    startLine: 23
+  assemblies:
+  - Accordant.ModelChecking
+  namespace: Microsoft.Accordant.ModelChecking
+  summary: This method returns the <xref href="Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace" data-throw-if-not-resolved="false"></xref> as a helpful string for easy inspection.
+  example: []
+  syntax:
+    content: public string GetTraceString()
+    return:
+      type: System.String
+    content.vb: Public Function GetTraceString() As String
+  overload: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.GetTraceString*
+references:
+- uid: Microsoft.Accordant.ModelChecking
+  commentId: N:Microsoft.Accordant.ModelChecking
+  href: Microsoft.html
+  name: Microsoft.Accordant.ModelChecking
+  nameWithType: Microsoft.Accordant.ModelChecking
+  fullName: Microsoft.Accordant.ModelChecking
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  - name: .
+  - uid: Microsoft.Accordant.ModelChecking
+    name: ModelChecking
+    href: Microsoft.Accordant.ModelChecking.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  - name: .
+  - uid: Microsoft.Accordant.ModelChecking
+    name: ModelChecking
+    href: Microsoft.Accordant.ModelChecking.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Valid*
+  commentId: Overload:Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Valid
+  href: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.html#Microsoft_Accordant_ModelChecking_PropertyCheckingResult_Valid
+  name: Valid
+  nameWithType: PropertyCheckingResult.Valid
+  fullName: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Valid
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace*
+  commentId: Overload:Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace
+  href: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.html#Microsoft_Accordant_ModelChecking_PropertyCheckingResult_Trace
+  name: Trace
+  nameWithType: PropertyCheckingResult.Trace
+  fullName: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace
+- uid: System.Collections.Generic.List{Microsoft.Accordant.ModelChecking.TraceItem}
+  commentId: T:System.Collections.Generic.List{Microsoft.Accordant.ModelChecking.TraceItem}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.List`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<TraceItem>
+  nameWithType: List<TraceItem>
+  fullName: System.Collections.Generic.List<Microsoft.Accordant.ModelChecking.TraceItem>
+  nameWithType.vb: List(Of TraceItem)
+  fullName.vb: System.Collections.Generic.List(Of Microsoft.Accordant.ModelChecking.TraceItem)
+  name.vb: List(Of TraceItem)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - uid: Microsoft.Accordant.ModelChecking.TraceItem
+    name: TraceItem
+    href: Microsoft.Accordant.ModelChecking.TraceItem.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.ModelChecking.TraceItem
+    name: TraceItem
+    href: Microsoft.Accordant.ModelChecking.TraceItem.html
+  - name: )
+- uid: System.Collections.Generic.List`1
+  commentId: T:System.Collections.Generic.List`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<T>
+  nameWithType: List<T>
+  fullName: System.Collections.Generic.List<T>
+  nameWithType.vb: List(Of T)
+  fullName.vb: System.Collections.Generic.List(Of T)
+  name.vb: List(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace
+  commentId: P:Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace
+  href: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.html#Microsoft_Accordant_ModelChecking_PropertyCheckingResult_Trace
+  name: Trace
+  nameWithType: PropertyCheckingResult.Trace
+  fullName: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.Trace
+- uid: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.GetTraceString*
+  commentId: Overload:Microsoft.Accordant.ModelChecking.PropertyCheckingResult.GetTraceString
+  href: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.html#Microsoft_Accordant_ModelChecking_PropertyCheckingResult_GetTraceString
+  name: GetTraceString
+  nameWithType: PropertyCheckingResult.GetTraceString
+  fullName: Microsoft.Accordant.ModelChecking.PropertyCheckingResult.GetTraceString
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String

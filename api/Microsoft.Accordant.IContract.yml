@@ -1,0 +1,360 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.IContract
+  commentId: T:Microsoft.Accordant.IContract
+  id: IContract
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.State,System.Object)
+  - Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  - Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.State,System.Object)
+  - Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  langs:
+  - csharp
+  - vb
+  name: IContract
+  nameWithType: IContract
+  fullName: Microsoft.Accordant.IContract
+  type: Interface
+  source:
+    remote:
+      path: Accordant/Contract.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: IContract
+    path: Accordant/Contract.cs
+    startLine: 11
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    A contract indicates whether the observed response is valid given
+
+    the request and state. If the observed response is valid, the contract
+
+    returns a (potentially) updated state as well as an optional step function
+
+    that runs concurrently with the rest of the system.
+
+
+    The contract atomically changes the starting state to the updated state,
+
+    if the response is deemed valid given the request and starting state.
+  example: []
+  syntax:
+    content: public interface IContract
+    content.vb: Public Interface IContract
+  derivedClasses:
+  - Microsoft.Accordant.Operation`3
+- uid: Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.State,System.Object)
+  commentId: M:Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.State,System.Object)
+  id: Verify(System.Object,Microsoft.Accordant.State,System.Object)
+  parent: Microsoft.Accordant.IContract
+  langs:
+  - csharp
+  - vb
+  name: Verify(object, State, object)
+  nameWithType: IContract.Verify(object, State, object)
+  fullName: Microsoft.Accordant.IContract.Verify(object, Microsoft.Accordant.State, object)
+  type: Method
+  source:
+    remote:
+      path: Accordant/Contract.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Verify
+    path: Accordant/Contract.cs
+    startLine: 19
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    Indicates whether the observed response is valid given the request
+
+    and state. If valid, it also returns a (potentially) updated states
+
+    as well as an optional step function that runs concurrently with the
+
+    rest of the system.
+  example: []
+  syntax:
+    content: (bool, StateProfile) Verify(object request, State state, object observedResponse)
+    parameters:
+    - id: request
+      type: System.Object
+    - id: state
+      type: Microsoft.Accordant.State
+    - id: observedResponse
+      type: System.Object
+    return:
+      type: System.ValueTuple{System.Boolean,Microsoft.Accordant.StateProfile}
+    content.vb: Function Verify(request As Object, state As State, observedResponse As Object) As (Boolean, StateProfile)
+  overload: Microsoft.Accordant.IContract.Verify*
+  nameWithType.vb: IContract.Verify(Object, State, Object)
+  fullName.vb: Microsoft.Accordant.IContract.Verify(Object, Microsoft.Accordant.State, Object)
+  name.vb: Verify(Object, State, Object)
+- uid: Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.State,System.Object)
+  commentId: M:Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.State,System.Object)
+  id: ExplainInvalidResponse(System.Object,Microsoft.Accordant.State,System.Object)
+  parent: Microsoft.Accordant.IContract
+  langs:
+  - csharp
+  - vb
+  name: ExplainInvalidResponse(object, State, object)
+  nameWithType: IContract.ExplainInvalidResponse(object, State, object)
+  fullName: Microsoft.Accordant.IContract.ExplainInvalidResponse(object, Microsoft.Accordant.State, object)
+  type: Method
+  source:
+    remote:
+      path: Accordant/Contract.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ExplainInvalidResponse
+    path: Accordant/Contract.cs
+    startLine: 28
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    This method returns an explanation of why the observed response
+
+    did not match the expected response.
+  example: []
+  syntax:
+    content: string ExplainInvalidResponse(object request, State state, object observedResponse)
+    parameters:
+    - id: request
+      type: System.Object
+    - id: state
+      type: Microsoft.Accordant.State
+    - id: observedResponse
+      type: System.Object
+    return:
+      type: System.String
+    content.vb: Function ExplainInvalidResponse(request As Object, state As State, observedResponse As Object) As String
+  overload: Microsoft.Accordant.IContract.ExplainInvalidResponse*
+  nameWithType.vb: IContract.ExplainInvalidResponse(Object, State, Object)
+  fullName.vb: Microsoft.Accordant.IContract.ExplainInvalidResponse(Object, Microsoft.Accordant.State, Object)
+  name.vb: ExplainInvalidResponse(Object, State, Object)
+- uid: Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  commentId: M:Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  id: Verify(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  parent: Microsoft.Accordant.IContract
+  langs:
+  - csharp
+  - vb
+  name: Verify(object, StateProfile, object)
+  nameWithType: IContract.Verify(object, StateProfile, object)
+  fullName: Microsoft.Accordant.IContract.Verify(object, Microsoft.Accordant.StateProfile, object)
+  type: Method
+  source:
+    remote:
+      path: Accordant/Contract.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Verify
+    path: Accordant/Contract.cs
+    startLine: 39
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    Indicates whether the observed response is valid given the request
+
+    and state profile. If valid, it also returns a (potentially) updated states
+
+    as well as an optional step function that runs concurrently with the
+
+    rest of the system.
+  example: []
+  syntax:
+    content: (bool, StateProfile) Verify(object request, StateProfile stateProfile, object observedResponse)
+    parameters:
+    - id: request
+      type: System.Object
+    - id: stateProfile
+      type: Microsoft.Accordant.StateProfile
+    - id: observedResponse
+      type: System.Object
+    return:
+      type: System.ValueTuple{System.Boolean,Microsoft.Accordant.StateProfile}
+    content.vb: Function Verify(request As Object, stateProfile As StateProfile, observedResponse As Object) As (Boolean, StateProfile)
+  overload: Microsoft.Accordant.IContract.Verify*
+  nameWithType.vb: IContract.Verify(Object, StateProfile, Object)
+  fullName.vb: Microsoft.Accordant.IContract.Verify(Object, Microsoft.Accordant.StateProfile, Object)
+  name.vb: Verify(Object, StateProfile, Object)
+- uid: Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  commentId: M:Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  id: ExplainInvalidResponse(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  parent: Microsoft.Accordant.IContract
+  langs:
+  - csharp
+  - vb
+  name: ExplainInvalidResponse(object, StateProfile, object)
+  nameWithType: IContract.ExplainInvalidResponse(object, StateProfile, object)
+  fullName: Microsoft.Accordant.IContract.ExplainInvalidResponse(object, Microsoft.Accordant.StateProfile, object)
+  type: Method
+  source:
+    remote:
+      path: Accordant/Contract.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ExplainInvalidResponse
+    path: Accordant/Contract.cs
+    startLine: 48
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    This method returns an explanation of why the observed response
+
+    did not match the expected response.
+  example: []
+  syntax:
+    content: string ExplainInvalidResponse(object request, StateProfile stateProfile, object observedResponse)
+    parameters:
+    - id: request
+      type: System.Object
+    - id: stateProfile
+      type: Microsoft.Accordant.StateProfile
+    - id: observedResponse
+      type: System.Object
+    return:
+      type: System.String
+    content.vb: Function ExplainInvalidResponse(request As Object, stateProfile As StateProfile, observedResponse As Object) As String
+  overload: Microsoft.Accordant.IContract.ExplainInvalidResponse*
+  nameWithType.vb: IContract.ExplainInvalidResponse(Object, StateProfile, Object)
+  fullName.vb: Microsoft.Accordant.IContract.ExplainInvalidResponse(Object, Microsoft.Accordant.StateProfile, Object)
+  name.vb: ExplainInvalidResponse(Object, StateProfile, Object)
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: Microsoft.Accordant.IContract.Verify*
+  commentId: Overload:Microsoft.Accordant.IContract.Verify
+  href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_Verify_System_Object_Microsoft_Accordant_State_System_Object_
+  name: Verify
+  nameWithType: IContract.Verify
+  fullName: Microsoft.Accordant.IContract.Verify
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: Microsoft.Accordant.State
+  commentId: T:Microsoft.Accordant.State
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.State.html
+  name: State
+  nameWithType: State
+  fullName: Microsoft.Accordant.State
+- uid: System.ValueTuple{System.Boolean,Microsoft.Accordant.StateProfile}
+  commentId: T:System.ValueTuple{System.Boolean,Microsoft.Accordant.StateProfile}
+  parent: System
+  definition: System.ValueTuple`2
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: (bool, StateProfile)
+  nameWithType: (bool, StateProfile)
+  fullName: (bool, Microsoft.Accordant.StateProfile)
+  nameWithType.vb: (Boolean, StateProfile)
+  fullName.vb: (Boolean, Microsoft.Accordant.StateProfile)
+  name.vb: (Boolean, StateProfile)
+  spec.csharp:
+  - name: (
+  - uid: System.Boolean
+    name: bool
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: )
+  spec.vb:
+  - name: (
+  - uid: System.Boolean
+    name: Boolean
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.ValueTuple`2
+  commentId: T:System.ValueTuple`2
+  name: (T1, T2)
+  nameWithType: (T1, T2)
+  fullName: (T1, T2)
+  spec.csharp:
+  - name: (
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: )
+  spec.vb:
+  - name: (
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: )
+- uid: Microsoft.Accordant.IContract.ExplainInvalidResponse*
+  commentId: Overload:Microsoft.Accordant.IContract.ExplainInvalidResponse
+  href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_ExplainInvalidResponse_System_Object_Microsoft_Accordant_State_System_Object_
+  name: ExplainInvalidResponse
+  nameWithType: IContract.ExplainInvalidResponse
+  fullName: Microsoft.Accordant.IContract.ExplainInvalidResponse
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.StateProfile
+  commentId: T:Microsoft.Accordant.StateProfile
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.StateProfile.html
+  name: StateProfile
+  nameWithType: StateProfile
+  fullName: Microsoft.Accordant.StateProfile

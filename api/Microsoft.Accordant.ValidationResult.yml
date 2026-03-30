@@ -1,0 +1,541 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.ValidationResult
+  commentId: T:Microsoft.Accordant.ValidationResult
+  id: ValidationResult
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.ValidationResult.FailureMessage
+  - Microsoft.Accordant.ValidationResult.Invalid(System.String)
+  - Microsoft.Accordant.ValidationResult.IsValid
+  - Microsoft.Accordant.ValidationResult.Valid
+  - Microsoft.Accordant.ValidationResult.op_Implicit(System.Boolean)~Microsoft.Accordant.ValidationResult
+  langs:
+  - csharp
+  - vb
+  name: ValidationResult
+  nameWithType: ValidationResult
+  fullName: Microsoft.Accordant.ValidationResult
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/ValidationResult.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ValidationResult
+    path: Accordant.Operations/ValidationResult.cs
+    startLine: 6
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Represents the result of validating a response against expected behavior.
+
+    Can be implicitly converted from a bool for simple cases.
+  example: []
+  syntax:
+    content: public class ValidationResult
+    content.vb: Public Class ValidationResult
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.ValidationResult.IsValid
+  commentId: P:Microsoft.Accordant.ValidationResult.IsValid
+  id: IsValid
+  parent: Microsoft.Accordant.ValidationResult
+  langs:
+  - csharp
+  - vb
+  name: IsValid
+  nameWithType: ValidationResult.IsValid
+  fullName: Microsoft.Accordant.ValidationResult.IsValid
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/ValidationResult.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: IsValid
+    path: Accordant.Operations/ValidationResult.cs
+    startLine: 11
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Indicates whether the validation passed.
+  example: []
+  syntax:
+    content: public bool IsValid { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly Property IsValid As Boolean
+  overload: Microsoft.Accordant.ValidationResult.IsValid*
+- uid: Microsoft.Accordant.ValidationResult.FailureMessage
+  commentId: P:Microsoft.Accordant.ValidationResult.FailureMessage
+  id: FailureMessage
+  parent: Microsoft.Accordant.ValidationResult
+  langs:
+  - csharp
+  - vb
+  name: FailureMessage
+  nameWithType: ValidationResult.FailureMessage
+  fullName: Microsoft.Accordant.ValidationResult.FailureMessage
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/ValidationResult.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: FailureMessage
+    path: Accordant.Operations/ValidationResult.cs
+    startLine: 17
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    An optional message explaining why validation failed.
+
+    Only meaningful when IsValid is false.
+  example: []
+  syntax:
+    content: public string FailureMessage { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public ReadOnly Property FailureMessage As String
+  overload: Microsoft.Accordant.ValidationResult.FailureMessage*
+- uid: Microsoft.Accordant.ValidationResult.Valid
+  commentId: M:Microsoft.Accordant.ValidationResult.Valid
+  id: Valid
+  parent: Microsoft.Accordant.ValidationResult
+  langs:
+  - csharp
+  - vb
+  name: Valid()
+  nameWithType: ValidationResult.Valid()
+  fullName: Microsoft.Accordant.ValidationResult.Valid()
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/ValidationResult.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Valid
+    path: Accordant.Operations/ValidationResult.cs
+    startLine: 28
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Creates a successful validation result.
+  example: []
+  syntax:
+    content: public static ValidationResult Valid()
+    return:
+      type: Microsoft.Accordant.ValidationResult
+    content.vb: Public Shared Function Valid() As ValidationResult
+  overload: Microsoft.Accordant.ValidationResult.Valid*
+- uid: Microsoft.Accordant.ValidationResult.Invalid(System.String)
+  commentId: M:Microsoft.Accordant.ValidationResult.Invalid(System.String)
+  id: Invalid(System.String)
+  parent: Microsoft.Accordant.ValidationResult
+  langs:
+  - csharp
+  - vb
+  name: Invalid(string)
+  nameWithType: ValidationResult.Invalid(string)
+  fullName: Microsoft.Accordant.ValidationResult.Invalid(string)
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/ValidationResult.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Invalid
+    path: Accordant.Operations/ValidationResult.cs
+    startLine: 33
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Creates a failed validation result with an optional explanation.
+  example: []
+  syntax:
+    content: public static ValidationResult Invalid(string message = null)
+    parameters:
+    - id: message
+      type: System.String
+    return:
+      type: Microsoft.Accordant.ValidationResult
+    content.vb: Public Shared Function Invalid(message As String = Nothing) As ValidationResult
+  overload: Microsoft.Accordant.ValidationResult.Invalid*
+  nameWithType.vb: ValidationResult.Invalid(String)
+  fullName.vb: Microsoft.Accordant.ValidationResult.Invalid(String)
+  name.vb: Invalid(String)
+- uid: Microsoft.Accordant.ValidationResult.op_Implicit(System.Boolean)~Microsoft.Accordant.ValidationResult
+  commentId: M:Microsoft.Accordant.ValidationResult.op_Implicit(System.Boolean)~Microsoft.Accordant.ValidationResult
+  id: op_Implicit(System.Boolean)~Microsoft.Accordant.ValidationResult
+  parent: Microsoft.Accordant.ValidationResult
+  langs:
+  - csharp
+  - vb
+  name: implicit operator ValidationResult(bool)
+  nameWithType: ValidationResult.implicit operator ValidationResult(bool)
+  fullName: Microsoft.Accordant.ValidationResult.implicit operator Microsoft.Accordant.ValidationResult(bool)
+  type: Operator
+  source:
+    remote:
+      path: Accordant.Operations/ValidationResult.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: op_Implicit
+    path: Accordant.Operations/ValidationResult.cs
+    startLine: 41
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Implicit conversion from bool for simple validation cases.
+  example:
+  - return response.StatusCode == 200; // implicitly converts to ValidationResult
+  syntax:
+    content: public static implicit operator ValidationResult(bool isValid)
+    parameters:
+    - id: isValid
+      type: System.Boolean
+    return:
+      type: Microsoft.Accordant.ValidationResult
+    content.vb: Public Shared Widening Operator CType(isValid As Boolean) As ValidationResult
+  overload: Microsoft.Accordant.ValidationResult.op_Implicit*
+  nameWithType.vb: ValidationResult.CType(Boolean)
+  fullName.vb: Microsoft.Accordant.ValidationResult.CType(Boolean)
+  name.vb: CType(Boolean)
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.ValidationResult.IsValid*
+  commentId: Overload:Microsoft.Accordant.ValidationResult.IsValid
+  href: Microsoft.Accordant.ValidationResult.html#Microsoft_Accordant_ValidationResult_IsValid
+  name: IsValid
+  nameWithType: ValidationResult.IsValid
+  fullName: Microsoft.Accordant.ValidationResult.IsValid
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: Microsoft.Accordant.ValidationResult.FailureMessage*
+  commentId: Overload:Microsoft.Accordant.ValidationResult.FailureMessage
+  href: Microsoft.Accordant.ValidationResult.html#Microsoft_Accordant_ValidationResult_FailureMessage
+  name: FailureMessage
+  nameWithType: ValidationResult.FailureMessage
+  fullName: Microsoft.Accordant.ValidationResult.FailureMessage
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.ValidationResult.Valid*
+  commentId: Overload:Microsoft.Accordant.ValidationResult.Valid
+  href: Microsoft.Accordant.ValidationResult.html#Microsoft_Accordant_ValidationResult_Valid
+  name: Valid
+  nameWithType: ValidationResult.Valid
+  fullName: Microsoft.Accordant.ValidationResult.Valid
+- uid: Microsoft.Accordant.ValidationResult
+  commentId: T:Microsoft.Accordant.ValidationResult
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.ValidationResult.html
+  name: ValidationResult
+  nameWithType: ValidationResult
+  fullName: Microsoft.Accordant.ValidationResult
+- uid: Microsoft.Accordant.ValidationResult.Invalid*
+  commentId: Overload:Microsoft.Accordant.ValidationResult.Invalid
+  href: Microsoft.Accordant.ValidationResult.html#Microsoft_Accordant_ValidationResult_Invalid_System_String_
+  name: Invalid
+  nameWithType: ValidationResult.Invalid
+  fullName: Microsoft.Accordant.ValidationResult.Invalid
+- uid: Microsoft.Accordant.ValidationResult.op_Implicit*
+  commentId: Overload:Microsoft.Accordant.ValidationResult.op_Implicit
+  name: implicit operator
+  nameWithType: ValidationResult.implicit operator
+  fullName: Microsoft.Accordant.ValidationResult.implicit operator
+  nameWithType.vb: ValidationResult.CType
+  fullName.vb: Microsoft.Accordant.ValidationResult.CType
+  name.vb: CType
+  spec.csharp:
+  - name: implicit
+  - name: " "
+  - name: operator

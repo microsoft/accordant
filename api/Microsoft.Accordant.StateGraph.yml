@@ -1,0 +1,740 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.StateGraph
+  commentId: T:Microsoft.Accordant.StateGraph
+  id: StateGraph
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.StateGraph.ExploreStateGraph(System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction},Microsoft.Accordant.State,System.Int32,System.Boolean,System.Action{Microsoft.Accordant.StateGraphNode},System.Action{Microsoft.Accordant.StateGraphNode},System.Func{Microsoft.Accordant.State,System.Boolean},System.Func{Microsoft.Accordant.State,Microsoft.Accordant.IStepFunction,Microsoft.Accordant.StepResult,System.Boolean})
+  langs:
+  - csharp
+  - vb
+  name: StateGraph
+  nameWithType: StateGraph
+  fullName: Microsoft.Accordant.StateGraph
+  type: Class
+  source:
+    remote:
+      path: Accordant/StateGraph.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: StateGraph
+    path: Accordant/StateGraph.cs
+    startLine: 12
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: This class contains methods a number of methods related to state graph.
+  example: []
+  syntax:
+    content: public static class StateGraph
+    content.vb: Public Module StateGraph
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.StateGraph.ExploreStateGraph(System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction},Microsoft.Accordant.State,System.Int32,System.Boolean,System.Action{Microsoft.Accordant.StateGraphNode},System.Action{Microsoft.Accordant.StateGraphNode},System.Func{Microsoft.Accordant.State,System.Boolean},System.Func{Microsoft.Accordant.State,Microsoft.Accordant.IStepFunction,Microsoft.Accordant.StepResult,System.Boolean})
+  commentId: M:Microsoft.Accordant.StateGraph.ExploreStateGraph(System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction},Microsoft.Accordant.State,System.Int32,System.Boolean,System.Action{Microsoft.Accordant.StateGraphNode},System.Action{Microsoft.Accordant.StateGraphNode},System.Func{Microsoft.Accordant.State,System.Boolean},System.Func{Microsoft.Accordant.State,Microsoft.Accordant.IStepFunction,Microsoft.Accordant.StepResult,System.Boolean})
+  id: ExploreStateGraph(System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction},Microsoft.Accordant.State,System.Int32,System.Boolean,System.Action{Microsoft.Accordant.StateGraphNode},System.Action{Microsoft.Accordant.StateGraphNode},System.Func{Microsoft.Accordant.State,System.Boolean},System.Func{Microsoft.Accordant.State,Microsoft.Accordant.IStepFunction,Microsoft.Accordant.StepResult,System.Boolean})
+  parent: Microsoft.Accordant.StateGraph
+  langs:
+  - csharp
+  - vb
+  name: ExploreStateGraph(IList<IStepFunction>, State, int, bool, Action<StateGraphNode>, Action<StateGraphNode>, Func<State, bool>, Func<State, IStepFunction, StepResult, bool>)
+  nameWithType: StateGraph.ExploreStateGraph(IList<IStepFunction>, State, int, bool, Action<StateGraphNode>, Action<StateGraphNode>, Func<State, bool>, Func<State, IStepFunction, StepResult, bool>)
+  fullName: Microsoft.Accordant.StateGraph.ExploreStateGraph(System.Collections.Generic.IList<Microsoft.Accordant.IStepFunction>, Microsoft.Accordant.State, int, bool, System.Action<Microsoft.Accordant.StateGraphNode>, System.Action<Microsoft.Accordant.StateGraphNode>, System.Func<Microsoft.Accordant.State, bool>, System.Func<Microsoft.Accordant.State, Microsoft.Accordant.IStepFunction, Microsoft.Accordant.StepResult, bool>)
+  type: Method
+  source:
+    remote:
+      path: Accordant/StateGraph.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ExploreStateGraph
+    path: Accordant/StateGraph.cs
+    startLine: 26
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  syntax:
+    content: public static StateGraphNode ExploreStateGraph(IList<IStepFunction> steps, State startingState, int maxDepth = -1, bool generateStateGraph = true, Action<StateGraphNode> hook = null, Action<StateGraphNode> postHook = null, Func<State, bool> stateConstraint = null, Func<State, IStepFunction, StepResult, bool> shouldIncludeStepFunctionResult = null)
+    parameters:
+    - id: steps
+      type: System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}
+    - id: startingState
+      type: Microsoft.Accordant.State
+    - id: maxDepth
+      type: System.Int32
+    - id: generateStateGraph
+      type: System.Boolean
+    - id: hook
+      type: System.Action{Microsoft.Accordant.StateGraphNode}
+    - id: postHook
+      type: System.Action{Microsoft.Accordant.StateGraphNode}
+    - id: stateConstraint
+      type: System.Func{Microsoft.Accordant.State,System.Boolean}
+    - id: shouldIncludeStepFunctionResult
+      type: System.Func{Microsoft.Accordant.State,Microsoft.Accordant.IStepFunction,Microsoft.Accordant.StepResult,System.Boolean}
+    return:
+      type: Microsoft.Accordant.StateGraphNode
+    content.vb: Public Shared Function ExploreStateGraph(steps As IList(Of IStepFunction), startingState As State, maxDepth As Integer = -1, generateStateGraph As Boolean = True, hook As Action(Of StateGraphNode) = Nothing, postHook As Action(Of StateGraphNode) = Nothing, stateConstraint As Func(Of State, Boolean) = Nothing, shouldIncludeStepFunctionResult As Func(Of State, IStepFunction, StepResult, Boolean) = Nothing) As StateGraphNode
+  overload: Microsoft.Accordant.StateGraph.ExploreStateGraph*
+  nameWithType.vb: StateGraph.ExploreStateGraph(IList(Of IStepFunction), State, Integer, Boolean, Action(Of StateGraphNode), Action(Of StateGraphNode), Func(Of State, Boolean), Func(Of State, IStepFunction, StepResult, Boolean))
+  fullName.vb: Microsoft.Accordant.StateGraph.ExploreStateGraph(System.Collections.Generic.IList(Of Microsoft.Accordant.IStepFunction), Microsoft.Accordant.State, Integer, Boolean, System.Action(Of Microsoft.Accordant.StateGraphNode), System.Action(Of Microsoft.Accordant.StateGraphNode), System.Func(Of Microsoft.Accordant.State, Boolean), System.Func(Of Microsoft.Accordant.State, Microsoft.Accordant.IStepFunction, Microsoft.Accordant.StepResult, Boolean))
+  name.vb: ExploreStateGraph(IList(Of IStepFunction), State, Integer, Boolean, Action(Of StateGraphNode), Action(Of StateGraphNode), Func(Of State, Boolean), Func(Of State, IStepFunction, StepResult, Boolean))
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.StateGraph.ExploreStateGraph*
+  commentId: Overload:Microsoft.Accordant.StateGraph.ExploreStateGraph
+  href: Microsoft.Accordant.StateGraph.html#Microsoft_Accordant_StateGraph_ExploreStateGraph_System_Collections_Generic_IList_Microsoft_Accordant_IStepFunction__Microsoft_Accordant_State_System_Int32_System_Boolean_System_Action_Microsoft_Accordant_StateGraphNode__System_Action_Microsoft_Accordant_StateGraphNode__System_Func_Microsoft_Accordant_State_System_Boolean__System_Func_Microsoft_Accordant_State_Microsoft_Accordant_IStepFunction_Microsoft_Accordant_StepResult_System_Boolean__
+  name: ExploreStateGraph
+  nameWithType: StateGraph.ExploreStateGraph
+  fullName: Microsoft.Accordant.StateGraph.ExploreStateGraph
+- uid: System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}
+  commentId: T:System.Collections.Generic.IList{Microsoft.Accordant.IStepFunction}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<IStepFunction>
+  nameWithType: IList<IStepFunction>
+  fullName: System.Collections.Generic.IList<Microsoft.Accordant.IStepFunction>
+  nameWithType.vb: IList(Of IStepFunction)
+  fullName.vb: System.Collections.Generic.IList(Of Microsoft.Accordant.IStepFunction)
+  name.vb: IList(Of IStepFunction)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - uid: Microsoft.Accordant.IStepFunction
+    name: IStepFunction
+    href: Microsoft.Accordant.IStepFunction.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.IStepFunction
+    name: IStepFunction
+    href: Microsoft.Accordant.IStepFunction.html
+  - name: )
+- uid: Microsoft.Accordant.State
+  commentId: T:Microsoft.Accordant.State
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.State.html
+  name: State
+  nameWithType: State
+  fullName: Microsoft.Accordant.State
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: System.Action{Microsoft.Accordant.StateGraphNode}
+  commentId: T:System.Action{Microsoft.Accordant.StateGraphNode}
+  parent: System
+  definition: System.Action`1
+  href: https://learn.microsoft.com/dotnet/api/system.action-1
+  name: Action<StateGraphNode>
+  nameWithType: Action<StateGraphNode>
+  fullName: System.Action<Microsoft.Accordant.StateGraphNode>
+  nameWithType.vb: Action(Of StateGraphNode)
+  fullName.vb: System.Action(Of Microsoft.Accordant.StateGraphNode)
+  name.vb: Action(Of StateGraphNode)
+  spec.csharp:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: <
+  - uid: Microsoft.Accordant.StateGraphNode
+    name: StateGraphNode
+    href: Microsoft.Accordant.StateGraphNode.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.StateGraphNode
+    name: StateGraphNode
+    href: Microsoft.Accordant.StateGraphNode.html
+  - name: )
+- uid: System.Func{Microsoft.Accordant.State,System.Boolean}
+  commentId: T:System.Func{Microsoft.Accordant.State,System.Boolean}
+  parent: System
+  definition: System.Func`2
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<State, bool>
+  nameWithType: Func<State, bool>
+  fullName: System.Func<Microsoft.Accordant.State, bool>
+  nameWithType.vb: Func(Of State, Boolean)
+  fullName.vb: System.Func(Of Microsoft.Accordant.State, Boolean)
+  name.vb: Func(Of State, Boolean)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: ','
+  - name: " "
+  - uid: System.Boolean
+    name: bool
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: ','
+  - name: " "
+  - uid: System.Boolean
+    name: Boolean
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: )
+- uid: System.Func{Microsoft.Accordant.State,Microsoft.Accordant.IStepFunction,Microsoft.Accordant.StepResult,System.Boolean}
+  commentId: T:System.Func{Microsoft.Accordant.State,Microsoft.Accordant.IStepFunction,Microsoft.Accordant.StepResult,System.Boolean}
+  parent: System
+  definition: System.Func`4
+  href: https://learn.microsoft.com/dotnet/api/system.func-4
+  name: Func<State, IStepFunction, StepResult, bool>
+  nameWithType: Func<State, IStepFunction, StepResult, bool>
+  fullName: System.Func<Microsoft.Accordant.State, Microsoft.Accordant.IStepFunction, Microsoft.Accordant.StepResult, bool>
+  nameWithType.vb: Func(Of State, IStepFunction, StepResult, Boolean)
+  fullName.vb: System.Func(Of Microsoft.Accordant.State, Microsoft.Accordant.IStepFunction, Microsoft.Accordant.StepResult, Boolean)
+  name.vb: Func(Of State, IStepFunction, StepResult, Boolean)
+  spec.csharp:
+  - uid: System.Func`4
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-4
+  - name: <
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.IStepFunction
+    name: IStepFunction
+    href: Microsoft.Accordant.IStepFunction.html
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.StepResult
+    name: StepResult
+    href: Microsoft.Accordant.StepResult.html
+  - name: ','
+  - name: " "
+  - uid: System.Boolean
+    name: bool
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`4
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-4
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.IStepFunction
+    name: IStepFunction
+    href: Microsoft.Accordant.IStepFunction.html
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.StepResult
+    name: StepResult
+    href: Microsoft.Accordant.StepResult.html
+  - name: ','
+  - name: " "
+  - uid: System.Boolean
+    name: Boolean
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: )
+- uid: Microsoft.Accordant.StateGraphNode
+  commentId: T:Microsoft.Accordant.StateGraphNode
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.StateGraphNode.html
+  name: StateGraphNode
+  nameWithType: StateGraphNode
+  fullName: Microsoft.Accordant.StateGraphNode
+- uid: System.Collections.Generic.IList`1
+  commentId: T:System.Collections.Generic.IList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  name: IList<T>
+  nameWithType: IList<T>
+  fullName: System.Collections.Generic.IList<T>
+  nameWithType.vb: IList(Of T)
+  fullName.vb: System.Collections.Generic.IList(Of T)
+  name.vb: IList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IList`1
+    name: IList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: System.Action`1
+  commentId: T:System.Action`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.action-1
+  name: Action<T>
+  nameWithType: Action<T>
+  fullName: System.Action<T>
+  nameWithType.vb: Action(Of T)
+  fullName.vb: System.Action(Of T)
+  name.vb: Action(Of T)
+  spec.csharp:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Func`2
+  commentId: T:System.Func`2
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.func-2
+  name: Func<T, TResult>
+  nameWithType: Func<T, TResult>
+  fullName: System.Func<T, TResult>
+  nameWithType.vb: Func(Of T, TResult)
+  fullName.vb: System.Func(Of T, TResult)
+  name.vb: Func(Of T, TResult)
+  spec.csharp:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: <
+  - name: T
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`2
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )
+- uid: System.Func`4
+  commentId: T:System.Func`4
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.func-4
+  name: Func<T1, T2, T3, TResult>
+  nameWithType: Func<T1, T2, T3, TResult>
+  fullName: System.Func<T1, T2, T3, TResult>
+  nameWithType.vb: Func(Of T1, T2, T3, TResult)
+  fullName.vb: System.Func(Of T1, T2, T3, TResult)
+  name.vb: Func(Of T1, T2, T3, TResult)
+  spec.csharp:
+  - uid: System.Func`4
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-4
+  - name: <
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: T3
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: '>'
+  spec.vb:
+  - uid: System.Func`4
+    name: Func
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.func-4
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: ','
+  - name: " "
+  - name: T3
+  - name: ','
+  - name: " "
+  - name: TResult
+  - name: )

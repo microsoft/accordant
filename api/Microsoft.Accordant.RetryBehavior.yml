@@ -1,0 +1,439 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.RetryBehavior
+  commentId: T:Microsoft.Accordant.RetryBehavior
+  id: RetryBehavior
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.RetryBehavior.ShouldFailTest
+  - Microsoft.Accordant.RetryBehavior.ShouldRetry
+  - Microsoft.Accordant.RetryBehavior.WaitTimeInMilliseconds
+  langs:
+  - csharp
+  - vb
+  name: RetryBehavior
+  nameWithType: RetryBehavior
+  fullName: Microsoft.Accordant.RetryBehavior
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/RetryBehavior.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: RetryBehavior
+    path: Accordant.Operations/RetryBehavior.cs
+    startLine: 15
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: This class indicates whether an operation should be retried.
+  example: []
+  syntax:
+    content: public class RetryBehavior
+    content.vb: Public Class RetryBehavior
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.RetryBehavior.ShouldRetry
+  commentId: P:Microsoft.Accordant.RetryBehavior.ShouldRetry
+  id: ShouldRetry
+  parent: Microsoft.Accordant.RetryBehavior
+  langs:
+  - csharp
+  - vb
+  name: ShouldRetry
+  nameWithType: RetryBehavior.ShouldRetry
+  fullName: Microsoft.Accordant.RetryBehavior.ShouldRetry
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/RetryBehavior.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ShouldRetry
+    path: Accordant.Operations/RetryBehavior.cs
+    startLine: 20
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Indicates whether the operation should be retried.
+  example: []
+  syntax:
+    content: public bool ShouldRetry { get; set; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Property ShouldRetry As Boolean
+  overload: Microsoft.Accordant.RetryBehavior.ShouldRetry*
+- uid: Microsoft.Accordant.RetryBehavior.WaitTimeInMilliseconds
+  commentId: P:Microsoft.Accordant.RetryBehavior.WaitTimeInMilliseconds
+  id: WaitTimeInMilliseconds
+  parent: Microsoft.Accordant.RetryBehavior
+  langs:
+  - csharp
+  - vb
+  name: WaitTimeInMilliseconds
+  nameWithType: RetryBehavior.WaitTimeInMilliseconds
+  fullName: Microsoft.Accordant.RetryBehavior.WaitTimeInMilliseconds
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/RetryBehavior.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: WaitTimeInMilliseconds
+    path: Accordant.Operations/RetryBehavior.cs
+    startLine: 25
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: The amount of time to wait before retrying the operation.
+  example: []
+  syntax:
+    content: public int WaitTimeInMilliseconds { get; set; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public Property WaitTimeInMilliseconds As Integer
+  overload: Microsoft.Accordant.RetryBehavior.WaitTimeInMilliseconds*
+- uid: Microsoft.Accordant.RetryBehavior.ShouldFailTest
+  commentId: P:Microsoft.Accordant.RetryBehavior.ShouldFailTest
+  id: ShouldFailTest
+  parent: Microsoft.Accordant.RetryBehavior
+  langs:
+  - csharp
+  - vb
+  name: ShouldFailTest
+  nameWithType: RetryBehavior.ShouldFailTest
+  fullName: Microsoft.Accordant.RetryBehavior.ShouldFailTest
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/RetryBehavior.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ShouldFailTest
+    path: Accordant.Operations/RetryBehavior.cs
+    startLine: 31
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Indicates whether retries have been exhausted and the test should now be marked
+
+    as failed.
+  example: []
+  syntax:
+    content: public bool ShouldFailTest { get; set; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Property ShouldFailTest As Boolean
+  overload: Microsoft.Accordant.RetryBehavior.ShouldFailTest*
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.RetryBehavior.ShouldRetry*
+  commentId: Overload:Microsoft.Accordant.RetryBehavior.ShouldRetry
+  href: Microsoft.Accordant.RetryBehavior.html#Microsoft_Accordant_RetryBehavior_ShouldRetry
+  name: ShouldRetry
+  nameWithType: RetryBehavior.ShouldRetry
+  fullName: Microsoft.Accordant.RetryBehavior.ShouldRetry
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: Microsoft.Accordant.RetryBehavior.WaitTimeInMilliseconds*
+  commentId: Overload:Microsoft.Accordant.RetryBehavior.WaitTimeInMilliseconds
+  href: Microsoft.Accordant.RetryBehavior.html#Microsoft_Accordant_RetryBehavior_WaitTimeInMilliseconds
+  name: WaitTimeInMilliseconds
+  nameWithType: RetryBehavior.WaitTimeInMilliseconds
+  fullName: Microsoft.Accordant.RetryBehavior.WaitTimeInMilliseconds
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: Microsoft.Accordant.RetryBehavior.ShouldFailTest*
+  commentId: Overload:Microsoft.Accordant.RetryBehavior.ShouldFailTest
+  href: Microsoft.Accordant.RetryBehavior.html#Microsoft_Accordant_RetryBehavior_ShouldFailTest
+  name: ShouldFailTest
+  nameWithType: RetryBehavior.ShouldFailTest
+  fullName: Microsoft.Accordant.RetryBehavior.ShouldFailTest

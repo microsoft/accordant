@@ -1,0 +1,75 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.Cli
+  commentId: N:Microsoft.Accordant.Cli
+  id: Microsoft.Accordant.Cli
+  children:
+  - Microsoft.Accordant.Cli.ApiGenerator
+  - Microsoft.Accordant.Cli.FromSwaggerCommand
+  - Microsoft.Accordant.Cli.NewCommand
+  - Microsoft.Accordant.Cli.ResponseTypeInfo
+  langs:
+  - csharp
+  - vb
+  name: Microsoft.Accordant.Cli
+  nameWithType: Microsoft.Accordant.Cli
+  fullName: Microsoft.Accordant.Cli
+  type: Namespace
+  assemblies:
+  - Accordant.Cli
+references:
+- uid: Microsoft.Accordant.Cli.FromSwaggerCommand
+  commentId: T:Microsoft.Accordant.Cli.FromSwaggerCommand
+  href: Microsoft.Accordant.Cli.FromSwaggerCommand.html
+  name: FromSwaggerCommand
+  nameWithType: FromSwaggerCommand
+  fullName: Microsoft.Accordant.Cli.FromSwaggerCommand
+- uid: Microsoft.Accordant.Cli.ApiGenerator
+  commentId: T:Microsoft.Accordant.Cli.ApiGenerator
+  href: Microsoft.Accordant.Cli.ApiGenerator.html
+  name: ApiGenerator
+  nameWithType: ApiGenerator
+  fullName: Microsoft.Accordant.Cli.ApiGenerator
+- uid: Microsoft.Accordant.Cli.ResponseTypeInfo
+  commentId: T:Microsoft.Accordant.Cli.ResponseTypeInfo
+  parent: Microsoft.Accordant.Cli
+  href: Microsoft.Accordant.Cli.ResponseTypeInfo.html
+  name: ResponseTypeInfo
+  nameWithType: ResponseTypeInfo
+  fullName: Microsoft.Accordant.Cli.ResponseTypeInfo
+- uid: Microsoft.Accordant.Cli.NewCommand
+  commentId: T:Microsoft.Accordant.Cli.NewCommand
+  href: Microsoft.Accordant.Cli.NewCommand.html
+  name: NewCommand
+  nameWithType: NewCommand
+  fullName: Microsoft.Accordant.Cli.NewCommand
+- uid: Microsoft.Accordant.Cli
+  commentId: N:Microsoft.Accordant.Cli
+  href: Microsoft.html
+  name: Microsoft.Accordant.Cli
+  nameWithType: Microsoft.Accordant.Cli
+  fullName: Microsoft.Accordant.Cli
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  - name: .
+  - uid: Microsoft.Accordant.Cli
+    name: Cli
+    href: Microsoft.Accordant.Cli.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  - name: .
+  - uid: Microsoft.Accordant.Cli
+    name: Cli
+    href: Microsoft.Accordant.Cli.html

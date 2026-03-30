@@ -1,0 +1,564 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.PollingSetup
+  commentId: T:Microsoft.Accordant.PollingSetup
+  id: PollingSetup
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.PollingSetup.Clone
+  - Microsoft.Accordant.PollingSetup.MaxRetryCount
+  - Microsoft.Accordant.PollingSetup.Operation
+  - Microsoft.Accordant.PollingSetup.Variant
+  - Microsoft.Accordant.PollingSetup.WaitTimeInMs
+  langs:
+  - csharp
+  - vb
+  name: PollingSetup
+  nameWithType: PollingSetup
+  fullName: Microsoft.Accordant.PollingSetup
+  type: Class
+  source:
+    remote:
+      path: Accordant.Operations/Operation/PollingSetup.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: PollingSetup
+    path: Accordant.Operations/Operation/PollingSetup.cs
+    startLine: 10
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    Configuration for polling behavior when an operation triggers background work
+
+    via a <xref href="Microsoft.Accordant.TerminatingStepFunction" data-throw-if-not-resolved="false"></xref>.
+
+
+    Polling uses a derivation to create the polling request from the original
+
+    operation's request and response. The derivation must be defined on the
+
+    polling operation's <xref href="Microsoft.Accordant.IOperation.DerivedFrom" data-throw-if-not-resolved="false"></xref> property.
+  example: []
+  syntax:
+    content: public class PollingSetup
+    content.vb: Public Class PollingSetup
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: Microsoft.Accordant.PollingSetup.Operation
+  commentId: P:Microsoft.Accordant.PollingSetup.Operation
+  id: Operation
+  parent: Microsoft.Accordant.PollingSetup
+  langs:
+  - csharp
+  - vb
+  name: Operation
+  nameWithType: PollingSetup.Operation
+  fullName: Microsoft.Accordant.PollingSetup.Operation
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Operation/PollingSetup.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Operation
+    path: Accordant.Operations/Operation/PollingSetup.cs
+    startLine: 17
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    The name of the operation to call for polling (e.g., "GetJob").
+
+    This operation must have a derivation defined that derives from the
+
+    source operation.
+  example: []
+  syntax:
+    content: public string Operation { get; set; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public Property Operation As String
+  overload: Microsoft.Accordant.PollingSetup.Operation*
+- uid: Microsoft.Accordant.PollingSetup.Variant
+  commentId: P:Microsoft.Accordant.PollingSetup.Variant
+  id: Variant
+  parent: Microsoft.Accordant.PollingSetup
+  langs:
+  - csharp
+  - vb
+  name: Variant
+  nameWithType: PollingSetup.Variant
+  fullName: Microsoft.Accordant.PollingSetup.Variant
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Operation/PollingSetup.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Variant
+    path: Accordant.Operations/Operation/PollingSetup.cs
+    startLine: 24
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    The derivation variant to use when creating the polling request.
+
+    Defaults to "Default". Must match a variant defined in the polling
+
+    operation's <xref href="Microsoft.Accordant.IOperation.DerivedFrom" data-throw-if-not-resolved="false"></xref> derivations.
+  example: []
+  syntax:
+    content: public string Variant { get; set; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public Property [Variant] As String
+  overload: Microsoft.Accordant.PollingSetup.Variant*
+- uid: Microsoft.Accordant.PollingSetup.WaitTimeInMs
+  commentId: P:Microsoft.Accordant.PollingSetup.WaitTimeInMs
+  id: WaitTimeInMs
+  parent: Microsoft.Accordant.PollingSetup
+  langs:
+  - csharp
+  - vb
+  name: WaitTimeInMs
+  nameWithType: PollingSetup.WaitTimeInMs
+  fullName: Microsoft.Accordant.PollingSetup.WaitTimeInMs
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Operation/PollingSetup.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: WaitTimeInMs
+    path: Accordant.Operations/Operation/PollingSetup.cs
+    startLine: 29
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: The delay in milliseconds between each polling attempt.
+  example: []
+  syntax:
+    content: public int WaitTimeInMs { get; set; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public Property WaitTimeInMs As Integer
+  overload: Microsoft.Accordant.PollingSetup.WaitTimeInMs*
+- uid: Microsoft.Accordant.PollingSetup.MaxRetryCount
+  commentId: P:Microsoft.Accordant.PollingSetup.MaxRetryCount
+  id: MaxRetryCount
+  parent: Microsoft.Accordant.PollingSetup
+  langs:
+  - csharp
+  - vb
+  name: MaxRetryCount
+  nameWithType: PollingSetup.MaxRetryCount
+  fullName: Microsoft.Accordant.PollingSetup.MaxRetryCount
+  type: Property
+  source:
+    remote:
+      path: Accordant.Operations/Operation/PollingSetup.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: MaxRetryCount
+    path: Accordant.Operations/Operation/PollingSetup.cs
+    startLine: 36
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: >-
+    The maximum number of times to retry. If the background asynchrony still
+
+    hasn't terminated after these many retries, the system is deemed to have
+
+    a 'liveness bug' indicating the system is stuck and not making forward progress.
+  example: []
+  syntax:
+    content: public int MaxRetryCount { get; set; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public Property MaxRetryCount As Integer
+  overload: Microsoft.Accordant.PollingSetup.MaxRetryCount*
+- uid: Microsoft.Accordant.PollingSetup.Clone
+  commentId: M:Microsoft.Accordant.PollingSetup.Clone
+  id: Clone
+  parent: Microsoft.Accordant.PollingSetup
+  langs:
+  - csharp
+  - vb
+  name: Clone()
+  nameWithType: PollingSetup.Clone()
+  fullName: Microsoft.Accordant.PollingSetup.Clone()
+  type: Method
+  source:
+    remote:
+      path: Accordant.Operations/Operation/PollingSetup.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Clone
+    path: Accordant.Operations/Operation/PollingSetup.cs
+    startLine: 41
+  assemblies:
+  - Accordant.Operations
+  namespace: Microsoft.Accordant
+  summary: Creates a deep clone of this polling setup.
+  example: []
+  syntax:
+    content: public PollingSetup Clone()
+    return:
+      type: Microsoft.Accordant.PollingSetup
+    content.vb: Public Function Clone() As PollingSetup
+  overload: Microsoft.Accordant.PollingSetup.Clone*
+references:
+- uid: Microsoft.Accordant.TerminatingStepFunction
+  commentId: T:Microsoft.Accordant.TerminatingStepFunction
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.TerminatingStepFunction.html
+  name: TerminatingStepFunction
+  nameWithType: TerminatingStepFunction
+  fullName: Microsoft.Accordant.TerminatingStepFunction
+- uid: Microsoft.Accordant.IOperation.DerivedFrom
+  commentId: P:Microsoft.Accordant.IOperation.DerivedFrom
+  parent: Microsoft.Accordant.IOperation
+  href: Microsoft.Accordant.IOperation.html#Microsoft_Accordant_IOperation_DerivedFrom
+  name: DerivedFrom
+  nameWithType: IOperation.DerivedFrom
+  fullName: Microsoft.Accordant.IOperation.DerivedFrom
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: Microsoft.Accordant.IOperation
+  commentId: T:Microsoft.Accordant.IOperation
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.IOperation.html
+  name: IOperation
+  nameWithType: IOperation
+  fullName: Microsoft.Accordant.IOperation
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: Microsoft.Accordant.PollingSetup.Operation*
+  commentId: Overload:Microsoft.Accordant.PollingSetup.Operation
+  href: Microsoft.Accordant.PollingSetup.html#Microsoft_Accordant_PollingSetup_Operation
+  name: Operation
+  nameWithType: PollingSetup.Operation
+  fullName: Microsoft.Accordant.PollingSetup.Operation
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: Microsoft.Accordant.PollingSetup.Variant*
+  commentId: Overload:Microsoft.Accordant.PollingSetup.Variant
+  href: Microsoft.Accordant.PollingSetup.html#Microsoft_Accordant_PollingSetup_Variant
+  name: Variant
+  nameWithType: PollingSetup.Variant
+  fullName: Microsoft.Accordant.PollingSetup.Variant
+- uid: Microsoft.Accordant.PollingSetup.WaitTimeInMs*
+  commentId: Overload:Microsoft.Accordant.PollingSetup.WaitTimeInMs
+  href: Microsoft.Accordant.PollingSetup.html#Microsoft_Accordant_PollingSetup_WaitTimeInMs
+  name: WaitTimeInMs
+  nameWithType: PollingSetup.WaitTimeInMs
+  fullName: Microsoft.Accordant.PollingSetup.WaitTimeInMs
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: Microsoft.Accordant.PollingSetup.MaxRetryCount*
+  commentId: Overload:Microsoft.Accordant.PollingSetup.MaxRetryCount
+  href: Microsoft.Accordant.PollingSetup.html#Microsoft_Accordant_PollingSetup_MaxRetryCount
+  name: MaxRetryCount
+  nameWithType: PollingSetup.MaxRetryCount
+  fullName: Microsoft.Accordant.PollingSetup.MaxRetryCount
+- uid: Microsoft.Accordant.PollingSetup.Clone*
+  commentId: Overload:Microsoft.Accordant.PollingSetup.Clone
+  href: Microsoft.Accordant.PollingSetup.html#Microsoft_Accordant_PollingSetup_Clone
+  name: Clone
+  nameWithType: PollingSetup.Clone
+  fullName: Microsoft.Accordant.PollingSetup.Clone
+- uid: Microsoft.Accordant.PollingSetup
+  commentId: T:Microsoft.Accordant.PollingSetup
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.PollingSetup.html
+  name: PollingSetup
+  nameWithType: PollingSetup
+  fullName: Microsoft.Accordant.PollingSetup

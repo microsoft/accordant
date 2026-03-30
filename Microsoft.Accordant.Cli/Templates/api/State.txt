@@ -1,0 +1,25 @@
+namespace {{Name}};
+
+using Accordant;
+
+/// <summary>
+/// State tracks what the system remembers between operations.
+/// Keep it minimal: only what's needed to define expected behavior.
+/// </summary>
+public class {{Name}}State : JsonState
+{
+    /// <summary>
+    /// Example: Track entities by ID.
+    /// Replace with your domain (e.g., Users, Orders, Accounts).
+    /// </summary>
+    public Dictionary<string, {{Name}}Entity> Entities { get; set; } = new();
+}
+
+/// <summary>
+/// Example entity - replace with your domain model.
+/// </summary>
+public class {{Name}}Entity
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+}

@@ -1,0 +1,493 @@
+### YamlMime:ManagedReference
+items:
+- uid: Microsoft.Accordant.IContract`2
+  commentId: T:Microsoft.Accordant.IContract`2
+  id: IContract`2
+  parent: Microsoft.Accordant
+  children:
+  - Microsoft.Accordant.IContract`2.ExplainInvalidResponse(`0,Microsoft.Accordant.State,System.Object)
+  - Microsoft.Accordant.IContract`2.Verify(`0,Microsoft.Accordant.State,System.Object)
+  langs:
+  - csharp
+  - vb
+  name: IContract<TRequest, TResponse>
+  nameWithType: IContract<TRequest, TResponse>
+  fullName: Microsoft.Accordant.IContract<TRequest, TResponse>
+  type: Interface
+  source:
+    remote:
+      path: Accordant/Contract.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: IContract
+    path: Accordant/Contract.cs
+    startLine: 55
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  summary: >-
+    A contract indicates whether the observed response is valid given
+
+    the request and state. If the observed response is valid, the contract
+
+    returns a (potentially) updated state as well as an optional step function
+
+    that runs concurrently with the rest of the system.
+
+
+    The contract atomically changes the starting state to the updated state,
+
+    if the response is deemed valid given the request and starting state.
+  example: []
+  syntax:
+    content: 'public interface IContract<TRequest, TResponse> : IContract'
+    typeParameters:
+    - id: TRequest
+    - id: TResponse
+    content.vb: Public Interface IContract(Of TRequest, TResponse) Inherits IContract
+  derivedClasses:
+  - Microsoft.Accordant.Operation`3
+  inheritedMembers:
+  - Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.State,System.Object)
+  - Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.State,System.Object)
+  - Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  - Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  nameWithType.vb: IContract(Of TRequest, TResponse)
+  fullName.vb: Microsoft.Accordant.IContract(Of TRequest, TResponse)
+  name.vb: IContract(Of TRequest, TResponse)
+- uid: Microsoft.Accordant.IContract`2.Verify(`0,Microsoft.Accordant.State,System.Object)
+  commentId: M:Microsoft.Accordant.IContract`2.Verify(`0,Microsoft.Accordant.State,System.Object)
+  id: Verify(`0,Microsoft.Accordant.State,System.Object)
+  parent: Microsoft.Accordant.IContract`2
+  langs:
+  - csharp
+  - vb
+  name: Verify(TRequest, State, object)
+  nameWithType: IContract<TRequest, TResponse>.Verify(TRequest, State, object)
+  fullName: Microsoft.Accordant.IContract<TRequest, TResponse>.Verify(TRequest, Microsoft.Accordant.State, object)
+  type: Method
+  source:
+    remote:
+      path: Accordant/Contract.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: Verify
+    path: Accordant/Contract.cs
+    startLine: 58
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: (bool, StateProfile) Verify(TRequest request, State state, object observedResponse)
+    parameters:
+    - id: request
+      type: '{TRequest}'
+    - id: state
+      type: Microsoft.Accordant.State
+    - id: observedResponse
+      type: System.Object
+    return:
+      type: System.ValueTuple{System.Boolean,Microsoft.Accordant.StateProfile}
+    content.vb: Function Verify(request As TRequest, state As State, observedResponse As Object) As (Boolean, StateProfile)
+  overload: Microsoft.Accordant.IContract`2.Verify*
+  nameWithType.vb: IContract(Of TRequest, TResponse).Verify(TRequest, State, Object)
+  fullName.vb: Microsoft.Accordant.IContract(Of TRequest, TResponse).Verify(TRequest, Microsoft.Accordant.State, Object)
+  name.vb: Verify(TRequest, State, Object)
+- uid: Microsoft.Accordant.IContract`2.ExplainInvalidResponse(`0,Microsoft.Accordant.State,System.Object)
+  commentId: M:Microsoft.Accordant.IContract`2.ExplainInvalidResponse(`0,Microsoft.Accordant.State,System.Object)
+  id: ExplainInvalidResponse(`0,Microsoft.Accordant.State,System.Object)
+  parent: Microsoft.Accordant.IContract`2
+  langs:
+  - csharp
+  - vb
+  name: ExplainInvalidResponse(TRequest, State, object)
+  nameWithType: IContract<TRequest, TResponse>.ExplainInvalidResponse(TRequest, State, object)
+  fullName: Microsoft.Accordant.IContract<TRequest, TResponse>.ExplainInvalidResponse(TRequest, Microsoft.Accordant.State, object)
+  type: Method
+  source:
+    remote:
+      path: Accordant/Contract.cs
+      branch: main
+      repo: https://github.com/microsoft/accordant.git
+    id: ExplainInvalidResponse
+    path: Accordant/Contract.cs
+    startLine: 64
+  assemblies:
+  - Accordant
+  namespace: Microsoft.Accordant
+  example: []
+  syntax:
+    content: string ExplainInvalidResponse(TRequest request, State state, object observedResponse)
+    parameters:
+    - id: request
+      type: '{TRequest}'
+    - id: state
+      type: Microsoft.Accordant.State
+    - id: observedResponse
+      type: System.Object
+    return:
+      type: System.String
+    content.vb: Function ExplainInvalidResponse(request As TRequest, state As State, observedResponse As Object) As String
+  overload: Microsoft.Accordant.IContract`2.ExplainInvalidResponse*
+  nameWithType.vb: IContract(Of TRequest, TResponse).ExplainInvalidResponse(TRequest, State, Object)
+  fullName.vb: Microsoft.Accordant.IContract(Of TRequest, TResponse).ExplainInvalidResponse(TRequest, Microsoft.Accordant.State, Object)
+  name.vb: ExplainInvalidResponse(TRequest, State, Object)
+references:
+- uid: Microsoft.Accordant
+  commentId: N:Microsoft.Accordant
+  href: Microsoft.html
+  name: Microsoft.Accordant
+  nameWithType: Microsoft.Accordant
+  fullName: Microsoft.Accordant
+  spec.csharp:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+  spec.vb:
+  - uid: Microsoft
+    name: Microsoft
+    href: Microsoft.html
+  - name: .
+  - uid: Microsoft.Accordant
+    name: Accordant
+    href: Microsoft.Accordant.html
+- uid: Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.State,System.Object)
+  commentId: M:Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.State,System.Object)
+  parent: Microsoft.Accordant.IContract
+  isExternal: true
+  href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_Verify_System_Object_Microsoft_Accordant_State_System_Object_
+  name: Verify(object, State, object)
+  nameWithType: IContract.Verify(object, State, object)
+  fullName: Microsoft.Accordant.IContract.Verify(object, Microsoft.Accordant.State, object)
+  nameWithType.vb: IContract.Verify(Object, State, Object)
+  fullName.vb: Microsoft.Accordant.IContract.Verify(Object, Microsoft.Accordant.State, Object)
+  name.vb: Verify(Object, State, Object)
+  spec.csharp:
+  - uid: Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.State,System.Object)
+    name: Verify
+    href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_Verify_System_Object_Microsoft_Accordant_State_System_Object_
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.State,System.Object)
+    name: Verify
+    href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_Verify_System_Object_Microsoft_Accordant_State_System_Object_
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.State,System.Object)
+  commentId: M:Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.State,System.Object)
+  parent: Microsoft.Accordant.IContract
+  isExternal: true
+  href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_ExplainInvalidResponse_System_Object_Microsoft_Accordant_State_System_Object_
+  name: ExplainInvalidResponse(object, State, object)
+  nameWithType: IContract.ExplainInvalidResponse(object, State, object)
+  fullName: Microsoft.Accordant.IContract.ExplainInvalidResponse(object, Microsoft.Accordant.State, object)
+  nameWithType.vb: IContract.ExplainInvalidResponse(Object, State, Object)
+  fullName.vb: Microsoft.Accordant.IContract.ExplainInvalidResponse(Object, Microsoft.Accordant.State, Object)
+  name.vb: ExplainInvalidResponse(Object, State, Object)
+  spec.csharp:
+  - uid: Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.State,System.Object)
+    name: ExplainInvalidResponse
+    href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_ExplainInvalidResponse_System_Object_Microsoft_Accordant_State_System_Object_
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.State,System.Object)
+    name: ExplainInvalidResponse
+    href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_ExplainInvalidResponse_System_Object_Microsoft_Accordant_State_System_Object_
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.State
+    name: State
+    href: Microsoft.Accordant.State.html
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  commentId: M:Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  parent: Microsoft.Accordant.IContract
+  isExternal: true
+  href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_Verify_System_Object_Microsoft_Accordant_StateProfile_System_Object_
+  name: Verify(object, StateProfile, object)
+  nameWithType: IContract.Verify(object, StateProfile, object)
+  fullName: Microsoft.Accordant.IContract.Verify(object, Microsoft.Accordant.StateProfile, object)
+  nameWithType.vb: IContract.Verify(Object, StateProfile, Object)
+  fullName.vb: Microsoft.Accordant.IContract.Verify(Object, Microsoft.Accordant.StateProfile, Object)
+  name.vb: Verify(Object, StateProfile, Object)
+  spec.csharp:
+  - uid: Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+    name: Verify
+    href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_Verify_System_Object_Microsoft_Accordant_StateProfile_System_Object_
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.IContract.Verify(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+    name: Verify
+    href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_Verify_System_Object_Microsoft_Accordant_StateProfile_System_Object_
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  commentId: M:Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+  parent: Microsoft.Accordant.IContract
+  isExternal: true
+  href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_ExplainInvalidResponse_System_Object_Microsoft_Accordant_StateProfile_System_Object_
+  name: ExplainInvalidResponse(object, StateProfile, object)
+  nameWithType: IContract.ExplainInvalidResponse(object, StateProfile, object)
+  fullName: Microsoft.Accordant.IContract.ExplainInvalidResponse(object, Microsoft.Accordant.StateProfile, object)
+  nameWithType.vb: IContract.ExplainInvalidResponse(Object, StateProfile, Object)
+  fullName.vb: Microsoft.Accordant.IContract.ExplainInvalidResponse(Object, Microsoft.Accordant.StateProfile, Object)
+  name.vb: ExplainInvalidResponse(Object, StateProfile, Object)
+  spec.csharp:
+  - uid: Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+    name: ExplainInvalidResponse
+    href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_ExplainInvalidResponse_System_Object_Microsoft_Accordant_StateProfile_System_Object_
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: Microsoft.Accordant.IContract.ExplainInvalidResponse(System.Object,Microsoft.Accordant.StateProfile,System.Object)
+    name: ExplainInvalidResponse
+    href: Microsoft.Accordant.IContract.html#Microsoft_Accordant_IContract_ExplainInvalidResponse_System_Object_Microsoft_Accordant_StateProfile_System_Object_
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: Microsoft.Accordant.IContract
+  commentId: T:Microsoft.Accordant.IContract
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.IContract.html
+  name: IContract
+  nameWithType: IContract
+  fullName: Microsoft.Accordant.IContract
+- uid: Microsoft.Accordant.IContract`2.Verify*
+  commentId: Overload:Microsoft.Accordant.IContract`2.Verify
+  href: Microsoft.Accordant.IContract-2.html#Microsoft_Accordant_IContract_2_Verify__0_Microsoft_Accordant_State_System_Object_
+  name: Verify
+  nameWithType: IContract<TRequest, TResponse>.Verify
+  fullName: Microsoft.Accordant.IContract<TRequest, TResponse>.Verify
+  nameWithType.vb: IContract(Of TRequest, TResponse).Verify
+  fullName.vb: Microsoft.Accordant.IContract(Of TRequest, TResponse).Verify
+- uid: '{TRequest}'
+  commentId: '!:TRequest'
+  definition: TRequest
+  name: TRequest
+  nameWithType: TRequest
+  fullName: TRequest
+- uid: Microsoft.Accordant.State
+  commentId: T:Microsoft.Accordant.State
+  parent: Microsoft.Accordant
+  href: Microsoft.Accordant.State.html
+  name: State
+  nameWithType: State
+  fullName: Microsoft.Accordant.State
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.ValueTuple{System.Boolean,Microsoft.Accordant.StateProfile}
+  commentId: T:System.ValueTuple{System.Boolean,Microsoft.Accordant.StateProfile}
+  parent: System
+  definition: System.ValueTuple`2
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: (bool, StateProfile)
+  nameWithType: (bool, StateProfile)
+  fullName: (bool, Microsoft.Accordant.StateProfile)
+  nameWithType.vb: (Boolean, StateProfile)
+  fullName.vb: (Boolean, Microsoft.Accordant.StateProfile)
+  name.vb: (Boolean, StateProfile)
+  spec.csharp:
+  - name: (
+  - uid: System.Boolean
+    name: bool
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: )
+  spec.vb:
+  - name: (
+  - uid: System.Boolean
+    name: Boolean
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.boolean
+  - name: ','
+  - name: " "
+  - uid: Microsoft.Accordant.StateProfile
+    name: StateProfile
+    href: Microsoft.Accordant.StateProfile.html
+  - name: )
+- uid: TRequest
+  name: TRequest
+  nameWithType: TRequest
+  fullName: TRequest
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.ValueTuple`2
+  commentId: T:System.ValueTuple`2
+  name: (T1, T2)
+  nameWithType: (T1, T2)
+  fullName: (T1, T2)
+  spec.csharp:
+  - name: (
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: )
+  spec.vb:
+  - name: (
+  - name: T1
+  - name: ','
+  - name: " "
+  - name: T2
+  - name: )
+- uid: Microsoft.Accordant.IContract`2.ExplainInvalidResponse*
+  commentId: Overload:Microsoft.Accordant.IContract`2.ExplainInvalidResponse
+  href: Microsoft.Accordant.IContract-2.html#Microsoft_Accordant_IContract_2_ExplainInvalidResponse__0_Microsoft_Accordant_State_System_Object_
+  name: ExplainInvalidResponse
+  nameWithType: IContract<TRequest, TResponse>.ExplainInvalidResponse
+  fullName: Microsoft.Accordant.IContract<TRequest, TResponse>.ExplainInvalidResponse
+  nameWithType.vb: IContract(Of TRequest, TResponse).ExplainInvalidResponse
+  fullName.vb: Microsoft.Accordant.IContract(Of TRequest, TResponse).ExplainInvalidResponse
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
