@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>Microsoft.Accordant.Cli</id>
+    <version>0.1.0-preview</version>
+    <authors>Microsoft</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <repository type="git" url="https://github.com/microsoft/accordant"/>
+    <description>CLI tool for scaffolding Accordant model-based testing projects</description>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <tags>accordant cli scaffolding testing model-based</tags>
+    <packageTypes>
+      <packageType name="DotnetTool" />
+    </packageTypes>
+  </metadata>
+  <files>
+    <!-- net9.0 -->
+    <file src="..\bin\tools\Microsoft.Accordant.Cli\net9.0\publish\*.*" target="tools\net9.0\any" />
+    
+    <!-- net8.0 -->
+    <file src="..\bin\tools\Microsoft.Accordant.Cli\net8.0\publish\*.*" target="tools\net8.0\any" />
+    
+    <!-- net7.0 -->
+    <file src="..\bin\tools\Microsoft.Accordant.Cli\net7.0\publish\*.*" target="tools\net7.0\any" />
+    
+    <!-- net6.0 -->
+    <file src="..\bin\tools\Microsoft.Accordant.Cli\net6.0\publish\*.*" target="tools\net6.0\any" />
+  </files>
+</package>

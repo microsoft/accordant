@@ -8,11 +8,8 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Microsoft.Accordant.Cli</RootNamespace>
     
-    <!-- dotnet tool configuration -->
-    <PackAsTool>true</PackAsTool>
-    <ToolCommandName>accordant</ToolCommandName>
-    <PackageId>Microsoft.Accordant.Cli</PackageId>
-    <Description>CLI tool for scaffolding Accordant model-based testing projects</Description>
+    <!-- Source project only - Microsoft.Accordant.Cli is the published package -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

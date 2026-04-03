@@ -6,11 +6,8 @@
 		<OutputPath>../bin/tools/Microsoft.Accordant.StateSourceCodeGenerator</OutputPath>
 		<RootNamespace>Microsoft.Accordant</RootNamespace>
 		
-		<!-- dotnet tool configuration -->
-		<PackAsTool>true</PackAsTool>
-		<ToolCommandName>accordant-stategen</ToolCommandName>
-		<PackageId>Microsoft.Accordant.StateSourceCodeGenerator</PackageId>
-		<Description>State source code generator for Accordant model-based testing</Description>
+		<!-- Tool is packaged via Scripts/NuGet/Microsoft.Accordant.StateSourceCodeGenerator.nuspec -->
+		<IsPackable>false</IsPackable>
 	</PropertyGroup>
 
 	<ItemGroup>
