@@ -4,13 +4,23 @@
     <Project Path="Tests/Accordant.Operations.Tests/Accordant.Operations.Tests.csproj" />
     <Project Path="Tests/Accordant.Tests/Accordant.Tests.csproj" />
   </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="Samples/BankAccount/BankAccount.Api/BankAccount.Api.csproj" />
+    <Project Path="Samples/BankAccount/BankAccount.Api.Tests/BankAccount.Api.Tests.csproj" />
+    <Project Path="Samples/Booking/Booking.Api/Booking.Api.csproj" />
+    <Project Path="Samples/Booking/Booking.Tests/Booking.Tests.csproj" />
+    <Project Path="Samples/JobQueue/JobQueue.Api/JobQueue.Api.csproj" />
+    <Project Path="Samples/JobQueue/JobQueue.Tests/JobQueue.Tests.csproj" />
+    <Project Path="Samples/TodoList/TodoList.Api/TodoList.Api.csproj" />
+    <Project Path="Samples/TodoList/TodoList.Tests/TodoList.Tests.csproj" />
+    <Project Path="Samples/TodoList-Extended/TodoList-Extended.Api/TodoList-Extended.Api.csproj" />
+    <Project Path="Samples/TodoList-Extended/TodoList-Extended.Tests/TodoList-Extended.Tests.csproj" />
+  </Folder>
   <Project Path="Accordant.Choose/Accordant.Choose.csproj" />
   <Project Path="Microsoft.Accordant.Cli/Microsoft.Accordant.Cli.csproj" />
   <Project Path="Accordant.Invariant/Accordant.Invariant.csproj" />
-  <Project Path="Accordant.ModelChecking/Accordant.ModelChecking.csproj" />
   <Project Path="Accordant.Operations.Http/Accordant.Operations.Http.csproj" />
   <Project Path="Accordant.Operations/Accordant.Operations.csproj" />
-  <Project Path="Microsoft.Accordant.StateSourceCodeGenerator/Microsoft.Accordant.StateSourceCodeGenerator.csproj" />
+  <Project Path="Accordant.SourceGenerator/Accordant.SourceGenerator.csproj" />
   <Project Path="Accordant/Accordant.csproj" />
-  <Project Path="Microsoft.Accordant/Microsoft.Accordant.csproj" />
 </Solution>

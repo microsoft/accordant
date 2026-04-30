@@ -11,7 +11,7 @@ namespace Microsoft.Accordant
     using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
-    using Microsoft.Accordant;
+        
     /// <summary>
     /// This class sends requests encoded through <see cref="HttpRequest"/> objects
     /// using an <see cref="HttpClient"/> retrieved via <see cref="TestingContext.Target{T}"/>.

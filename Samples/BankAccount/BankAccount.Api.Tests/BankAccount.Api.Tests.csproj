@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BankAccount.Api\BankAccount.Api.csproj" />
     <ProjectReference Include="..\..\..\Accordant.Operations\Accordant.Operations.csproj" />
+    <ProjectReference Include="..\..\..\Accordant.SourceGenerator\Accordant.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Examples.Http;
+namespace Microsoft.Accordant;
 
 /// <summary>
 /// Generic API result wrapper that captures success data or error information.

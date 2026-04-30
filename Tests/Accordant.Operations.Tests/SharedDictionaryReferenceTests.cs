@@ -1,13 +1,30 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Tests
+namespace Microsoft.Accordant.Operations.Tests
 {
-    using Microsoft.Accordant;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using NUnit.Framework;
+    using Microsoft.Accordant;
+        using NUnit.Framework;
+
+    /// <summary>
+    /// A state that contains a dictionary of items.
+    /// Similar to PetImagesState.Accounts pattern.
+    /// </summary>
+    [State]
+    public partial class StateWithDictionary
+    {
+        public Dictionary<string, ItemData> Items { get; set; } = new();
+    }
+
+    [State]
+    public partial class ItemData
+    {
+        public string Name { get; set; }
+        public int Value { get; set; }
+    }
 
     /// <summary>
     /// Tests that validate behavior when operations copy dictionary references
@@ -18,25 +35,6 @@ namespace Microsoft.Accordant.Tests
     [TestFixture]
     public class SharedDictionaryReferenceTests
     {
-        #region State Classes
-
-        /// <summary>
-        /// A state that contains a dictionary of items.
-        /// Similar to PetImagesState.Accounts pattern.
-        /// </summary>
-        public class StateWithDictionary : JsonState
-        {
-            public Dictionary<string, ItemData> Items { get; set; } = new();
-        }
-
-        public class ItemData : JsonState
-        {
-            public string Name { get; set; }
-            public int Value { get; set; }
-        }
-
-        #endregion
-
         #region Operations
 
         /// <summary>
@@ -155,10 +153,10 @@ namespace Microsoft.Accordant.Tests
             };
 
             // Enable mutation detection (should be on by default)
-            JsonState.EnableMutationDetection = true;
+            State.EnableFreezeValidation = true;
 
             // The framework should detect this via mutation detection.
-            // The exception is wrapped in TestCaseGenerationException with StateLockedException as inner.
+            // The exception is wrapped in TestCaseGenerationException with StateFrozenException as inner.
             var ex = Assert.Throws<TestCaseGenerationException>(() =>
             {
                 var testCases = spec.GenerateTests(
@@ -173,9 +171,9 @@ namespace Microsoft.Accordant.Tests
                 var testCasesList = testCases.ToList();
             });
 
-            // Verify the inner exception is StateLockedException
-            Assert.IsInstanceOf<StateLockedException>(ex.InnerException,
-                "Inner exception should be StateLockedException indicating mutation was detected");
+            // Verify the inner exception is StateFrozenException
+            Assert.IsInstanceOf<StateFrozenException>(ex.InnerException,
+                "Inner exception should be StateFrozenException indicating mutation was detected");
             
             Console.WriteLine($"Mutation detection correctly caught the issue:");
             Console.WriteLine($"  Outer: {ex.Message}");

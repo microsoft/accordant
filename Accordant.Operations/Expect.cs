@@ -112,16 +112,9 @@ namespace Microsoft.Accordant
 
         /// <summary>
         /// Creates an expected outcome with a ResponseValidator.
-        /// This overload accepts any type that can be implicitly converted to ResponseValidator,
-        /// including Descriptor types when Accordant.Descriptors is referenced.
         /// </summary>
-        /// <param name="validator">A ResponseValidator (or type convertible to it) that validates responses.</param>
+        /// <param name="validator">A ResponseValidator that validates responses.</param>
         /// <returns>An <see cref="ExpectedOutcomeBuilder{Object}"/> for further configuration.</returns>
-        /// <example>
-        /// // Works with Descriptors via implicit conversion (when Accordant.Descriptors is referenced)
-        /// return Expect.That(HttpResponseDescriptor.Create(HttpStatusCode.OK))
-        ///              .ThenState(updatedState);
-        /// </example>
         public static ExpectedOutcomeBuilder<object> That(ResponseValidator validator)
         {
             if (validator == null)
@@ -132,17 +125,10 @@ namespace Microsoft.Accordant
 
         /// <summary>
         /// Creates a typed expected outcome with a ResponseValidator.
-        /// This overload accepts any type that can be implicitly converted to ResponseValidator,
-        /// including Descriptor types when Accordant.Descriptors is referenced.
         /// </summary>
         /// <typeparam name="TResponse">The type of response to validate.</typeparam>
-        /// <param name="validator">A ResponseValidator (or type convertible to it) that validates responses.</param>
+        /// <param name="validator">A ResponseValidator that validates responses.</param>
         /// <returns>An <see cref="ExpectedOutcomeBuilder{TResponse}"/> for further configuration.</returns>
-        /// <example>
-        /// // Works with Descriptors via implicit conversion (when Accordant.Descriptors is referenced)
-        /// return Expect.That&lt;MyResponse&gt;(myDescriptor)
-        ///              .ThenState(updatedState);
-        /// </example>
         public static ExpectedOutcomeBuilder<TResponse> That<TResponse>(ResponseValidator validator)
         {
             if (validator == null)
@@ -255,7 +241,7 @@ namespace Microsoft.Accordant
     public class ExpectedOutcomeBuilder<TResponse>
     {
         private readonly ResponseValidator _validator;
-        private Func<object, State, StateList> _nextStateGenerator;
+        private Func<object, IState, StateList> _nextStateGenerator;
         private Func<object, StepFunctionList> _nextStepFunctions = (resp) => new StepFunctionList();
         private Func<object> _mockResponseGenerator;
 
@@ -284,7 +270,7 @@ namespace Microsoft.Accordant
         ///              });
         /// </example>
         public ExpectedOutcomeBuilder<TResponse> ThenState<TState>(
-            Action<TState> modifier) where TState : State
+            Action<TState> modifier) where TState : class, IState
         {
             if (modifier == null)
                 throw new ArgumentNullException(nameof(modifier));
@@ -314,7 +300,7 @@ namespace Microsoft.Accordant
         /// </example>
         public ExpectedOutcomeBuilder<TResponse> ThenState<TState>(
             Action<TResponse, TState> modifier,
-            Func<TResponse> mock) where TState : State
+            Func<TResponse> mock) where TState : class, IState
         {
             if (modifier == null)
                 throw new ArgumentNullException(nameof(modifier));
@@ -355,7 +341,7 @@ namespace Microsoft.Accordant
 
             _nextStateGenerator = (resp, currentState) =>
             {
-                var (clone, map) = currentState.CloneWithMap<TState>();
+                var (clone, map) = ((State)currentState).CloneWithMap<TState>();
                 modifier(clone, map);
                 return [clone];
             };
@@ -390,7 +376,7 @@ namespace Microsoft.Accordant
 
             _nextStateGenerator = (resp, currentState) =>
             {
-                var (clone, map) = currentState.CloneWithMap<TState>();
+                var (clone, map) = ((State)currentState).CloneWithMap<TState>();
                 modifier((TResponse)resp, clone, map);
                 return [clone];
             };
@@ -404,15 +390,11 @@ namespace Microsoft.Accordant
 
         /// <summary>
         /// Specifies the exact next state to use after this operation.
-        /// Use this for simple state types like <see cref="AtomicState{T}"/> where you construct
-        /// a new state instance rather than mutating a clone.
+        /// Use this for simple state types where you construct a new state instance rather than mutating a clone.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This method is ideal for:
-        /// <list type="bullet">
-        ///   <item><description><see cref="AtomicState{T}"/> - simple value-based states</description></item>
-        /// </list>
+        /// This method is ideal for simple value-based states.
         /// </para>
         /// <para>
         /// For complex states with nested objects where clone-and-mutate is more convenient,
@@ -423,9 +405,9 @@ namespace Microsoft.Accordant
         /// <returns>This builder for method chaining.</returns>
         /// <example>
         /// return Expect.That&lt;int&gt;(r => r == expectedValue, "should equal expected")
-        ///              .WithNextState(new AtomicState&lt;int&gt;(state.Value + request));
+        ///              .WithNextState(new CounterState(state.Value + request));
         /// </example>
-        public ExpectedOutcomeBuilder<TResponse> WithNextState(State nextState)
+        public ExpectedOutcomeBuilder<TResponse> WithNextState(IState nextState)
         {
             if (nextState == null)
                 throw new ArgumentNullException(nameof(nextState));

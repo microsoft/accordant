@@ -10,6 +10,20 @@ using NUnit.Framework;
 using BankAccount.Api.Contracts;
 
 /// <summary>
+/// State tracks accounts and their balances.
+/// Compare this to the implementation: Controller + EF DbContext + Entity + InMemory DB!
+/// This is just a dictionary.
+/// </summary>
+[State]
+public partial class BankState : State
+{
+    /// <summary>
+    /// Dictionary of account balances. Key = accountId, Value = balance.
+    /// </summary>
+    public Dictionary<string, decimal> Accounts { get; set; } = new();
+}
+
+/// <summary>
 /// Accordant tests for the BankAccount REST API.
 /// 
 /// This demonstrates:
@@ -20,23 +34,6 @@ using BankAccount.Api.Contracts;
 [TestFixture]
 public class BankAccountTests
 {
-    // ============================================================
-    // State Definition
-    // ============================================================
-
-    /// <summary>
-    /// State tracks accounts and their balances.
-    /// Compare this to the implementation: Controller + EF DbContext + Entity + InMemory DB!
-    /// This is just a dictionary.
-    /// </summary>
-    public class BankState : JsonState
-    {
-        /// <summary>
-        /// Dictionary of account balances. Key = accountId, Value = balance.
-        /// </summary>
-        public Dictionary<string, decimal> Accounts { get; set; } = new();
-    }
-
     // ============================================================
     // Spec Creation
     // ============================================================

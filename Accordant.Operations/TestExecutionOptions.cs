@@ -99,7 +99,7 @@ namespace Microsoft.Accordant
             TestCase testCase,
             int testIndex,
             int totalTests,
-            State initialState,
+            IState initialState,
             TestingContext context)
         {
             TestCase = testCase;
@@ -127,7 +127,7 @@ namespace Microsoft.Accordant
         /// <summary>
         /// The initial state for this test.
         /// </summary>
-        public State InitialState { get; }
+        public IState InitialState { get; }
 
         /// <summary>
         /// The testing context. Use Context.Get&lt;T&gt;() to access registered services.

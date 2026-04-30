@@ -10,8 +10,7 @@ namespace Microsoft.Accordant
     using System.Text.Encodings.Web;
     using System.Text.Json;
     using System.Text.RegularExpressions;
-    using Microsoft.Accordant;
-
+    
     public class TestCaseGenerator
     {
         /// <summary>
@@ -24,7 +23,7 @@ namespace Microsoft.Accordant
         /// </summary>
         public static IList<SequentialTestCase> GenerateSequentialTestCases(
             TestingContext context,
-            State startingState,
+            IState startingState,
             InputSet inputSet,
             TestGenerationOptions options = null)
         {
@@ -69,7 +68,7 @@ namespace Microsoft.Accordant
         /// </summary>
         public static IList<ConcurrentTestCase> GenerateConcurrentTestCases(
             TestingContext context,
-            State startingState,
+            IState startingState,
             InputSet inputSet,
             TestGenerationOptions options = null)
         {
@@ -108,7 +107,7 @@ namespace Microsoft.Accordant
         /// </summary>
         public static string VisualizeStateSpace(
             TestingContext context,
-            State startingState,
+            IState startingState,
             InputSet inputSet,
             TestGenerationOptions options = null,
             VisualizationOptions visualizationOptions = null)
@@ -141,13 +140,11 @@ namespace Microsoft.Accordant
         /// test case generation. One difference is that it currently also fully explores the
         /// interleaving of step functions spawned the behavior (say, to model background
         /// asynchrony) with the rest of the operations, so its exploration is more exhaustive.
-        /// It returns the root node of the resulting state graph to the caller. The returned node
-        /// can be used to check safety and liveness properties using the Accordant.ModelChecking
-        /// library.
+        /// It returns the root node of the resulting state graph to the caller.
         /// </summary>
         public static StateGraphNode ExploreStateSpace(
             TestingContext context,
-            State startingState,
+            IState startingState,
             InputSet inputSet,
             TestGenerationOptions options = null)
         {
@@ -488,7 +485,7 @@ namespace Microsoft.Accordant
         private static StateGraphNode ConstructStateSpaceGraph(
             ISpec spec,
             InputSet inputSet,
-            State startingState,
+            IState startingState,
             TestGenerationOptions options,
             bool addNonInputStepFunctions)
         {

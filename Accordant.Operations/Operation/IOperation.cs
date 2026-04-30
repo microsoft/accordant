@@ -10,29 +10,9 @@ namespace Microsoft.Accordant
     /// <summary>
     /// Non-generic interface for operations, allowing type-erased storage in collections.
     /// This interface is implemented by <see cref="Operation{TReq, TResp, TState}"/>.
-    /// 
-    /// An IOperation provides Model (state exploration), Contract (response validation),
-    /// and Execution functionality.
     /// </summary>
-    public interface IOperation : IContract
+    public interface IOperation
     {
-        /// <summary>
-        /// Returns all possible (response, next-state) pairs for state exploration.
-        /// Used during test generation to explore the state space.
-        /// </summary>
-        /// <param name="request">The request to apply.</param>
-        /// <param name="state">The current state.</param>
-        /// <returns>List of possible (response, stateProfile) pairs.</returns>
-        IList<(object, StateProfile)> Invoke(object request, State state);
-
-        /// <summary>
-        /// Executes the operation against the real system.
-        /// </summary>
-        /// <param name="context">The testing context.</param>
-        /// <param name="request">The request to execute.</param>
-        /// <returns>The response from execution.</returns>
-        Task<object> ExecuteAsync(TestingContext context, object request);
-
         /// <summary>
         /// The name of the operation.
         /// </summary>
@@ -68,5 +48,56 @@ namespace Microsoft.Accordant
         /// <param name="label">An optional label for the input.</param>
         /// <returns>An <see cref="OperationInput"/> instance.</returns>
         OperationInput With(object request, string label = null);
+
+        /// <summary>
+        /// Returns all possible next states and optional step functions given a request and state.
+        /// </summary>
+        IList<(object, StateProfile)> Invoke(object request, IState state);
+
+        /// <summary>
+        /// Indicates whether the observed response is valid given the request and state.
+        /// If valid, it also returns a (potentially) updated state as well as an optional
+        /// step function that runs concurrently with the rest of the system.
+        /// </summary>
+        (bool, StateProfile) Verify(
+            object request,
+            IState state,
+            object observedResponse);
+
+        /// <summary>
+        /// Returns an explanation of why the observed response did not match the expected response.
+        /// </summary>
+        string ExplainInvalidResponse(
+            object request,
+            IState state,
+            object observedResponse);
+
+        /// <summary>
+        /// Indicates whether the observed response is valid given the request and state profile.
+        /// If valid, it also returns a (potentially) updated state as well as an optional
+        /// step function that runs concurrently with the rest of the system.
+        /// </summary>
+        (bool, StateProfile) Verify(
+            object request,
+            StateProfile stateProfile,
+            object observedResponse);
+
+        /// <summary>
+        /// Returns an explanation of why the observed response did not match the expected response.
+        /// </summary>
+        string ExplainInvalidResponse(
+            object request,
+            StateProfile stateProfile,
+            object observedResponse);
+
+        /// <summary>
+        /// Executes the operation against the system and returns the response.
+        /// Error conditions such as exceptions, network timeouts, internal server errors etc
+        /// should be converted to appropriate 'error' response objects and returned to the caller.
+        /// </summary>
+        /// <param name="context">The testing context.</param>
+        /// <param name="request">The request to execute.</param>
+        /// <returns>The response from execution.</returns>
+        Task<object> ExecuteAsync(TestingContext context, object request);
     }
 }

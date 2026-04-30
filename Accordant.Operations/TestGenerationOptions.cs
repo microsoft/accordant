@@ -19,7 +19,7 @@ namespace Microsoft.Accordant
         /// <param name="request">The request that was sent to the operation.</param>
         /// <param name="state">The state in which the step function was triggered.</param>
         /// <param name="stepFunction">The step function to potentially unwind.</param>
-        public UnwindContext(IOperation operation, object request, State state, IStepFunction stepFunction)
+        public UnwindContext(IOperation operation, object request, IState state, IStepFunction stepFunction)
         {
             Operation = operation;
             Request = request;
@@ -40,7 +40,7 @@ namespace Microsoft.Accordant
         /// <summary>
         /// The state in which the step function was triggered.
         /// </summary>
-        public State State { get; }
+        public IState State { get; }
 
         /// <summary>
         /// The step function to potentially unwind.
@@ -58,14 +58,14 @@ namespace Microsoft.Accordant
         /// This lambda indicates whether the given operation input
         /// should be applied in a given state or not.
         /// </summary>
-        public Func<OperationInput, State, bool> ShouldApply { get; set; } = (_, _) => true;
+        public Func<OperationInput, IState, bool> ShouldApply { get; set; } = (_, _) => true;
 
         /// <summary>
         /// This lambda controls whether exploration should stop at the given
         /// state or whether next states should be generated for further exploration.
         /// This lambda is only checked after the <see cref="MaxDepth"/> check passes.
         /// </summary>
-        public Func<State, bool> StateConstraint { get; set; }
+        public Func<IState, bool> StateConstraint { get; set; }
 
         /// <summary>
         /// This property controls the max depth of the state space graph
@@ -124,7 +124,7 @@ namespace Microsoft.Accordant
         /// the system from one state to another in the state graph that is used to generate
         /// test cases.
         /// </summary>
-        public Func<State, OperationCall, State, bool> ShouldIncludeTransition { get; set; }
+        public Func<IState, OperationCall, IState, bool> ShouldIncludeTransition { get; set; }
 
         /// <summary>
         /// This indicates whether a given operation input is preserved after application or not.

@@ -20,7 +20,7 @@ namespace Microsoft.Accordant
         /// </summary>
         /// <typeparam name="TState">The type of state the spec operates on.</typeparam>
         /// <returns>A new <see cref="Spec{TState}"/> instance.</returns>
-        public static Spec<TState> For<TState>() where TState : State
+        public static Spec<TState> For<TState>() where TState : class, IState
         {
             return new Spec<TState>();
         }
@@ -31,7 +31,7 @@ namespace Microsoft.Accordant
     /// of a stateful system. Each operation is registered under a unique name.
     /// </summary>
     /// <typeparam name="TState">The type of state the spec operates on.</typeparam>
-    public class Spec<TState> : ISpec where TState : State
+    public class Spec<TState> : ISpec where TState : class, IState
     {
         private Dictionary<string, IOperation> nameToOperations =
             new Dictionary<string, IOperation>();
@@ -237,8 +237,7 @@ namespace Microsoft.Accordant
             object response,
             StateProfile stateProfile)
         {
-            var contract = (IContract)operation;
-            var (success, nextStateProfile) = contract.Verify(request, stateProfile, response);
+            var (success, nextStateProfile) = operation.Verify(request, stateProfile, response);
 
             var message = string.Empty;
 
@@ -246,7 +245,7 @@ namespace Microsoft.Accordant
             {
                 if (stateProfile.StatesAndStepFunctions.Count == 1)
                 {
-                    message = contract.ExplainInvalidResponse(
+                    message = operation.ExplainInvalidResponse(
                         request,
                         stateProfile.SingleState(),
                         response);
@@ -260,7 +259,7 @@ namespace Microsoft.Accordant
                     foreach (var (state, _) in stateProfile.StatesAndStepFunctions)
                     {
                         sb.AppendLine("The response couldn't be explained for state: " + state);
-                        sb.AppendLine(contract.ExplainInvalidResponse(request, state, response));
+                        sb.AppendLine(operation.ExplainInvalidResponse(request, state, response));
                         sb.AppendLine();
                     }
 
@@ -291,7 +290,7 @@ namespace Microsoft.Accordant
                 concurrentSteps.Add(new ContractStepFunction(
                     concurrentCall.request,
                     concurrentCall.response,
-                    (IContract)concurrentCall.operation));
+                    concurrentCall.operation.Verify));
             }
 
             try

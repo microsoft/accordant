@@ -12,7 +12,7 @@ namespace Microsoft.Accordant
     /// </summary>
     /// <typeparam name="TTarget">The type of the system under test.</typeparam>
     /// <typeparam name="TState">The type of state the spec operates on.</typeparam>
-    public class ExecuteBuilder<TTarget, TState> where TState : State
+    public class ExecuteBuilder<TTarget, TState> where TState : class, IState
     {
         private readonly Spec<TState> _spec;
 

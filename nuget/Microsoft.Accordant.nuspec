@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>Microsoft.Accordant</id>
+    <version>0.1.0-preview</version>
+    <authors>Microsoft</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <repository type="git" url="https://github.com/microsoft/accordant"/>
+    <description>Accordant is a model-based testing framework for .NET. Define state specifications, operations, and expected outcomes, then let Accordant automatically generate and execute comprehensive test cases covering all state transitions.</description>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <tags>accordant model-based testing state specifications fuzzing automated-testing</tags>
+    <dependencies>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="System.Collections.Immutable" version="9.0.7" />
+        <dependency id="System.IO.Hashing" version="9.0.7" />
+        <dependency id="System.Text.Json" version="10.0.3" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\bin\netstandard2.0\Accordant.dll" target="lib\netstandard2.0" />
+    <file src="..\bin\netstandard2.0\Accordant.pdb" target="lib\netstandard2.0" />
+    <file src="..\bin\netstandard2.0\Accordant.Invariant.dll" target="lib\netstandard2.0" />
+    <file src="..\bin\netstandard2.0\Accordant.Invariant.pdb" target="lib\netstandard2.0" />
+    <file src="..\bin\netstandard2.0\Accordant.Choose.dll" target="lib\netstandard2.0" />
+    <file src="..\bin\netstandard2.0\Accordant.Choose.pdb" target="lib\netstandard2.0" />
+    <file src="..\bin\netstandard2.0\Accordant.Operations.dll" target="lib\netstandard2.0" />
+    <file src="..\bin\netstandard2.0\Accordant.Operations.pdb" target="lib\netstandard2.0" />
+    <file src="..\bin\netstandard2.0\Accordant.Operations.Http.dll" target="lib\netstandard2.0" />
+    <file src="..\bin\netstandard2.0\Accordant.Operations.Http.pdb" target="lib\netstandard2.0" />
+    <!-- Source Generator (loaded as analyzer at compile time) -->
+    <file src="..\bin\netstandard2.0\Accordant.SourceGenerator.dll" target="analyzers\dotnet\cs" />
+    <file src="..\README.md" target="docs\readme.md" />
+  </files>
+</package>

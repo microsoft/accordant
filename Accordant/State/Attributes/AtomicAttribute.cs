@@ -6,7 +6,7 @@ namespace Microsoft.Accordant
     using System;
 
     /// <summary>
-    /// This attribute marks a property inside a class marked with the <see cref="StateDefinitionAttribute"/>
+    /// This attribute marks a property inside a class marked with the <see cref="StateAttribute"/>
     /// attribute as being an atomic property. Properties of types like strings, integers, bools etc are already
     /// treated as atomic properties but you might want to treat a complex property (say, List&lt;byte&gt;) as an
     /// atomic property. This attribute can be used to mark such complex properties as atomic. You must provide

@@ -30,7 +30,7 @@ namespace Microsoft.Accordant
     /// <typeparam name="TResponse">The type of response this operation returns.</typeparam>
     /// <typeparam name="TState">The type of state this operation operates on.</typeparam>
     internal class InlineOperation<TRequest, TResponse, TState> : Operation<TRequest, TResponse, TState>, IInlineOperation
-        where TState : State
+        where TState : class, IState
     {
         private readonly Func<TRequest, TState, ExpectedOutcomes> _apply;
         private IReadOnlyList<RequestDerivation> _derivedFrom;

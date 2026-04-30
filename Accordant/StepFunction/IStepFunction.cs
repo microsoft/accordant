@@ -15,7 +15,7 @@ namespace Microsoft.Accordant
         /// <summary>
         /// The next state.
         /// </summary>
-        public State State { get; set; }
+        public IState State { get; set; }
 
         /// <summary>
         /// The list of step functions that should be applied in the next state.
@@ -50,7 +50,7 @@ namespace Microsoft.Accordant
         /// No transition happens if this method returns an empty list
         /// or a null value.
         /// </summary>
-        public IList<StepResult> Apply(State state, IReadOnlyList<(IStepFunction, StateGraphNode)> path);
+        public IList<StepResult> Apply(IState state, IReadOnlyList<(IStepFunction, StateGraphNode)> path);
     }
 
     /// <summary>
@@ -69,38 +69,38 @@ namespace Microsoft.Accordant
 
         /// <summary>
         /// This method locks the state, calls the derived class's
-        /// <see cref="BaseStepFunction.ApplyInternal(State)"/> method
-        /// and locks any updated states returned by that method.
+        /// <see cref="BaseStepFunction.ApplyInternal(IState)"/> method
+        /// and freezes any updated states returned by that method.
         /// </summary>
-        public IList<StepResult> Apply(State state, IReadOnlyList<(IStepFunction, StateGraphNode)> path)
+        public IList<StepResult> Apply(IState state, IReadOnlyList<(IStepFunction, StateGraphNode)> path)
         {
-            state.Lock();
+            state.Freeze();
 
             var stepResults = ApplyInternal(state, path);
 
-            // Validate that JsonState inputs were not mutated by user code
-            if (state is JsonState jsonState)
+            // Validate that State inputs were not mutated by user code
+            if (state is State stateObj)
             {
-                jsonState.ValidateNotMutated();
+                stateObj.ValidateNotMutated();
             }
 
             if (stepResults != null)
             {
                 foreach (var stepResult in stepResults)
                 {
-                    stepResult.State?.Lock();
+                    stepResult.State?.Freeze();
                 }
             }
 
             return stepResults;
         }
 
-        protected virtual IList<StepResult> ApplyInternal(State state)
+        protected virtual IList<StepResult> ApplyInternal(IState state)
         {
             throw new NotImplementedException();
         }
 
-        protected virtual IList<StepResult> ApplyInternal(State state, IReadOnlyList<(IStepFunction, StateGraphNode)> path)
+        protected virtual IList<StepResult> ApplyInternal(IState state, IReadOnlyList<(IStepFunction, StateGraphNode)> path)
         {
             return ApplyInternal(state);
         }
@@ -117,7 +117,7 @@ namespace Microsoft.Accordant
     /// 
     /// For daemon/fire-and-forget step functions that never terminate, use <see cref="BaseStepFunction"/> instead.
     /// 
-    /// For simple cases, use <see cref="AsyncOperation.Create{TState}(Func{TState, bool}, Action{TState})"/> to create 
+    /// For simple cases, use <see cref="AsyncOperation.Create{TState}(Func{TState, bool}, Action{TState}, string)"/> to create 
     /// an async operation inline without defining a class.
     /// </summary>
     public abstract class TerminatingStepFunction : BaseStepFunction
@@ -129,7 +129,7 @@ namespace Microsoft.Accordant
         /// During polling: We keep polling until this returns true for all possible states.
         /// During unwinding: We keep applying step functions until this returns true.
         /// </summary>
-        public abstract Func<State, bool> IsTerminalState { get; }
+        public abstract Func<IState, bool> IsTerminalState { get; }
 
         /// <summary>
         /// Implement this method to define the possible state transitions.
@@ -140,13 +140,13 @@ namespace Microsoft.Accordant
         /// </summary>
         /// <param name="state">The current state (do not mutate directly; clone first).</param>
         /// <returns>The list of possible next states.</returns>
-        protected abstract IList<StepResult> GetStepResults(State state);
+        protected abstract IList<StepResult> GetStepResults(IState state);
 
         /// <summary>
         /// Sealed implementation that handles the terminal check automatically.
         /// Only calls <see cref="GetStepResults"/> when the state is not terminal.
         /// </summary>
-        protected sealed override IList<StepResult> ApplyInternal(State state)
+        protected sealed override IList<StepResult> ApplyInternal(IState state)
         {
             // Already terminal? Nothing to do.
             if (IsTerminalState(state))
@@ -184,7 +184,7 @@ namespace Microsoft.Accordant
         public static TerminatingStepFunction Create<TState>(
             Func<TState, bool> isTerminal,
             Action<TState> transition,
-            string name = null) where TState : State
+            string name = null) where TState : class, IState
         {
             return new AsyncOperation<TState>(
                 isTerminal,
@@ -213,7 +213,7 @@ namespace Microsoft.Accordant
         public static TerminatingStepFunction Create<TState>(
             Func<TState, bool> isTerminal,
             Action<TState>[] transitions,
-            string name = null) where TState : State
+            string name = null) where TState : class, IState
         {
             return new AsyncOperation<TState>(
                 isTerminal,
@@ -226,7 +226,7 @@ namespace Microsoft.Accordant
     /// Sealed implementation of TerminatingStepFunction for inline/factory usage.
     /// Use this for simple async operations. For complex cases, subclass TerminatingStepFunction directly.
     /// </summary>
-    internal sealed class AsyncOperation<TState> : TerminatingStepFunction where TState : State
+    internal sealed class AsyncOperation<TState> : TerminatingStepFunction where TState : class, IState
     {
         private readonly Func<TState, bool> _isTerminal;
         private readonly Action<TState>[] _transitions;
@@ -244,9 +244,9 @@ namespace Microsoft.Accordant
             _name = name;
         }
 
-        public override Func<State, bool> IsTerminalState => state => _isTerminal((TState)state);
+        public override Func<IState, bool> IsTerminalState => state => _isTerminal((TState)state);
 
-        protected override IList<StepResult> GetStepResults(State state)
+        protected override IList<StepResult> GetStepResults(IState state)
         {
             // Each transition gets its own cloned state
             var results = new List<StepResult>();

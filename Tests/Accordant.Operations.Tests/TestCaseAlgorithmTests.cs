@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Tests
+namespace Microsoft.Accordant.Operations.Tests
 {
-    using Microsoft.Accordant;
     using System.Collections.Generic;
     using System.Linq;
-    using NUnit.Framework;
+    using Microsoft.Accordant;
+        using NUnit.Framework;
 
     /// <summary>
     /// Tests for the different test case generation algorithms:
@@ -18,14 +18,6 @@ namespace Microsoft.Accordant.Tests
     public class TestCaseAlgorithmTests
     {
         #region Test Spec - Simple counter with Add and Reset
-
-        /// <summary>
-        /// Simple state: just a counter value.
-        /// </summary>
-        public class CounterState : JsonState
-        {
-            public int Value { get; set; } = 0;
-        }
 
         /// <summary>
         /// Simple spec with Add (increments), Reset (sets to 0), and Get operations.

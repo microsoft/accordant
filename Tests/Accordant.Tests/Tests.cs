@@ -4,416 +4,136 @@
 namespace Microsoft.Accordant.Tests
 {
     using System.Collections.Generic;
+    using Microsoft.Accordant;
     using NUnit.Framework;
 
     [TestFixture]
-    public class DescriptorTests
+    public class StateTests
     {
         [Test]
-        public void DictionaryAtomicStateTests()
+        public void StringDictState_CloneTests()
         {
-            var map = new DictionaryAtomicState<string>();
+            var dictState = new StringDictState();
+            dictState.Map["k"] = "v";
 
-            map["hello"] = "world";
+            var clonedDictState = (StringDictState)dictState.Clone();
+            Assert.That(dictState.GetStateHash(), Is.EqualTo(clonedDictState.GetStateHash()));
 
-            Assert.IsTrue(map.ContainsKey("hello"));
-            Assert.IsTrue(map["hello"] == "world");
-            Assert.IsTrue(map.Count == 1);
+            clonedDictState.Map["k2"] = "v2";
 
-            map.Remove("hello");
-            Assert.IsTrue(!map.ContainsKey("hello"));
-
-            map.Lock();
-
-            Assert.Throws<StateLockedException>(() => map["a"] = "b");
+            Assert.That(dictState.GetStateHash(), Is.Not.EqualTo(clonedDictState.GetStateHash()));
+            Assert.That(dictState.Map.Count, Is.EqualTo(1));
+            Assert.That(clonedDictState.Map.Count, Is.EqualTo(2));
         }
 
         [Test]
-        public void ListAtomicStateTests()
+        public void NestedDictState_CloneTests()
         {
-            var list = new ListAtomicState<string>()
-            {
-                "hello"
-            };
+            var dictState = new NestedDictState();
+            dictState.Map["k"] = new StringValueState { Value = "v" };
 
-            Assert.IsTrue(list.Contains("hello"));
-            Assert.IsTrue(list.Count == 1);
-            Assert.IsTrue(list[0] == "hello");
+            var clonedDictState = (NestedDictState)dictState.Clone();
+            Assert.That(dictState.GetStateHash(), Is.EqualTo(clonedDictState.GetStateHash()));
 
-            list.RemoveAt(0);
+            clonedDictState.Map["k2"] = new StringValueState { Value = "v2" };
 
-            Assert.IsTrue(!list.Contains("hello"));
-            Assert.IsTrue(list.Count == 0);
-
-            list.Lock();
-
-            Assert.Throws<StateLockedException>(() => list.Add("a"));
+            Assert.That(dictState.GetStateHash(), Is.Not.EqualTo(clonedDictState.GetStateHash()));
+            Assert.That(dictState.Map.Count, Is.EqualTo(1));
+            Assert.That(clonedDictState.Map.Count, Is.EqualTo(2));
         }
 
         [Test]
-        public void DictionaryStateCloneTests()
+        public void StringListState_CloneTests()
         {
-            {
-                var dictState = new DictionaryState<AtomicState<string>>();
-                dictState["k"] = new AtomicState<string>("v");
+            var listState = new StringListState();
+            listState.Items.Add("v");
 
-                var clonedDictState = (DictionaryState<AtomicState<string>>)dictState.Clone();
-                Assert.IsTrue(dictState.GetStateHash() == clonedDictState.GetStateHash());
+            var clonedListState = (StringListState)listState.Clone();
+            Assert.That(listState.GetStateHash(), Is.EqualTo(clonedListState.GetStateHash()));
 
-                clonedDictState["k2"] = new AtomicState<string>("v2");
+            clonedListState.Items.Add("v2");
 
-                Assert.IsTrue(dictState.GetStateHash() != clonedDictState.GetStateHash());
-                Assert.IsTrue(dictState.Count == 1);
-                Assert.IsTrue(clonedDictState.Count == 2);
-            }
-
-            {
-                var atomicDictState = new DictionaryAtomicState<string>();
-                atomicDictState["k"] = "v";
-
-                var clonedAtomicDictState = (DictionaryAtomicState<string>)atomicDictState.Clone();
-                Assert.IsTrue(atomicDictState.GetStateHash() == clonedAtomicDictState.GetStateHash());
-
-                clonedAtomicDictState["k2"] = "v2";
-
-                Assert.IsTrue(atomicDictState.GetStateHash() != clonedAtomicDictState.GetStateHash());
-                Assert.IsTrue(atomicDictState.Count == 1);
-                Assert.IsTrue(clonedAtomicDictState.Count == 2);
-            }
+            Assert.That(listState.GetStateHash(), Is.Not.EqualTo(clonedListState.GetStateHash()));
+            Assert.That(listState.Items.Count, Is.EqualTo(1));
+            Assert.That(clonedListState.Items.Count, Is.EqualTo(2));
         }
 
         [Test]
-        public void ListStateCloneTests()
+        public void NestedListState_CloneTests()
         {
-            {
-                var listState = new ListState<AtomicState<string>>();
-                listState.Add(new AtomicState<string>("v"));
+            var listState = new NestedListState();
+            listState.Items.Add(new StringValueState { Value = "v" });
 
-                var clonedListState = (ListState<AtomicState<string>>)listState.Clone();
-                Assert.IsTrue(listState.GetStateHash() == clonedListState.GetStateHash());
+            var clonedListState = (NestedListState)listState.Clone();
+            Assert.That(listState.GetStateHash(), Is.EqualTo(clonedListState.GetStateHash()));
 
-                clonedListState.Add(new AtomicState<string>("v2"));
+            clonedListState.Items.Add(new StringValueState { Value = "v2" });
 
-                Assert.IsTrue(listState.GetStateHash() != clonedListState.GetStateHash());
-                Assert.IsTrue(listState.Count == 1);
-                Assert.IsTrue(clonedListState.Count == 2);
-            }
-
-            {
-                var atomicListState = new ListAtomicState<string>();
-                atomicListState.Add("v");
-
-                var clonedAtomicListState = (ListAtomicState<string>)atomicListState.Clone();
-                Assert.IsTrue(atomicListState.GetStateHash() == clonedAtomicListState.GetStateHash());
-
-                clonedAtomicListState.Add("v2");
-
-                Assert.IsTrue(atomicListState.GetStateHash() != clonedAtomicListState.GetStateHash());
-                Assert.IsTrue(atomicListState.Count == 1);
-                Assert.IsTrue(clonedAtomicListState.Count == 2);
-            }
+            Assert.That(listState.GetStateHash(), Is.Not.EqualTo(clonedListState.GetStateHash()));
+            Assert.That(listState.Items.Count, Is.EqualTo(1));
+            Assert.That(clonedListState.Items.Count, Is.EqualTo(2));
         }
 
         [Test]
-        public void ListStateIListTests()
+        public void StringValueState_FreezeTests()
         {
-            // Add
-            var listState = new ListState<AtomicState<string>>();
-            var element1 = new AtomicState<string>("Test1");
-            listState.Add(element1);
-            Assert.AreEqual(1, listState.Count);
-            Assert.AreEqual(element1, listState[0]);
+            var state = new StringValueState { Value = "test" };
+            Assert.That(state.IsFrozen, Is.False);
 
-            // Remove
-            listState = new ListState<AtomicState<string>>();
-            var element2 = new AtomicState<string>("Test2");
-            listState.Add(element1);
-            listState.Add(element2);
-            listState.Remove(element1);
-            Assert.AreEqual(1, listState.Count);
-            Assert.AreEqual(element2, listState[0]);
+            state.Freeze();
+            Assert.That(state.IsFrozen, Is.True);
 
-            // Indexer
-            listState = new ListState<AtomicState<string>>();
-            listState.Add(element1);
-            listState[0] = element2;
-            Assert.AreEqual(element2, listState[0]);
-
-            // Contains
-            listState = new ListState<AtomicState<string>>();
-            listState.Add(element1);
-            Assert.IsTrue(listState.Contains(element1));
-            Assert.IsFalse(listState.Contains(element2));
-
-            // IndexOf
-            listState = new ListState<AtomicState<string>>();
-            listState.Add(element1);
-            listState.Add(element2);
-            Assert.AreEqual(1, listState.IndexOf(element2));
-
-            // Insert
-            listState = new ListState<AtomicState<string>>();
-            listState.Add(element2);
-            listState.Insert(0, element1);
-            Assert.AreEqual(0, listState.IndexOf(element1));
-            Assert.AreEqual(1, listState.IndexOf(element2));
-
-            // RemoveAt
-            listState = new ListState<AtomicState<string>>();
-            listState.Add(element1);
-            listState.Add(element2);
-            listState.RemoveAt(0);
-            Assert.AreEqual(1, listState.Count);
-            Assert.AreEqual(element2, listState[0]);
-
-            // Clear
-            listState = new ListState<AtomicState<string>>();
-            listState.Add(element1);
-            listState.Add(element2);
-            listState.Clear();
-            Assert.AreEqual(0, listState.Count);
-
-            // CopyTo
-            listState = new ListState<AtomicState<string>>();
-            listState.Add(element1);
-            listState.Add(element2);
-            var array = new AtomicState<string>[2];
-            listState.CopyTo(array, 0);
-            Assert.AreEqual(element1, array[0]);
-            Assert.AreEqual(element2, array[1]);
-
-            // IsReadOnly
-            listState = new ListState<AtomicState<string>>();
-            Assert.IsFalse(listState.IsReadOnly);
+            // Verify hash is computed after freeze
+            var hash1 = state.GetStateHash();
+            var hash2 = state.GetStateHash();
+            Assert.That(hash1, Is.EqualTo(hash2));
         }
 
         [Test]
-        public void ListAtomicStateIListTests()
+        public void IntValueState_HashDiffers()
         {
-            // Add
-            var listState = new ListAtomicState<string>();
-            var element1 = "Test1";
-            listState.Add(element1);
-            Assert.AreEqual(1, listState.Count);
-            Assert.AreEqual(element1, listState[0]);
+            var state1 = new IntValueState { Value = 1 };
+            var state2 = new IntValueState { Value = 2 };
+            var state3 = new IntValueState { Value = 1 };
 
-            // Remove
-            listState = new ListAtomicState<string>();
-            var element2 = "Test2";
-            listState.Add(element1);
-            listState.Add(element2);
-            listState.Remove(element1);
-            Assert.AreEqual(1, listState.Count);
-            Assert.AreEqual(element2, listState[0]);
+            state1.Freeze();
+            state2.Freeze();
+            state3.Freeze();
 
-            // Indexer
-            listState = new ListAtomicState<string>();
-            listState.Add(element1);
-            listState[0] = element2;
-            Assert.AreEqual(element2, listState[0]);
-
-            // Contains
-            listState = new ListAtomicState<string>();
-            listState.Add(element1);
-            Assert.IsTrue(listState.Contains(element1));
-            Assert.IsFalse(listState.Contains(element2));
-
-            // IndexOf
-            listState = new ListAtomicState<string>();
-            listState.Add(element1);
-            listState.Add(element2);
-            Assert.AreEqual(1, listState.IndexOf(element2));
-
-            // Insert
-            listState = new ListAtomicState<string>();
-            listState.Add(element2);
-            listState.Insert(0, element1);
-            Assert.AreEqual(0, listState.IndexOf(element1));
-            Assert.AreEqual(1, listState.IndexOf(element2));
-
-            // RemoveAt
-            listState = new ListAtomicState<string>();
-            listState.Add(element1);
-            listState.Add(element2);
-            listState.RemoveAt(0);
-            Assert.AreEqual(1, listState.Count);
-            Assert.AreEqual(element2, listState[0]);
-
-            // Clear
-            listState = new ListAtomicState<string>();
-            listState.Add(element1);
-            listState.Add(element2);
-            listState.Clear();
-            Assert.AreEqual(0, listState.Count);
-
-            // CopyTo
-            listState = new ListAtomicState<string>();
-            listState.Add(element1);
-            listState.Add(element2);
-            var array = new string[2];
-            listState.CopyTo(array, 0);
-            Assert.AreEqual(element1, array[0]);
-            Assert.AreEqual(element2, array[1]);
-
-            // IsReadOnly
-            listState = new ListAtomicState<string>();
-            Assert.IsFalse(listState.IsReadOnly);
+            Assert.That(state1.GetStateHash(), Is.Not.EqualTo(state2.GetStateHash()));
+            Assert.That(state1.GetStateHash(), Is.EqualTo(state3.GetStateHash()));
         }
 
         [Test]
-        public void DictionaryStateIDictonaryTests()
+        public void NestedState_DeepClone()
         {
-            // Add and Indexer
-            var dictionaryState = new DictionaryState<AtomicState<string>>();
-            var key1 = "Key1";
-            var value1 = new AtomicState<string>("Value1");
-            dictionaryState.Add(key1, value1);
-            Assert.AreEqual(1, dictionaryState.Count);
-            Assert.AreEqual(value1, dictionaryState[key1]);
+            var outer = new NestedListState();
+            outer.Items.Add(new StringValueState { Value = "original" });
 
-            // Remove
-            var key2 = "Key2";
-            var value2 = new AtomicState<string>("Value2");
-            dictionaryState.Add(key2, value2);
-            dictionaryState.Remove(key1);
-            Assert.AreEqual(1, dictionaryState.Count);
-            Assert.AreEqual(value2, dictionaryState[key2]);
+            var cloned = (NestedListState)outer.Clone();
 
-            // ContainsKey
-            dictionaryState = new DictionaryState<AtomicState<string>>();
-            dictionaryState.Add(key1, value1);
-            Assert.IsTrue(dictionaryState.ContainsKey(key1));
-            Assert.IsFalse(dictionaryState.ContainsKey(key2));
+            // Modify cloned nested state
+            cloned.Items[0].Value = "modified";
 
-            // TryGetValue
-            dictionaryState = new DictionaryState<AtomicState<string>>();
-            dictionaryState.Add(key1, value1);
-            Assert.IsTrue(dictionaryState.TryGetValue(key1, out var retrievedValue));
-            Assert.AreEqual(value1, retrievedValue);
-            Assert.IsFalse(dictionaryState.TryGetValue(key2, out _));
-
-            // Keys and Values
-            dictionaryState = new DictionaryState<AtomicState<string>>();
-            dictionaryState.Add(key1, value1);
-            dictionaryState.Add(key2, value2);
-            var keys = dictionaryState.Keys;
-            var values = dictionaryState.Values;
-            CollectionAssert.AreEquivalent(new[] { key1, key2 }, keys);
-            CollectionAssert.AreEquivalent(new[] { value1, value2 }, values);
-
-            // Add KeyValuePair
-            dictionaryState = new DictionaryState<AtomicState<string>>();
-            var kvp = new KeyValuePair<string, AtomicState<string>>(key1, value1);
-            dictionaryState.Add(kvp);
-            Assert.AreEqual(1, dictionaryState.Count);
-            Assert.AreEqual(value1, dictionaryState[key1]);
-
-            // Contains KeyValuePair
-            Assert.IsTrue(dictionaryState.Contains(kvp));
-            var kvp2 = new KeyValuePair<string, AtomicState<string>>(key2, value2);
-            Assert.IsFalse(dictionaryState.Contains(kvp2));
-
-            // Remove KeyValuePair
-            dictionaryState.Remove(kvp);
-            Assert.AreEqual(0, dictionaryState.Count);
-
-            // Clear
-            dictionaryState = new DictionaryState<AtomicState<string>>();
-            dictionaryState.Add(key1, value1);
-            dictionaryState.Add(key2, value2);
-            dictionaryState.Clear();
-            Assert.AreEqual(0, dictionaryState.Count);
-
-            // CopyTo
-            dictionaryState = new DictionaryState<AtomicState<string>>();
-            dictionaryState.Add(key1, value1);
-            dictionaryState.Add(key2, value2);
-            var array = new KeyValuePair<string, AtomicState<string>>[2];
-            dictionaryState.CopyTo(array, 0);
-            CollectionAssert.Contains(array, new KeyValuePair<string, AtomicState<string>>(key1, value1));
-            CollectionAssert.Contains(array, new KeyValuePair<string, AtomicState<string>>(key2, value2));
-
-            // IsReadOnly
-            dictionaryState = new DictionaryState<AtomicState<string>>();
-            Assert.IsFalse(dictionaryState.IsReadOnly);
+            // Original should be unchanged (deep clone)
+            Assert.That(outer.Items[0].Value, Is.EqualTo("original"));
+            Assert.That(cloned.Items[0].Value, Is.EqualTo("modified"));
         }
 
         [Test]
-        public void DictionaryAtomicStateIDictionaryTests()
+        public void NestedDictState_DeepClone()
         {
-            // Add and Indexer
-            var dictionaryState = new DictionaryAtomicState<string>();
-            var key1 = "Key1";
-            var value1 = "Value1";
-            dictionaryState.Add(key1, value1);
-            Assert.AreEqual(1, dictionaryState.Count);
-            Assert.AreEqual(value1, dictionaryState[key1]);
+            var outer = new NestedDictState();
+            outer.Map["key"] = new StringValueState { Value = "original" };
 
-            // Remove
-            var key2 = "Key2";
-            var value2 = "Value2";
-            dictionaryState.Add(key2, value2);
-            dictionaryState.Remove(key1);
-            Assert.AreEqual(1, dictionaryState.Count);
-            Assert.AreEqual(value2, dictionaryState[key2]);
+            var cloned = (NestedDictState)outer.Clone();
 
-            // ContainsKey
-            dictionaryState = new DictionaryAtomicState<string>();
-            dictionaryState.Add(key1, value1);
-            Assert.IsTrue(dictionaryState.ContainsKey(key1));
-            Assert.IsFalse(dictionaryState.ContainsKey(key2));
+            // Modify cloned nested state
+            cloned.Map["key"].Value = "modified";
 
-            // TryGetValue
-            dictionaryState = new DictionaryAtomicState<string>();
-            dictionaryState.Add(key1, value1);
-            Assert.IsTrue(dictionaryState.TryGetValue(key1, out var retrievedValue));
-            Assert.AreEqual(value1, retrievedValue);
-            Assert.IsFalse(dictionaryState.TryGetValue(key2, out _));
-
-            // Keys and Values
-            dictionaryState = new DictionaryAtomicState<string>();
-            dictionaryState.Add(key1, value1);
-            dictionaryState.Add(key2, value2);
-            var keys = dictionaryState.Keys;
-            var values = dictionaryState.Values;
-            CollectionAssert.AreEquivalent(new[] { key1, key2 }, keys);
-            CollectionAssert.AreEquivalent(new[] { value1, value2 }, values);
-
-            // Add KeyValuePair
-            dictionaryState = new DictionaryAtomicState<string>();
-            var kvp = new KeyValuePair<string, string>(key1, value1);
-            dictionaryState.Add(kvp);
-            Assert.AreEqual(1, dictionaryState.Count);
-            Assert.AreEqual(value1, dictionaryState[key1]);
-
-            // Contains KeyValuePair
-            Assert.IsTrue(dictionaryState.Contains(kvp));
-            var kvp2 = new KeyValuePair<string, string>(key2, value2);
-            Assert.IsFalse(dictionaryState.Contains(kvp2));
-
-            // Remove KeyValuePair
-            dictionaryState.Remove(kvp);
-            Assert.AreEqual(0, dictionaryState.Count);
-
-            // Clear
-            dictionaryState = new DictionaryAtomicState<string>();
-            dictionaryState.Add(key1, value1);
-            dictionaryState.Add(key2, value2);
-            dictionaryState.Clear();
-            Assert.AreEqual(0, dictionaryState.Count);
-
-            // CopyTo
-            dictionaryState = new DictionaryAtomicState<string>();
-            dictionaryState.Add(key1, value1);
-            dictionaryState.Add(key2, value2);
-            var array = new KeyValuePair<string, string>[2];
-            dictionaryState.CopyTo(array, 0);
-            CollectionAssert.Contains(array, new KeyValuePair<string, string>(key1, value1));
-            CollectionAssert.Contains(array, new KeyValuePair<string, string>(key2, value2));
-
-            // IsReadOnly
-            dictionaryState = new DictionaryAtomicState<string>();
-            Assert.IsFalse(dictionaryState.IsReadOnly);
+            // Original should be unchanged (deep clone)
+            Assert.That(outer.Map["key"].Value, Is.EqualTo("original"));
+            Assert.That(cloned.Map["key"].Value, Is.EqualTo("modified"));
         }
     }
 }

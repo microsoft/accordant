@@ -1,47 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Tests
+namespace Microsoft.Accordant.Operations.Tests
 {
-    using Microsoft.Accordant;
     using System;
     using System.Collections.Generic;
-    using NUnit.Framework;
-    using static Accordant.Tests.OperationTests;
-
-    /// <summary>
-    /// Helper class for value comparison (simplified version that handles BlogPost objects).
-    /// </summary>
-    internal static class TypeHelper
-    {
-        public static bool AreValuesEqual(object v1, object v2)
-        {
-            if (v1 == null && v2 == null) return true;
-            if (v1 == null || v2 == null) return false;
-            if (v1.GetType() != v2.GetType()) return false;
-            
-            // For primitive types and strings, use Equals
-            var type = v1.GetType();
-            if (type.IsPrimitive || type == typeof(string) || type == typeof(decimal))
-            {
-                return v1.Equals(v2);
-            }
-            
-            // For complex objects, compare fields/properties using reflection
-            var properties = type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            foreach (var prop in properties)
-            {
-                var val1 = prop.GetValue(v1);
-                var val2 = prop.GetValue(v2);
-                if (!AreValuesEqual(val1, val2))
-                {
-                    return false;
-                }
-            }
-            
-            return true;
-        }
-    }
+        using NUnit.Framework;
+    using static Microsoft.Accordant.Operations.Tests.OperationTests;
 
     [TestFixture]
     public class SerializationTests
@@ -60,7 +25,7 @@ namespace Microsoft.Accordant.Tests
                 })
             };
 
-            var startingState = new DictionaryState<DictionaryState<AtomicState<string>>>();
+            var startingState = new BlogPostsState();
 
             var seqTestCases = spec.GenerateTests(
                 startingState,
@@ -225,7 +190,19 @@ namespace Microsoft.Accordant.Tests
                     e1.DerivedFromOperationCalls,
                     e2.DerivedFromOperationCalls,
                     AreOperationCallsSame) &&
-                TypeHelper.AreValuesEqual(e1.Request, e2.Request);
+                AreRequestsEqual(e1.Request, e2.Request);
+        }
+
+        private static bool AreRequestsEqual(object r1, object r2)
+        {
+            if (r1 == null) return r2 == null;
+            if (r2 == null) return false;
+            if (r1.GetType() != r2.GetType()) return false;
+            
+            // Use JSON serialization for deep comparison
+            var json1 = System.Text.Json.JsonSerializer.Serialize(r1);
+            var json2 = System.Text.Json.JsonSerializer.Serialize(r2);
+            return json1 == json2;
         }
 
         private static bool ArePollingSetupsSame(

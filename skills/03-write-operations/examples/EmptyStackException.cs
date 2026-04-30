@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Examples;
+namespace Microsoft.Accordant;
 
 /// <summary>
 /// Custom exception for empty stack operations.

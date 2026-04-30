@@ -28,11 +28,11 @@ namespace Microsoft.Accordant
         {
             var testCases = new List<SequentialTestCase>();
 
-            void Recurse(StateGraphNode node, List<string> path, List<OperationCall> operationCalls)
+            void Recurse(StateGraphNode node, HashSet<ulong> visitedHashes, List<OperationCall> operationCalls)
             {
                 var stateHash = node.State.GetStateHash();
 
-                if (node.Edges.Count == 0 || path.Contains(stateHash))
+                if (node.Edges.Count == 0 || visitedHashes.Contains(stateHash))
                 {
                     testCases.Add(new SequentialTestCase()
                     {
@@ -43,21 +43,21 @@ namespace Microsoft.Accordant
                     return;
                 }
 
-                path.Add(stateHash);
+                visitedHashes.Add(stateHash);
 
                 foreach (var edge in node.Edges)
                 {
                     operationCalls.Add((OperationCall)edge.Metadata);
-                    Recurse(edge.Target, path, operationCalls);
+                    Recurse(edge.Target, visitedHashes, operationCalls);
                     operationCalls.RemoveAt(operationCalls.Count - 1);
                 }
 
-                path.RemoveAt(path.Count - 1);
+                visitedHashes.Remove(stateHash);
             }
 
             Recurse(
                 rootNode,
-                path: new List<string>(),
+                visitedHashes: new HashSet<ulong>(),
                 operationCalls: new List<OperationCall>());
 
             return testCases;

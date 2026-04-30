@@ -3,16 +3,25 @@
 
 namespace Microsoft.Accordant
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
-    /// A contract step function uses a contract, request and observed response to define
-    /// a step function. It is enabled if the contract deems the observed response to be
-    /// valid given the request and the state on which the step function is evaluated.
-    /// If the contract step function is valid (thus enabled), it invokes the contract passing
-    /// in the request, state and observed state to product the updated state and an optional
-    /// step function that runs concurrently with the rest of the system.
+    /// A delegate that verifies whether an observed response is valid given a request and state.
+    /// Returns (isValid, stateProfile) where stateProfile contains the updated state(s) if valid.
+    /// </summary>
+    public delegate (bool IsValid, StateProfile StateProfile) VerifyFunc(
+        object request,
+        IState state,
+        object observedResponse);
+
+    /// <summary>
+    /// A step function that verifies an observed response against an expected behavior.
+    /// It is enabled if the verify function deems the observed response to be valid given
+    /// the request and the state on which the step function is evaluated.
+    /// If valid, it produces the updated state and any optional step functions that run
+    /// concurrently with the rest of the system.
     /// </summary>
     public class ContractStepFunction : BaseStepFunction
     {
@@ -20,21 +29,21 @@ namespace Microsoft.Accordant
 
         public object ObservedResponse { get; private set; }
 
-        public IContract Contract { get; private set; }
+        public VerifyFunc Verify { get; private set; }
 
         public ContractStepFunction(
             object request,
             object observedResponse,
-            IContract contract)
+            VerifyFunc verify)
         {
             Request = request;
             ObservedResponse = observedResponse;
-            Contract = contract;
+            Verify = verify ?? throw new ArgumentNullException(nameof(verify));
         }
 
-        protected override IList<StepResult> ApplyInternal(State state)
+        protected override IList<StepResult> ApplyInternal(IState state)
         {
-            var (valid, stateProfile) = Contract.Verify(
+            var (valid, stateProfile) = Verify(
                 Request,
                 state,
                 ObservedResponse);

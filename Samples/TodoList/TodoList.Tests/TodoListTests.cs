@@ -7,8 +7,39 @@ namespace TodoList.Tests
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Accordant;
-    using NUnit.Framework;
+        using NUnit.Framework;
     using TodoList.Api.Contracts;
+
+    // ============================================================
+    // State Definition
+    // ============================================================
+
+    /// <summary>
+    /// State tracks users and their todos.
+    /// Compare this to the implementation: 2 Controllers + 2 Entities + EF DbContext + SQLite + WriteLock!
+    /// </summary>
+    [State]
+    public partial class AppState
+    {
+        /// <summary>
+        /// Dictionary of users. Key = userId, Value = user with their todos.
+        /// </summary>
+        public Dictionary<string, UserState> Users { get; set; } = new();
+    }
+
+    [State]
+    public partial class UserState
+    {
+        public string Name { get; set; } = string.Empty;
+        public Dictionary<string, TodoState> Todos { get; set; } = new();
+    }
+
+    [State]
+    public partial class TodoState
+    {
+        public string Title { get; set; } = string.Empty;
+        public bool Completed { get; set; } = false;
+    }
 
     /// <summary>
     /// Accordant tests for the TodoList REST API.
@@ -22,34 +53,6 @@ namespace TodoList.Tests
     [TestFixture]
     public class TodoListTests
     {
-        // ============================================================
-        // State Definition
-        // ============================================================
-
-        /// <summary>
-        /// State tracks users and their todos.
-        /// Compare this to the implementation: 2 Controllers + 2 Entities + EF DbContext + SQLite + WriteLock!
-        /// </summary>
-        public class AppState : JsonState
-        {
-            /// <summary>
-            /// Dictionary of users. Key = userId, Value = user with their todos.
-            /// </summary>
-            public Dictionary<string, UserState> Users { get; set; } = new();
-
-            public class UserState
-            {
-                public string Name { get; set; } = string.Empty;
-                public Dictionary<string, TodoState> Todos { get; set; } = new();
-            }
-
-            public class TodoState
-            {
-                public string Title { get; set; } = string.Empty;
-                public bool Completed { get; set; } = false;
-            }
-        }
-
         // ============================================================
         // API Result - captures success data OR error
         // ============================================================
@@ -86,7 +89,7 @@ namespace TodoList.Tests
                                 r.Data.UserId == request.UserId &&
                                 r.Data.Name == request.Name,
                            $"Should return 200 OK with created user '{request.UserId}'")
-                       .ThenState<AppState>(nextState => nextState.Users[request.UserId] = new AppState.UserState
+                       .ThenState<AppState>(nextState => nextState.Users[request.UserId] = new UserState
                        {
                            Name = request.Name,
                            Todos = new()
@@ -164,7 +167,7 @@ namespace TodoList.Tests
                                 r.Data.Title == request.Title &&
                                 r.Data.Completed == false,
                            $"Should return 200 OK with created todo '{request.TodoId}'")
-                       .ThenState<AppState>(nextState => nextState.Users[request.UserId].Todos[request.TodoId] = new AppState.TodoState
+                       .ThenState<AppState>(nextState => nextState.Users[request.UserId].Todos[request.TodoId] = new TodoState
                        {
                            Title = request.Title,
                            Completed = false
@@ -215,7 +218,7 @@ namespace TodoList.Tests
                 return Expect.That<ApiResult<Todo>>(
                            r => r.IsSuccess && r.Data != null && r.Data.Completed == true,
                            $"Should return 200 OK with todo '{request.TodoId}' marked as completed")
-                       .ThenState<AppState>(nextState => nextState.Users[request.UserId].Todos[request.TodoId] = new AppState.TodoState
+                       .ThenState<AppState>(nextState => nextState.Users[request.UserId].Todos[request.TodoId] = new TodoState
                        {
                            Title = todo.Title,
                            Completed = true

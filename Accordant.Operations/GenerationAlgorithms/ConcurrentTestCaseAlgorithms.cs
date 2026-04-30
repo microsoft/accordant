@@ -31,16 +31,16 @@ namespace Microsoft.Accordant
             {
                 var testCases = new List<ConcurrentTestCase>();
 
-                void Recurse(StateGraphNode node, List<string> path, List<OperationCall> operationCalls)
+                void Recurse(StateGraphNode node, HashSet<ulong> visitedHashes, List<OperationCall> operationCalls)
                 {
                     var stateHash = node.State.GetStateHash();
 
-                    if (path.Contains(stateHash))
+                    if (visitedHashes.Contains(stateHash))
                     {
                         return;
                     }
 
-                    path.Add(stateHash);
+                    visitedHashes.Add(stateHash);
 
                     var sequentialPrefix = operationCalls.ToList();
 
@@ -114,16 +114,16 @@ namespace Microsoft.Accordant
                     foreach (var edge in node.Edges)
                     {
                         operationCalls.Add((OperationCall)edge.Metadata);
-                        Recurse(edge.Target, path, operationCalls);
+                        Recurse(edge.Target, visitedHashes, operationCalls);
                         operationCalls.RemoveAt(operationCalls.Count - 1);
                     }
 
-                    path.RemoveAt(path.Count - 1);
+                    visitedHashes.Remove(stateHash);
                 }
 
                 Recurse(
                     rootNode,
-                    path: new List<string>(),
+                    visitedHashes: new HashSet<ulong>(),
                     operationCalls: new List<OperationCall>());
 
                 return testCases;
