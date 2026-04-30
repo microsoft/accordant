@@ -1,42 +1,24 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Tests
+namespace Microsoft.Accordant.Operations.Tests
 {
-    using Microsoft.Accordant;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using NUnit.Framework;
+    using Microsoft.Accordant;
+        using NUnit.Framework;
 
     /// <summary>
-    /// Helper class to provide Descriptor-like API using ResponseValidator (no Descriptors dependency).
+    /// Test helper to create ResponseValidators that check for equality.
+    /// Replaces Descriptor.FromValue functionality for tests.
     /// </summary>
     internal static class Descriptor
     {
-        public static ResponseValidator FromValue<T>(T expected)
+        public static ResponseValidator FromValue<T>(T expectedValue)
         {
-            return ResponseValidator.FromPredicate<T>(actual => Equals(actual, expected));
-        }
-    }
-
-    /// <summary>
-    /// Helper class to provide PredicateDescriptor-like API using ResponseValidator.
-    /// </summary>
-    internal class PredicateDescriptor<T>
-    {
-        private readonly Func<T, bool> _predicate;
-
-        public PredicateDescriptor(Func<object, T, bool> predicate)
-        {
-            // Context is not used in this simplified version
-            _predicate = value => predicate(null, value);
-        }
-
-        public static implicit operator ResponseValidator(PredicateDescriptor<T> descriptor)
-        {
-            return ResponseValidator.FromPredicate<T>(descriptor._predicate);
+            return ResponseValidator.FromPredicate<T>(response => Equals(response, expectedValue));
         }
     }
 
@@ -51,7 +33,7 @@ namespace Microsoft.Accordant.Tests
         public void SimpleOperationValidationTests()
         {
             var spec = new SimpleOperations.SimpleSpec();
-            var stateProfile = new StateProfile(new AtomicState<int>(1));
+            var stateProfile = new StateProfile(new CounterState(1));
 
             (var success, var message, stateProfile) = spec.Allows(
                 spec.Mirror,
@@ -74,8 +56,8 @@ namespace Microsoft.Accordant.Tests
 
             stateProfile = new StateProfile(new State[]
             {
-                new AtomicState<int>(1),
-                new AtomicState<int>(2)
+                new CounterState(1),
+                new CounterState(2)
             });
 
             (success, var secondMessage, stateProfile) = spec.Allows(
@@ -93,7 +75,7 @@ namespace Microsoft.Accordant.Tests
         public void SimpleOperationConcurrentValidationTests()
         {
             var spec = new SimpleOperations.SimpleSpec();
-            var stateProfile = new StateProfile(new AtomicState<int>(1));
+            var stateProfile = new StateProfile(new CounterState(1));
 
             // AllowsConcurrent validates concurrent operation responses
             (var success, var message, stateProfile) = spec.AllowsConcurrent(
@@ -124,7 +106,7 @@ namespace Microsoft.Accordant.Tests
         public async Task AddOnlyListTest()
         {
             var spec = new AddOnlyListSpec();
-            var initialState = new ListState<AtomicState<int>>();
+            var initialState = new CounterListState();
 
             var operations = new InputSet()
             {
@@ -150,7 +132,7 @@ namespace Microsoft.Accordant.Tests
         public async Task BlogPostServiceTest()
         {
             var spec = new BlogPostServiceSpec();
-            var initialState = new DictionaryState<DictionaryState<AtomicState<string>>>();
+            var initialState = new BlogPostsState();
 
             var operations = new InputSet()
             {
@@ -208,7 +190,7 @@ namespace Microsoft.Accordant.Tests
                         "Add")
                 };
 
-                var startingState = new DictionaryState<DictionaryState<AtomicState<string>>>();
+                var startingState = new BlogPostsState();
 
                 var dotFileContents = spec.VisualizeStateSpace(
                     startingState,
@@ -294,7 +276,7 @@ namespace Microsoft.Accordant.Tests
 
         public class SimpleOperations
         {
-            public class SimpleSpec : Spec<AtomicState<int>>
+            public class SimpleSpec : Spec<CounterState>
             {
                 public MirrorOperation Mirror { get; } = new();
 
@@ -304,11 +286,11 @@ namespace Microsoft.Accordant.Tests
                 }
             }
 
-            public class MirrorOperation : Operation<int, int, AtomicState<int>>
+            public class MirrorOperation : Operation<int, int, CounterState>
             {
                 public MirrorOperation() : base("Mirror") { }
 
-                public override ExpectedOutcomes Apply(int request, AtomicState<int> state)
+                public override ExpectedOutcomes Apply(int request, CounterState state)
                 {
                     return new ExpectedOutcome(
                         Descriptor.FromValue(request),
@@ -336,7 +318,7 @@ namespace Microsoft.Accordant.Tests
             }
         }
 
-        public class AddOnlyListSpec : Spec<ListState<AtomicState<int>>>
+        public class AddOnlyListSpec : Spec<CounterListState>
         {
             public AddOperation AddOp { get; } = new();
             public CountOperation Count { get; } = new();
@@ -347,14 +329,14 @@ namespace Microsoft.Accordant.Tests
             }
         }
 
-        public class AddOperation : Operation<int, Unit, ListState<AtomicState<int>>>
+        public class AddOperation : Operation<int, Unit, CounterListState>
         {
             public AddOperation() : base("Add") { }
 
-            public override ExpectedOutcomes Apply(int request, ListState<AtomicState<int>> state)
+            public override ExpectedOutcomes Apply(int request, CounterListState state)
             {
-                var updatedState = (ListState<AtomicState<int>>)state.Clone();
-                updatedState.Add(new AtomicState<int>(request));
+                var updatedState = (CounterListState)state.Clone();
+                updatedState.Items.Add(new CounterState(request));
 
                 return new ExpectedOutcome(
                     Descriptor.FromValue(Unit.Value),
@@ -368,14 +350,14 @@ namespace Microsoft.Accordant.Tests
             }
         }
 
-        public class CountOperation : Operation<Unit, int, ListState<AtomicState<int>>>
+        public class CountOperation : Operation<Unit, int, CounterListState>
         {
             public CountOperation() : base("Count") { }
 
-            public override ExpectedOutcomes Apply(Unit request, ListState<AtomicState<int>> state)
+            public override ExpectedOutcomes Apply(Unit request, CounterListState state)
             {
                 return new ExpectedOutcome(
-                    Descriptor.FromValue(state.Count),
+                    Descriptor.FromValue(state.Items.Count),
                     state);
             }
 
@@ -468,7 +450,7 @@ namespace Microsoft.Accordant.Tests
             }
         }
 
-        public class BlogPostServiceSpec : Spec<DictionaryState<DictionaryState<AtomicState<string>>>>
+        public class BlogPostServiceSpec : Spec<BlogPostsState>
         {
             public AddBlogPostOperation AddOp { get; } = new();
             public UpdateBlogPostOperation Update { get; } = new();
@@ -480,25 +462,25 @@ namespace Microsoft.Accordant.Tests
             }
         }
 
-        public class AddBlogPostOperation : Operation<BlogPost, string, DictionaryState<DictionaryState<AtomicState<string>>>>
+        public class AddBlogPostOperation : Operation<BlogPost, string, BlogPostsState>
         {
             public AddBlogPostOperation() : base("Add") { }
 
-            public override ExpectedOutcomes Apply(BlogPost request, DictionaryState<DictionaryState<AtomicState<string>>> state)
+            public override ExpectedOutcomes Apply(BlogPost request, BlogPostsState state)
             {
                 return new ExpectedOutcome(
-                    new PredicateDescriptor<string>((c, v) => Guid.TryParse(v, out _)),
+                    ResponseValidator.FromPredicate<string>(v => Guid.TryParse(v, out _)),
                     (response) =>
                     {
                         var id = (string)response;
 
-                        var updatedState = (DictionaryState<DictionaryState<AtomicState<string>>>)state.Clone();
+                        var updatedState = (BlogPostsState)state.Clone();
 
-                        updatedState[id] = new DictionaryState<AtomicState<string>>();
-                        updatedState[id][nameof(BlogPost.Name)] =
-                            new AtomicState<string>(request.Name);
-                        updatedState[id][nameof(BlogPost.Content)] =
-                            new AtomicState<string>(request.Content);
+                        updatedState.Posts[id] = new BlogPostEntryState
+                        {
+                            Name = request.Name,
+                            Content = request.Content
+                        };
 
                         return updatedState;
                     },
@@ -514,27 +496,27 @@ namespace Microsoft.Accordant.Tests
             }
         }
 
-        public class GetBlogPostOperation : Operation<string, BlogPost, DictionaryState<DictionaryState<AtomicState<string>>>>
+        public class GetBlogPostOperation : Operation<string, BlogPost, BlogPostsState>
         {
             public GetBlogPostOperation() : base("Get") { }
 
-            public override ExpectedOutcomes Apply(string id, DictionaryState<DictionaryState<AtomicState<string>>> state)
+            public override ExpectedOutcomes Apply(string id, BlogPostsState state)
             {
-                if (!state.ContainsKey(id))
+                if (!state.Posts.ContainsKey(id))
                 {
                     return new ExpectedOutcome(
                         Descriptor.FromValue<BlogPost>(null),
                         state);
                 }
 
-                var blogPostState = state[id];
+                var blogPostState = state.Posts[id];
 
                 return new ExpectedOutcome(
                     Descriptor.FromValue(new BlogPost()
                     {
                         Id = id,
-                        Name = blogPostState[nameof(BlogPost.Name)].Value,
-                        Content = blogPostState[nameof(BlogPost.Content)].Value
+                        Name = blogPostState.Name,
+                        Content = blogPostState.Content
                     }),
                     state);
             }
@@ -548,27 +530,25 @@ namespace Microsoft.Accordant.Tests
             }
         }
 
-        public class UpdateBlogPostOperation : Operation<BlogPost, bool, DictionaryState<DictionaryState<AtomicState<string>>>>
+        public class UpdateBlogPostOperation : Operation<BlogPost, bool, BlogPostsState>
         {
             public UpdateBlogPostOperation() : base("Update") { }
 
-            public override ExpectedOutcomes Apply(BlogPost request, DictionaryState<DictionaryState<AtomicState<string>>> state)
+            public override ExpectedOutcomes Apply(BlogPost request, BlogPostsState state)
             {
                 var id = request.Id;
 
                 if (id == null ||
-                    !state.ContainsKey(id))
+                    !state.Posts.ContainsKey(id))
                 {
                     return new ExpectedOutcome(
                         Descriptor.FromValue(false),
                         state);
                 }
 
-                var updatedState = (DictionaryState<DictionaryState<AtomicState<string>>>)state.Clone();
-                var updatedBlogPostState = updatedState[id];
-
-                updatedBlogPostState[nameof(BlogPost.Name)] = new AtomicState<string>(request.Name);
-                updatedBlogPostState[nameof(BlogPost.Content)] = new AtomicState<string>(request.Content);
+                var updatedState = (BlogPostsState)state.Clone();
+                updatedState.Posts[id].Name = request.Name;
+                updatedState.Posts[id].Content = request.Content;
 
                 return new ExpectedOutcome(
                     Descriptor.FromValue(true),
@@ -611,21 +591,21 @@ namespace Microsoft.Accordant.Tests
             };
         }
 
-        public class DeleteBlogPostOperation : Operation<string, bool, DictionaryState<DictionaryState<AtomicState<string>>>>
+        public class DeleteBlogPostOperation : Operation<string, bool, BlogPostsState>
         {
             public DeleteBlogPostOperation() : base("Delete") { }
 
-            public override ExpectedOutcomes Apply(string id, DictionaryState<DictionaryState<AtomicState<string>>> state)
+            public override ExpectedOutcomes Apply(string id, BlogPostsState state)
             {
-                if (!state.ContainsKey(id))
+                if (!state.Posts.ContainsKey(id))
                 {
                     return new ExpectedOutcome(
                         Descriptor.FromValue(false),
                         state);
                 }
 
-                var updatedState = (DictionaryState<DictionaryState<AtomicState<string>>>)state.Clone();
-                updatedState.Remove(id);
+                var updatedState = (BlogPostsState)state.Clone();
+                updatedState.Posts.Remove(id);
 
                 return new ExpectedOutcome(
                     Descriptor.FromValue(true),
@@ -655,7 +635,7 @@ namespace Microsoft.Accordant.Tests
         public void PredicateBasedExpectedOutcome_SimpleBoolTrue_ValidationPasses()
         {
             var spec = new PredicateOperations.PredicateSpec();
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
             var stateProfile = new StateProfile(state);
 
             (var success, var message, var resultProfile) = spec.Allows(
@@ -672,7 +652,7 @@ namespace Microsoft.Accordant.Tests
         public void PredicateBasedExpectedOutcome_SimpleBoolFalse_ValidationFails()
         {
             var spec = new PredicateOperations.PredicateSpec();
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
             var stateProfile = new StateProfile(state);
 
             (var success, var message, var resultProfile) = spec.Allows(
@@ -689,7 +669,7 @@ namespace Microsoft.Accordant.Tests
         public void PredicateBasedExpectedOutcome_ValidationResultInvalid_MessagePropagates()
         {
             var spec = new PredicateOperations.PredicateSpec();
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
             var stateProfile = new StateProfile(state);
 
             (var success, var message, var resultProfile) = spec.Allows(
@@ -707,7 +687,7 @@ namespace Microsoft.Accordant.Tests
         public void PredicateBasedExpectedOutcome_ResponseDependentState_WorksCorrectly()
         {
             var spec = new PredicateOperations.PredicateSpec();
-            var state = new AtomicState<int>(0);
+            var state = new CounterState(0);
             var stateProfile = new StateProfile(state);
 
             (var success, var message, var resultProfile) = spec.Allows(
@@ -720,7 +700,7 @@ namespace Microsoft.Accordant.Tests
             Assert.IsNotNull(resultProfile);
 
             // Verify the state was updated based on the response
-            var resultState = (AtomicState<int>)resultProfile.SingleState();
+            var resultState = (CounterState)resultProfile.SingleState();
             Assert.AreEqual(42, resultState.Value);
         }
 
@@ -728,7 +708,7 @@ namespace Microsoft.Accordant.Tests
         public void PredicateBasedExpectedOutcome_MultipleOutcomes_MatchesCorrectOne()
         {
             var spec = new PredicateOperations.PredicateSpec();
-            var state = new AtomicState<int>(0);
+            var state = new CounterState(0);
             var stateProfile = new StateProfile(state);
 
             // Test positive response
@@ -739,7 +719,7 @@ namespace Microsoft.Accordant.Tests
                 stateProfile);
 
             Assert.IsTrue(success, message);
-            var resultState = (AtomicState<int>)resultProfile.SingleState();
+            var resultState = (CounterState)resultProfile.SingleState();
             Assert.AreEqual(10, resultState.Value);
 
             // Test negative response
@@ -750,13 +730,13 @@ namespace Microsoft.Accordant.Tests
                 stateProfile);
 
             Assert.IsTrue(success, message);
-            resultState = (AtomicState<int>)resultProfile.SingleState();
+            resultState = (CounterState)resultProfile.SingleState();
             Assert.AreEqual(0, resultState.Value); // Negative stays at 0
         }
 
         public class PredicateOperations
         {
-            public class PredicateSpec : Spec<AtomicState<int>>
+            public class PredicateSpec : Spec<CounterState>
             {
                 public MirrorWithPredicateOperation MirrorWithPredicate { get; } = new();
                 public MirrorWithExplanationOperation MirrorWithExplanation { get; } = new();
@@ -772,11 +752,11 @@ namespace Microsoft.Accordant.Tests
             /// <summary>
             /// Simple operation that expects response to equal request, using bool predicate.
             /// </summary>
-            public class MirrorWithPredicateOperation : Operation<int, int, AtomicState<int>>
+            public class MirrorWithPredicateOperation : Operation<int, int, CounterState>
             {
                 public MirrorWithPredicateOperation() : base("MirrorWithPredicate") { }
 
-                public override ExpectedOutcomes Apply(int request, AtomicState<int> state)
+                public override ExpectedOutcomes Apply(int request, CounterState state)
                 {
                     return new ExpectedOutcome(
                         ResponseValidator.FromPredicate<int>(response => response == request),
@@ -787,11 +767,11 @@ namespace Microsoft.Accordant.Tests
             /// <summary>
             /// Operation that provides explanation on validation failure.
             /// </summary>
-            public class MirrorWithExplanationOperation : Operation<int, int, AtomicState<int>>
+            public class MirrorWithExplanationOperation : Operation<int, int, CounterState>
             {
                 public MirrorWithExplanationOperation() : base("MirrorWithExplanation") { }
 
-                public override ExpectedOutcomes Apply(int request, AtomicState<int> state)
+                public override ExpectedOutcomes Apply(int request, CounterState state)
                 {
                     return new ExpectedOutcome(
                         ResponseValidator.FromPredicate<int>(response => response == request
@@ -804,15 +784,15 @@ namespace Microsoft.Accordant.Tests
             /// <summary>
             /// Operation that updates state based on the response value.
             /// </summary>
-            public class UpdateStateFromResponseOperation : Operation<string, int, AtomicState<int>>
+            public class UpdateStateFromResponseOperation : Operation<string, int, CounterState>
             {
                 public UpdateStateFromResponseOperation() : base("UpdateStateFromResponse") { }
 
-                public override ExpectedOutcomes Apply(string request, AtomicState<int> state)
+                public override ExpectedOutcomes Apply(string request, CounterState state)
                 {
                     return new ExpectedOutcome(
                         ResponseValidator.FromPredicate<int>(response => response > 0),
-                        (object response) => new AtomicState<int>((int)response),
+                        (object response) => new CounterState((int)response),
                         mockResponse: () => 100);
                 }
             }
@@ -820,22 +800,22 @@ namespace Microsoft.Accordant.Tests
             /// <summary>
             /// Operation with multiple possible outcomes using predicates.
             /// </summary>
-            public class MultipleOutcomesOperation : Operation<int, int, AtomicState<int>>
+            public class MultipleOutcomesOperation : Operation<int, int, CounterState>
             {
                 public MultipleOutcomesOperation() : base("MultipleOutcomes") { }
 
-                public override ExpectedOutcomes Apply(int request, AtomicState<int> state)
+                public override ExpectedOutcomes Apply(int request, CounterState state)
                 {
                     return new ExpectedOutcomes(
                         // Positive case: response equals request, state updated
                         new ExpectedOutcome(
                             ResponseValidator.FromPredicate<int>(response => response == request && response >= 0),
-                            (object response) => new AtomicState<int>((int)response),
+                            (object response) => new CounterState((int)response),
                             mockResponse: () => request >= 0 ? request : 0),
                         // Negative case: response equals request, state stays at 0
                         new ExpectedOutcome(
                             ResponseValidator.FromPredicate<int>(response => response == request && response < 0),
-                            new AtomicState<int>(0)));
+                            new CounterState(0)));
                 }
             }
         }
@@ -851,7 +831,7 @@ namespace Microsoft.Accordant.Tests
         public void Allows_WhenSpecApplyThrows_ThrowsInvalidSpecException()
         {
             var spec = new BuggyOperations.BuggySpec();
-            var stateProfile = new StateProfile(new AtomicState<int>(1));
+            var stateProfile = new StateProfile(new CounterState(1));
 
             var ex = Assert.Throws<InvalidSpecException>(() =>
             {
@@ -872,7 +852,7 @@ namespace Microsoft.Accordant.Tests
         public void Allows_WhenResponseMismatch_ReturnsFalseWithMessage()
         {
             var spec = new SimpleOperations.SimpleSpec();
-            var stateProfile = new StateProfile(new AtomicState<int>(1));
+            var stateProfile = new StateProfile(new CounterState(1));
 
             (var success, var message, var nextStateProfile) = spec.Allows(
                 spec.Mirror,
@@ -893,7 +873,7 @@ namespace Microsoft.Accordant.Tests
         public void AllowsConcurrent_WhenSpecApplyThrows_ThrowsInvalidSpecException()
         {
             var spec = new BuggyOperations.BuggySpec();
-            var stateProfile = new StateProfile(new AtomicState<int>(1));
+            var stateProfile = new StateProfile(new CounterState(1));
 
             var ex = Assert.Throws<InvalidSpecException>(() =>
             {
@@ -915,7 +895,7 @@ namespace Microsoft.Accordant.Tests
         public void AllowsConcurrent_WhenResponseMismatch_ReturnsFalseWithMessage()
         {
             var spec = new SimpleOperations.SimpleSpec();
-            var stateProfile = new StateProfile(new AtomicState<int>(1));
+            var stateProfile = new StateProfile(new CounterState(1));
 
             (var success, var message, var nextStateProfile) = spec.AllowsConcurrent(
                 stateProfile,
@@ -940,7 +920,7 @@ namespace Microsoft.Accordant.Tests
         public void Allows_WhenExplainInvalidResponseThrows_ThrowsRawException()
         {
             var spec = new BuggyOperations.BuggyOnSecondCallSpec();
-            var stateProfile = new StateProfile(new AtomicState<int>(1));
+            var stateProfile = new StateProfile(new CounterState(1));
 
             // First Apply call succeeds but returns non-matching result,
             // Second Apply call (during ExplainInvalidResponse) throws
@@ -958,7 +938,7 @@ namespace Microsoft.Accordant.Tests
 
         public class BuggyOperations
         {
-            public class BuggySpec : Spec<AtomicState<int>>
+            public class BuggySpec : Spec<CounterState>
             {
                 public BuggyOperation BuggyOperation { get; } = new();
 
@@ -971,17 +951,17 @@ namespace Microsoft.Accordant.Tests
             /// <summary>
             /// An operation that always throws in Apply - simulates a spec bug.
             /// </summary>
-            public class BuggyOperation : Operation<int, int, AtomicState<int>>
+            public class BuggyOperation : Operation<int, int, CounterState>
             {
                 public BuggyOperation() : base("Buggy") { }
 
-                public override ExpectedOutcomes Apply(int request, AtomicState<int> state)
+                public override ExpectedOutcomes Apply(int request, CounterState state)
                 {
                     throw new InvalidOperationException("Bug in spec's Apply method");
                 }
             }
 
-            public class BuggyOnSecondCallSpec : Spec<AtomicState<int>>
+            public class BuggyOnSecondCallSpec : Spec<CounterState>
             {
                 public BuggyOnSecondCallOperation BuggyOnSecondCall { get; } = new();
 
@@ -995,13 +975,13 @@ namespace Microsoft.Accordant.Tests
             /// An operation that throws on the second Apply call.
             /// Used to test the ExplainInvalidResponse code path.
             /// </summary>
-            public class BuggyOnSecondCallOperation : Operation<int, int, AtomicState<int>>
+            public class BuggyOnSecondCallOperation : Operation<int, int, CounterState>
             {
                 private int callCount = 0;
 
                 public BuggyOnSecondCallOperation() : base("BuggyOnSecondCall") { }
 
-                public override ExpectedOutcomes Apply(int request, AtomicState<int> state)
+                public override ExpectedOutcomes Apply(int request, CounterState state)
                 {
                     callCount++;
                     if (callCount > 1)
@@ -1187,7 +1167,7 @@ namespace Microsoft.Accordant.Tests
         public void ConfigureDerivations_SetsDerivationsOnInlineOperation()
         {
             // Arrange
-            var spec = new Spec<AtomicState<int>>();
+            var spec = new Spec<CounterState>();
             
             // Add an inline operation
             spec.Operation<int, int>("Source", (req, state) =>
@@ -1212,7 +1192,7 @@ namespace Microsoft.Accordant.Tests
         public void ConfigureDerivations_ThrowsForNonExistentOperation()
         {
             // Arrange
-            var spec = new Spec<AtomicState<int>>();
+            var spec = new Spec<CounterState>();
             
             spec.Operation<int, int>("Source", (req, state) =>
                 new ExpectedOutcome(Descriptor.FromValue(req * 2), state));
@@ -1229,7 +1209,7 @@ namespace Microsoft.Accordant.Tests
         public void ConfigureDerivations_WorksWithMultipleDerivations()
         {
             // Arrange
-            var spec = new Spec<AtomicState<int>>();
+            var spec = new Spec<CounterState>();
             
             spec.Operation<int, int>("Source1", (req, state) =>
                 new ExpectedOutcome(Descriptor.FromValue(req * 2), state));
@@ -1254,7 +1234,7 @@ namespace Microsoft.Accordant.Tests
         public void ConfigureDerivations_DerivationsAreUsedDuringDerive()
         {
             // Arrange
-            var spec = new Spec<AtomicState<int>>();
+            var spec = new Spec<CounterState>();
             
             spec.Operation<int, int>("Source", (req, state) =>
                 new ExpectedOutcome(Descriptor.FromValue(req * 2), state));
@@ -1285,7 +1265,7 @@ namespace Microsoft.Accordant.Tests
         public void ConfigureDerivations_WithWhenFilter_SkipsWhenFilterFails()
         {
             // Arrange
-            var spec = new Spec<AtomicState<int>>();
+            var spec = new Spec<CounterState>();
             
             spec.Operation<int, int>("Source", (req, state) =>
                 new ExpectedOutcome(Descriptor.FromValue(req * 2), state));

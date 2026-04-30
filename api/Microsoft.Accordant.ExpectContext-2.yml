@@ -208,16 +208,14 @@ items:
   summary: >-
     Creates an expected outcome with a ResponseValidator.
 
-    This overload accepts any type that can be implicitly converted to ResponseValidator,
-
-    including Descriptor types when Accordant.Descriptors is referenced.
+    
   example: []
   syntax:
     content: public TypedExpectBuilder<TResponse, TState> That(ResponseValidator validator)
     parameters:
     - id: validator
       type: Microsoft.Accordant.ResponseValidator
-      description: A ResponseValidator (or type convertible to it) that validates responses.
+      description: A ResponseValidator that validates responses.
     return:
       type: Microsoft.Accordant.TypedExpectBuilder{{TResponse},{TState}}
       description: A <xref href="Microsoft.Accordant.TypedExpectBuilder%602" data-throw-if-not-resolved="false"></xref> for further configuration.

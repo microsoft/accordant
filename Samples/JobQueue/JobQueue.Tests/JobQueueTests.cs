@@ -12,6 +12,31 @@ using NUnit.Framework;
 using JobQueue.Api.Contracts;
 using JobQueue.Api.Controllers;
 
+// ============================================================
+// State Definition
+// ============================================================
+
+/// <summary>
+/// State tracks jobs and their status.
+/// </summary>
+[State]
+public partial class JobQueueState
+{
+    public Dictionary<string, JobState> Jobs { get; set; } = new();
+}
+
+[State]
+public partial class JobState
+{
+    public JobStatus Status { get; set; }
+    
+    /// <summary>
+    /// Path to the result - null while Pending, server-generated once Completed.
+    /// Once set, this value is stable and never changes.
+    /// </summary>
+    public string? ResultPath { get; set; }
+}
+
 /// <summary>
 /// Accordant tests for the JobQueue REST API.
 /// 
@@ -30,29 +55,6 @@ using JobQueue.Api.Controllers;
 [TestFixture]
 public class JobQueueTests
 {
-    // ============================================================
-    // State Definition
-    // ============================================================
-
-    /// <summary>
-    /// State tracks jobs and their status.
-    /// </summary>
-    public class JobQueueState : JsonState
-    {
-        public Dictionary<string, JobState> Jobs { get; set; } = new();
-
-        public class JobState
-        {
-            public JobStatus Status { get; set; }
-            
-            /// <summary>
-            /// Path to the result - null while Pending, server-generated once Completed.
-            /// Once set, this value is stable and never changes.
-            /// </summary>
-            public string? ResultPath { get; set; }
-        }
-    }
-
     // ============================================================
     // Operations (Class-based to support Polling)
     // ============================================================
@@ -99,7 +101,7 @@ public class JobQueueTests
                             r.Data.Status == JobStatus.Pending &&
                             r.Data.ResultPath == null,  // Must be null when pending!
                        $"Should return 200 OK with job '{jobId}' in Pending status")
-                   .ThenState(nextState => nextState.Jobs[jobId] = new JobQueueState.JobState 
+                   .ThenState(nextState => nextState.Jobs[jobId] = new JobState 
                    { 
                        Status = JobStatus.Pending, 
                        ResultPath = null 

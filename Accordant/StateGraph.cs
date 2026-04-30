@@ -6,6 +6,7 @@ namespace Microsoft.Accordant
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.IO.Hashing;
     using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
@@ -26,16 +27,16 @@ namespace Microsoft.Accordant
         /// the state graph w/o returning it. In the latter case, the caller probably also gives
         /// a hook to run at each node of the state graph (though a hook can also be given if
         /// a state graph is requested as well),
-        ///// </summary>
+        /// </summary>
         public static StateGraphNode ExploreStateGraph(
             IList<IStepFunction> steps,
-            State startingState,
+            IState startingState,
             int maxDepth = -1,
             bool generateStateGraph = true,
             Action<StateGraphNode> hook = null,
             Action<StateGraphNode> postHook = null,
-            Func<State, bool> stateConstraint = null,
-            Func<State, IStepFunction, StepResult, bool> shouldIncludeStepFunctionResult = null)
+            Func<IState, bool> stateConstraint = null,
+            Func<IState, IStepFunction, StepResult, bool> shouldIncludeStepFunctionResult = null)
         {
             var processedNodeMap = new Dictionary<string, StateGraphNode>();
             var nodeMap = new Dictionary<string, StateGraphNode>();
@@ -53,7 +54,7 @@ namespace Microsoft.Accordant
             // Helper method to return a state graph node if it's already been seen,
             // or create a new one otherwise.
             StateGraphNode GetOrCreateStateGraphNode(
-                State state,
+                IState state,
                 IList<IStepFunction> stepFunctions)
             {
                 var nodeFingerprint = StateGraphNode.GetNodeFingerprint(
@@ -233,7 +234,7 @@ namespace Microsoft.Accordant
         /// <summary>
         /// The system state represented by this node.
         /// </summary>
-        public State State { get; set; }
+        public IState State { get; set; }
 
         /// <summary>
         /// The set of step functions that can be applied to this state.
@@ -347,18 +348,18 @@ namespace Microsoft.Accordant
         }
 
         public static string GetNodeFingerprint(
-            State state,
+            IState state,
             IList<IStepFunction> stepFunctions)
         {
+            // Combine state hash with step function IDs for node fingerprint
             var nodeState =
-                state.GetStateHash() + "-" +
+                state.GetStateHash().ToString() + "-" +
                 string.Join(string.Empty, stepFunctions.OrderBy(s => s.StepFunctionId).Select(s => s.StepFunctionId));
 
-            var hashBytes = SHA256.ComputeHash(Encoding.UTF8.GetBytes(nodeState));
-
-            return string.Join(
-                    string.Empty,
-                    hashBytes.Select(b => b.ToString("x2")));
+            // Use XxHash64 for fast node fingerprinting
+            var bytes = Encoding.UTF8.GetBytes(nodeState);
+            var hash = XxHash64.HashToUInt64(bytes);
+            return hash.ToString("x16");
         }
 
         /// <summary>

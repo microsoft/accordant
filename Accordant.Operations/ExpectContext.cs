@@ -16,7 +16,7 @@ namespace Microsoft.Accordant
     /// <typeparam name="TResponse">The response type of the operation.</typeparam>
     /// <typeparam name="TState">The state type of the operation.</typeparam>
     public class ExpectContext<TResponse, TState>
-        where TState : State
+        where TState : class, IState
     {
         /// <summary>
         /// Creates a new ExpectContext instance.
@@ -59,10 +59,8 @@ namespace Microsoft.Accordant
 
         /// <summary>
         /// Creates an expected outcome with a ResponseValidator.
-        /// This overload accepts any type that can be implicitly converted to ResponseValidator,
-        /// including Descriptor types when Accordant.Descriptors is referenced.
         /// </summary>
-        /// <param name="validator">A ResponseValidator (or type convertible to it) that validates responses.</param>
+        /// <param name="validator">A ResponseValidator that validates responses.</param>
         /// <returns>A <see cref="TypedExpectBuilder{TResponse, TState}"/> for further configuration.</returns>
         public TypedExpectBuilder<TResponse, TState> That(ResponseValidator validator)
         {
@@ -108,7 +106,7 @@ namespace Microsoft.Accordant
 
         /// <summary>
         /// Creates an expected outcome for a void-returning operation.
-        /// Use this when the operation returns <see cref="Accordant.Unit"/> (i.e., performs an action but returns no meaningful value).
+        /// Use this when the operation returns <see cref="Microsoft.Accordant.Unit"/> (i.e., performs an action but returns no meaningful value).
         /// </summary>
         /// <param name="explanation">Optional explanation for error messages.</param>
         /// <returns>A <see cref="TypedExpectBuilder{Unit, TState}"/> for further configuration.</returns>
@@ -158,9 +156,14 @@ namespace Microsoft.Accordant
     /// <typeparam name="TResponse">The response type.</typeparam>
     /// <typeparam name="TState">The state type.</typeparam>
     public class TypedExpectBuilder<TResponse, TState>
-        where TState : State
+        where TState : class, IState
     {
         private readonly ExpectedOutcomeBuilder<TResponse> _inner;
+
+        /// <summary>
+        /// Gets the inner builder. Used by extension methods for State-specific operations.
+        /// </summary>
+        internal ExpectedOutcomeBuilder<TResponse> Inner => _inner;
 
         /// <summary>
         /// Creates a new TypedExpectBuilder wrapping an ExpectedOutcomeBuilder.
@@ -205,36 +208,6 @@ namespace Microsoft.Accordant
             return this;
         }
 
-        /// <summary>
-        /// Specifies a next state using a modifier action with access to the state clone map.
-        /// The framework automatically clones the current state with CloneWithMap() and passes
-        /// both the clone and the mapping from original to cloned states.
-        /// </summary>
-        /// <param name="modifier">An action that modifies the cloned state, with access to the clone map.</param>
-        /// <returns>This builder for method chaining.</returns>
-        public TypedExpectBuilder<TResponse, TState> ThenState(
-            Action<TState, Dictionary<object, object>> modifier)
-        {
-            _inner.ThenState<TState>(modifier);
-            return this;
-        }
-
-        /// <summary>
-        /// Specifies a response-dependent next state with access to the state clone map.
-        /// The framework automatically clones the current state with CloneWithMap() and passes
-        /// both the clone and the mapping from original to cloned states.
-        /// </summary>
-        /// <param name="modifier">An action that receives the response and modifies the cloned state, with access to the clone map.</param>
-        /// <param name="mock">A function that generates a mock response for state exploration.</param>
-        /// <returns>This builder for method chaining.</returns>
-        public TypedExpectBuilder<TResponse, TState> ThenState(
-            Action<TResponse, TState, Dictionary<object, object>> modifier,
-            Func<TResponse> mock)
-        {
-            _inner.ThenState<TState>(modifier, mock);
-            return this;
-        }
-
         #endregion
 
         #region WithNextState - Direct State Replacement
@@ -245,7 +218,7 @@ namespace Microsoft.Accordant
         /// </summary>
         /// <param name="nextState">The state to use after this operation.</param>
         /// <returns>This builder for method chaining.</returns>
-        public TypedExpectBuilder<TResponse, TState> WithNextState(State nextState)
+        public TypedExpectBuilder<TResponse, TState> WithNextState(IState nextState)
         {
             _inner.WithNextState(nextState);
             return this;
@@ -374,5 +347,53 @@ namespace Microsoft.Accordant
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Extension methods for <see cref="TypedExpectBuilder{TResponse, TState}"/> that require
+    /// TState to derive from <see cref="State"/> (not just implement <see cref="IState"/>).
+    /// These methods use CloneWithMap which is a State-specific feature for cycle-aware cloning.
+    /// </summary>
+    public static class TypedExpectBuilderStateExtensions
+    {
+        /// <summary>
+        /// Specifies a next state using a modifier action with access to the state clone map.
+        /// The framework automatically clones the current state with CloneWithMap() and passes
+        /// both the clone and the mapping from original to cloned states.
+        /// </summary>
+        /// <typeparam name="TResponse">The response type.</typeparam>
+        /// <typeparam name="TState">The state type, must derive from State.</typeparam>
+        /// <param name="builder">The builder to extend.</param>
+        /// <param name="modifier">An action that modifies the cloned state, with access to the clone map.</param>
+        /// <returns>The builder for method chaining.</returns>
+        public static TypedExpectBuilder<TResponse, TState> ThenState<TResponse, TState>(
+            this TypedExpectBuilder<TResponse, TState> builder,
+            Action<TState, Dictionary<object, object>> modifier)
+            where TState : State
+        {
+            builder.Inner.ThenState<TState>(modifier);
+            return builder;
+        }
+
+        /// <summary>
+        /// Specifies a response-dependent next state with access to the state clone map.
+        /// The framework automatically clones the current state with CloneWithMap() and passes
+        /// both the clone and the mapping from original to cloned states.
+        /// </summary>
+        /// <typeparam name="TResponse">The response type.</typeparam>
+        /// <typeparam name="TState">The state type, must derive from State.</typeparam>
+        /// <param name="builder">The builder to extend.</param>
+        /// <param name="modifier">An action that receives the response and modifies the cloned state, with access to the clone map.</param>
+        /// <param name="mock">A function that generates a mock response for state exploration.</param>
+        /// <returns>The builder for method chaining.</returns>
+        public static TypedExpectBuilder<TResponse, TState> ThenState<TResponse, TState>(
+            this TypedExpectBuilder<TResponse, TState> builder,
+            Action<TResponse, TState, Dictionary<object, object>> modifier,
+            Func<TResponse> mock)
+            where TState : State
+        {
+            builder.Inner.ThenState<TState>(modifier, mock);
+            return builder;
+        }
     }
 }

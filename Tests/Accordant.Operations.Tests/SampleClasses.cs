@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Tests
+namespace Microsoft.Accordant.Operations.Tests
 {
-    using Microsoft.Accordant;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-
+    using Microsoft.Accordant;
+    
     #region SimpleStatefulClass Spec and Operations
 
-    public class SimpleStatefulClassSpec : Spec<AtomicState<int>>
+    public class SimpleStatefulClassSpec : Spec<CounterState>
     {
         public SimpleStatefulClassAddOperation AddOp { get; } = new();
         public SimpleStatefulClassCountOperation Count { get; } = new();
@@ -26,15 +26,15 @@ namespace Microsoft.Accordant.Tests
         }
     }
 
-    public class SimpleStatefulClassAddOperation : Operation<int, int, AtomicState<int>>
+    public class SimpleStatefulClassAddOperation : Operation<int, int, CounterState>
     {
         public SimpleStatefulClassAddOperation() : base("Add") { }
 
-        public override ExpectedOutcomes Apply(int request, AtomicState<int> state)
+        public override ExpectedOutcomes Apply(int request, CounterState state)
         {
             var expectedValue = request + state.Value;
             return Expect.That(r => r == expectedValue, $"should equal {expectedValue}")
-                         .WithNextState(new AtomicState<int>(state.Value + request));
+                         .WithNextState(new CounterState(state.Value + request));
         }
 
         public override int Execute(TestingContext context, int request)
@@ -43,11 +43,11 @@ namespace Microsoft.Accordant.Tests
         }
     }
 
-    public class SimpleStatefulClassCountOperation : Operation<Unit, int, AtomicState<int>>
+    public class SimpleStatefulClassCountOperation : Operation<Unit, int, CounterState>
     {
         public SimpleStatefulClassCountOperation() : base("Count") { }
 
-        public override ExpectedOutcomes Apply(Unit request, AtomicState<int> state)
+        public override ExpectedOutcomes Apply(Unit request, CounterState state)
         {
             return Expect.That(r => r == state.Value, $"should equal {state.Value}")
                          .SameState();
@@ -59,11 +59,11 @@ namespace Microsoft.Accordant.Tests
         }
     }
 
-    public class SimpleStatefulClassFaultWrappingAddOperation : Operation<int, int?, AtomicState<int>>
+    public class SimpleStatefulClassFaultWrappingAddOperation : Operation<int, int?, CounterState>
     {
         public SimpleStatefulClassFaultWrappingAddOperation() : base("Fault Wrapping Add") { }
 
-        public override ExpectedOutcomes Apply(int request, AtomicState<int> state)
+        public override ExpectedOutcomes Apply(int request, CounterState state)
         {
             var expectedValue = request + state.Value;
             
@@ -71,7 +71,7 @@ namespace Microsoft.Accordant.Tests
             return Expect.OneOf(
                 // Normal success outcome
                 Expect.That(r => r == expectedValue, $"success: should equal {expectedValue}")
-                      .WithNextState(new AtomicState<int>(state.Value + request)),
+                      .WithNextState(new CounterState(state.Value + request)),
                 // Exception/fault outcome - returns null, state unchanged
                 Expect.That(r => r == null, "fault: should be null")
                       .SameState());
@@ -91,11 +91,11 @@ namespace Microsoft.Accordant.Tests
         }
     }
 
-    public class SimpleStatefulClassFaultWrappingCountOperation : Operation<Unit, int?, AtomicState<int>>
+    public class SimpleStatefulClassFaultWrappingCountOperation : Operation<Unit, int?, CounterState>
     {
         public SimpleStatefulClassFaultWrappingCountOperation() : base("Fault Wrapping Count") { }
 
-        public override ExpectedOutcomes Apply(Unit request, AtomicState<int> state)
+        public override ExpectedOutcomes Apply(Unit request, CounterState state)
         {
             // Non-deterministic: either success or fault
             return Expect.OneOf(
@@ -125,7 +125,7 @@ namespace Microsoft.Accordant.Tests
 
     #region SimpleAsyncClass Spec and Operations
 
-    public class SimpleAsyncClassSpec : Spec<AtomicState<int>>
+    public class SimpleAsyncClassSpec : Spec<CounterState>
     {
         public TriggerAsyncFirstStageOperation TriggerAsyncFirstStage { get; } = new();
         public TriggerSyncSecondStageOperation TriggerSyncSecondStage { get; } = new();
@@ -278,11 +278,11 @@ namespace Microsoft.Accordant.Tests
         }
     }
 
-    public class TriggerAsyncFirstStageOperation : Operation<Unit, Unit, AtomicState<int>>
+    public class TriggerAsyncFirstStageOperation : Operation<Unit, Unit, CounterState>
     {
         public TriggerAsyncFirstStageOperation() : base("TriggerAsyncFirstStage") { }
 
-        public override ExpectedOutcomes Apply(Unit request, AtomicState<int> state)
+        public override ExpectedOutcomes Apply(Unit request, CounterState state)
         {
             if (state.Value != 0)
             {
@@ -291,7 +291,7 @@ namespace Microsoft.Accordant.Tests
             }
 
             return Expect.Unit("trigger async work")
-                         .WithNextState(new AtomicState<int>(1))
+                         .WithNextState(new CounterState(1))
                          .Triggers(new SimpleAsyncClassStepFunction());
         }
 
@@ -302,11 +302,11 @@ namespace Microsoft.Accordant.Tests
         }
     }
 
-    public class TriggerSyncSecondStageOperation : Operation<Unit, bool, AtomicState<int>>
+    public class TriggerSyncSecondStageOperation : Operation<Unit, bool, CounterState>
     {
         public TriggerSyncSecondStageOperation() : base("TriggerSyncSecondStage") { }
 
-        public override ExpectedOutcomes Apply(Unit request, AtomicState<int> state)
+        public override ExpectedOutcomes Apply(Unit request, CounterState state)
         {
             if (state.Value != 2)
             {
@@ -315,7 +315,7 @@ namespace Microsoft.Accordant.Tests
             }
 
             return Expect.That(b => b == true, "second stage triggered")
-                         .WithNextState(new AtomicState<int>(3));
+                         .WithNextState(new CounterState(3));
         }
 
         public override bool Execute(TestingContext context, Unit request)
@@ -324,11 +324,11 @@ namespace Microsoft.Accordant.Tests
         }
     }
 
-    public class TriggerSyncThirdStageOperation : Operation<Unit, bool, AtomicState<int>>
+    public class TriggerSyncThirdStageOperation : Operation<Unit, bool, CounterState>
     {
         public TriggerSyncThirdStageOperation() : base("TriggerSyncThirdStage") { }
 
-        public override ExpectedOutcomes Apply(Unit request, AtomicState<int> state)
+        public override ExpectedOutcomes Apply(Unit request, CounterState state)
         {
             if (state.Value != 3)
             {
@@ -337,7 +337,7 @@ namespace Microsoft.Accordant.Tests
             }
 
             return Expect.That(b => b == true, "third stage triggered")
-                         .WithNextState(new AtomicState<int>(4));
+                         .WithNextState(new CounterState(4));
         }
 
         public override bool Execute(TestingContext context, Unit request)
@@ -346,11 +346,11 @@ namespace Microsoft.Accordant.Tests
         }
     }
 
-    public class GetStageOperation : Operation<Unit, int, AtomicState<int>>
+    public class GetStageOperation : Operation<Unit, int, CounterState>
     {
         public GetStageOperation() : base("GetStage") { }
 
-        public override ExpectedOutcomes Apply(Unit request, AtomicState<int> state)
+        public override ExpectedOutcomes Apply(Unit request, CounterState state)
         {
             return Expect.That(r => r == state.Value, $"should equal current stage {state.Value}")
                          .SameState();
@@ -367,19 +367,19 @@ namespace Microsoft.Accordant.Tests
         /// <summary>
         /// Terminal when state value is 2 (async work completed).
         /// </summary>
-        public override Func<State, bool> IsTerminalState => state =>
+        public override Func<IState, bool> IsTerminalState => state =>
         {
-            var atomicState = (AtomicState<int>)state;
-            return atomicState.Value == 2;
+            var counterState = (CounterState)state;
+            return counterState.Value == 2;
         };
 
         /// <summary>
         /// Transition from value 1 to value 2.
         /// Only called when IsTerminalState is false.
         /// </summary>
-        protected override IList<StepResult> GetStepResults(State state)
+        protected override IList<StepResult> GetStepResults(IState state)
         {
-            var nextState = (AtomicState<int>)state.Clone();
+            var nextState = (CounterState)state.Clone();
             if (nextState.Value == 1)
             {
                 nextState.Value = 2;

@@ -4,7 +4,7 @@
 using System.CommandLine;
 using System.Reflection;
 
-namespace Microsoft.Accordant.Cli;
+namespace Microsoft.Accordant.Cli.Commands;
 
 public static class NewCommand
 {
@@ -115,7 +115,7 @@ public static class NewCommand
         var allResources = Assembly.GetManifestResourceNames();
         
         // Try exact resource name
-        var fullResourceName = $"Accordant.Cli.Templates.{template}.{resourceName}";
+        var fullResourceName = $"Microsoft.Accordant.Cli.Templates.{template}.{resourceName}";
         
         using var stream = Assembly.GetManifestResourceStream(fullResourceName);
         if (stream != null)

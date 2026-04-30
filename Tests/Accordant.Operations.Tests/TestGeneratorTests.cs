@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Tests
+namespace Microsoft.Accordant.Operations.Tests
 {
-    using Microsoft.Accordant;
     using System.Linq;
-    using NUnit.Framework;
+    using Microsoft.Accordant;
+        using NUnit.Framework;
 
     [TestFixture]
     public class TestGeneratorTests
@@ -14,7 +14,7 @@ namespace Microsoft.Accordant.Tests
         public void ShouldUnwindStepFunctionTests()
         {
             var spec = new SimpleAsyncClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -71,7 +71,7 @@ namespace Microsoft.Accordant.Tests
         public void MaxApplicationCountTest()
         {
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {

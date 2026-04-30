@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System.CommandLine;
-using Microsoft.Accordant.Cli;
+using Microsoft.Accordant.Cli.Commands;
 
 namespace Microsoft.Accordant.Cli;
 

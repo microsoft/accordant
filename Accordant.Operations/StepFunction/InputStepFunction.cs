@@ -9,16 +9,15 @@ namespace Microsoft.Accordant
 
     /// <summary>
     /// A test operation step function represents the effect of applying the model of an operation.
-    /// It is enabled if the <see cref="IOperationModel{TRequest, TResponse}.ShouldSucceed(TRequest, State)"/>
-    /// returns true. It returns all possible updated states returned by
-    /// <see cref="IModel.Invoke(object, State)"/>
+    /// It is enabled based on the shouldApply predicate. It returns all possible updated states returned by
+    /// <see cref="IOperation.Invoke(object, IState)"/>
     /// as the set of updated states the system can transition to.
     /// </summary>
     public class InputStepFunction : BaseStepFunction
     {
         private bool addNonInputStepFunctions;
 
-        private Func<OperationInput, State, bool> shouldApply;
+        private Func<OperationInput, IState, bool> shouldApply;
 
         private Func<OperationInput, IList<OperationInput>, bool> shouldPreserveOperation;
 
@@ -46,7 +45,7 @@ namespace Microsoft.Accordant
         public InputStepFunction(
             OperationInput operationInput,
             bool addNonInputStepFunctions,
-            Func<OperationInput, State, bool> shouldApply,
+            Func<OperationInput, IState, bool> shouldApply,
             Func<OperationInput, IList<OperationInput>, bool> shouldPreserveOperation,
             Func<UnwindContext, bool> shouldUnwindStepFunction,
             ISpec spec,
@@ -70,14 +69,14 @@ namespace Microsoft.Accordant
         }
 
         /// <summary>
-        /// Returns whether the step is enabled depending on the result of
-        /// <see cref="IOperationModel{TRequest, TResponse}.ShouldSucceed(TRequest, State)"/>
+        /// Returns whether the step is enabled based on the shouldApply predicate
         /// and a set of updated states (and optional step functions) the system should
         /// transition to.
         /// </summary>
-        /// <param name="state"></param>
-        /// <returns></returns>
-        protected override IList<StepResult> ApplyInternal(State state, IReadOnlyList<(IStepFunction, StateGraphNode)> path)
+        /// <param name="state">The current state.</param>
+        /// <param name="path">The path of step functions taken to reach this state.</param>
+        /// <returns>List of step results, or null if not enabled.</returns>
+        protected override IList<StepResult> ApplyInternal(IState state, IReadOnlyList<(IStepFunction, StateGraphNode)> path)
         {
             var operation = OperationInput.Operation;
             if (!shouldApply(OperationInput, state))
@@ -306,13 +305,13 @@ namespace Microsoft.Accordant
         /// Unwinds a TerminatingStepFunction until it reaches its terminal state
         /// as defined by <see cref="TerminatingStepFunction.IsTerminalState"/>.
         /// </summary>
-        private IList<State> UnwindTerminatingStepFunction(
-            State startingState,
+        private IList<IState> UnwindTerminatingStepFunction(
+            IState startingState,
             TerminatingStepFunction startingStepFunction)
         {
-            var terminalStates = new Dictionary<string, State>();
+            var terminalStates = new Dictionary<ulong, IState>();
 
-            var queue = new Queue<(State, IStepFunction)>();
+            var queue = new Queue<(IState, IStepFunction)>();
 
             queue.Enqueue((startingState, startingStepFunction));
 

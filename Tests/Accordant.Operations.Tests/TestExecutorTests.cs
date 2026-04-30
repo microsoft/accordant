@@ -1,14 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Tests
+namespace Microsoft.Accordant.Operations.Tests
 {
-    using Microsoft.Accordant;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using NUnit.Framework;
+        using NUnit.Framework;
 
     [TestFixture]
     public class TestExecutorTests
@@ -18,7 +17,7 @@ namespace Microsoft.Accordant.Tests
         {
             // Create spec and generate tests once
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -105,7 +104,7 @@ namespace Microsoft.Accordant.Tests
         {
             // Create spec and generate tests once
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -202,7 +201,7 @@ namespace Microsoft.Accordant.Tests
                 new OperationInput("Count", spec["Count"])
             };
 
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var sequentialTestCases = spec.GenerateTests(
                 initialState,
@@ -236,7 +235,7 @@ namespace Microsoft.Accordant.Tests
                 new OperationInput("Count", spec["Count"])
             };
 
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var concurrentTestCases = spec.GenerateConcurrentTests(
                 initialState,
@@ -264,7 +263,7 @@ namespace Microsoft.Accordant.Tests
             {
                 // Create spec with specific retry configuration
                 var spec = new SimpleStatefulClassSpec();
-                var initialState = new AtomicState<int>(0);
+                var initialState = new CounterState(0);
 
                 var inputSet = new InputSet()
                 {
@@ -317,7 +316,7 @@ namespace Microsoft.Accordant.Tests
             {
                 // Create spec with specific retry configuration
                 var spec = new SimpleStatefulClassSpec();
-                var initialState = new AtomicState<int>(0);
+                var initialState = new CounterState(0);
 
                 var inputSet = new InputSet()
                 {
@@ -368,7 +367,7 @@ namespace Microsoft.Accordant.Tests
         {
             // Create spec and generate tests once
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -496,7 +495,7 @@ namespace Microsoft.Accordant.Tests
         {
             // Create spec and generate tests once
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -633,7 +632,7 @@ namespace Microsoft.Accordant.Tests
         public async Task BeforeAllAndAfterAllHooks()
         {
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -693,7 +692,7 @@ namespace Microsoft.Accordant.Tests
         public async Task BeforeEachAndAfterEachHooksWithContextVerification()
         {
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -753,7 +752,7 @@ namespace Microsoft.Accordant.Tests
         public async Task AfterEachCalledOnFailure()
         {
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -795,7 +794,7 @@ namespace Microsoft.Accordant.Tests
         public async Task StopOnFirstFailureWithSkippedCount()
         {
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -834,7 +833,7 @@ namespace Microsoft.Accordant.Tests
         public async Task AsyncHooks()
         {
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -896,7 +895,7 @@ namespace Microsoft.Accordant.Tests
         public async Task InlineHooksViaRunTests()
         {
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -939,7 +938,7 @@ namespace Microsoft.Accordant.Tests
         public void EmptyTestCasesAreFilteredOut()
         {
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -969,7 +968,7 @@ namespace Microsoft.Accordant.Tests
         public async Task ContextTargetAccess()
         {
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {
@@ -1022,7 +1021,7 @@ namespace Microsoft.Accordant.Tests
         public async Task ConcurrentTestsWithAllHooks()
         {
             var spec = new SimpleStatefulClassSpec();
-            var initialState = new AtomicState<int>(0);
+            var initialState = new CounterState(0);
 
             var inputSet = new InputSet()
             {

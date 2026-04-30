@@ -17,15 +17,13 @@ namespace Microsoft.Accordant
     /// - Execution logic via <see cref="ExecuteAsync"/> (optional)
     /// - Request derivations via <see cref="DerivedFrom"/> (optional)
     /// - Polling setup via <see cref="Polling"/> (optional)
-    /// 
     /// </summary>
     /// <typeparam name="TRequest">The type of request this operation accepts.</typeparam>
     /// <typeparam name="TResponse">The type of response this operation returns.</typeparam>
     /// <typeparam name="TState">The type of state this operation operates on.</typeparam>
     public abstract class Operation<TRequest, TResponse, TState> : 
-        IOperation,
-        IContract<TRequest, TResponse>
-        where TState : State
+        IOperation
+        where TState : class, IState
     {
         /// <summary>
         /// Static empty list for operations without derivations - avoids allocation.
@@ -208,12 +206,12 @@ namespace Microsoft.Accordant
 
         #endregion
 
-        #region Model Implementation
+        #region IOperation.Invoke Implementation
 
         /// <summary>
-        /// Returns all possible (response, next-state) pairs for state exploration.
+        /// Returns all possible next states and optional step functions given a request and state.
         /// </summary>
-        public IList<(TResponse, StateProfile)> Invoke(TRequest request, State state)
+        public IList<(TResponse, StateProfile)> Invoke(TRequest request, IState state)
         {
             var expectedResults = Apply(request, (TState)state);
 
@@ -241,7 +239,7 @@ namespace Microsoft.Accordant
         }
 
         /// <inheritdoc/>
-        IList<(object, StateProfile)> IOperation.Invoke(object request, State state)
+        IList<(object, StateProfile)> IOperation.Invoke(object request, IState state)
         {
             return Invoke((TRequest)request, state)
                 .Select(t => ((object)t.Item1, t.Item2))
@@ -250,12 +248,12 @@ namespace Microsoft.Accordant
 
         #endregion
 
-        #region IContract Implementation
+        #region IOperation.Verify/ExplainInvalidResponse Implementation
 
         /// <inheritdoc/>
         public (bool, StateProfile) Verify(
             TRequest request,
-            State state,
+            IState state,
             object observedResponse)
         {
             var expectedResults = Apply(request, (TState)state);
@@ -291,7 +289,7 @@ namespace Microsoft.Accordant
                             new ContractStepFunction(
                                 request,
                                 observedResponse,
-                                this)
+                                (req, state, resp) => Verify((TRequest)req, state, resp))
                         }
                     },
                     stateProfile);
@@ -310,13 +308,13 @@ namespace Microsoft.Accordant
         }
 
         /// <inheritdoc/>
-        (bool, StateProfile) IContract.Verify(object request, State state, object observedResponse)
+        (bool, StateProfile) IOperation.Verify(object request, IState state, object observedResponse)
         {
             return Verify((TRequest)request, state, observedResponse);
         }
 
         /// <inheritdoc/>
-        (bool, StateProfile) IContract.Verify(object request, StateProfile stateProfile, object observedResponse)
+        (bool, StateProfile) IOperation.Verify(object request, StateProfile stateProfile, object observedResponse)
         {
             return Verify((TRequest)request, stateProfile, observedResponse);
         }
@@ -324,7 +322,7 @@ namespace Microsoft.Accordant
         /// <inheritdoc/>
         public string ExplainInvalidResponse(
             TRequest request,
-            State state,
+            IState state,
             object observedResponse)
         {
             var tState = (TState)state;
@@ -351,7 +349,7 @@ namespace Microsoft.Accordant
             }
             else
             {
-                return $"The spec predicted multiple possible responses; all of them failed to match the observed response: \r\n" +
+                return $"The behavior predicted multiple possible responses; all of them failed to match the observed response: \r\n" +
                     string.Join("\r\n\r\n", invalidResponseExplanations);
             }
         }
@@ -387,7 +385,7 @@ namespace Microsoft.Accordant
                             new ContractStepFunction(
                                 request,
                                 observedResponse,
-                                this)
+                                (req, state, resp) => Verify((TRequest)req, state, resp))
                         }
                     },
                     stateProfile,
@@ -409,13 +407,13 @@ namespace Microsoft.Accordant
         }
 
         /// <inheritdoc/>
-        string IContract.ExplainInvalidResponse(object request, State state, object observedResponse)
+        string IOperation.ExplainInvalidResponse(object request, IState state, object observedResponse)
         {
             return ExplainInvalidResponse((TRequest)request, state, observedResponse);
         }
 
         /// <inheritdoc/>
-        string IContract.ExplainInvalidResponse(object request, StateProfile stateProfile, object observedResponse)
+        string IOperation.ExplainInvalidResponse(object request, StateProfile stateProfile, object observedResponse)
         {
             return ExplainInvalidResponse((TRequest)request, stateProfile, observedResponse);
         }

@@ -6,7 +6,7 @@ using System.Text.Json;
 using NSwag;
 using NSwag.CodeGeneration.CSharp;
 
-namespace Microsoft.Accordant.Cli;
+namespace Microsoft.Accordant.Cli.Commands;
 
 public static class FromSwaggerCommand
 {
@@ -208,7 +208,7 @@ public static class FromSwaggerCommand
 
   <ItemGroup>
     <PackageReference Include=""Microsoft.Accordant"" Version=""*"" />
-    <PackageReference Include=""Microsoft.Accordant.Testing"" Version=""*"" />
+    <PackageReference Include=""Microsoft.Accordant"" Version=""*"" />
     <PackageReference Include=""Microsoft.NET.Test.Sdk"" Version=""17.*"" />
     <PackageReference Include=""NUnit"" Version=""4.*"" />
     <PackageReference Include=""NUnit3TestAdapter"" Version=""4.*"" />
@@ -331,7 +331,8 @@ using Microsoft.Accordant;
 /// <summary>
 /// State tracks what the system remembers between operations.
 /// </summary>
-public class {name}State : JsonState
+[State]
+public partial class {name}State
 {{
 }}
 ";
@@ -516,6 +517,7 @@ public class {opName}Operation : Operation<{requestTypeName}, {responseTypeName}
 
         return $@"namespace {name};
 
+using Microsoft.Accordant;
 using {name}.Contracts;
 
 // =============================================================================
@@ -866,6 +868,7 @@ using {name}.Contracts;
 
         return $@"namespace {name};
 
+using Microsoft.Accordant;
 using {name}.Contracts;
 
 /// <summary>

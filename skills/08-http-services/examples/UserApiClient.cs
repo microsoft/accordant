@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Examples.Http;
+namespace Microsoft.Accordant;
 
 using System.Net.Http.Json;
 

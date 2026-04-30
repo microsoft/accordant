@@ -23,7 +23,7 @@ namespace Microsoft.Accordant
         /// <summary>
         /// A function that computes the next state(s) given the response and current state.
         /// </summary>
-        public Func<object, State, StateList> NextStateGenerator { get; }
+        public Func<object, IState, StateList> NextStateGenerator { get; }
 
         /// <summary>
         /// A function that computes step functions given the response.
@@ -43,7 +43,7 @@ namespace Microsoft.Accordant
         /// </summary>
         public ExpectedOutcome(
             ResponseValidator validator,
-            Func<object, State, StateList> nextStateGenerator,
+            Func<object, IState, StateList> nextStateGenerator,
             Func<object, StepFunctionList> nextStepFunctions,
             Func<object> mockResponseGenerator = null)
         {
@@ -59,7 +59,7 @@ namespace Microsoft.Accordant
 
         public ExpectedOutcome(
             ResponseValidator validator,
-            State updatedState,
+            IState updatedState,
             Func<object> mockResponse = null)
             : this(
                 validator,
@@ -71,7 +71,7 @@ namespace Microsoft.Accordant
 
         public ExpectedOutcome(
             ResponseValidator validator,
-            State updatedState,
+            IState updatedState,
             IStepFunction stepFunction,
             Func<object> mockResponse = null)
             : this(
@@ -84,7 +84,7 @@ namespace Microsoft.Accordant
 
         public ExpectedOutcome(
             ResponseValidator validator,
-            State updatedState,
+            IState updatedState,
             Func<object, StepFunctionList> stepFunctionGenerator,
             Func<object> mockResponse = null)
             : this(
@@ -143,7 +143,7 @@ namespace Microsoft.Accordant
 
         public ExpectedOutcome(
             ResponseValidator validator,
-            Func<object, State, StateList> stateTransition,
+            Func<object, IState, StateList> stateTransition,
             Func<object> mockResponse = null)
             : this(
                 validator,
@@ -155,7 +155,7 @@ namespace Microsoft.Accordant
 
         public ExpectedOutcome(
             ResponseValidator validator,
-            Func<object, State, StateList> stateTransition,
+            Func<object, IState, StateList> stateTransition,
             IStepFunction stepFunction,
             Func<object> mockResponse = null)
             : this(
@@ -180,7 +180,7 @@ namespace Microsoft.Accordant
         /// <returns>
         /// A tuple of (isValid, stateProfile).
         /// </returns>
-        public (bool, StateProfile) Matches(object observedResponse, State currentState)
+        public (bool, StateProfile) Matches(object observedResponse, IState currentState)
         {
             if (Validator == null)
             {
@@ -272,9 +272,9 @@ namespace Microsoft.Accordant
         /// <returns>
         /// A tuple of (isValid, stateProfile).
         /// </returns>
-        public (bool, StateProfile) Matches(object observedResponse, State currentState)
+        public (bool, StateProfile) Matches(object observedResponse, IState currentState)
         {
-            var statesAndStepFunctions = new List<(State, IList<IStepFunction>)>();
+            var statesAndStepFunctions = new List<(IState, IList<IStepFunction>)>();
 
             foreach (var possibleOutcome in PossibleOutcomes)
             {
@@ -301,9 +301,9 @@ namespace Microsoft.Accordant
     /// <summary>
     /// This class represents a list of states.
     /// </summary>
-    public class StateList : List<State>
+    public class StateList : List<IState>
     {
-        public StateList(params State[] states) : base(states)
+        public StateList(params IState[] states) : base(states)
         {
         }
 

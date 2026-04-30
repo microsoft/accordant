@@ -11,6 +11,24 @@ using NUnit.Framework;
 using Booking.Api.Contracts;
 using Booking.Api.Controllers;
 
+// ============================================================
+// State Definition
+// ============================================================
+
+/// <summary>
+/// State tracks slots and their booking status.
+/// Compare this to the implementation: Controller + Entity + EF DbContext + SQLite + WriteLock!
+/// The spec is much simpler.
+/// </summary>
+[State]
+public partial class BookingState
+{
+    /// <summary>
+    /// Dictionary of slots. Key = slotId, Value = customer name (null if available).
+    /// </summary>
+    public Dictionary<string, string?> Slots { get; set; } = new();
+}
+
 /// <summary>
 /// Accordant tests for the Booking REST API.
 /// 
@@ -22,23 +40,6 @@ using Booking.Api.Controllers;
 [TestFixture]
 public class BookingTests
 {
-    // ============================================================
-    // State Definition
-    // ============================================================
-
-    /// <summary>
-    /// State tracks slots and their booking status.
-    /// Compare this to the implementation: Controller + Entity + EF DbContext + SQLite + WriteLock!
-    /// The spec is much simpler.
-    /// </summary>
-    public class BookingState : JsonState
-    {
-        /// <summary>
-        /// Dictionary of slots. Key = slotId, Value = customer name (null if available).
-        /// </summary>
-        public Dictionary<string, string?> Slots { get; set; } = new();
-    }
-
     // ============================================================
     // Spec Creation
     // ============================================================

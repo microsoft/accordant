@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Examples;
+namespace Microsoft.Accordant;
 
 using System.Threading.Tasks;
 using Microsoft.Accordant;

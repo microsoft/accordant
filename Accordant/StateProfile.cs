@@ -37,14 +37,14 @@ namespace Microsoft.Accordant
         /// The set of states the system can be and the set of step functions
         /// associated with each of those states.
         /// </summary>
-        public IList<(State State, IList<IStepFunction> StepFunctions)> StatesAndStepFunctions { get; set; }
+        public IList<(IState State, IList<IStepFunction> StepFunctions)> StatesAndStepFunctions { get; set; }
 
         /// <summary>
         /// Constructs an instance of this class given a single state.
         /// </summary>
-        public StateProfile(State state)
+        public StateProfile(IState state)
         {
-            StatesAndStepFunctions = new List<(State, IList<IStepFunction>)>()
+            StatesAndStepFunctions = new List<(IState, IList<IStepFunction>)>()
             {
                 (state, Array.Empty<IStepFunction>())
             };
@@ -54,7 +54,7 @@ namespace Microsoft.Accordant
         /// Constructs an instance of this class given a set of states.
         /// </summary>
         /// <param name="states"></param>
-        public StateProfile(IList<State> states)
+        public StateProfile(IList<IState> states)
         {
             StatesAndStepFunctions =
                 states.Select(s => (s, (IList<IStepFunction>)Array.Empty<IStepFunction>())).ToList();
@@ -64,7 +64,7 @@ namespace Microsoft.Accordant
         /// Constructs an instance of this class given a set of states and associated
         /// step functions.
         /// </summary>
-        public StateProfile(IList<(State, IList<IStepFunction>)> statesAndStepFunctions)
+        public StateProfile(IList<(IState, IList<IStepFunction>)> statesAndStepFunctions)
         {
             StatesAndStepFunctions = statesAndStepFunctions;
 
@@ -85,7 +85,7 @@ namespace Microsoft.Accordant
         /// states contains a single state. It throws the <see cref="MultipleStateException"/>
         /// exception otherwise.
         /// </summary>
-        public State SingleState()
+        public IState SingleState()
         {
             Invariant.Assert(StatesAndStepFunctions.Count > 0);
 

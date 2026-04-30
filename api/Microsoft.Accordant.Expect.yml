@@ -203,12 +203,10 @@ items:
   summary: >-
     Creates an expected outcome with a ResponseValidator.
 
-    This overload accepts any type that can be implicitly converted to ResponseValidator,
-
-    including Descriptor types when Accordant.Descriptors is referenced.
+    
   example:
   - >-
-    // Works with Descriptors via implicit conversion (when Accordant.Descriptors is referenced)
+    
 
     return Expect.That(HttpResponseDescriptor.Create(HttpStatusCode.OK))
                  .ThenState(updatedState);
@@ -217,7 +215,7 @@ items:
     parameters:
     - id: validator
       type: Microsoft.Accordant.ResponseValidator
-      description: A ResponseValidator (or type convertible to it) that validates responses.
+      description: A ResponseValidator that validates responses.
     return:
       type: Microsoft.Accordant.ExpectedOutcomeBuilder{System.Object}
       description: An <xref href="Microsoft.Accordant.ExpectedOutcomeBuilder%601" data-throw-if-not-resolved="false"></xref> for further configuration.
@@ -248,12 +246,10 @@ items:
   summary: >-
     Creates a typed expected outcome with a ResponseValidator.
 
-    This overload accepts any type that can be implicitly converted to ResponseValidator,
-
-    including Descriptor types when Accordant.Descriptors is referenced.
+    
   example:
   - >-
-    // Works with Descriptors via implicit conversion (when Accordant.Descriptors is referenced)
+    
 
     return Expect.That&lt;MyResponse&gt;(myDescriptor)
                  .ThenState(updatedState);
@@ -262,7 +258,7 @@ items:
     parameters:
     - id: validator
       type: Microsoft.Accordant.ResponseValidator
-      description: A ResponseValidator (or type convertible to it) that validates responses.
+      description: A ResponseValidator that validates responses.
     typeParameters:
     - id: TResponse
       description: The type of response to validate.

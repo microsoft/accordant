@@ -15,16 +15,13 @@
     </packageTypes>
   </metadata>
   <files>
+    <!-- net10.0 -->
+    <file src="..\bin\tools\Microsoft.Accordant.Cli\net10.0\publish\*.*" target="tools\net10.0\any" />
+    
     <!-- net9.0 -->
     <file src="..\bin\tools\Microsoft.Accordant.Cli\net9.0\publish\*.*" target="tools\net9.0\any" />
     
     <!-- net8.0 -->
     <file src="..\bin\tools\Microsoft.Accordant.Cli\net8.0\publish\*.*" target="tools\net8.0\any" />
-    
-    <!-- net7.0 -->
-    <file src="..\bin\tools\Microsoft.Accordant.Cli\net7.0\publish\*.*" target="tools\net7.0\any" />
-    
-    <!-- net6.0 -->
-    <file src="..\bin\tools\Microsoft.Accordant.Cli\net6.0\publish\*.*" target="tools\net6.0\any" />
   </files>
 </package>

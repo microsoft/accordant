@@ -4,7 +4,7 @@
 using NSwag;
 using NSwag.CodeGeneration.CSharp;
 
-namespace Microsoft.Accordant.Cli;
+namespace Microsoft.Accordant.Cli.Commands;
 
 /// <summary>
 /// Generates API client infrastructure from OpenAPI specs.

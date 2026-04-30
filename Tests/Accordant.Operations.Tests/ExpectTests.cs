@@ -1,13 +1,15 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant.Tests
+namespace Microsoft.Accordant.Operations.Tests
 {
-    using Microsoft.Accordant;
     using System;
+    using Microsoft.Accordant;
     using System.Collections.Generic;
+    using Microsoft.Accordant;
     using System.Linq;
-    using NUnit.Framework;
+    using Microsoft.Accordant;
+        using NUnit.Framework;
 
     /// <summary>
     /// Tests for the Expect fluent API.
@@ -21,7 +23,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_That_WithPredicate_CreatesValidOutcome()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
 
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "should be positive")
                                             .SameState();
@@ -35,7 +37,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_That_WithPredicate_ValidatesCorrectly()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
 
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "should be positive")
                                             .SameState();
@@ -56,7 +58,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_That_WithPredicate_ProvidesExplanationOnFailure()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
 
             ExpectedOutcome outcome = Expect.That<int>(r => r > 100, "should be greater than 100")
                                             .SameState();
@@ -72,7 +74,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_That_WithValidationResult_CreatesValidOutcome()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
 
             ExpectedOutcome outcome = Expect.That<int>(r =>
                 r > 0 ? ValidationResult.Valid() : ValidationResult.Invalid("must be positive"))
@@ -86,7 +88,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_That_WithValidationResult_ValidatesCorrectly()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
 
             ExpectedOutcome outcome = Expect.That<int>(r =>
                 r > 0 ? ValidationResult.Valid() : ValidationResult.Invalid("must be positive"))
@@ -108,7 +110,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_That_WithValidationResult_ProvidesRichErrorMessage()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
 
             ExpectedOutcome outcome = Expect.That<int>(r =>
                 r > 100
@@ -124,7 +126,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_That_WithValidationResult_CanIncludeResponseDetails()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
 
             // This demonstrates FluentAssertions-style detailed messages
             ExpectedOutcome outcome = Expect.That<int>(r =>
@@ -167,10 +169,10 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_ThenState_ActionBased_SetsNextStateGenerator()
         {
-            var originalState = new AtomicState<int>(10);
+            var originalState = new CounterState(10);
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "always valid")
-                                            .ThenState<AtomicState<int>>(nextState => nextState.Value = 20);
+                                            .ThenState<CounterState>(nextState => nextState.Value = 20);
 
             Assert.IsNotNull(outcome.NextStateGenerator);
         }
@@ -178,10 +180,10 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_ThenState_ActionBased_ClonesAndModifiesState()
         {
-            var currentState = new AtomicState<int>(10);
+            var currentState = new CounterState(10);
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "always valid")
-                                            .ThenState<AtomicState<int>>(nextState => nextState.Value = 42);
+                                            .ThenState<CounterState>(nextState => nextState.Value = 42);
 
             var (isValid, stateProfile) = outcome.Matches(999, currentState);
             
@@ -189,7 +191,7 @@ namespace Microsoft.Accordant.Tests
             Assert.IsNotNull(stateProfile);
             Assert.AreEqual(1, stateProfile.StatesAndStepFunctions.Count);
             
-            var resultState = (AtomicState<int>)stateProfile.StatesAndStepFunctions[0].Item1;
+            var resultState = (CounterState)stateProfile.StatesAndStepFunctions[0].Item1;
             Assert.AreEqual(42, resultState.Value);
             // Original state should be unchanged
             Assert.AreEqual(10, currentState.Value);
@@ -203,7 +205,7 @@ namespace Microsoft.Accordant.Tests
         public void Expect_ThenState_WithResponseAction_SetsStateGenerator()
         {
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
-                                            .ThenState<AtomicState<int>>(
+                                            .ThenState<CounterState>(
                                                 (resp, nextState) => nextState.Value = resp * 2,
                                                 mock: () => 10);
 
@@ -214,9 +216,9 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_ThenState_WithResponseAction_GeneratesCorrectState()
         {
-            var currentState = new AtomicState<int>(1);
+            var currentState = new CounterState(1);
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
-                                            .ThenState<AtomicState<int>>(
+                                            .ThenState<CounterState>(
                                                 (resp, nextState) => nextState.Value = resp * 2,
                                                 mock: () => 10);
 
@@ -224,7 +226,7 @@ namespace Microsoft.Accordant.Tests
             
             Assert.IsTrue(isValid);
             Assert.IsNotNull(stateProfile);
-            var resultState = (AtomicState<int>)stateProfile.StatesAndStepFunctions[0].Item1;
+            var resultState = (CounterState)stateProfile.StatesAndStepFunctions[0].Item1;
             Assert.AreEqual(10, resultState.Value); // 5 * 2 = 10
         }
 
@@ -232,7 +234,7 @@ namespace Microsoft.Accordant.Tests
         public void Expect_ThenState_WithResponseAction_MockIsAccessible()
         {
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
-                                            .ThenState<AtomicState<int>>(
+                                            .ThenState<CounterState>(
                                                 (resp, nextState) => nextState.Value = resp,
                                                 mock: () => 42);
 
@@ -246,7 +248,7 @@ namespace Microsoft.Accordant.Tests
             Assert.Throws<ArgumentNullException>(() =>
             {
                 Expect.That<int>(r => r > 0, "positive")
-                      .ThenState<AtomicState<int>>(
+                      .ThenState<CounterState>(
                           (resp, nextState) => nextState.Value = resp,
                           mock: null);
             });
@@ -269,7 +271,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_SameState_ReturnsCurrentState()
         {
-            var currentState = new AtomicState<int>(42);
+            var currentState = new CounterState(42);
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
                                             .SameState();
 
@@ -286,7 +288,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_SameState_WorksWithTriggers()
         {
-            var currentState = new AtomicState<int>(42);
+            var currentState = new CounterState(42);
             var stepFunction = new TestStepFunction(99);
 
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
@@ -310,7 +312,7 @@ namespace Microsoft.Accordant.Tests
         public void Expect_Triggers_FixedStepFunction_SetsStepFunctions()
         {
             var stepFunction = new TestStepFunction();
-            var state = new AtomicState<int>(1);
+            var state = new CounterState(1);
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "valid")
                                             .SameState()
@@ -323,7 +325,7 @@ namespace Microsoft.Accordant.Tests
         public void Expect_Triggers_FixedStepFunction_IncludedInStateProfile()
         {
             var stepFunction = new TestStepFunction();
-            var state = new AtomicState<int>(1);
+            var state = new CounterState(1);
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "valid")
                                             .SameState()
@@ -339,7 +341,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_Triggers_ResponseDependentStepFunction_SetsGenerator()
         {
-            var state = new AtomicState<int>(1);
+            var state = new CounterState(1);
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "valid")
                                             .SameState()
@@ -351,7 +353,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_Triggers_ResponseDependentStepFunction_GeneratesCorrectly()
         {
-            var state = new AtomicState<int>(1);
+            var state = new CounterState(1);
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "valid")
                                             .SameState()
@@ -373,8 +375,8 @@ namespace Microsoft.Accordant.Tests
         public void Expect_OneOf_CreatesExpectedOutcomes()
         {
             ExpectedOutcomes outcomes = Expect.OneOf(
-                Expect.That<int>(r => r > 0, "positive").ThenState<AtomicState<int>>(nextState => nextState.Value = 1),
-                Expect.That<int>(r => r <= 0, "non-positive").ThenState<AtomicState<int>>(nextState => nextState.Value = 2));
+                Expect.That<int>(r => r > 0, "positive").ThenState<CounterState>(nextState => nextState.Value = 1),
+                Expect.That<int>(r => r <= 0, "non-positive").ThenState<CounterState>(nextState => nextState.Value = 2));
 
             Assert.IsNotNull(outcomes);
             Assert.AreEqual(2, outcomes.PossibleOutcomes.Count);
@@ -383,46 +385,46 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_OneOf_MatchesFirstValidOutcome()
         {
-            var currentState = new AtomicState<int>(0);
+            var currentState = new CounterState(0);
 
             ExpectedOutcomes outcomes = Expect.OneOf(
-                Expect.That<int>(r => r > 0, "positive").ThenState<AtomicState<int>>(nextState => nextState.Value = 100),
-                Expect.That<int>(r => r <= 0, "non-positive").ThenState<AtomicState<int>>(nextState => nextState.Value = 200));
+                Expect.That<int>(r => r > 0, "positive").ThenState<CounterState>(nextState => nextState.Value = 100),
+                Expect.That<int>(r => r <= 0, "non-positive").ThenState<CounterState>(nextState => nextState.Value = 200));
 
             var (isValid, stateProfile) = outcomes.Matches(5, currentState);
             
             Assert.IsTrue(isValid);
             Assert.AreEqual(1, stateProfile.StatesAndStepFunctions.Count);
-            var resultState = (AtomicState<int>)stateProfile.StatesAndStepFunctions[0].Item1;
+            var resultState = (CounterState)stateProfile.StatesAndStepFunctions[0].Item1;
             Assert.AreEqual(100, resultState.Value);
         }
 
         [Test]
         public void Expect_OneOf_MatchesSecondOutcomeWhenFirstFails()
         {
-            var currentState = new AtomicState<int>(0);
+            var currentState = new CounterState(0);
 
             ExpectedOutcomes outcomes = Expect.OneOf(
-                Expect.That<int>(r => r > 0, "positive").ThenState<AtomicState<int>>(nextState => nextState.Value = 100),
-                Expect.That<int>(r => r <= 0, "non-positive").ThenState<AtomicState<int>>(nextState => nextState.Value = 200));
+                Expect.That<int>(r => r > 0, "positive").ThenState<CounterState>(nextState => nextState.Value = 100),
+                Expect.That<int>(r => r <= 0, "non-positive").ThenState<CounterState>(nextState => nextState.Value = 200));
 
             var (isValid, stateProfile) = outcomes.Matches(-5, currentState);
             
             Assert.IsTrue(isValid);
             Assert.AreEqual(1, stateProfile.StatesAndStepFunctions.Count);
-            var resultState = (AtomicState<int>)stateProfile.StatesAndStepFunctions[0].Item1;
+            var resultState = (CounterState)stateProfile.StatesAndStepFunctions[0].Item1;
             Assert.AreEqual(200, resultState.Value);
         }
 
         [Test]
         public void Expect_OneOf_MatchesBothWhenBothValid()
         {
-            var currentState = new AtomicState<int>(0);
+            var currentState = new CounterState(0);
 
             // Both predicates accept values > 5
             ExpectedOutcomes outcomes = Expect.OneOf(
-                Expect.That<int>(r => r > 5, "greater than 5").ThenState<AtomicState<int>>(nextState => nextState.Value = 100),
-                Expect.That<int>(r => r > 0, "positive").ThenState<AtomicState<int>>(nextState => nextState.Value = 200));
+                Expect.That<int>(r => r > 5, "greater than 5").ThenState<CounterState>(nextState => nextState.Value = 100),
+                Expect.That<int>(r => r > 0, "positive").ThenState<CounterState>(nextState => nextState.Value = 200));
 
             var (isValid, stateProfile) = outcomes.Matches(10, currentState);
             
@@ -434,11 +436,11 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_OneOf_FailsWhenNoOutcomesMatch()
         {
-            var currentState = new AtomicState<int>(0);
+            var currentState = new CounterState(0);
 
             ExpectedOutcomes outcomes = Expect.OneOf(
-                Expect.That<int>(r => r > 100, "greater than 100").ThenState<AtomicState<int>>(nextState => nextState.Value = 100),
-                Expect.That<int>(r => r < -100, "less than -100").ThenState<AtomicState<int>>(nextState => nextState.Value = 200));
+                Expect.That<int>(r => r > 100, "greater than 100").ThenState<CounterState>(nextState => nextState.Value = 100),
+                Expect.That<int>(r => r < -100, "less than -100").ThenState<CounterState>(nextState => nextState.Value = 200));
 
             var (isValid, stateProfile) = outcomes.Matches(0, currentState);
             
@@ -451,8 +453,8 @@ namespace Microsoft.Accordant.Tests
         {
             // Using builders directly (not calling .Build())
             ExpectedOutcomes outcomes = Expect.OneOf(
-                Expect.That<int>(r => r > 0, "positive").ThenState<AtomicState<int>>(nextState => nextState.Value = 1),
-                Expect.That<int>(r => r <= 0, "non-positive").ThenState<AtomicState<int>>(nextState => nextState.Value = 2));
+                Expect.That<int>(r => r > 0, "positive").ThenState<CounterState>(nextState => nextState.Value = 1),
+                Expect.That<int>(r => r <= 0, "non-positive").ThenState<CounterState>(nextState => nextState.Value = 2));
 
             Assert.AreEqual(2, outcomes.PossibleOutcomes.Count);
         }
@@ -474,7 +476,7 @@ namespace Microsoft.Accordant.Tests
         public void ExpectedOutcomeBuilder_ImplicitlyConvertsToExpectedOutcome()
         {
             // Implicit conversion
-            ExpectedOutcome outcome = Expect.That<int>(r => true, "valid").ThenState<AtomicState<int>>(nextState => nextState.Value = 1);
+            ExpectedOutcome outcome = Expect.That<int>(r => true, "valid").ThenState<CounterState>(nextState => nextState.Value = 1);
             
             Assert.IsNotNull(outcome);
             Assert.IsNotNull(outcome.NextStateGenerator);
@@ -484,7 +486,7 @@ namespace Microsoft.Accordant.Tests
         public void ExpectedOutcomeBuilder_ImplicitlyConvertsToExpectedOutcomes()
         {
             // Implicit conversion to ExpectedOutcomes (wraps in collection)
-            ExpectedOutcomes outcomes = Expect.That<int>(r => true, "valid").ThenState<AtomicState<int>>(nextState => nextState.Value = 1);
+            ExpectedOutcomes outcomes = Expect.That<int>(r => true, "valid").ThenState<CounterState>(nextState => nextState.Value = 1);
             
             Assert.IsNotNull(outcomes);
             Assert.AreEqual(1, outcomes.PossibleOutcomes.Count);
@@ -521,7 +523,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_WithNextState_SetsNextStateGenerator()
         {
-            var nextState = new AtomicState<int>(42);
+            var nextState = new CounterState(42);
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "always valid")
                                             .WithNextState(nextState);
@@ -532,8 +534,8 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_WithNextState_ReturnsExactState()
         {
-            var currentState = new AtomicState<int>(10);
-            var nextState = new AtomicState<int>(42);
+            var currentState = new CounterState(10);
+            var nextState = new CounterState(42);
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "always valid")
                                             .WithNextState(nextState);
@@ -551,8 +553,8 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_WithNextState_DoesNotModifyCurrentState()
         {
-            var currentState = new AtomicState<int>(10);
-            var nextState = new AtomicState<int>(42);
+            var currentState = new CounterState(10);
+            var nextState = new CounterState(42);
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "always valid")
                                             .WithNextState(nextState);
@@ -566,14 +568,14 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_WithNextState_WorksWithTriggers()
         {
-            var nextState = new AtomicState<int>(42);
+            var nextState = new CounterState(42);
             var stepFunction = new TestStepFunction(99);
 
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
                                             .WithNextState(nextState)
                                             .Triggers(stepFunction);
 
-            var (isValid, stateProfile) = outcome.Matches(10, new AtomicState<int>(0));
+            var (isValid, stateProfile) = outcome.Matches(10, new CounterState(0));
             
             Assert.IsTrue(isValid);
             Assert.AreSame(nextState, stateProfile.StatesAndStepFunctions[0].Item1);
@@ -594,7 +596,7 @@ namespace Microsoft.Accordant.Tests
         {
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
                                             .WithNextState(
-                                                resp => new AtomicState<int>(resp * 2),
+                                                resp => new CounterState(resp * 2),
                                                 mock: () => 10);
 
             Assert.IsNotNull(outcome.NextStateGenerator);
@@ -604,17 +606,17 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_WithNextState_ResponseDependent_GeneratesCorrectState()
         {
-            var currentState = new AtomicState<int>(1);
+            var currentState = new CounterState(1);
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
                                             .WithNextState(
-                                                resp => new AtomicState<int>(resp * 3),
+                                                resp => new CounterState(resp * 3),
                                                 mock: () => 10);
 
             var (isValid, stateProfile) = outcome.Matches(5, currentState);
             
             Assert.IsTrue(isValid);
             Assert.IsNotNull(stateProfile);
-            var resultState = (AtomicState<int>)stateProfile.StatesAndStepFunctions[0].Item1;
+            var resultState = (CounterState)stateProfile.StatesAndStepFunctions[0].Item1;
             Assert.AreEqual(15, resultState.Value); // 5 * 3 = 15
         }
 
@@ -623,7 +625,7 @@ namespace Microsoft.Accordant.Tests
         {
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
                                             .WithNextState(
-                                                resp => new AtomicState<int>(resp),
+                                                resp => new CounterState(resp),
                                                 mock: () => 42);
 
             var mockValue = outcome.MockResponseGenerator();
@@ -636,7 +638,7 @@ namespace Microsoft.Accordant.Tests
             Assert.Throws<ArgumentNullException>(() =>
             {
                 Expect.That<int>(r => r > 0, "positive")
-                      .WithNextState(resp => new AtomicState<int>(resp), mock: null);
+                      .WithNextState(resp => new CounterState(resp), mock: null);
             });
         }
 
@@ -667,7 +669,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_Throws_MatchesCorrectExceptionType()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
             ExpectedOutcome outcome = Expect.Throws<InvalidOperationException>()
                                             .SameState();
 
@@ -679,7 +681,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_Throws_RejectsWrongExceptionType()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
             ExpectedOutcome outcome = Expect.Throws<InvalidOperationException>()
                                             .SameState();
 
@@ -691,7 +693,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_Throws_RejectsNonException()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
             ExpectedOutcome outcome = Expect.Throws<InvalidOperationException>()
                                             .SameState();
 
@@ -702,7 +704,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_Throws_WithPredicate_ValidatesException()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
             ExpectedOutcome outcome = Expect.Throws<InvalidOperationException>(
                 ex => ex.Message.Contains("specific"),
                 "should contain 'specific' in message")
@@ -720,8 +722,8 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_Throws_WorksWithNextState()
         {
-            var nextState = new AtomicState<int>(99);
-            var currentState = new AtomicState<int>(42);
+            var nextState = new CounterState(99);
+            var currentState = new CounterState(42);
 
             ExpectedOutcome outcome = Expect.Throws<InvalidOperationException>()
                                             .WithNextState(nextState);
@@ -750,7 +752,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_Unit_MatchesUnitValue()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
             ExpectedOutcome outcome = Expect.Unit()
                                             .SameState();
 
@@ -770,8 +772,8 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_Unit_WorksWithNextState()
         {
-            var currentState = new AtomicState<int>(10);
-            var nextState = new AtomicState<int>(20);
+            var currentState = new CounterState(10);
+            var nextState = new CounterState(20);
 
             ExpectedOutcome outcome = Expect.Unit()
                                             .WithNextState(nextState);
@@ -790,7 +792,7 @@ namespace Microsoft.Accordant.Tests
         public void Expect_ThenState_WithCloneMap_SetsNextStateGenerator()
         {
             ExpectedOutcome outcome = Expect.That<int>(r => true, "always valid")
-                                            .ThenState<AtomicState<int>>((nextState, cloneMap) =>
+                                            .ThenState<CounterState>((nextState, cloneMap) =>
                                             {
                                                 nextState.Value = 42;
                                             });
@@ -801,11 +803,11 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_ThenState_WithCloneMap_ProvidesCloneMap()
         {
-            var currentState = new AtomicState<int>(10);
+            var currentState = new CounterState(10);
             Dictionary<object, object> capturedMap = null;
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "always valid")
-                                            .ThenState<AtomicState<int>>((nextState, cloneMap) =>
+                                            .ThenState<CounterState>((nextState, cloneMap) =>
                                             {
                                                 capturedMap = cloneMap;
                                                 nextState.Value = 42;
@@ -823,7 +825,7 @@ namespace Microsoft.Accordant.Tests
             Assert.Throws<ArgumentNullException>(() =>
             {
                 Expect.That<int>(r => true, "valid")
-                      .ThenState<AtomicState<int>>((Action<AtomicState<int>, Dictionary<object, object>>)null);
+                      .ThenState<CounterState>((Action<CounterState, Dictionary<object, object>>)null);
             });
         }
 
@@ -831,7 +833,7 @@ namespace Microsoft.Accordant.Tests
         public void Expect_ThenState_WithResponseAndCloneMap_SetsNextStateGenerator()
         {
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
-                                            .ThenState<AtomicState<int>>(
+                                            .ThenState<CounterState>(
                                                 (resp, nextState, cloneMap) => nextState.Value = resp,
                                                 mock: () => 10);
 
@@ -842,16 +844,16 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_ThenState_WithResponseAndCloneMap_GeneratesCorrectState()
         {
-            var currentState = new AtomicState<int>(1);
+            var currentState = new CounterState(1);
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
-                                            .ThenState<AtomicState<int>>(
+                                            .ThenState<CounterState>(
                                                 (resp, nextState, cloneMap) => nextState.Value = resp * 4,
                                                 mock: () => 10);
 
             var (isValid, stateProfile) = outcome.Matches(7, currentState);
             
             Assert.IsTrue(isValid);
-            var resultState = (AtomicState<int>)stateProfile.StatesAndStepFunctions[0].Item1;
+            var resultState = (CounterState)stateProfile.StatesAndStepFunctions[0].Item1;
             Assert.AreEqual(28, resultState.Value); // 7 * 4 = 28
         }
 
@@ -861,7 +863,7 @@ namespace Microsoft.Accordant.Tests
             Assert.Throws<ArgumentNullException>(() =>
             {
                 Expect.That<int>(r => r > 0, "positive")
-                      .ThenState<AtomicState<int>>(
+                      .ThenState<CounterState>(
                           (resp, nextState, cloneMap) => nextState.Value = resp,
                           mock: null);
             });
@@ -890,7 +892,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_That_NonGenericResponseValidator_ValidatesCorrectly()
         {
-            var state = new AtomicState<int>(42);
+            var state = new CounterState(42);
             var validator = new ResponseValidator(r =>
             {
                 var intVal = (int)r;
@@ -940,7 +942,7 @@ namespace Microsoft.Accordant.Tests
         {
             var stepFunction1 = new TestStepFunction(1);
             var stepFunction2 = new TestStepFunction(2);
-            var state = new AtomicState<int>(1);
+            var state = new CounterState(1);
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "valid")
                                             .SameState()
@@ -980,7 +982,7 @@ namespace Microsoft.Accordant.Tests
         [Test]
         public void Expect_Triggers_ResponseDependentMultiple_Works()
         {
-            var state = new AtomicState<int>(1);
+            var state = new CounterState(1);
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "valid")
                                             .SameState()
@@ -1005,7 +1007,7 @@ namespace Microsoft.Accordant.Tests
             Assert.Throws<ArgumentNullException>(() =>
             {
                 Expect.That<int>(r => true, "valid")
-                      .ThenState<AtomicState<int>>((Action<AtomicState<int>>)null);
+                      .ThenState<CounterState>((Action<CounterState>)null);
             });
         }
 
@@ -1015,8 +1017,8 @@ namespace Microsoft.Accordant.Tests
             Assert.Throws<ArgumentNullException>(() =>
             {
                 Expect.That<int>(r => true, "valid")
-                      .ThenState<AtomicState<int>>(
-                          (Action<int, AtomicState<int>>)null,
+                      .ThenState<CounterState>(
+                          (Action<int, CounterState>)null,
                           mock: () => 10);
             });
         }
@@ -1029,7 +1031,7 @@ namespace Microsoft.Accordant.Tests
         public void Expect_WorksInOperationApply()
         {
             var operation = new ExpectBasedOperation();
-            var state = new AtomicState<int>(10);
+            var state = new CounterState(10);
 
             var outcomes = operation.Apply(5, state);
             
@@ -1039,7 +1041,7 @@ namespace Microsoft.Accordant.Tests
             var (isValid, stateProfile) = outcomes.Matches(15, state);
             Assert.IsTrue(isValid);
             
-            var newState = (AtomicState<int>)stateProfile.StatesAndStepFunctions[0].Item1;
+            var newState = (CounterState)stateProfile.StatesAndStepFunctions[0].Item1;
             Assert.AreEqual(15, newState.Value);
         }
 
@@ -1047,7 +1049,7 @@ namespace Microsoft.Accordant.Tests
         public void Expect_OneOf_WorksInOperationApply()
         {
             var operation = new ExpectOneOfBasedOperation();
-            var state = new AtomicState<int>(10);
+            var state = new CounterState(10);
 
             var outcomes = operation.Apply(5, state);
             
@@ -1065,6 +1067,100 @@ namespace Microsoft.Accordant.Tests
 
         #endregion
 
+        #region TypedExpectBuilder Extension Method Tests
+
+        /// <summary>
+        /// Tests that ThenState with clone map works via extension method when TState derives from State.
+        /// This verifies the extension method approach for State-specific CloneWithMap functionality.
+        /// </summary>
+        [Test]
+        public void TypedExpectBuilder_ThenStateWithCloneMap_WorksViaExtensionMethod()
+        {
+            // Create an operation that uses ThenState with clone map
+            var operation = new CloneMapOperation();
+            var state = new CounterState(10);
+
+            // Apply should work - the extension method provides ThenState(Action<TState, Dictionary<object,object>>)
+            var outcomes = operation.Apply(5, state);
+
+            Assert.IsNotNull(outcomes);
+            Assert.AreEqual(1, outcomes.PossibleOutcomes.Count);
+
+            // Verify the outcome works correctly
+            var (isValid, stateProfile) = outcomes.Matches(15, state);
+            Assert.IsTrue(isValid);
+
+            // Verify the state was modified correctly
+            var nextStates = stateProfile.StatesAndStepFunctions;
+            Assert.AreEqual(1, nextStates.Count);
+            var nextState = (CounterState)nextStates[0].Item1;
+            Assert.AreEqual(15, nextState.Value);
+        }
+
+        /// <summary>
+        /// Tests that ThenState with response and clone map works via extension method.
+        /// </summary>
+        [Test]
+        public void TypedExpectBuilder_ThenStateWithResponseAndCloneMap_WorksViaExtensionMethod()
+        {
+            var operation = new CloneMapWithResponseOperation();
+            var state = new CounterState(10);
+
+            var outcomes = operation.Apply(5, state);
+
+            Assert.IsNotNull(outcomes);
+            Assert.AreEqual(1, outcomes.PossibleOutcomes.Count);
+
+            // Verify with a mock response
+            var (isValid, stateProfile) = outcomes.Matches(15, state);
+            Assert.IsTrue(isValid);
+        }
+
+        /// <summary>
+        /// Operation that uses ThenState with clone map (Dictionary parameter).
+        /// This tests the extension method that requires TState : State.
+        /// </summary>
+        private class CloneMapOperation : Operation<int, int, CounterState>
+        {
+            public CloneMapOperation() : base("CloneMap") { }
+
+            public override ExpectedOutcomes Apply(int request, CounterState state)
+            {
+                var expectedValue = state.Value + request;
+                // Use the ThenState overload with clone map - this uses the extension method
+                return Expect.That(r => r == expectedValue, $"should equal {expectedValue}")
+                             .ThenState((nextState, cloneMap) =>
+                             {
+                                 // cloneMap is available for cycle-aware operations
+                                 Assert.IsNotNull(cloneMap);
+                                 nextState.Value = expectedValue;
+                             });
+            }
+        }
+
+        /// <summary>
+        /// Operation that uses ThenState with response and clone map.
+        /// </summary>
+        private class CloneMapWithResponseOperation : Operation<int, int, CounterState>
+        {
+            public CloneMapWithResponseOperation() : base("CloneMapWithResponse") { }
+
+            public override ExpectedOutcomes Apply(int request, CounterState state)
+            {
+                var expectedValue = state.Value + request;
+                return Expect.That(r => r == expectedValue, $"should equal {expectedValue}")
+                             .ThenState(
+                                 (response, nextState, cloneMap) =>
+                                 {
+                                     Assert.IsNotNull(cloneMap);
+                                     nextState.Value = response; // Use response directly
+                                 },
+                                 () => expectedValue); // Mock for exploration
+            }
+        }
+
+        #endregion
+
         #region Helper Classes
 
         private class TestStepFunction : BaseStepFunction
@@ -1076,17 +1172,17 @@ namespace Microsoft.Accordant.Tests
                 Value = value;
             }
 
-            protected override IList<StepResult> ApplyInternal(State state, IReadOnlyList<(IStepFunction, StateGraphNode)> path)
+            protected override IList<StepResult> ApplyInternal(IState state, IReadOnlyList<(IStepFunction, StateGraphNode)> path)
             {
                 return new List<StepResult> { new StepResult { State = state } };
             }
         }
 
-        private class ExpectBasedOperation : Operation<int, int, AtomicState<int>>
+        private class ExpectBasedOperation : Operation<int, int, CounterState>
         {
             public ExpectBasedOperation() : base("ExpectBased") { }
 
-            public override ExpectedOutcomes Apply(int request, AtomicState<int> state)
+            public override ExpectedOutcomes Apply(int request, CounterState state)
             {
                 var expectedValue = state.Value + request;
                 return Expect.That(r => r == expectedValue, $"should equal {expectedValue}")
@@ -1094,11 +1190,11 @@ namespace Microsoft.Accordant.Tests
             }
         }
 
-        private class ExpectOneOfBasedOperation : Operation<int, int, AtomicState<int>>
+        private class ExpectOneOfBasedOperation : Operation<int, int, CounterState>
         {
             public ExpectOneOfBasedOperation() : base("ExpectOneOfBased") { }
 
-            public override ExpectedOutcomes Apply(int request, AtomicState<int> state)
+            public override ExpectedOutcomes Apply(int request, CounterState state)
             {
                 var expectedValue = state.Value + request;
                 return Expect.OneOf(

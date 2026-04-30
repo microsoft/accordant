@@ -25,7 +25,7 @@ namespace Microsoft.Accordant
         public static async Task<IList<TestCaseExecutionResult>> ExecuteSequentialTestCases(
             TestingContext context,
             IList<SequentialTestCase> testCases,
-            State initialState,
+            IState initialState,
             TestExecutionOptions options)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
@@ -94,7 +94,7 @@ namespace Microsoft.Accordant
         private static async Task<TestCaseExecutionResult> ExecuteSequentialTestCaseInternal(
             TestingContext context,
             SequentialTestCase testCase,
-            State initialState,
+            IState initialState,
             int testIndex,
             int totalTests,
             TestExecutionOptions options)
@@ -171,7 +171,7 @@ namespace Microsoft.Accordant
         public static async Task<IList<TestCaseExecutionResult>> ExecuteConcurrentTestCases(
             TestingContext context,
             IList<ConcurrentTestCase> testCases,
-            State initialState,
+            IState initialState,
             TestExecutionOptions options)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
@@ -239,7 +239,7 @@ namespace Microsoft.Accordant
         private static async Task<TestCaseExecutionResult> ExecuteConcurrentTestCaseInternal(
             TestingContext context,
             ConcurrentTestCase testCase,
-            State initialState,
+            IState initialState,
             int testIndex,
             int totalTests,
             TestExecutionOptions options)
@@ -316,8 +316,6 @@ namespace Microsoft.Accordant
 
             while (true)
             {
-                var contract = (IContract)operation;
-
                 Logger.Log($"Executing \"{operationCallName}\"");
                 Logger.Log(string.Empty);
 
@@ -351,7 +349,7 @@ namespace Microsoft.Accordant
                                 new ContractStepFunction(
                                     request,
                                     response,
-                                    contract)
+                                    operation.Verify)
                             ]
                         ],
                         stateProfile,
@@ -360,19 +358,19 @@ namespace Microsoft.Accordant
                             Logger.Log($"Considering state: {updatedState}");
                             Logger.Log($"Step functions at state node: {string.Join(", ", stepFunctions.Select(f => f.GetType().Name))}");
 
-                            var (validResult, _) = contract.Verify(
+                            var (validResult, _) = operation.Verify(
                                     request,
                                     updatedState,
                                     response);
 
                             if (validResult)
                             {
-                                Logger.Log($"Response valid according to contract.");
+                                Logger.Log($"Response valid according to operation.");
                             }
                             else
                             {
-                                Logger.Log($"Response is NOT according to contract.");
-                                Logger.Log(contract.ExplainInvalidResponse(
+                                Logger.Log($"Response is NOT according to operation.");
+                                Logger.Log(operation.ExplainInvalidResponse(
                                     request,
                                     updatedState,
                                     response));
@@ -398,13 +396,13 @@ namespace Microsoft.Accordant
                     }
 
                     var validString = valid ? "valid" : "not valid";
-                    Logger.Log($"Response {validString} according to contract.");
+                    Logger.Log($"Response {validString} according to operation.");
 
                     if (!valid)
                     {
                         var responseMismatchExplanation = ConstructResponseMismatchExplanationText(
                             context,
-                            contract,
+                            operation,
                             operationCallName,
                             request,
                             stateProfile,
@@ -447,7 +445,7 @@ namespace Microsoft.Accordant
 
         private static async Task<(StateProfile, bool, string)> ExecuteSequentialTestCaseInternal(
             TestingContext context,
-            State startingState,
+            IState startingState,
             IList<OperationCall> operationCalls,
             Dictionary<string, object> operationCallRequests,
             Dictionary<string, object> operationCallResponses,
@@ -574,7 +572,7 @@ namespace Microsoft.Accordant
 
         private static async Task<(StateProfile, bool, string)> ExecuteConcurrentTestCaseInternal(
             TestingContext context,
-            State startingState,
+            IState startingState,
             ConcurrentTestCase testCase,
             TestExecutionOptions options)
         {
@@ -621,7 +619,7 @@ namespace Microsoft.Accordant
         private static async Task<(StateProfile, bool, string)> ExecuteSequentialPartOfConcurrentTestInternal(
             TestingContext context,
             ConcurrentTestCase testCase,
-            State startingState,
+            IState startingState,
             Dictionary<string, object> operationCallRequests,
             Dictionary<string, object> operationCallResponses,
             TestExecutionOptions options)
@@ -780,7 +778,7 @@ namespace Microsoft.Accordant
                     operationCallRequests[operationCallName] = request;
                     operationCallResponses[operationCallName] = result;
 
-                    concurrentSteps.Add(new ContractStepFunction(request, result, (IContract)input.Operation));
+                    concurrentSteps.Add(new ContractStepFunction(request, result, input.Operation.Verify));
 
                     executionResults.Add((input.Operation, request, result));
                 }
@@ -1073,7 +1071,7 @@ namespace Microsoft.Accordant
 
         private static string ConstructResponseMismatchExplanationText(
             TestingContext context,
-            IContract contract,
+            IOperation operation,
             string label,
             object request,
             StateProfile stateProfile,
@@ -1094,7 +1092,7 @@ namespace Microsoft.Accordant
             }
             sb.AppendLine($"Observed response: {context.ResponsePrinter(response)}");
             sb.AppendLine(string.Empty);
-            sb.AppendLine($"Explanation: {contract.ExplainInvalidResponse(request, stateProfile, response)}");
+            sb.AppendLine($"Explanation: {operation.ExplainInvalidResponse(request, stateProfile, response)}");
 
             return sb.ToString();
         }
