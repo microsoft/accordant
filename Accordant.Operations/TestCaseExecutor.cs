@@ -869,6 +869,10 @@ namespace Microsoft.Accordant
 
         /// <summary>
         /// Gets the list of TerminatingStepFunction instances that should be polled for.
+        /// Only includes step functions that have NOT yet reached their terminal state.
+        /// Note: The state profile can have multiple entries with the same state but different
+        /// step functions (due to non-determinism). We filter out terminal ones to avoid
+        /// spurious polling on subsequent operations.
         /// </summary>
         private static HashSet<TerminatingStepFunction> GetStepFunctionsToPollFor(
             StateProfile stateProfile)
@@ -879,7 +883,8 @@ namespace Microsoft.Accordant
             {
                 foreach (var sf in stepFunctions)
                 {
-                    if (sf is TerminatingStepFunction tsf)
+                    // Only include step functions that haven't reached their terminal state yet.
+                    if (sf is TerminatingStepFunction tsf && !tsf.IsTerminalState(state))
                     {
                         result.Add(tsf);
                     }

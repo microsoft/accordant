@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Microsoft.Accordant</id>
-    <version>0.1.1-preview</version>
+    <version>0.1.2-preview</version>
     <authors>Microsoft</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>

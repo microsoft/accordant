@@ -999,6 +999,103 @@ namespace Microsoft.Accordant.Operations.Tests
 
         #endregion
 
+        #region TriggersWhen Tests
+
+        [Test]
+        public void Expect_TriggersWhen_PredicateTrue_IncludesStepFunction()
+        {
+            var stepFunction = new TestStepFunction(42);
+            var state = new CounterState(1);
+
+            ExpectedOutcome outcome = Expect.That<int>(r => true, "valid")
+                                            .SameState()
+                                            .TriggersWhen(r => r > 0, stepFunction);
+
+            var (isValid, stateProfile) = outcome.Matches(5, state);
+
+            Assert.IsTrue(isValid);
+            var stepFunctions = stateProfile.StatesAndStepFunctions[0].Item2;
+            Assert.AreEqual(1, stepFunctions.Count);
+            Assert.AreSame(stepFunction, stepFunctions[0]);
+        }
+
+        [Test]
+        public void Expect_TriggersWhen_PredicateFalse_NoStepFunction()
+        {
+            var stepFunction = new TestStepFunction(42);
+            var state = new CounterState(1);
+
+            ExpectedOutcome outcome = Expect.That<int>(r => true, "valid")
+                                            .SameState()
+                                            .TriggersWhen(r => r < 0, stepFunction);  // false for positive response
+
+            var (isValid, stateProfile) = outcome.Matches(5, state);
+
+            Assert.IsTrue(isValid);
+            var stepFunctions = stateProfile.StatesAndStepFunctions[0].Item2;
+            Assert.AreEqual(0, stepFunctions.Count);  // No step function triggered
+        }
+
+        [Test]
+        public void Expect_TriggersWhen_NullPredicateThrows()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                Expect.That<int>(r => true, "valid")
+                      .SameState()
+                      .TriggersWhen(null, new TestStepFunction(1));
+            });
+        }
+
+        [Test]
+        public void Expect_TriggersWhen_NullStepFunctionThrows()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                Expect.That<int>(r => true, "valid")
+                      .SameState()
+                      .TriggersWhen(r => true, (IStepFunction)null);
+            });
+        }
+
+        [Test]
+        public void Expect_TriggersWhen_MultipleStepFunctions_PredicateTrue_IncludesAll()
+        {
+            var sf1 = new TestStepFunction(1);
+            var sf2 = new TestStepFunction(2);
+            var state = new CounterState(1);
+
+            ExpectedOutcome outcome = Expect.That<int>(r => true, "valid")
+                                            .SameState()
+                                            .TriggersWhen(r => r > 0, sf1, sf2);
+
+            var (isValid, stateProfile) = outcome.Matches(5, state);
+
+            Assert.IsTrue(isValid);
+            var stepFunctions = stateProfile.StatesAndStepFunctions[0].Item2;
+            Assert.AreEqual(2, stepFunctions.Count);
+        }
+
+        [Test]
+        public void Expect_TriggersWhen_MultipleStepFunctions_PredicateFalse_NoStepFunctions()
+        {
+            var sf1 = new TestStepFunction(1);
+            var sf2 = new TestStepFunction(2);
+            var state = new CounterState(1);
+
+            ExpectedOutcome outcome = Expect.That<int>(r => true, "valid")
+                                            .SameState()
+                                            .TriggersWhen(r => r < 0, sf1, sf2);
+
+            var (isValid, stateProfile) = outcome.Matches(5, state);
+
+            Assert.IsTrue(isValid);
+            var stepFunctions = stateProfile.StatesAndStepFunctions[0].Item2;
+            Assert.AreEqual(0, stepFunctions.Count);
+        }
+
+        #endregion
+
         #region Additional Null Validation Tests
 
         [Test]

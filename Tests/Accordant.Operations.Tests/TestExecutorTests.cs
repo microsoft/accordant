@@ -1062,5 +1062,149 @@ namespace Microsoft.Accordant.Operations.Tests
             Assert.AreEqual(testCases.Count, afterEachCalls, "AfterEach should be called for each concurrent test");
             Assert.IsTrue(onStepExecutedCalls > 0, "OnStepExecuted should be called for concurrent tests");
         }
+
+        /// <summary>
+        /// Test that a terminal step function does not cause spurious polling
+        /// on subsequent operations that don't have polling configured.
+        /// 
+        /// Scenario:
+        /// 1. StartAsync triggers async work, returns "pending", triggers step function
+        /// 2. GetStatus polls and step function fires, transitioning to "success"
+        /// 3. Unrelated operation runs (no polling configured)
+        /// 4. Should not attempt to poll for Unrelated
+        /// </summary>
+        [Test]
+        public async Task TerminalStepFunction_ShouldNotTriggerPollingOnSubsequentOperations()
+        {
+            var spec = new AsyncOperationSpec();
+            var initialState = new AsyncOperationState { Status = "none" };
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("StartAsync", spec["StartAsync"]),
+                new OperationInput("Unrelated", spec["Unrelated"]),
+            };
+
+            // Create a manual test case: StartAsync -> Unrelated
+            var testCase = TestCaseGenerator.CreateManualSequentialTestCase(
+                spec.CreateTestingContext(),
+                inputSet,
+                "StartAsync", "Unrelated");
+
+            var context = spec.CreateTestingContext();
+
+            // Run the test - this should NOT throw a PollingException
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions
+                {
+                    BeforeEach = _ => context.Register(new AsyncWorkTarget())
+                });
+
+            // Provide detailed failure information
+            var failedResults = results.Where(r => !r.Success).ToList();
+            if (failedResults.Any())
+            {
+                var messages = string.Join("\n", failedResults.Select(r => r.LastFailureMessage));
+                Assert.Fail($"Test failed with messages:\n{messages}");
+            }
+
+            // The test should pass without throwing PollingException
+            Assert.IsTrue(results.All(r => r.Success), 
+                "Test should pass - Unrelated operation should not trigger polling " +
+                "just because a previous step function is still (terminally) in the state profile");
+        }
+
+        /// <summary>
+        /// Test that TriggersWhen correctly avoids triggering step function when response
+        /// indicates immediate completion (like CopyBlob returning "success" immediately).
+        /// </summary>
+        [Test]
+        public async Task TriggersWhen_ImmediateSuccess_NoStepFunctionTriggered()
+        {
+            var spec = new CopyOperationSpec();
+            var initialState = new CopyState { CopyStatus = "none" };
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("StartCopy", spec["StartCopy"]),
+                new OperationInput("UnrelatedCopy", spec["UnrelatedCopy"]),
+            };
+
+            var testCase = TestCaseGenerator.CreateManualSequentialTestCase(
+                spec.CreateTestingContext(),
+                inputSet,
+                "StartCopy", "UnrelatedCopy");
+
+            var context = spec.CreateTestingContext();
+
+            // Use CopyTarget with immediateSuccess=true - StartCopy returns "success" immediately
+            // TriggersWhen should NOT trigger the step function
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions
+                {
+                    BeforeEach = _ => context.Register(new CopyTarget(immediateSuccess: true))
+                });
+
+            var failedResults = results.Where(r => !r.Success).ToList();
+            if (failedResults.Any())
+            {
+                var messages = string.Join("\n", failedResults.Select(r => r.LastFailureMessage));
+                Assert.Fail($"Test failed with messages:\n{messages}");
+            }
+
+            Assert.IsTrue(results.All(r => r.Success),
+                "Test should pass - TriggersWhen should not trigger SF when response is 'success'");
+        }
+
+        /// <summary>
+        /// Test that TriggersWhen correctly triggers step function when response
+        /// indicates async work is pending (like CopyBlob returning "pending").
+        /// </summary>
+        [Test]
+        public async Task TriggersWhen_PendingResponse_StepFunctionTriggeredAndPolled()
+        {
+            var spec = new CopyOperationSpec();
+            var initialState = new CopyState { CopyStatus = "none" };
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("StartCopy", spec["StartCopy"]),
+                new OperationInput("UnrelatedCopy", spec["UnrelatedCopy"]),
+            };
+
+            var testCase = TestCaseGenerator.CreateManualSequentialTestCase(
+                spec.CreateTestingContext(),
+                inputSet,
+                "StartCopy", "UnrelatedCopy");
+
+            var context = spec.CreateTestingContext();
+
+            // Use CopyTarget with immediateSuccess=false - StartCopy returns "pending"
+            // TriggersWhen SHOULD trigger the step function, which will be polled
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions
+                {
+                    BeforeEach = _ => context.Register(new CopyTarget(immediateSuccess: false))
+                });
+
+            var failedResults = results.Where(r => !r.Success).ToList();
+            if (failedResults.Any())
+            {
+                var messages = string.Join("\n", failedResults.Select(r => r.LastFailureMessage));
+                Assert.Fail($"Test failed with messages:\n{messages}");
+            }
+
+            Assert.IsTrue(results.All(r => r.Success),
+                "Test should pass - TriggersWhen should trigger SF when response is 'pending', and polling should complete");
+        }
     }
 }

@@ -145,13 +145,15 @@ namespace Microsoft.Accordant
         /// <summary>
         /// Sealed implementation that handles the terminal check automatically.
         /// Only calls <see cref="GetStepResults"/> when the state is not terminal.
+        /// When terminal, returns the current state unchanged to consume the step function
+        /// (removing it from the state profile).
         /// </summary>
         protected sealed override IList<StepResult> ApplyInternal(IState state)
         {
-            // Already terminal? Nothing to do.
+            // Already terminal? Return same state to consume ourselves (get removed from state profile).
             if (IsTerminalState(state))
             {
-                return null;
+                return new[] { new StepResult { State = state } };
             }
 
             return GetStepResults(state);

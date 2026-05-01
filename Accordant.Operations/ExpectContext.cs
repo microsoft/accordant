@@ -312,6 +312,36 @@ namespace Microsoft.Accordant
             return this;
         }
 
+        /// <summary>
+        /// Specifies that this operation conditionally triggers a step function based on the response.
+        /// The step function is only triggered when the predicate returns true.
+        /// </summary>
+        /// <param name="predicate">A function that returns true when the step function should be triggered.</param>
+        /// <param name="stepFunction">The step function to trigger when the predicate is true.</param>
+        /// <returns>This builder for method chaining.</returns>
+        public TypedExpectBuilder<TResponse, TState> TriggersWhen(
+            Func<TResponse, bool> predicate,
+            IStepFunction stepFunction)
+        {
+            _inner.TriggersWhen(predicate, stepFunction);
+            return this;
+        }
+
+        /// <summary>
+        /// Specifies that this operation conditionally triggers multiple step functions based on the response.
+        /// The step functions are only triggered when the predicate returns true.
+        /// </summary>
+        /// <param name="predicate">A function that returns true when the step functions should be triggered.</param>
+        /// <param name="stepFunctions">The step functions to trigger when the predicate is true.</param>
+        /// <returns>This builder for method chaining.</returns>
+        public TypedExpectBuilder<TResponse, TState> TriggersWhen(
+            Func<TResponse, bool> predicate,
+            params IStepFunction[] stepFunctions)
+        {
+            _inner.TriggersWhen(predicate, stepFunctions);
+            return this;
+        }
+
         #endregion
 
         #region Build

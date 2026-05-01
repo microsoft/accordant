@@ -555,6 +555,58 @@ namespace Microsoft.Accordant
             return this;
         }
 
+        /// <summary>
+        /// Specifies that this operation conditionally triggers a step function based on the response.
+        /// The step function is only triggered when the predicate returns true.
+        /// </summary>
+        /// <param name="predicate">A function that returns true when the step function should be triggered.</param>
+        /// <param name="stepFunction">The step function to trigger when the predicate is true.</param>
+        /// <returns>This builder for method chaining.</returns>
+        public ExpectedOutcomeBuilder<TResponse> TriggersWhen(
+            Func<TResponse, bool> predicate,
+            IStepFunction stepFunction)
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+            if (stepFunction == null)
+                throw new ArgumentNullException(nameof(stepFunction));
+
+            _nextStepFunctions = (resp) =>
+            {
+                var typedResp = (TResponse)resp;
+                return predicate(typedResp)
+                    ? new StepFunctionList(stepFunction)
+                    : new StepFunctionList();
+            };
+            return this;
+        }
+
+        /// <summary>
+        /// Specifies that this operation conditionally triggers multiple step functions based on the response.
+        /// The step functions are only triggered when the predicate returns true.
+        /// </summary>
+        /// <param name="predicate">A function that returns true when the step functions should be triggered.</param>
+        /// <param name="stepFunctions">The step functions to trigger when the predicate is true.</param>
+        /// <returns>This builder for method chaining.</returns>
+        public ExpectedOutcomeBuilder<TResponse> TriggersWhen(
+            Func<TResponse, bool> predicate,
+            params IStepFunction[] stepFunctions)
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+            if (stepFunctions == null || stepFunctions.Length == 0)
+                throw new ArgumentException("At least one step function must be provided.", nameof(stepFunctions));
+
+            _nextStepFunctions = (resp) =>
+            {
+                var typedResp = (TResponse)resp;
+                return predicate(typedResp)
+                    ? new StepFunctionList(stepFunctions)
+                    : new StepFunctionList();
+            };
+            return this;
+        }
+
         #endregion
 
         #region Build

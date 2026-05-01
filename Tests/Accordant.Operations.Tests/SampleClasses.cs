@@ -387,4 +387,366 @@ namespace Microsoft.Accordant.Operations.Tests
             return new[] { new StepResult { State = nextState } };
         }
     }
+
+    #region TerminalStepFunctionPolling Bug Repro
+
+    /// <summary>
+    /// State for the async operation scenario.
+    /// Models a resource with a Status that transitions from "pending" to "success".
+    /// </summary>
+    [State]
+    public partial class AsyncOperationState : State
+    {
+        public string Status { get; set; } = "none";
+    }
+
+    /// <summary>
+    /// Spec for reproducing the bug where a terminated step function
+    /// causes polling to be attempted on subsequent operations that
+    /// don't have polling configured.
+    /// 
+    /// Models: StartAsync -> GetStatus (polls until success) -> Unrelated operation (no polling)
+    /// </summary>
+    public class AsyncOperationSpec : Spec<AsyncOperationState>
+    {
+        public StartAsyncOperation StartAsync { get; } = new();
+        public GetStatusOperation GetStatus { get; } = new();
+        public UnrelatedOperation Unrelated { get; } = new();
+
+        public AsyncOperationSpec()
+        {
+            this["StartAsync"] = StartAsync;
+            this["GetStatus"] = GetStatus;
+            this["Unrelated"] = Unrelated;
+        }
+    }
+
+    /// <summary>
+    /// StartAsync operation - triggers async work, returns while work is still pending.
+    /// Has polling configured to poll via GetStatus.
+    /// </summary>
+    public class StartAsyncOperation : Operation<Unit, string, AsyncOperationState>
+    {
+        public StartAsyncOperation() : base("StartAsync") { }
+
+        public override PollingSetup Polling => new PollingSetup
+        {
+            Operation = "GetStatus",
+            WaitTimeInMs = 10,
+            MaxRetryCount = 100
+        };
+
+        public override ExpectedOutcomes Apply(Unit request, AsyncOperationState state)
+        {
+            if (state.Status != "none")
+            {
+                return Expect.That(r => r == "already started", "already started").SameState();
+            }
+
+            // Work starts in "pending" state and triggers a step function
+            // that will eventually transition to "success"
+            return Expect.That(r => r == "pending", "work started, status is pending")
+                         .WithNextState(new AsyncOperationState { Status = "pending" })
+                         .Triggers(new AsyncWorkStepFunction());
+        }
+
+        public override string Execute(TestingContext context, Unit request)
+        {
+            var target = context.Get<AsyncWorkTarget>();
+            return target.StartWork();
+        }
+    }
+
+    /// <summary>
+    /// GetStatus - observes the current status from the server.
+    /// Uses state-aware validation: asserts response matches model state.
+    /// The step function is responsible for transitioning state to "success".
+    /// </summary>
+    public class GetStatusOperation : Operation<Unit, string, AsyncOperationState>
+    {
+        public GetStatusOperation() : base("GetStatus") { }
+
+        /// <summary>
+        /// Derivation for polling: GetStatus derives from StartAsync.
+        /// </summary>
+        public override IReadOnlyList<RequestDerivation> DerivedFrom => new[]
+        {
+            Derive.From<Unit, string, Unit>("StartAsync")
+                  .As((req, resp) => Unit.Value)
+        };
+
+        public override ExpectedOutcomes Apply(Unit request, AsyncOperationState state)
+        {
+            // State-aware validation: assert response matches our model state.
+            // The step function is responsible for transitioning state to "success".
+            return Expect.That(r => r == state.Status, $"should return '{state.Status}'")
+                         .SameState();
+        }
+
+        public override string Execute(TestingContext context, Unit request)
+        {
+            return context.Get<AsyncWorkTarget>().GetStatus();
+        }
+    }
+
+    /// <summary>
+    /// Unrelated operation - does NOT have polling configured.
+    /// </summary>
+    public class UnrelatedOperation : Operation<Unit, string, AsyncOperationState>
+    {
+        public UnrelatedOperation() : base("Unrelated") { }
+
+        // NOTE: No Polling property - this operation has nothing to do with async work.
+
+        public override ExpectedOutcomes Apply(Unit request, AsyncOperationState state)
+        {
+            return Expect.That(r => r == "ok", "unrelated operation completed")
+                         .SameState();
+        }
+
+        public override string Execute(TestingContext context, Unit request)
+        {
+            return context.Get<AsyncWorkTarget>().DoUnrelatedWork();
+        }
+    }
+
+    /// <summary>
+    /// Step function that models the async work completing.
+    /// Terminal when Status is no longer "pending" (i.e., "success" or "failed").
+    /// </summary>
+    public class AsyncWorkStepFunction : TerminatingStepFunction
+    {
+        public override Func<IState, bool> IsTerminalState => state =>
+        {
+            var asyncState = (AsyncOperationState)state;
+            // Terminal when work is no longer pending
+            return asyncState.Status != "pending";
+        };
+
+        protected override IList<StepResult> GetStepResults(IState state)
+        {
+            // Transition from pending to success
+            var nextState = (AsyncOperationState)state.Clone();
+            nextState.Status = "success";
+            return new[] { new StepResult { State = nextState } };
+        }
+    }
+
+    /// <summary>
+    /// Target class that simulates async work.
+    /// </summary>
+    public class AsyncWorkTarget
+    {
+        private string status = "none";
+
+        public string StartWork()
+        {
+            if (status == "none")
+            {
+                status = "pending";
+                // Simulate async work completing quickly
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(5);
+                    status = "success";
+                });
+            }
+            return status;
+        }
+
+        public string GetStatus() => status;
+
+        public string DoUnrelatedWork() => "ok";
+    }
+
+    #endregion
+
+    #region TriggersWhen Demo - CopyBlob-like Scenario
+
+    /// <summary>
+    /// State for the copy operation scenario.
+    /// Models a resource that can complete immediately ("success") or async ("pending").
+    /// </summary>
+    [State]
+    public partial class CopyState : State
+    {
+        public string CopyStatus { get; set; } = "none";
+    }
+
+    /// <summary>
+    /// Spec demonstrating TriggersWhen for operations that may or may not trigger
+    /// async work depending on the response.
+    /// 
+    /// Like Azure Blob Copy: operation can return "success" (copy completed immediately)
+    /// or "pending" (copy is async, need to poll).
+    /// </summary>
+    public class CopyOperationSpec : Spec<CopyState>
+    {
+        public StartCopyOperation StartCopy { get; } = new();
+        public GetCopyStatusOperation GetCopyStatus { get; } = new();
+        public UnrelatedCopyOperation UnrelatedCopy { get; } = new();
+
+        public CopyOperationSpec()
+        {
+            this["StartCopy"] = StartCopy;
+            this["GetCopyStatus"] = GetCopyStatus;
+            this["UnrelatedCopy"] = UnrelatedCopy;
+        }
+    }
+
+    /// <summary>
+    /// StartCopy - models an operation that can complete immediately or async.
+    /// Uses TriggersWhen to only trigger the step function when response is "pending".
+    /// </summary>
+    public class StartCopyOperation : Operation<Unit, string, CopyState>
+    {
+        public StartCopyOperation() : base("StartCopy") { }
+
+        public override PollingSetup Polling => new PollingSetup
+        {
+            Operation = "GetCopyStatus",
+            WaitTimeInMs = 10,
+            MaxRetryCount = 100
+        };
+
+        public override ExpectedOutcomes Apply(Unit request, CopyState state)
+        {
+            if (state.CopyStatus != "none")
+            {
+                return Expect.That(r => r == "already started", "already started").SameState();
+            }
+
+            // Response can be either "pending" (async) or "success" (immediate completion)
+            // Only trigger step function when pending!
+            return Expect.That(r => r == "pending" || r == "success", "copy started")
+                         .ThenState(
+                             (string response, CopyState nextState) =>
+                             {
+                                 nextState.CopyStatus = response;
+                             },
+                             mock: () => "success")  // Mock returns success for exploration
+                         .TriggersWhen(
+                             response => response == "pending",
+                             new CopyStepFunction());
+        }
+
+        public override string Execute(TestingContext context, Unit request)
+        {
+            return context.Get<CopyTarget>().StartCopy();
+        }
+    }
+
+    /// <summary>
+    /// GetCopyStatus - polls for copy completion using response-dependent state.
+    /// </summary>
+    public class GetCopyStatusOperation : Operation<Unit, string, CopyState>
+    {
+        public GetCopyStatusOperation() : base("GetCopyStatus") { }
+
+        public override IReadOnlyList<RequestDerivation> DerivedFrom => new[]
+        {
+            Derive.From<Unit, string, Unit>("StartCopy")
+                  .As((req, resp) => Unit.Value)
+        };
+
+        public override ExpectedOutcomes Apply(Unit request, CopyState state)
+        {
+            // Response-dependent state: accept pending or success, update model
+            return Expect.That(r => r == "pending" || r == "success", "should return copy status")
+                         .ThenState(
+                             (string response, CopyState nextState) =>
+                             {
+                                 nextState.CopyStatus = response;
+                             },
+                             mock: () => "success");
+        }
+
+        public override string Execute(TestingContext context, Unit request)
+        {
+            return context.Get<CopyTarget>().GetCopyStatus();
+        }
+    }
+
+    /// <summary>
+    /// Unrelated operation - no polling configured.
+    /// </summary>
+    public class UnrelatedCopyOperation : Operation<Unit, string, CopyState>
+    {
+        public UnrelatedCopyOperation() : base("UnrelatedCopy") { }
+
+        public override ExpectedOutcomes Apply(Unit request, CopyState state)
+        {
+            return Expect.That(r => r == "ok", "unrelated completed").SameState();
+        }
+
+        public override string Execute(TestingContext context, Unit request)
+        {
+            return context.Get<CopyTarget>().DoUnrelated();
+        }
+    }
+
+    /// <summary>
+    /// Step function for copy completion - terminal when CopyStatus != "pending".
+    /// </summary>
+    public class CopyStepFunction : TerminatingStepFunction
+    {
+        public override Func<IState, bool> IsTerminalState => state =>
+        {
+            var copyState = (CopyState)state;
+            return copyState.CopyStatus != "pending";
+        };
+
+        protected override IList<StepResult> GetStepResults(IState state)
+        {
+            var nextState = (CopyState)state.Clone();
+            nextState.CopyStatus = "success";
+            return new[] { new StepResult { State = nextState } };
+        }
+    }
+
+    /// <summary>
+    /// Target that simulates copy operation behavior.
+    /// </summary>
+    public class CopyTarget
+    {
+        private string copyStatus = "none";
+        private readonly bool immediateSuccess;
+
+        /// <summary>
+        /// Creates a copy target.
+        /// </summary>
+        /// <param name="immediateSuccess">If true, StartCopy returns "success" immediately.
+        /// If false, returns "pending" and completes asynchronously.</param>
+        public CopyTarget(bool immediateSuccess = true)
+        {
+            this.immediateSuccess = immediateSuccess;
+        }
+
+        public string StartCopy()
+        {
+            if (copyStatus == "none")
+            {
+                if (immediateSuccess)
+                {
+                    copyStatus = "success";
+                }
+                else
+                {
+                    copyStatus = "pending";
+                    _ = Task.Run(async () =>
+                    {
+                        await Task.Delay(5);
+                        copyStatus = "success";
+                    });
+                }
+            }
+            return copyStatus;
+        }
+
+        public string GetCopyStatus() => copyStatus;
+
+        public string DoUnrelated() => "ok";
+    }
+
+    #endregion
 }
