@@ -423,3 +423,6 @@ obj/
 
 # DocFX generated output
 _site/
+
+# VS launch settings
+**/Properties/launchSettings.json
