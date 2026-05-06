@@ -6,7 +6,10 @@
     <authors>Microsoft</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
+    <projectUrl>https://github.com/microsoft/accordant</projectUrl>
     <repository type="git" url="https://github.com/microsoft/accordant"/>
+    <readme>docs\readme.md</readme>
+    <icon>icon.png</icon>
     <description>Accordant is a model-based testing framework for .NET. Define state specifications, operations, and expected outcomes, then let Accordant automatically generate and execute comprehensive test cases covering all state transitions.</description>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>accordant model-based testing state specifications fuzzing automated-testing</tags>
@@ -32,5 +35,6 @@
     <!-- Source Generator (loaded as analyzer at compile time) -->
     <file src="..\bin\netstandard2.0\Accordant.SourceGenerator.dll" target="analyzers\dotnet\cs" />
     <file src="..\README.md" target="docs\readme.md" />
+    <file src="icon.png" target="icon.png" />
   </files>
 </package>

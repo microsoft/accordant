@@ -6,7 +6,10 @@
     <authors>Microsoft</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
+    <projectUrl>https://github.com/microsoft/accordant</projectUrl>
     <repository type="git" url="https://github.com/microsoft/accordant"/>
+    <readme>docs\readme.md</readme>
+    <icon>icon.png</icon>
     <description>CLI tool for scaffolding Accordant model-based testing projects</description>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>accordant cli scaffolding testing model-based</tags>
@@ -23,5 +26,8 @@
     
     <!-- net8.0 -->
     <file src="..\bin\tools\Microsoft.Accordant.Cli\net8.0\*.*" target="tools\net8.0\any" />
+
+    <file src="..\README.md" target="docs\readme.md" />
+    <file src="icon.png" target="icon.png" />
   </files>
 </package>
