@@ -1,15 +1,15 @@
 ---
 name: Accordant Design State
-description: How to design state classes using JsonState for Accordant models - the abstract representation of system state
+description: How to design state classes using the [State] attribute for Accordant models - the abstract representation of system state
 ---
 
 # Designing State Classes
 
 The state class is the foundation of every Accordant model. It represents the abstract state of the system you're testing — NOT a copy of the real database schema.
 
-## JsonState Base Class
+## The [State] Attribute
 
-Always inherit from `JsonState`. It provides automatic:
+Always mark your state class with the `[State]` attribute and inherit from `State`. The source generator provides automatic:
 - **Cloning** via JSON serialization (deep copy)
 - **Fingerprinting** for state equality/hashing
 - **Mutation detection** (catches accidental mutation in `Apply`)
@@ -18,7 +18,8 @@ Always inherit from `JsonState`. It provides automatic:
 ```csharp
 using Microsoft.Accordant;
 d
-public class MyState : JsonState
+[State]
+public partial class MyState : State
 {
     // Properties go here — plain C# types
 }
@@ -36,11 +37,11 @@ Your state should capture what the system "knows" at a conceptual level. If your
 - `Dictionary<string, T>` for keyed collections (entities by ID)
 - `List<T>` for ordered collections
 - Primitive types for simple values
-- Nested `JsonState` subclasses for complex nested state
+- Nested `[State]` classes for complex nested state
 
 ### 3. State must be serializable
-All properties must be JSON-serializable. Avoid:
-- Circular references (unless using nested JsonState which handles them)
+All properties must use supported types. Avoid:
+- Circular references (unless using nested `[State]` classes which handle them)
 - Non-serializable types (streams, HTTP clients, etc.)
 - Computed properties that depend on external state
 
@@ -48,7 +49,8 @@ All properties must be JSON-serializable. Avoid:
 
 ### Simple State (e.g., Stack)
 ```csharp
-public class StackState<T> : JsonState
+[State]
+public partial class StackState<T> : State
 {
     public List<T> Items { get; set; } = new List<T>();
 }
@@ -56,7 +58,8 @@ public class StackState<T> : JsonState
 
 ### Entity-Based State (e.g., User + Todos)
 ```csharp
-public class AppState : JsonState
+[State]
+public partial class AppState : State
 {
     public Dictionary<string, UserState> Users { get; set; } = new();
 
@@ -76,12 +79,14 @@ public class AppState : JsonState
 
 ### Multi-Resource State (e.g., Accounts + Images)
 ```csharp
-public class PetImagesState : JsonState
+[State]
+public partial class PetImagesState : State
 {
     public Dictionary<string, AccountState> Accounts { get; set; } = new();
 }
 
-public class AccountState : JsonState
+[State]
+public partial class AccountState : State
 {
     public string Name { get; set; }
     public string Tier { get; set; }
@@ -89,7 +94,8 @@ public class AccountState : JsonState
     public Dictionary<string, ImageState> Images { get; set; } = new();
 }
 
-public class ImageState : JsonState
+[State]
+public partial class ImageState : State
 {
     public string Name { get; set; }
     public string ContentType { get; set; }
@@ -119,9 +125,9 @@ public string ContentFingerprint => Content == null ? null
     : string.Join("", Content.Select(b => b.ToString("x2")));
 ```
 
-## Nested JsonState
+## Nested State Classes
 
-Inner state classes can also extend `JsonState` for independent cloning/fingerprinting. Non-JsonState nested classes work fine too — they'll be deep-copied via JSON serialization.
+Inner state classes can also use the `[State]` attribute for independent cloning/fingerprinting. Non-`[State]` nested classes work fine too — they'll be handled by the source generator.
 
 ## Collection Initialization
 
@@ -141,7 +147,8 @@ public Dictionary<string, UserState> Users { get; set; }
 When modeling systems with background processing, include state fields that track the processing status:
 
 ```csharp
-public class ImageState : JsonState
+[State]
+public partial class ImageState : State
 {
     public string State { get; set; }  // "Creating" → "Created" or "Failed"
     // The State field is used by TerminatingStepFunction's IsTerminalState
@@ -150,7 +157,7 @@ public class ImageState : JsonState
 
 ## Dictionary Key Types
 
-JsonState supports sorted dictionary keys for the following types: `string`, `int`, `long`, `Guid`. Keys are sorted for deterministic state fingerprinting.
+The `[State]` source generator supports sorted dictionary keys for the following types: `string`, `int`, `long`, `Guid`. Keys are sorted for deterministic state fingerprinting.
 
 ## Anti-Patterns
 

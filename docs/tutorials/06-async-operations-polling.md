@@ -41,7 +41,8 @@ GET /api/jobs/job123
 ### The State
 
 ```csharp
-public class JobQueueState : JsonState
+[State]
+public partial class JobQueueState : State
 {
     public Dictionary<string, JobStatus> Jobs { get; set; } = new();
 }

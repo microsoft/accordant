@@ -17,7 +17,7 @@ The core idea: write the model once, get comprehensive testing for free.
 | Phase | Skill | What it covers |
 |-------|-------|----------------|
 | **Understand concepts** | `foundational` | Core mental model, architecture, namespaces, `Unit` type, conventions |
-| **Define state** | `design-state` | `JsonState`, collections, `[JsonAtomic]`, nested state, initialization |
+| **Define state** | `design-state` | `[State]`, collections, `[JsonAtomic]`, nested state, initialization |
 | **Write operations** | `write-operations` | `Operation<TReq,TResp,TState>`, `Apply`, `Execute`, `Expect` API, derivations, polling, `AsyncOperation`, creating the `Spec` class |
 | **Manual testing** | `manual-testing` | `Allows()`, `AllowsConcurrent()`, `StateProfile`, `TestingContext`, manual polling for async operations |
 | **Generate tests** | `generate-tests` | `InputSet`, `With()`, `GenerateTests()`, `GenerateConcurrentTests()`, `TestGenerationOptions`, `StateConstraint` |
@@ -28,10 +28,11 @@ The core idea: write the model once, get comprehensive testing for free.
 ## End-to-End Workflow
 
 ### Step 1: Design your state (`design-state`)
-Model the abstract state of your system as a `JsonState` subclass. Keep it minimal — only what matters for observable behavior.
+Model the abstract state of your system as a `State` subclass marked with the `[State]` attribute. Keep it minimal — only what matters for observable behavior.
 
 ```csharp
-public class MyState : JsonState
+[State]
+public partial class MyState : State
 {
     public Dictionary<string, ItemState> Items { get; set; } = new();
 }

@@ -138,7 +138,8 @@ spec.Operation<(string UserId, string TodoId), ApiResult<Todo>>("GetTodo", (requ
 Add `LastModified` to your state:
 
 ```csharp
-public class AppState : JsonState
+[State]
+public partial class AppState : State
 {
     public Dictionary<string, UserState> Users { get; set; } = new();
 

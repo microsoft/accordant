@@ -11,7 +11,8 @@ using Microsoft.Accordant;
 /// Advanced state example with [JsonAtomic] for binary data.
 /// Use [JsonAtomic] when you have large data that's expensive to deep-copy.
 /// </summary>
-public class ImageState : JsonState
+[State]
+public partial class ImageState : State
 {
     public string Name { get; set; } = string.Empty;
     public string ContentType { get; set; } = string.Empty;

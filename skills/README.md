@@ -10,7 +10,7 @@ Skills are numbered to reflect the typical workflow progression:
 |---|--------|-------|-------------|
 | 00 | `00-overview` | Overview | Top-level guide, when to use which skill |
 | 01 | `01-foundational` | Foundational Concepts | Core mental model, architecture, namespaces |
-| 02 | `02-design-state` | Design State | `JsonState`, collections, `[JsonAtomic]`, nested state |
+| 02 | `02-design-state` | Design State | `[State]`, collections, `[JsonAtomic]`, nested state |
 | 03 | `03-write-operations` | Write Operations | `Operation<>`, `Apply`, `Execute`, `Expect` API, derivations, polling |
 | 04 | `04-manual-testing` | Manual Testing | `Allows()`, `AllowsConcurrent()`, `StateProfile` |
 | 05 | `05-generate-tests` | Generate Tests | `InputSet`, `GenerateTests()`, `TestGenerationOptions` |
@@ -30,14 +30,15 @@ Skills are numbered to reflect the typical workflow progression:
 - Each skill folder contains a `SKILL.md` file with the full guide
 - Skills with code samples include an `examples/` subfolder
 - All examples use **class-based operations** (not inline lambdas)
-- State classes inherit from `JsonState`
+- State classes use the `[State]` attribute and inherit from `State`
 - Specs inherit from `Spec<TState>` and use `RegisterOperationProperties()`
 
 ## Quick Start
 
 ```csharp
 // 1. Define state (02-design-state)
-public class StackState<T> : JsonState
+[State]
+public partial class StackState<T> : State
 {
     public List<T> Items { get; set; } = new();
 }

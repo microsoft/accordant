@@ -15,7 +15,8 @@ Consider a real banking system. The implementation might involve Entity Framewor
 Just the account balances.
 
 ```csharp
-public class BankState : JsonState
+[State]
+public partial class BankState : State
 {
     public Dictionary<string, decimal> Accounts { get; set; } = new();
 }
@@ -104,18 +105,19 @@ Under the hood, Accordant needs to do several things with state objects:
 
 All of this is driven by the **string representation** of the state. Two states with the same string representation are considered identical. This is how Accordant knows it's already explored a particular state and doesn't need to explore it again.
 
-### Using JsonState
+### Using the [State] Attribute
 
-For most specs, the easiest approach is to inherit from `JsonState`:
+For most specs, mark your class with `[State]` and inherit from `State`:
 
 ```csharp
-public class BankState : JsonState
+[State]
+public partial class BankState : State
 {
     public Dictionary<string, decimal> Accounts { get; set; } = new();
 }
 ```
 
-`JsonState` uses JSON serialization for everything — string representation, equality, and cloning. You just define your data as properties, and it all works automatically.
+The `[State]` attribute activates a source generator that handles everything — string representation, equality, cloning, and freeze logic. You just define your data as properties, and it all works automatically.
 
 The key requirement is simple: **distinct logical states must produce distinct JSON strings.** Just use plain data properties and you're good.
 
@@ -126,7 +128,8 @@ The key requirement is simple: **distinct logical states must produce distinct J
 Sometimes state includes large values — like binary image data — where full JSON serialization and deep cloning would be expensive. For these cases, you can mark a property with `[JsonAtomic]`:
 
 ```csharp
-public class ImageState : JsonState
+[State]
+public partial class ImageState : State
 {
     public string Name { get; set; }
     

@@ -45,7 +45,8 @@ Open [BankAccountTests.cs](../Samples/BankAccount/BankAccount.Api.Tests/BankAcco
 First, the state. The implementation has a database, entities, contexts. The spec has this:
 
 ```csharp
-public class BankState : JsonState
+[State]
+public partial class BankState : State
 {
     public Dictionary<string, decimal> Accounts { get; set; } = new();
 }

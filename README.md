@@ -21,7 +21,8 @@ And when you *do* write tests, the validation logic gets scattered. Each test re
 Accordant lets you write that spec as code — and then **execute** it.
 
 ```csharp
-public class BankState : JsonState
+[State]
+public partial class BankState : State
 {
     public Dictionary<string, decimal> Accounts { get; set; } = new();
 }
