@@ -442,8 +442,6 @@ Once you have a model, validation is just the beginning. A model is a formal, ex
 
 - **Linearizability checking**: Given a set of concurrent operations and their responses, the model can answer: "Is there *any* sequential ordering that explains these results?" This is how you find race conditions.
 
-- **Model checking**: You can ask questions like "Is it ever possible to reach a state where X?" The model checker explores the state space up to a certain bound and tells you whether the property holds — or gives you a counterexample showing how to violate it.
-
 A fake can only simulate. A model helps you reason.
 
 ---

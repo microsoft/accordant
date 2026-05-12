@@ -1,6 +1,6 @@
 # Operations and Expect
 
-> **TL;DR**: Operations define what your system can do. The Apply method describes what *should* happen. The Execute method makes it *actually* happen. Keeping these separate is what enables test generation, model checking, state exploration, and conformance testing.
+> **TL;DR**: Operations define what your system can do. The Apply method describes what *should* happen. The Execute method makes it *actually* happen. Keeping these separate is what enables test generation, state exploration, and conformance testing.
 
 ---
 
@@ -225,11 +225,7 @@ The separation between Apply and Execute enables powerful capabilities:
 
 **Test generation** — Accordant can explore operation sequences by running Apply repeatedly, without ever calling Execute. It builds up a picture of your system's behavior purely from the spec.
 
-**State graph visualization** — You can visualize every reachable state and every possible transition, all computed from Apply alone.
-
-**Model checking** — You can verify properties of the spec itself. "Is it always true that...?" "Can we ever reach a state where...?" These questions are answered by exploring Apply.
-
-**Trace validation** — Given a recorded sequence of requests and responses, you can validate that every response was valid according to Apply. The real execution already happened; now you're checking correctness after the fact.
+**Trace validation**— Given a recorded sequence of requests and responses, you can validate that every response was valid according to Apply. The real execution already happened; now you're checking correctness after the fact.
 
 None of this would be possible if specification and execution were tangled together.
 

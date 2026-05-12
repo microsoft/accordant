@@ -101,11 +101,10 @@ dotnet test
 | Sample | Description |
 |--------|-------------|
 | [BankAccount](Samples/BankAccount/) | REST API with CRUD, deposits, withdrawals, error handling |
-| [Stack](Samples/Stack/) | Classic data structure — push, pop, peek |
 | [TodoList](Samples/TodoList/) | Create, complete, delete tasks |
+| [TodoList-Extended](Samples/TodoList-Extended/) | Extended todo list with additional operations |
 | [Booking](Samples/Booking/) | Reservation system with conflicts |
 | [JobQueue](Samples/JobQueue/) | Async job processing with polling |
-| [TerminationDetection](Samples/TerminationDetection/) | Distributed algorithm verification |
 
 ## Contributing
 
