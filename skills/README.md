@@ -10,7 +10,7 @@ Skills are numbered to reflect the typical workflow progression:
 |---|--------|-------|-------------|
 | 00 | `00-overview` | Overview | Top-level guide, when to use which skill |
 | 01 | `01-foundational` | Foundational Concepts | Core mental model, architecture, namespaces |
-| 02 | `02-design-state` | Design State | `[State]`, collections, `[JsonAtomic]`, nested state |
+| 02 | `02-design-state` | Design State | `[State]`, collections, `[SharedState]`, nested state |
 | 03 | `03-write-operations` | Write Operations | `Operation<>`, `Apply`, `Execute`, `Expect` API, derivations, polling |
 | 04 | `04-manual-testing` | Manual Testing | `Allows()`, `AllowsConcurrent()`, `StateProfile` |
 | 05 | `05-generate-tests` | Generate Tests | `InputSet`, `GenerateTests()`, `TestGenerationOptions` |

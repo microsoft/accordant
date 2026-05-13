@@ -8,8 +8,8 @@ using System.Linq;
 using Microsoft.Accordant;
 
 /// <summary>
-/// Advanced state example with [JsonAtomic] for binary data.
-/// Use [JsonAtomic] when you have large data that's expensive to deep-copy.
+/// Advanced state example with [SharedState] for binary data.
+/// Use [SharedState] when you have large data that's expensive to deep-copy.
 /// </summary>
 [State]
 public partial class ImageState : State
@@ -23,14 +23,14 @@ public partial class ImageState : State
     public string State { get; set; } = "Creating";
 
     /// <summary>
-    /// Binary content with [JsonAtomic] for shallow copy.
+    /// Binary content with [SharedState] for shallow copy.
     /// The attribute requires a fingerprint property for state equality.
     /// </summary>
-    [JsonAtomic(nameof(ContentFingerprint))]
+    [SharedState(Fingerprint = nameof(ContentFingerprint))]
     public List<byte> Content { get; set; } = new();
 
     /// <summary>
-    /// Fingerprint property for [JsonAtomic] - used for state equality comparison.
+    /// Fingerprint property for [SharedState] - used for state equality comparison.
     /// </summary>
     public string ContentFingerprint => Content == null || Content.Count == 0
         ? string.Empty

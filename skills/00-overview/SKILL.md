@@ -17,7 +17,7 @@ The core idea: write the model once, get comprehensive testing for free.
 | Phase | Skill | What it covers |
 |-------|-------|----------------|
 | **Understand concepts** | `foundational` | Core mental model, architecture, namespaces, `Unit` type, conventions |
-| **Define state** | `design-state` | `[State]`, collections, `[JsonAtomic]`, nested state, initialization |
+| **Define state** | `design-state` | `[State]`, collections, `[SharedState]`, nested state, initialization |
 | **Write operations** | `write-operations` | `Operation<TReq,TResp,TState>`, `Apply`, `Execute`, `Expect` API, derivations, polling, `AsyncOperation`, creating the `Spec` class |
 | **Manual testing** | `manual-testing` | `Allows()`, `AllowsConcurrent()`, `StateProfile`, `TestingContext`, manual polling for async operations |
 | **Generate tests** | `generate-tests` | `InputSet`, `With()`, `GenerateTests()`, `GenerateConcurrentTests()`, `TestGenerationOptions`, `StateConstraint` |

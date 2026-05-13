@@ -103,7 +103,7 @@ public partial class ImageState : State
     public string ContentType { get; set; }
     public string State { get; set; }  // "Creating", "Created", "Failed"
 
-    [JsonAtomic(nameof(ContentFingerprint))]
+    [SharedState(Fingerprint = nameof(ContentFingerprint))]
     public List<byte> Content { get; set; }
 
     public string ContentFingerprint => Content == null
@@ -112,15 +112,15 @@ public partial class ImageState : State
 }
 ```
 
-## [JsonAtomic] Attribute
+## [SharedState] Attribute
 
-For large binary data or expensive-to-clone values, use `[JsonAtomic]`:
+For large binary data or expensive-to-clone values, use `[SharedState]`:
 - Performs **shallow copy** (reference preservation) instead of deep copy during Clone
 - Requires a companion **fingerprint property** for state equality/hashing
-- Syntax: `[JsonAtomic(nameof(FingerprintPropertyName))]`
+- Syntax: `[SharedState(Fingerprint = nameof(FingerprintPropertyName))]`
 
 ```csharp
-[JsonAtomic(nameof(ContentFingerprint))]
+[SharedState(Fingerprint = nameof(ContentFingerprint))]
 public List<byte> Content { get; set; }
 
 public string ContentFingerprint => Content == null ? null

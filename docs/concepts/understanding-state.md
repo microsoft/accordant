@@ -121,11 +121,11 @@ The `[State]` attribute activates a source generator that handles everything —
 
 The key requirement is simple: **distinct logical states must produce distinct representations.** Just use plain data properties and you're good.
 
-**A note on dictionaries:** Dictionary keys are sorted during serialization to ensure the same logical state always produces the same JSON string. Supported key types are `string`, `int`, `long`, and `Guid`.
+**A note on dictionaries:** Dictionary keys are sorted to ensure the same logical state always produces the same string representation. Supported key types are `string`, `int`, `long`, and `Guid`.
 
-### Large Values and JsonAtomic
+### Large Values and SharedState
 
-Sometimes state includes large values — like binary image data — where full JSON serialization and deep cloning would be expensive. For these cases, you can mark a property with `[JsonAtomic]`:
+Sometimes state includes large values — like binary image data — where deep cloning would be expensive. For these cases, you can mark a property with `[SharedState]`:
 
 ```csharp
 [State]
@@ -133,19 +133,19 @@ public partial class ImageState : State
 {
     public string Name { get; set; }
     
-    [JsonAtomic(nameof(ContentFingerprint))]
+    [SharedState(Fingerprint = nameof(ContentFingerprint))]
     public List<byte> Content { get; set; }
     
-    // Fingerprint used for equality/hashing instead of serializing the whole list
+    // Fingerprint used for equality/hashing instead of the full value
     public string ContentFingerprint => Content == null 
         ? null 
         : Convert.ToHexString(Content.ToArray());
 }
 ```
 
-The `[JsonAtomic]` attribute tells Accordant to:
+The `[SharedState]` attribute tells Accordant to:
 - **Shallow copy** the property during cloning (reference preservation)
-- Use the specified **fingerprint property** for equality and hashing instead of serializing the full value
+- Use the specified **fingerprint method or property** for equality and hashing instead of the full value
 
 **Important:** Since the value is shared by reference across clones, you must treat it as immutable — never modify it after it's set. If you need to change the value, create a new one.
 
