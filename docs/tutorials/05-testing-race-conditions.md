@@ -72,13 +72,13 @@ private static Spec<BookingState> CreateSpec()
                        "Slot already exists")
                    .SameState();
 
-        var newState = (BookingState)state.Clone();
-        newState.Slots[slotId] = null;  // null = available
-
         return Expect.That<ApiResult<Slot>>(
                    r => r.IsSuccess && r.Data.IsAvailable,
                    "Should create available slot")
-               .ThenState(newState);
+               .ThenState<BookingState>(next =>
+               {
+                   next.Slots[slotId] = null;  // null = available
+               });
     });
 
     // BOOK SLOT - The critical concurrent operation!
@@ -96,16 +96,15 @@ private static Spec<BookingState> CreateSpec()
                        $"Slot already booked by '{currentBookedBy}'")
                    .SameState();
 
-        // Available - book it!
-        var newState = (BookingState)state.Clone();
-        newState.Slots[slotId] = customer;
-
         return Expect.That<ApiResult<Slot>>(
                    r => r.IsSuccess && 
                         r.Data.BookedBy == customer &&
                         !r.Data.IsAvailable,
                    $"Should book slot for '{customer}'")
-               .ThenState(newState);
+               .ThenState<BookingState>(next =>
+               {
+                   next.Slots[slotId] = customer;
+               });
     });
 
     // ... bind to API ...
@@ -301,7 +300,7 @@ You don't write concurrent test cases manually. Define the operations and inputs
 ## What's Next?
 
 - **[Tutorial 6: Async Operations](06-async-operations-polling.md)** - Testing background processing
-- **[Concept: Concurrent Test Validation](../concepts/concurrent-test-validation.md)** - How linearizability checking works
+- **[Concept: Conformance Testing](../concepts/conformance-testing.md)** - How linearizability checking works
 
 ---
 

@@ -454,8 +454,7 @@ public class JobQueueSpec : Spec<JobQueueState>
 
 ## What's Next?
 
-- **[Concept: Step Functions](../concepts/step-functions.md)** - Deeper dive into the model
-- **[How-To: Model Async Background Processing](../how-to/model-async-background-processing.md)** - More patterns
+- **[Concept: Step Functions](../concepts/step-functions-and-async.md)** - Deeper dive into the model
 
 ---
 

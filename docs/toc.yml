@@ -34,5 +34,4 @@
       href: concepts/conformance-testing.md
     - name: Models vs Fakes
       href: concepts/models-vs-fakes.md
-- name: Migration Guide
-  href: MIGRATION_GUIDE.md
+

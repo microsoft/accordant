@@ -5,7 +5,6 @@ Welcome to the Accordant documentation. Start with the Quick Start, then explore
 ## Getting Started
 
 - **[Quick Start](quickstart.md)** — See it work in 5 minutes
-- **[Your First Spec](tutorials/01-your-first-spec.md)** — Build a spec step by step
 
 ## Tutorials
 
@@ -34,5 +33,4 @@ Welcome to the Accordant documentation. Start with the Quick Start, then explore
 ## Reference
 
 - **[API Reference](../api/)** — Generated from XML doc comments
-- **[Migration Guide](MIGRATION_GUIDE.md)** — Upgrading between versions
 

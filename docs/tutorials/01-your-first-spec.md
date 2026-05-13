@@ -104,20 +104,20 @@ private static Spec<AppState> CreateSpec()
         }
 
         // Case 2: User doesn't exist → Create it
-        var newState = (AppState)state.Clone();
-        newState.Users[request.UserId] = new AppState.UserState
-        {
-            Name = request.Name,
-            Todos = new()
-        };
-
         return Expect.That<ApiResult<User>>(
                    r => r.IsSuccess &&
                         r.Data != null &&
                         r.Data.UserId == request.UserId &&
                         r.Data.Name == request.Name,
                    $"Should return 200 OK with created user '{request.UserId}'")
-               .ThenState(newState);  // State changes on success
+               .ThenState<AppState>(next =>
+               {
+                   next.Users[request.UserId] = new AppState.UserState
+                   {
+                       Name = request.Name,
+                       Todos = new()
+                   };
+               });
     });
 
     // ... more operations ...
@@ -133,14 +133,13 @@ private static Spec<AppState> CreateSpec()
 3. **Conditional logic** - Check state to determine the expected outcome
 4. **`Expect.That<T>(predicate, explanation)`** - Defines what the response should look like
 5. **`.SameState()`** - The operation doesn't modify state (error case, or read-only)
-6. **`.ThenState(newState)`** - The operation transitions to a new state
+6. **`.ThenState<T>(next => ...)`** - Describes how the operation modifies state
 
-### The Pattern: Clone-Modify-Return
+### The Pattern: Expect-Then-Mutate
 
-When state changes, always:
-1. **Clone** the current state: `var newState = (AppState)state.Clone();`
-2. **Modify** the clone: `newState.Users[...] = ...;`
-3. **Return** with `.ThenState(newState)`
+When state changes:
+1. **Expect** the response: `Expect.That<T>(predicate, explanation)`
+2. **Declare the transition** with `.ThenState<T>(next => { ... })` — the framework clones the state for you, and passes the clone as `next`
 
 Never modify the original state directly!
 
@@ -185,12 +184,12 @@ spec.Operation<string, int>("DeleteUser", (userId, state) =>
                .SameState();
     }
 
-    var newState = (AppState)state.Clone();
-    newState.Users.Remove(userId);  // Remove user and all their todos
-
     return Expect.That<int>(s => s == 204, 
                $"Should return 204 No Content")
-           .ThenState(newState);
+           .ThenState<AppState>(next =>
+           {
+               next.Users.Remove(userId);  // Remove user and all their todos
+           });
 });
 
 // ---------------------------------------------------------
@@ -214,13 +213,6 @@ spec.Operation<Todo, ApiResult<Todo>>("CreateTodo", (request, state) =>
                .SameState();
     }
 
-    var newState = (AppState)state.Clone();
-    newState.Users[request.UserId].Todos[request.TodoId] = new AppState.TodoState
-    {
-        Title = request.Title,
-        Completed = false
-    };
-
     return Expect.That<ApiResult<Todo>>(
                r => r.IsSuccess &&
                     r.Data != null &&
@@ -228,7 +220,14 @@ spec.Operation<Todo, ApiResult<Todo>>("CreateTodo", (request, state) =>
                     r.Data.Title == request.Title &&
                     r.Data.Completed == false,
                $"Should return 200 OK with created todo")
-           .ThenState(newState);
+           .ThenState<AppState>(next =>
+           {
+               next.Users[request.UserId].Todos[request.TodoId] = new AppState.TodoState
+               {
+                   Title = request.Title,
+                   Completed = false
+               };
+           });
 });
 
 // ---------------------------------------------------------
@@ -384,7 +383,7 @@ You've learned the core Accordant workflow:
 | `[State]` | Attribute that generates clone/compare/hash via source generator |
 | `Expect.That<T>()` | Declare expected response |
 | `.SameState()` | Operation doesn't change state |
-| `.ThenState(newState)` | Operation transitions to new state |
+| `.ThenState<T>(next => ...)` | Describe how operation changes state |
 | `InputSet` | Values to try—Accordant explores sequences |
 | `MaxDepth` | Limit sequence length |
 | `BeforeEachAsync` | Reset state before each test |
@@ -395,7 +394,6 @@ You've learned the core Accordant workflow:
 
 - **[Tutorial 2: Handling Errors](02-handling-errors.md)** - Exception handling with `Expect.Throws<>`
 - **[Tutorial 3: Response-Dependent State](03-response-dependent-state.md)** - When the server returns values you need to track
-- **[Concept: Not Just HTTP](../concepts/not-just-http.md)** - Accordant works for any stateful class, not just REST APIs
 
 ---
 

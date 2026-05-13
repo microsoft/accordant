@@ -267,7 +267,7 @@ Call `GetOrder(orderId)` and it returns the order? Now we know it was created �
 This ability to track uncertainty, then resolve it through observation, is what makes Accordant powerful for testing real distributed systems.
 
 **Other scenarios where multiple states arise:**
-- **Async background work** — a job is processing; has it finished yet? → [Step Functions & Async Behavior](step-functions-async.md)
+- **Async background work** — a job is processing; has it finished yet? → [Step Functions & Async Behavior](step-functions-and-async.md)
 - **Race conditions** — two concurrent requests compete; either could "win" → [Testing Race Conditions](../tutorials/05-testing-race-conditions.md)
 - **Server-generated values** — IDs and timestamps that you capture from responses → [Response-Dependent State](../tutorials/03-response-dependent-state.md)
 

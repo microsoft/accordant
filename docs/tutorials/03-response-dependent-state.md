@@ -66,17 +66,15 @@ spec.Operation<Todo, ApiResult<Todo>>("CreateTodo", (request, state) =>
                     r.Data.LastModified != null,  // Just verify it exists
                "Should create todo with timestamp")
            .ThenState(
-               // Lambda receives actual response, builds new state
-               (ApiResult<Todo> response) =>
+               // Lambda receives actual response and a pre-cloned state
+               (ApiResult<Todo> response, AppState next) =>
                {
-                   var newState = (AppState)state.Clone();
-                   newState.Users[request.UserId].Todos[request.TodoId] = new AppState.TodoState
+                   next.Users[request.UserId].Todos[request.TodoId] = new AppState.TodoState
                    {
                        Title = request.Title,
                        Completed = false,
                        LastModified = response.Data!.LastModified  // Capture it!
                    };
-                   return newState;
                },
                // Mock for state space exploration (explained below)
                mock: () => new ApiResult<Todo>
@@ -177,16 +175,14 @@ spec.Operation<CreateOrderRequest, ApiResult<Order>>("CreateOrder", (request, st
                     r.Data.Product == request.Product,
                "Should create order with server-generated ID")
            .ThenState(
-               (ApiResult<Order> response) =>
+               (ApiResult<Order> response, AppState next) =>
                {
-                   var newState = (AppState)state.Clone();
                    var orderId = response.Data!.OrderId;  // Capture!
-                   newState.Orders[orderId] = new OrderState
+                   next.Orders[orderId] = new OrderState
                    {
                        Product = request.Product,
                        Quantity = request.Quantity
                    };
-                   return newState;
                },
                mock: () => new ApiResult<Order>
                {
@@ -215,11 +211,9 @@ if (job.ResultPath == null && response.Data.Status == JobStatus.Completed)
                r => r.Data.ResultPath != null,
                "Should have a ResultPath")
            .ThenState(
-               (ApiResult<Job> resp) =>
+               (ApiResult<Job> resp, JobQueueState next) =>
                {
-                   var newState = (JobQueueState)state.Clone();
-                   newState.Jobs[jobId].ResultPath = resp.Data!.ResultPath;  // Capture
-                   return newState;
+                   next.Jobs[jobId].ResultPath = resp.Data!.ResultPath;  // Capture
                },
                mock: () => new ApiResult<Job> { /* ... */ });
 }

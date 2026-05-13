@@ -119,7 +119,7 @@ public partial class BankState : State
 
 The `[State]` attribute activates a source generator that handles everything — string representation, equality, cloning, and freeze logic. You just define your data as properties, and it all works automatically.
 
-The key requirement is simple: **distinct logical states must produce distinct JSON strings.** Just use plain data properties and you're good.
+The key requirement is simple: **distinct logical states must produce distinct representations.** Just use plain data properties and you're good.
 
 **A note on dictionaries:** Dictionary keys are sorted during serialization to ensure the same logical state always produces the same JSON string. Supported key types are `string`, `int`, `long`, and `Guid`.
 

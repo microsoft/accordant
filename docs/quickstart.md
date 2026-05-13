@@ -22,7 +22,7 @@ Or you could write a **spec** — a single source of truth that says what the sy
 ## Clone and Run
 
 ```bash
-git clone https://github.com/[your-org]/Accordant.git
+git clone https://github.com/microsoft/Accordant.git
 cd Accordant/Samples/BankAccount/BankAccount.Api.Tests
 dotnet test
 ```
