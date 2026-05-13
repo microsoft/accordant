@@ -52,18 +52,20 @@ public partial class AppState : State
     /// Dictionary of users. Key = userId, Value = user data with their todos.
     /// </summary>
     public Dictionary<string, UserState> Users { get; set; } = new();
+}
 
-    public class UserState
-    {
-        public string Name { get; set; } = string.Empty;
-        public Dictionary<string, TodoState> Todos { get; set; } = new();
-    }
+[State]
+public partial class UserState : State
+{
+    public string Name { get; set; } = string.Empty;
+    public Dictionary<string, TodoState> Todos { get; set; } = new();
+}
 
-    public class TodoState
-    {
-        public string Title { get; set; } = string.Empty;
-        public bool Completed { get; set; } = false;
-    }
+[State]
+public partial class TodoState : State
+{
+    public string Title { get; set; } = string.Empty;
+    public bool Completed { get; set; } = false;
 }
 ```
 
@@ -112,7 +114,7 @@ private static Spec<AppState> CreateSpec()
                    $"Should return 200 OK with created user '{request.UserId}'")
                .ThenState<AppState>(next =>
                {
-                   next.Users[request.UserId] = new AppState.UserState
+                   next.Users[request.UserId] = new UserState
                    {
                        Name = request.Name,
                        Todos = new()
@@ -222,7 +224,7 @@ spec.Operation<Todo, ApiResult<Todo>>("CreateTodo", (request, state) =>
                $"Should return 200 OK with created todo")
            .ThenState<AppState>(next =>
            {
-               next.Users[request.UserId].Todos[request.TodoId] = new AppState.TodoState
+               next.Users[request.UserId].Todos[request.TodoId] = new TodoState
                {
                    Title = request.Title,
                    Completed = false

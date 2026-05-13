@@ -62,18 +62,20 @@ public partial class StackState<T> : State
 public partial class AppState : State
 {
     public Dictionary<string, UserState> Users { get; set; } = new();
+}
 
-    public class UserState
-    {
-        public string Name { get; set; } = string.Empty;
-        public Dictionary<string, TodoState> Todos { get; set; } = new();
-    }
+[State]
+public partial class UserState : State
+{
+    public string Name { get; set; } = string.Empty;
+    public Dictionary<string, TodoState> Todos { get; set; } = new();
+}
 
-    public class TodoState
-    {
-        public string Title { get; set; } = string.Empty;
-        public bool Completed { get; set; } = false;
-    }
+[State]
+public partial class TodoState : State
+{
+    public string Title { get; set; } = string.Empty;
+    public bool Completed { get; set; } = false;
 }
 ```
 

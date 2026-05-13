@@ -17,10 +17,11 @@ public partial class UserApiState : State
     /// Users keyed by user ID.
     /// </summary>
     public Dictionary<string, UserState> Users { get; set; } = new();
+}
 
-    public class UserState
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-    }
+[State]
+public partial class UserState : State
+{
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 }
