@@ -44,18 +44,10 @@
       href: how-to/test-logs.md
     - name: Indefinite Failures
       href: how-to/indefinite-failures.md
-    - name: Selective Modeling
-      href: how-to/selective-modeling.md
     - name: Validating Your Model
       href: how-to/validating-your-model.md
-    - name: Debugging Models
-      href: how-to/debugging-models.md
     - name: Modeling Large Data
       href: how-to/modeling-large-data.md
-    - name: Integrating with Fuzzers
-      href: how-to/integrating-with-fuzzers.md
-    - name: Balancing Generated and Manual Tests
-      href: how-to/balancing-generated-and-manual-tests.md
     - name: Resetting State
       href: how-to/resetting-state.md
 - name: Samples
