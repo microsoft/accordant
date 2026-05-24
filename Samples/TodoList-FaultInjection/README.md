@@ -95,7 +95,7 @@ The result: CreateUser now has **three** possible outcomes when `IndefiniteFailu
 
 ### Part 2: Fault Injection (Making Failures Actually Happen)
 
-Modeling is one thing. Actually *causing* failures is another.
+Modeling is one thing. Actually *causing* failures is another. This sample demonstrates one approach — use whatever works best for your project (chaos engineering tools, test doubles, network proxies, etc.).
 
 **Server-side faults** (in the API):
 ```csharp
