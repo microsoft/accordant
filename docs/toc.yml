@@ -35,7 +35,7 @@
     - name: Models vs Fakes
       href: concepts/models-vs-fakes.md
     - name: Indefinite Failures
-      href: concepts/indefinite-failures.md
+      href: how-to/indefinite-failures.md
     - name: Resetting State
       href: concepts/resetting-state.md
 - name: How-To Guides

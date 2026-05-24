@@ -164,5 +164,5 @@ dotnet test
 
 ## See Also
 
-- [Indefinite Failures Concept](../../docs/concepts/indefinite-failures.md)
+- [Indefinite Failures](../../docs/how-to/indefinite-failures.md)
 - [Fault Injection Testing How-To](../../docs/how-to/fault-injection-testing.md)
