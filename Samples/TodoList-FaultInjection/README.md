@@ -126,26 +126,23 @@ if (result.IsSuccess && _random.NextDouble() < _config.PostResponseFaultProbabil
 
 ### Scenario: CreateUser followed by GetUser
 
-**Step 1: CreateUser("alice", "Alice Smith")**
+**CreateUser("alice", "Alice Smith")**
 
-The base class produces these outcomes:
+Model produces three possible outcomes:
 1. ✅ Success → alice exists with timestamps from response
-2. ⚠️ Indefinite failure, no change → alice doesn't exist
-3. ⚠️ Indefinite failure, user created → alice exists, timestamps = null
+2. ⚠️ Indefinite failure → alice doesn't exist
+3. ⚠️ Indefinite failure → alice exists, timestamps = null
 
-**Step 2: Fault is injected (PostSave)**
+Server decides to return 500 (via fault injection). Response matches #2 or #3 — both expect `IsIndefiniteFailure`. Model now tracks **two possible states**.
 
-Server saves alice, then throws. Client sees 500 error.
-- Response matches outcome #2 or #3 (both expect `IsIndefiniteFailure`)
-- Model now tracks **two possible states**
+**GetUser("alice")**
 
-**Step 3: GetUser("alice")**
+Server returns `200 OK, alice exists`.
 
-Response: `200 OK, alice exists`
-- Branch 1 (alice doesn't exist) → **pruned** (expected 404, got 200)
-- Branch 2 (alice exists, timestamps unknown) → **matches!** Learn timestamps from response
+- State where alice doesn't exist → **pruned** (expected 404, got 200)
+- State where alice exists → **matches!** Timestamps learned from response
 
-The non-matching branch is pruned. Testing continues with the remaining state(s).
+Testing continues with the remaining state(s).
 
 ---
 
