@@ -56,5 +56,7 @@
       href: how-to/fault-injection-testing.md
     - name: Balancing Generated and Manual Tests
       href: how-to/balancing-generated-and-manual-tests.md
+- name: Samples
+  href: samples.md
 - name: FAQ
   href: faq.md
