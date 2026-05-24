@@ -5,6 +5,7 @@ Practical recipes for common tasks.
 | Guide | Description |
 |-------|-------------|
 | [Better Error Messages](better-error-messages.md) | FluentAssertions, Shouldly, and ValidationResult for clear failure output |
+| [Test Logs](test-logs.md) | Finding logs and emitting custom output |
 | [Selective Modeling](selective-modeling.md) | You don't have to model everything |
 | [Validating Your Model](validating-your-model.md) | How to check the model itself is correct |
 | [Debugging Models](debugging-models.md) | Troubleshooting spec issues |

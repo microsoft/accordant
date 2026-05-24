@@ -40,6 +40,8 @@
       href: how-to/index.md
     - name: Better Error Messages
       href: how-to/better-error-messages.md
+    - name: Test Logs
+      href: how-to/test-logs.md
     - name: Indefinite Failures
       href: how-to/indefinite-failures.md
     - name: Selective Modeling
