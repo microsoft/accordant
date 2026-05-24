@@ -4,9 +4,13 @@ An async job processing system demonstrating **step functions** and **server-gen
 
 ## What It Demonstrates
 
-### Pattern 1: Step Functions (Observing Async State Changes)
-- `CreateJob` returns immediately with `Pending` status
-- Background processing eventually completes (or fails)
+### Pattern 1: Step Functions (Async Operations)
+
+**Triggering async work:**
+- `CreateJob` uses `.Triggers(AsyncOperation.Create(...))` to model background processing
+- The triggered operation has non-deterministic outcomes: `Completed` or `Failed`
+
+**Observing async results:**
 - `GetJob` uses `Expect.OneOf` — response could show `Pending` or `Completed`
 - Whichever we observe, the model updates accordingly
 
@@ -23,22 +27,35 @@ An async job processing system demonstrating **step functions** and **server-gen
 
 ## Key Patterns
 
-### Pattern 1: Step Function (Multiple Possible Outcomes)
+### Pattern 1a: Triggering Async Work
+
+```csharp
+// CreateJob triggers background processing
+return Expect.That<ApiResult<Job>>(r => r.Data.Status == JobStatus.Pending)
+    .ThenState(next => next.Jobs[jobId] = new JobState { Status = JobStatus.Pending })
+    .Triggers(AsyncOperation.Create<JobQueueState>(
+        isTerminal: s => s.Jobs[jobId].Status != JobStatus.Pending,
+        transitions: new Action<JobQueueState>[]
+        {
+            next => next.Jobs[jobId].Status = JobStatus.Completed,
+            next => next.Jobs[jobId].Status = JobStatus.Failed
+        },
+        name: $"ProcessJob({jobId})"
+    ));
+```
+
+### Pattern 1b: Observing Async Results
 
 ```csharp
 // GetJob can observe EITHER "still pending" OR "now completed"
 if (job.Status == JobStatus.Pending)
 {
     return Expect.OneOf(
-        // Outcome 1: Still pending - no state change
         Expect.That<ApiResult<Job>>(r => r.Data.Status == JobStatus.Pending)
             .SameState(),
-        
-        // Outcome 2: Now completed - transition state
         Expect.That<ApiResult<Job>>(r => r.Data.Status == JobStatus.Completed)
             .ThenState((response, next) => {
                 next.Jobs[jobId].Status = JobStatus.Completed;
-                // ...
             })
     );
 }
