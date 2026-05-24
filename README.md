@@ -100,37 +100,37 @@ Say you're building a banking service — accounts, deposits, withdrawals. You w
 
 ```csharp
 [Test]
-public void Withdraw_WithSufficientBalance_Succeeds()
+public async Task Withdraw_WithSufficientBalance_Succeeds()
 {
-    var account = new BankAccount();
-    account.Deposit(100);
+    await client.CreateAccount("alice");
+    await client.Deposit("alice", 100);
     
-    var result = account.Withdraw(30);
+    var result = await client.Withdraw("alice", 30);
     
-    Assert.True(result.Success);
-    Assert.Equal(70, result.NewBalance);
+    Assert.True(result.IsSuccess);
+    Assert.Equal(70, result.Data);
 }
 
 [Test]
-public void Withdraw_WithInsufficientBalance_Fails()
+public async Task Withdraw_WithInsufficientBalance_Fails()
 {
-    var account = new BankAccount();
-    account.Deposit(50);
+    await client.CreateAccount("alice");
+    await client.Deposit("alice", 50);
     
-    var result = account.Withdraw(100);
+    var result = await client.Withdraw("alice", 100);
     
-    Assert.False(result.Success);
-    Assert.Equal(50, account.Balance);  // unchanged
+    Assert.True(result.IsBadRequest);
+    
+    var balance = await client.GetBalance("alice");
+    Assert.Equal(50, balance.Data);  // unchanged
 }
 
 [Test]
-public void Withdraw_FromNonexistentAccount_ReturnsNotFound()
+public async Task Withdraw_FromNonexistentAccount_ReturnsNotFound()
 {
-    var bank = new Bank();
+    var result = await client.Withdraw("bob", 50);
     
-    var result = bank.Withdraw("alice", 50);
-    
-    Assert.Equal(404, result.StatusCode);
+    Assert.True(result.IsNotFound);
 }
 ```
 
@@ -282,7 +282,7 @@ Executed against BankAccount API
 Results: 31 passed, 0 failed
 ```
 
-→ [Test Case Generation](docs/concepts/test-case-generation.md)
+→ [How Test Generation Works](docs/concepts/how-test-generation-works.md)
 
 ### And More
 
@@ -325,14 +325,14 @@ dotnet test
 ```
 
 **Building your first spec?**
-- [Your First Spec](docs/tutorials/01-your-first-spec.md) — Write a spec from scratch, step by step
-- [Writing Operations](docs/tutorials/02-writing-operations.md) — Add operations and state transitions
-- [Test Generation](docs/tutorials/03-test-generation.md) — Generate and run tests automatically
+- [Your First Spec](docs/tutorials/01-your-first-spec.md) — Define state, operations, and expectations
+- [Handling Errors](docs/tutorials/02-handling-errors.md) — Model error conditions
+- [Response-Dependent State](docs/tutorials/03-response-dependent-state.md) — When state depends on responses
+- [Visualizing State Space](docs/tutorials/04-visualizing-state-space.md) — See the state graph and generated tests
 
 **Going deeper?**
 - [Concurrency Testing](docs/tutorials/05-testing-race-conditions.md) — Find race conditions with linearizability checking
-- [Async Workflows](docs/tutorials/06-async-workflows.md) — Model background jobs and polling
-- [Deterministic Simulation](docs/tutorials/07-deterministic-simulation.md) — Test failure handling and retries
+- [Async Workflows](docs/tutorials/06-async-operations-polling.md) — Model background jobs and polling
 
 ### Documentation
 

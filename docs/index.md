@@ -34,5 +34,5 @@ Welcome to the Accordant documentation. Start with the Quick Start, then explore
 ## Reference
 
 - **[API Reference](../api/)** — Generated from XML doc comments
-- **[Migration Guide](MIGRATION_GUIDE.md)** — Upgrading between versions
+- **[FAQ](faq.md)** — Common questions answered
 

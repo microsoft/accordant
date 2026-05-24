@@ -34,5 +34,27 @@
       href: concepts/conformance-testing.md
     - name: Models vs Fakes
       href: concepts/models-vs-fakes.md
-- name: Migration Guide
-  href: MIGRATION_GUIDE.md
+    - name: Indefinite Failures
+      href: concepts/indefinite-failures.md
+    - name: Resetting State
+      href: concepts/resetting-state.md
+- name: How-To Guides
+  items:
+    - name: Overview
+      href: how-to/index.md
+    - name: Selective Modeling
+      href: how-to/selective-modeling.md
+    - name: Validating Your Model
+      href: how-to/validating-your-model.md
+    - name: Debugging Models
+      href: how-to/debugging-models.md
+    - name: Modeling Large Data
+      href: how-to/modeling-large-data.md
+    - name: Integrating with Fuzzers
+      href: how-to/integrating-with-fuzzers.md
+    - name: Fault Injection Testing
+      href: how-to/fault-injection-testing.md
+    - name: Balancing Generated and Manual Tests
+      href: how-to/balancing-generated-and-manual-tests.md
+- name: FAQ
+  href: faq.md
