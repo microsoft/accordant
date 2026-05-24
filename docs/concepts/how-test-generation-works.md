@@ -10,7 +10,7 @@ You provide a spec (operations and their behavior), a set of operation inputs, a
 
 Each path through this state graph becomes a test case — a sequence of operation calls to execute against your real system.
 
-Test generation is essentially walking this state graph. This isn't random fuzzing — it's systematic exploration with multiple algorithm choices available to you. And importantly, all of this exploration happens entirely on the spec. No real system is running during this phase; the spec's `Apply` methods compute what *should* happen, allowing the framework to reason about thousands of sequences without executing anything.
+Test generation is essentially walking this state graph. This isn't random — it's systematic exploration with multiple algorithm choices available to you. And importantly, all of this exploration happens entirely on the spec. No real system is running during this phase; the spec's `Apply` methods compute what *should* happen, allowing the framework to reason about thousands of sequences without executing anything.
 
 ---
 
@@ -22,32 +22,13 @@ Starting from an initial state, Accordant applies each input and computes the re
 
 State fingerprinting ensures efficiency: if two different paths lead to the same state, they share the same node. No duplicate exploration.
 
-```
-           [Empty]
-              │
-       ┌──────┼──────┐
-       │ Create      │ Create
-       │ alice       │ bob
-       ▼             ▼
-   [alice:0]     [bob:0]
-       │             │
-       │ Deposit     │ Deposit
-       │ 100         │ 100
-       ▼             ▼
-  [alice:100]    [bob:100]
-       │             │
-       │ Withdraw    │ Withdraw
-       │ 30          │ 30
-       ▼             ▼
-  [alice:70]     [bob:70]
-       │             │
-       └─────────────┘
-               │
-          Withdraw 70
-               │
-               ▼
-         [balance:0]  ← same state reached from both paths
-```
+Here's an actual state graph generated from the BankAccount sample:
+
+![State graph from BankAccount sample](../images/state-graph-clean.png)
+
+*Note: Loop-back edges (e.g., calling Deposit on a non-existent account returns to the same state) are omitted to reduce visual clutter.*
+
+Each node is a state (the set of accounts and balances), and each edge is an operation that transitions to a new state. Paths through this graph become test cases.
 
 ---
 
