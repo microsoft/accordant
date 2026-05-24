@@ -34,29 +34,64 @@ Later operations succeed as long as the response matches **at least one** possib
 
 ### Part 1: Modeling (The Base Class Pattern)
 
-The `TodoOperation` base class **automatically wraps** every operation with indefinite failure outcomes:
+**What you write** — just the definite outcomes:
 
 ```csharp
-// You write definite outcomes (success + expected 4xx errors):
-protected override ExpectedOutcomes ApplyInternal(User request, AppState state)
+public class CreateUserOperation : TodoApiOperation<User, User, AppState>
 {
-    return Expect.That<ApiResult<User>>(r => r.IsSuccess)
-        .ThenState((response, next) => {
-            next.Users[request.UserId] = new UserState {
-                Name = request.Name,
-                CreatedAt = response?.Data?.CreatedAt,   // null if no response
-                ModifiedAt = response?.Data?.ModifiedAt
-            };
-        });
-    // Could also have: .Or(r => r.StatusCode == 409).ThenNoChange() for duplicate user
-}
+    protected override ExpectedOutcomes ApplyInternal(User request, AppState state)
+    {
+        // 409 Conflict if user already exists
+        if (state.Users.ContainsKey(request.UserId))
+        {
+            return Expect.That((ApiResult<User> r) => r.IsConflict)
+                .SameState();
+        }
 
-// Base class automatically adds indefinite outcomes (5xx, timeouts):
-// 1. Indefinite failure, no state change (request never reached server)
-// 2. Indefinite failure, user created with unknown timestamps (response lost)
+        // 200 OK - create the user
+        return Expect.That((ApiResult<User> r) => r.IsSuccess && r.Data?.UserId == request.UserId)
+            .ThenState((response, next) =>
+            {
+                next.Users[request.UserId] = new UserState
+                {
+                    Name = request.Name,
+                    CreatedAt = response?.Data?.CreatedAt,
+                    ModifiedAt = response?.Data?.ModifiedAt
+                };
+            });
+    }
+}
 ```
 
-**Key insight**: `response?.Data?.CreatedAt` — when the base class simulates an indefinite failure, it passes `null` as the response. The `?.` operator naturally produces `null` for server-generated fields.
+**What the base class adds** — indefinite failure outcomes:
+
+```csharp
+public sealed override ExpectedOutcomes Apply(TRequest request, TState state)
+{
+    var baseOutcomes = ApplyInternal(request, state);
+    
+    // Add: indefinite failure with NO state change (request lost before save)
+    newOutcomes.Add(new ExpectedOutcome(
+        IndefiniteFailureValidator,
+        state));  // same state
+
+    // Add: indefinite failure WITH state change (saved but response lost)
+    // Reuses the same state transition, but with IndefiniteFailureValidator
+    foreach (var outcome in baseOutcomes.PossibleOutcomes)
+    {
+        newOutcomes.Add(new ExpectedOutcome(
+            IndefiniteFailureValidator,
+            outcome.NextStateGenerator));  // same state change as success
+    }
+    
+    return new ExpectedOutcomes(newOutcomes);
+}
+```
+
+The result: CreateUser now has **three** possible outcomes when `IndefiniteFailureSemantics.Enabled`:
+1. Success (200) → user exists with known timestamps
+2. Indefinite failure → no state change
+3. Indefinite failure → user exists with `null` timestamps
 
 ### Part 2: Fault Injection (Making Failures Actually Happen)
 
