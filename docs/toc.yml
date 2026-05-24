@@ -34,14 +34,12 @@
       href: concepts/conformance-testing.md
     - name: Models vs Fakes
       href: concepts/models-vs-fakes.md
-    - name: Indefinite Failures
-      href: how-to/indefinite-failures.md
-    - name: Resetting State
-      href: concepts/resetting-state.md
 - name: How-To Guides
   items:
     - name: Overview
       href: how-to/index.md
+    - name: Indefinite Failures
+      href: how-to/indefinite-failures.md
     - name: Selective Modeling
       href: how-to/selective-modeling.md
     - name: Validating Your Model
@@ -54,6 +52,8 @@
       href: how-to/integrating-with-fuzzers.md
     - name: Balancing Generated and Manual Tests
       href: how-to/balancing-generated-and-manual-tests.md
+    - name: Resetting State
+      href: how-to/resetting-state.md
 - name: Samples
   href: samples.md
 - name: FAQ
