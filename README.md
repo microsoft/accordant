@@ -136,7 +136,7 @@ public async Task Withdraw_FromNonexistentAccount_ReturnsNotFound()
 
 This is the standard pattern. Each test tells a story: set up state, call a method, check the result.
 
-These are just three tests. You could write many more. Positive cases: deposit then withdraw, multiple deposits, withdraw exactly the balance. Negative cases: withdraw from empty account, withdraw more than the balance, operate on a deleted account. Interesting sequences: create, deposit, delete, try to deposit again; create the same account twice; withdraw, deposit, withdraw, check the running total. The space of possible tests is large — these three barely scratch the surface.
+These are just three tests. You could write many more. Positive cases: deposit then withdraw, multiple deposits, withdraw exactly the balance. Negative cases: withdraw from empty account, withdraw more than the balance, operate on a deleted account. Interesting sequences: create, deposit, delete, try to deposit again; create the same account twice; withdraw, deposit, withdraw, check the running total. The space of possible tests is large — these three barely scratch the surface. What if you could validate *arbitrary* operation sequences, opening the door to mechanical test generation? (More on that shortly.)
 
 Now notice something else. Look at those assertions — not the setup, the assertions.
 
@@ -200,25 +200,24 @@ You can use the spec to validate any operation sequence. Compare this to the exa
 
 ```csharp
 [Test]
-public void Deposit_Then_Withdraw_Sequence()
+public async Task Deposit_Then_Withdraw_Sequence()
 {
-    var account = new BankAccount();
     var state = new BankState();
     
     // Deposit 100
-    var depositResult = account.Deposit(100);
-    var (isValid, message, nextState) = spec.Allows(depositOp, new DepositRequest(100), depositResult, state);
+    var depositResult = await client.Deposit("alice", 100);
+    var (isValid, message, nextState) = spec.Allows(depositOp, new DepositRequest("alice", 100), depositResult, state);
     Assert.True(isValid, message);
     state = nextState;
     
     // Withdraw 30
-    var withdrawResult = account.Withdraw(30);
-    (isValid, message, nextState) = spec.Allows(withdrawOp, new WithdrawRequest(30), withdrawResult, state);
+    var withdrawResult = await client.Withdraw("alice", 30);
+    (isValid, message, nextState) = spec.Allows(withdrawOp, new WithdrawRequest("alice", 30), withdrawResult, state);
     Assert.True(isValid, message);
 }
 ```
 
-You still choose the operations and the sequence — this is similar to example-based tests from earlier. But instead of writing `Assert.Equal(70, result.NewBalance)`, you write `spec.Allows(...)`. The scattered assertions are replaced by a single question: "Is this response correct given the state?" The spec answers.
+In the example above, you still chose the operations and the sequence — this is similar to example-based tests from earlier. But instead of writing `Assert.Equal(70, result.NewBalance)`, you write `spec.Allows(...)`. The scattered assertions are replaced by a single question: "Is this response correct given the state?" The spec answers.
 
 This is already useful — assertions live in one place, reviewable and updateable. But it unlocks something bigger.
 
@@ -227,13 +226,14 @@ This is already useful — assertions live in one place, reviewable and updateab
 If the spec can validate *any* response, you don't have to write every test by hand. You could hook up a fuzzer and generate random operation sequences:
 
 ```csharp
+await ResetSystem();  // Start from known state
 var state = new BankState();
 
 for (int i = 0; i < 100; i++)
 {
     // Pick a random operation (CreateAccount, Deposit, etc.) with a random request
     var (op, request) = PickRandomOperation(random);
-    var response = CallRealSystem(op, request);
+    var response = await CallRealSystem(op, request);
     
     var (isValid, message, nextState) = spec.Allows(op, request, response, state);
     Assert.True(isValid, message);
