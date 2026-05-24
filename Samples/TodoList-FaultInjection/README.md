@@ -26,7 +26,7 @@ When an indefinite failure occurs, the model tracks **both** possible states:
 - **Branch 1**: User doesn't exist (request lost before save)
 - **Branch 2**: User exists but timestamps are unknown (response lost after save)
 
-Later operations (like `GetUser`) disambiguate by observing the actual state.
+Later operations succeed as long as the response matches **at least one** possible state. Branches that don't match are pruned.
 
 ---
 
@@ -106,10 +106,10 @@ Server saves alice, then throws. Client sees 500 error.
 **Step 3: GetUser("alice")**
 
 Response: `200 OK, alice exists`
-- Branch 1 (alice doesn't exist) → **eliminated** (expected 404, got 200)
+- Branch 1 (alice doesn't exist) → **pruned** (expected 404, got 200)
 - Branch 2 (alice exists, timestamps unknown) → **matches!** Learn timestamps from response
 
-The model converges to a single state with known timestamps.
+The non-matching branch is pruned. Testing continues with the remaining state(s).
 
 ---
 
