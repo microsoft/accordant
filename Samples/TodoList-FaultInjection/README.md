@@ -37,7 +37,7 @@ Later operations succeed as long as the response matches **at least one** possib
 The `TodoOperation` base class **automatically wraps** every operation with indefinite failure outcomes:
 
 ```csharp
-// You write this (happy path only):
+// You write definite outcomes (success + expected 4xx errors):
 protected override ExpectedOutcomes ApplyInternal(User request, AppState state)
 {
     return Expect.That<ApiResult<User>>(r => r.IsSuccess)
@@ -48,9 +48,10 @@ protected override ExpectedOutcomes ApplyInternal(User request, AppState state)
                 ModifiedAt = response?.Data?.ModifiedAt
             };
         });
+    // Could also have: .Or(r => r.StatusCode == 409).ThenNoChange() for duplicate user
 }
 
-// Base class automatically adds these outcomes:
+// Base class automatically adds indefinite outcomes (5xx, timeouts):
 // 1. Indefinite failure, no state change (request never reached server)
 // 2. Indefinite failure, user created with unknown timestamps (response lost)
 ```
