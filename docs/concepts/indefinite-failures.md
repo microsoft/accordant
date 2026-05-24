@@ -208,4 +208,9 @@ This is the power of state profiles: they track what's *possible*, and conforman
 
 - [Step Functions & Async](step-functions-and-async.md)
 - [How-To: Test with Fault Injection](../how-to/fault-injection-testing.md)
-- **Sample**: [TodoList.FaultInjection](../../Samples/TodoList.FaultInjection/) — A complete working example demonstrating indefinite failure modeling
+- **Sample**: [TodoList-FaultInjection](../../Samples/TodoList-FaultInjection/) — A complete working example demonstrating:
+  - Server-side fault injection (pre/post save DB faults)
+  - Client-side fault injection (network failures)
+  - Generic base class pattern for automatic indefinite failure handling
+  - Server-generated timestamps that become unknown on failure
+  - Full field validation to catch silent corruption bugs
