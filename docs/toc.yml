@@ -52,8 +52,6 @@
       href: how-to/modeling-large-data.md
     - name: Integrating with Fuzzers
       href: how-to/integrating-with-fuzzers.md
-    - name: Fault Injection Testing
-      href: how-to/fault-injection-testing.md
     - name: Balancing Generated and Manual Tests
       href: how-to/balancing-generated-and-manual-tests.md
 - name: Samples

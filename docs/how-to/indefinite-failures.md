@@ -207,7 +207,6 @@ This is the power of state profiles: they track what's *possible*, and conforman
 ## See Also
 
 - [Step Functions & Async](step-functions-and-async.md)
-- [How-To: Test with Fault Injection](../how-to/fault-injection-testing.md)
 - **Sample**: [TodoList-FaultInjection](../../Samples/TodoList-FaultInjection/) — A complete working example demonstrating:
   - Server-side fault injection (pre/post save DB faults)
   - Client-side fault injection (network failures)
