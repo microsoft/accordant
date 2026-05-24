@@ -358,6 +358,12 @@ You might be wondering:
 
 ---
 
+## Community
+
+Have questions, ideas, or want to share what you're building? Join the conversation on [GitHub Discussions](https://github.com/microsoft/accordant/discussions).
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for build instructions and contribution guidelines.
