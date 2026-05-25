@@ -340,21 +340,9 @@ dotnet test
 |------|----------------|
 | **[Tutorials](docs/tutorials/)** | Step-by-step guides to learn Accordant |
 | **[Concepts](docs/concepts/)** | Understand the theory — model-based testing, linearizability, state graphs |
-| **[How-To Guides](docs/how-to/)** | Solve specific problems — "how do I test idempotency?" |
+| **[How-To Guides](docs/how-to/)** | Solve specific problems — "how do I reset state between tests?" |
 | **[Samples](Samples/)** | Working code — BankAccount, TodoList, and more |
 | **[API Reference](api/)** | Complete API documentation |
-
----
-
-## Common Questions
-
-You might be wondering:
-
-- Isn't this just a mock?
-- How does this relate to property-based testing?
-- How do I know the spec is correct?
-
-→ [FAQ](docs/faq.md)
 
 ---
 

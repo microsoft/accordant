@@ -34,5 +34,4 @@ Welcome to the Accordant documentation. Start with the Quick Start, then explore
 ## Reference
 
 - **[API Reference](../api/)** — Generated from XML doc comments
-- **[FAQ](faq.md)** — Common questions answered
 
