@@ -328,12 +328,12 @@ namespace Microsoft.Accordant
         /// <returns>This builder for method chaining.</returns>
         /// <example>
         /// return Expect.That&lt;int&gt;(r => r > 0, "positive")
-        ///              .ThenState&lt;MyState&gt;((nextState, map) => {
+        ///              .ThenStateWithMap&lt;MyState&gt;((nextState, map) => {
         ///                  var clonedChild = (ChildState)map[state.Child];
         ///                  clonedChild.Value = 42;
         ///              });
         /// </example>
-        public ExpectedOutcomeBuilder<TResponse> ThenState<TState>(
+        public ExpectedOutcomeBuilder<TResponse> ThenStateWithMap<TState>(
             Action<TState, Dictionary<object, object>> modifier) where TState : State
         {
             if (modifier == null)
@@ -359,12 +359,12 @@ namespace Microsoft.Accordant
         /// <returns>This builder for method chaining.</returns>
         /// <example>
         /// return Expect.That&lt;ApiResult&gt;(r => r.IsSuccess, "success")
-        ///              .ThenState&lt;MyState&gt;((response, nextState, map) => {
+        ///              .ThenStateWithMap&lt;MyState&gt;((response, nextState, map) => {
         ///                  var clonedUser = (UserState)map[state.Users[response.UserId]];
         ///                  clonedUser.ETag = response.ETag;
         ///              }, mock: () => new ApiResult { UserId = "user1", ETag = "mock" });
         /// </example>
-        public ExpectedOutcomeBuilder<TResponse> ThenState<TState>(
+        public ExpectedOutcomeBuilder<TResponse> ThenStateWithMap<TState>(
             Action<TResponse, TState, Dictionary<object, object>> modifier,
             Func<TResponse> mock) where TState : State
         {

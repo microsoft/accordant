@@ -83,12 +83,12 @@ When you write `.ThenState(nextState => ...)`, the `nextState` parameter is alre
 
 This makes state transitions easy to write. You don't need to manually copy anything or worry about accidentally modifying the pre-operation state.
 
-### Advanced: ThenState with ObjectMap
+### Advanced: ThenStateWithMap
 
 For more complex states where objects reference other objects (a graph structure), there's a variant that provides a mapping from original objects to their clones:
 
 ```csharp
-.ThenState<MyState>((nextState, objectMap) => { ... })
+.ThenStateWithMap<MyState>((nextState, objectMap) => { ... })
 ```
 
 The `objectMap` lets you translate references from the original object graph to the cloned graph. Most specs use flat dictionaries and lists and won't need this — but it's available for advanced scenarios.

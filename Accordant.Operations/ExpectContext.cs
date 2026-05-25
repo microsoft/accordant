@@ -396,12 +396,12 @@ namespace Microsoft.Accordant
         /// <param name="builder">The builder to extend.</param>
         /// <param name="modifier">An action that modifies the cloned state, with access to the clone map.</param>
         /// <returns>The builder for method chaining.</returns>
-        public static TypedExpectBuilder<TResponse, TState> ThenState<TResponse, TState>(
+        public static TypedExpectBuilder<TResponse, TState> ThenStateWithMap<TResponse, TState>(
             this TypedExpectBuilder<TResponse, TState> builder,
             Action<TState, Dictionary<object, object>> modifier)
             where TState : State
         {
-            builder.Inner.ThenState<TState>(modifier);
+            builder.Inner.ThenStateWithMap<TState>(modifier);
             return builder;
         }
 
@@ -416,13 +416,13 @@ namespace Microsoft.Accordant
         /// <param name="modifier">An action that receives the response and modifies the cloned state, with access to the clone map.</param>
         /// <param name="mock">A function that generates a mock response for state exploration.</param>
         /// <returns>The builder for method chaining.</returns>
-        public static TypedExpectBuilder<TResponse, TState> ThenState<TResponse, TState>(
+        public static TypedExpectBuilder<TResponse, TState> ThenStateWithMap<TResponse, TState>(
             this TypedExpectBuilder<TResponse, TState> builder,
             Action<TResponse, TState, Dictionary<object, object>> modifier,
             Func<TResponse> mock)
             where TState : State
         {
-            builder.Inner.ThenState<TState>(modifier, mock);
+            builder.Inner.ThenStateWithMap<TState>(modifier, mock);
             return builder;
         }
     }

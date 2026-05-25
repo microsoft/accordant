@@ -786,13 +786,13 @@ namespace Microsoft.Accordant.Operations.Tests
 
         #endregion
 
-        #region ThenState with CloneMap Tests
+        #region ThenStateWithMap Tests
 
         [Test]
-        public void Expect_ThenState_WithCloneMap_SetsNextStateGenerator()
+        public void Expect_ThenStateWithMap_SetsNextStateGenerator()
         {
             ExpectedOutcome outcome = Expect.That<int>(r => true, "always valid")
-                                            .ThenState<CounterState>((nextState, cloneMap) =>
+                                            .ThenStateWithMap<CounterState>((nextState, cloneMap) =>
                                             {
                                                 nextState.Value = 42;
                                             });
@@ -801,13 +801,13 @@ namespace Microsoft.Accordant.Operations.Tests
         }
 
         [Test]
-        public void Expect_ThenState_WithCloneMap_ProvidesCloneMap()
+        public void Expect_ThenStateWithMap_ProvidesCloneMap()
         {
             var currentState = new CounterState(10);
             Dictionary<object, object> capturedMap = null;
 
             ExpectedOutcome outcome = Expect.That<int>(r => true, "always valid")
-                                            .ThenState<CounterState>((nextState, cloneMap) =>
+                                            .ThenStateWithMap<CounterState>((nextState, cloneMap) =>
                                             {
                                                 capturedMap = cloneMap;
                                                 nextState.Value = 42;
@@ -820,20 +820,20 @@ namespace Microsoft.Accordant.Operations.Tests
         }
 
         [Test]
-        public void Expect_ThenState_WithCloneMap_NullModifierThrows()
+        public void Expect_ThenStateWithMap_NullModifierThrows()
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
                 Expect.That<int>(r => true, "valid")
-                      .ThenState<CounterState>((Action<CounterState, Dictionary<object, object>>)null);
+                      .ThenStateWithMap<CounterState>((Action<CounterState, Dictionary<object, object>>)null);
             });
         }
 
         [Test]
-        public void Expect_ThenState_WithResponseAndCloneMap_SetsNextStateGenerator()
+        public void Expect_ThenStateWithMap_WithResponse_SetsNextStateGenerator()
         {
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
-                                            .ThenState<CounterState>(
+                                            .ThenStateWithMap<CounterState>(
                                                 (resp, nextState, cloneMap) => nextState.Value = resp,
                                                 mock: () => 10);
 
@@ -842,11 +842,11 @@ namespace Microsoft.Accordant.Operations.Tests
         }
 
         [Test]
-        public void Expect_ThenState_WithResponseAndCloneMap_GeneratesCorrectState()
+        public void Expect_ThenStateWithMap_WithResponse_GeneratesCorrectState()
         {
             var currentState = new CounterState(1);
             ExpectedOutcome outcome = Expect.That<int>(r => r > 0, "positive")
-                                            .ThenState<CounterState>(
+                                            .ThenStateWithMap<CounterState>(
                                                 (resp, nextState, cloneMap) => nextState.Value = resp * 4,
                                                 mock: () => 10);
 
@@ -858,12 +858,12 @@ namespace Microsoft.Accordant.Operations.Tests
         }
 
         [Test]
-        public void Expect_ThenState_WithResponseAndCloneMap_RequiresMock()
+        public void Expect_ThenStateWithMap_WithResponse_RequiresMock()
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
                 Expect.That<int>(r => r > 0, "positive")
-                      .ThenState<CounterState>(
+                      .ThenStateWithMap<CounterState>(
                           (resp, nextState, cloneMap) => nextState.Value = resp,
                           mock: null);
             });
@@ -1167,17 +1167,17 @@ namespace Microsoft.Accordant.Operations.Tests
         #region TypedExpectBuilder Extension Method Tests
 
         /// <summary>
-        /// Tests that ThenState with clone map works via extension method when TState derives from State.
+        /// Tests that ThenStateWithMap works via extension method when TState derives from State.
         /// This verifies the extension method approach for State-specific CloneWithMap functionality.
         /// </summary>
         [Test]
-        public void TypedExpectBuilder_ThenStateWithCloneMap_WorksViaExtensionMethod()
+        public void TypedExpectBuilder_ThenStateWithMap_WorksViaExtensionMethod()
         {
             // Create an operation that uses ThenState with clone map
             var operation = new CloneMapOperation();
             var state = new CounterState(10);
 
-            // Apply should work - the extension method provides ThenState(Action<TState, Dictionary<object,object>>)
+            // Apply should work - the extension method provides ThenStateWithMap(Action<TState, Dictionary<object,object>>)
             var outcomes = operation.Apply(5, state);
 
             Assert.IsNotNull(outcomes);
@@ -1195,10 +1195,10 @@ namespace Microsoft.Accordant.Operations.Tests
         }
 
         /// <summary>
-        /// Tests that ThenState with response and clone map works via extension method.
+        /// Tests that ThenStateWithMap with response works via extension method.
         /// </summary>
         [Test]
-        public void TypedExpectBuilder_ThenStateWithResponseAndCloneMap_WorksViaExtensionMethod()
+        public void TypedExpectBuilder_ThenStateWithMap_WithResponse_WorksViaExtensionMethod()
         {
             var operation = new CloneMapWithResponseOperation();
             var state = new CounterState(10);
@@ -1214,7 +1214,7 @@ namespace Microsoft.Accordant.Operations.Tests
         }
 
         /// <summary>
-        /// Operation that uses ThenState with clone map (Dictionary parameter).
+        /// Operation that uses ThenStateWithMap (Dictionary parameter).
         /// This tests the extension method that requires TState : State.
         /// </summary>
         private class CloneMapOperation : Operation<int, int, CounterState>
@@ -1224,9 +1224,9 @@ namespace Microsoft.Accordant.Operations.Tests
             public override ExpectedOutcomes Apply(int request, CounterState state)
             {
                 var expectedValue = state.Value + request;
-                // Use the ThenState overload with clone map - this uses the extension method
+                // Use the ThenStateWithMap overload - this uses the extension method
                 return Expect.That(r => r == expectedValue, $"should equal {expectedValue}")
-                             .ThenState((nextState, cloneMap) =>
+                             .ThenStateWithMap((nextState, cloneMap) =>
                              {
                                  // cloneMap is available for cycle-aware operations
                                  Assert.IsNotNull(cloneMap);
@@ -1236,7 +1236,7 @@ namespace Microsoft.Accordant.Operations.Tests
         }
 
         /// <summary>
-        /// Operation that uses ThenState with response and clone map.
+        /// Operation that uses ThenStateWithMap with response.
         /// </summary>
         private class CloneMapWithResponseOperation : Operation<int, int, CounterState>
         {
@@ -1246,7 +1246,7 @@ namespace Microsoft.Accordant.Operations.Tests
             {
                 var expectedValue = state.Value + request;
                 return Expect.That(r => r == expectedValue, $"should equal {expectedValue}")
-                             .ThenState(
+                             .ThenStateWithMap(
                                  (response, nextState, cloneMap) =>
                                  {
                                      Assert.IsNotNull(cloneMap);
