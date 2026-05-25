@@ -1,75 +1,47 @@
-# Accordant Skills
+# Accordant AI Skills
 
-Skills are focused guides for AI coding assistants (and humans) working with the Accordant model-based testing framework.
+AI coding assistant skills for the Accordant model-based testing framework.
 
-## Skill Order
+## Available Skills
 
-Skills are numbered to reflect the typical workflow progression:
+| Skill | When to Use |
+|-------|-------------|
+| [overview](overview/SKILL.md) | Starting with Accordant, understanding what it is and when to use it |
+| [state](state/SKILL.md) | Designing state models, the `[State]` attribute |
+| [operations](operations/SKILL.md) | Writing operations with Apply/Execute, `Expect.That` |
+| [test-generation](test-generation/SKILL.md) | Generating tests, state graphs, running tests |
+| [concurrency](concurrency/SKILL.md) | Testing race conditions, linearizability |
+| [async-operations](async-operations/SKILL.md) | Background work, step functions, polling |
+| [patterns](patterns/SKILL.md) | Response-dependent state, HTTP integration, error handling |
+| [troubleshooting](troubleshooting/SKILL.md) | Debugging failures, common mistakes |
+| [quickref](quickref/SKILL.md) | Quick syntax lookup, cheatsheet |
 
-| # | Folder | Skill | Description |
-|---|--------|-------|-------------|
-| 00 | `00-overview` | Overview | Top-level guide, when to use which skill |
-| 01 | `01-foundational` | Foundational Concepts | Core mental model, architecture, namespaces |
-| 02 | `02-design-state` | Design State | `[State]` attribute, collections, `[SharedState]`, nested state |
-| 03 | `03-write-operations` | Write Operations | `Operation<>`, `Apply`, `Execute`, `Expect` API, derivations, polling |
-| 04 | `04-manual-testing` | Manual Testing | `Allows()`, `AllowsConcurrent()`, `StateProfile` |
-| 05 | `05-generate-tests` | Generate Tests | `InputSet`, `GenerateTests()`, `TestGenerationOptions` |
-| 06 | `06-execute-tests` | Execute Tests | `RunTests()`, lifecycle hooks, `TestExecutionOptions` |
-| 07 | `07-concurrent-testing` | Concurrent Testing | Linearizability, `GenerateConcurrentTests()`, race conditions |
-| 08 | `08-http-services` | HTTP Services | `ApiResult`, `HttpRequest`, `HttpExecutable`, REST API testing |
+## Suggested Learning Path
 
-## How to Use
+**New to Accordant?**
+1. `overview` → Understand what Accordant is
+2. `state` → Learn to model state
+3. `operations` → Write your first operations
+4. `test-generation` → Generate and run tests
 
-1. **Start with `00-overview`** to understand the end-to-end workflow
-2. **Learn fundamentals in `01-foundational`** for core concepts
-3. **Follow the numbered order** when building a new spec from scratch
-4. **Jump to specific skills** when working on a particular phase
+**Going deeper?**
+5. `concurrency` → Find race conditions
+6. `async-operations` → Handle background work
+7. `patterns` → Common patterns and integration
 
-## Conventions
+**Having issues?**
+- `troubleshooting` → Debug problems
+- `quickref` → Quick syntax lookup
 
-- Each skill folder contains a `SKILL.md` file with the full guide
-- Skills with code samples include an `examples/` subfolder
-- All examples use **class-based operations** (not inline lambdas)
-- State classes use `[State]` attribute with `partial class` inheriting from `State`
-- Specs inherit from `Spec<TState>` and use `RegisterOperationProperties()`
+## For AI Assistants
 
-## Quick Start
-
-```csharp
-// 1. Define state (02-design-state)
-[State]
-public partial class StackState<T>
-{
-    public List<T> Items { get; set; } = new();
-}
-
-// 2. Define operations (03-write-operations)
-public class PushOperation<T> : Operation<T, Unit, StackState<T>>
-{
-    public PushOperation() : base("Push") { }
-
-    public override ExpectedOutcomes Apply(T request, StackState<T> state)
-        => Expect.Unit().ThenState(next => next.Items.Add(request));
-
-    public override Unit Execute(TestingContext context, T request)
-    {
-        context.Get<Stack<T>>().Push(request);
-        return Unit.Value;
-    }
-}
-
-// 3. Create spec (03-write-operations)
-public class StackSpec : Spec<StackState<int>>
-{
-    public PushOperation<int> Push { get; } = new();
-    public PopOperation<int> Pop { get; } = new();
-
-    public StackSpec() { RegisterOperationProperties(); }
-}
-
-// 4. Generate and run tests (05-generate-tests, 06-execute-tests)
-var spec = new StackSpec();
-var inputs = new InputSet { spec.Push.With(1, "Push 1"), spec.Pop.With("Pop") };
-var testCases = spec.GenerateTests(new StackState<int>(), inputs);
-var results = await spec.RunTests(context, new StackState<int>(), testCases, options);
-```
+When helping users with Accordant:
+- Use `overview` for "what is Accordant" or "should I use this" questions
+- Use `state` when user is defining state classes or asks about `[State]`
+- Use `operations` when user is writing Apply methods or using `Expect`
+- Use `test-generation` when user wants to generate or run tests
+- Use `concurrency` for race conditions or concurrent testing
+- Use `async-operations` for jobs, queues, polling, or `.Triggers()`
+- Use `patterns` for HTTP APIs, server-generated IDs, or common patterns
+- Use `troubleshooting` when tests fail or something isn't working
+- Use `quickref` for quick code snippets or syntax questions
