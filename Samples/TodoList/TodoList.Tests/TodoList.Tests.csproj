@@ -9,7 +9,15 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\TodoList.Api\TodoList.Api.csproj" />
-		<PackageReference Include="Microsoft.Accordant" />
+		<!--
+			NOTE: This sample uses ProjectReference because it's part of the Accordant repo.
+			In your own project, replace the ProjectReferences below with:
+			<PackageReference Include="Microsoft.Accordant" Version="0.1.*" />
+		-->
+		<ProjectReference Include="..\..\..\Accordant.Operations\Accordant.Operations.csproj" />
+		<ProjectReference Include="..\..\..\Accordant.SourceGenerator\Accordant.SourceGenerator.csproj" 
+		                  OutputItemType="Analyzer" 
+		                  ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 	<ItemGroup>
