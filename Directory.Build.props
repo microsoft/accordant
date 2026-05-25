@@ -3,7 +3,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     
     <!-- NuGet Package Defaults -->
-    <Version>0.1.2-preview</Version>
+    <Version>0.1.4</Version>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
     <Copyright>Copyright (c) 2024-2026 Microsoft Corporation</Copyright>
