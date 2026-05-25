@@ -134,7 +134,7 @@ spec.Operation<string, ApiResult<Job>>("CreateJob", (jobName, state) =>
         // Success - server created the job and assigned an ID
         Expect.That<ApiResult<Job>>(r => r.IsSuccess && !string.IsNullOrEmpty(r.Data.JobId))
               .ThenState<AppState, ApiResult<Job>>(
-                  (next, response) =>
+                  (response, next) =>
                       next.Jobs[response.Data.JobId] = new JobState 
                       { 
                           Name = jobName, 

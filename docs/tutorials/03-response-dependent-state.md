@@ -66,8 +66,8 @@ spec.Operation<Todo, ApiResult<Todo>>("CreateTodo", (request, state) =>
                     r.Data.LastModified != null,  // Just verify it exists
                "Should create todo with timestamp")
            .ThenState<AppState, ApiResult<Todo>>(
-               // Lambda receives clone and actual response, modifies the clone
-               (nextState, response) =>
+               // Lambda receives response and clone, modifies the clone
+               (response, nextState) =>
                    nextState.Users[request.UserId].Todos[request.TodoId] = new TodoState
                    {
                        Title = request.Title,
@@ -175,7 +175,7 @@ spec.Operation<CreateOrderRequest, ApiResult<Order>>("CreateOrder", (request, st
                     r.Data.Product == request.Product,
                "Should create order with server-generated ID")
            .ThenState<AppState, ApiResult<Order>>(
-               (nextState, response) =>
+               (response, nextState) =>
                {
                    var orderId = response.Data!.OrderId;  // Capture!
                    nextState.Orders[orderId] = new OrderState
@@ -211,7 +211,7 @@ if (job.ResultPath == null && response.Data.Status == JobStatus.Completed)
                r => r.Data.ResultPath != null,
                "Should have a ResultPath")
            .ThenState<JobQueueState, ApiResult<Job>>(
-               (nextState, resp) =>
+               (resp, nextState) =>
                    nextState.Jobs[jobId].ResultPath = resp.Data!.ResultPath,  // Capture
                mock: () => new ApiResult<Job> { /* ... */ });
 }
@@ -236,7 +236,7 @@ Response-dependent state handles values you can't predict:
 
 | Pattern | Use Case |
 |---------|----------|
-| `.ThenState<TState, TResponse>((nextState, response) => ..., mock)` | Capture server-generated values |
+| `.ThenState<TState, TResponse>((response, nextState) => ..., mock)` | Capture server-generated values |
 | Mock responses | Enable state exploration without real server |
 | Stability checks | Enforce values don't change unexpectedly |
 
