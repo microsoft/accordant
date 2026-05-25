@@ -424,5 +424,10 @@ obj/
 # DocFX generated output
 _site/
 
+# DocFX auto-generated API metadata (regenerated in CI)
+api/*.yml
+api/.manifest
+api/toc.yml
+
 # VS launch settings
 **/Properties/launchSettings.json
