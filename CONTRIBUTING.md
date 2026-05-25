@@ -30,22 +30,6 @@ dotnet build Accordant.slnx
 dotnet test Accordant.slnx
 ```
 
-## Working with Samples
-
-Samples use the `Microsoft.Accordant` NuGet package (not project references). For local development:
-
-1. After making changes to Accordant libraries, publish to the local feed:
-   ```powershell
-   .\Scripts\Publish-Local.ps1
-   ```
-
-2. Then build/test samples normally:
-   ```bash
-   dotnet test Samples/TodoList/TodoList.Tests
-   ```
-
-The local NuGet feed (`bin/packages`) takes priority over nuget.org, so samples will use your locally-built package.
-
 ## Submitting Changes
 
 1. Ensure all tests pass
