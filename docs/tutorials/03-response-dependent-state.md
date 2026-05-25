@@ -39,7 +39,7 @@ Accordant handles this with a two-part approach:
 
 ### Part 1: Capture with Response Lambda
 
-When creating a todo, use a lambda that receives the response and builds the new state:
+When creating a todo, use `.ThenState<TState, TResponse>` which passes both a cloned state and the response to your lambda:
 
 ```csharp
 spec.Operation<Todo, ApiResult<Todo>>("CreateTodo", (request, state) =>
@@ -65,19 +65,15 @@ spec.Operation<Todo, ApiResult<Todo>>("CreateTodo", (request, state) =>
                     r.Data.TodoId == request.TodoId &&
                     r.Data.LastModified != null,  // Just verify it exists
                "Should create todo with timestamp")
-           .ThenState(
-               // Lambda receives actual response, builds new state
-               (ApiResult<Todo> response) =>
-               {
-                   var newState = (AppState)state.Clone();
-                   newState.Users[request.UserId].Todos[request.TodoId] = new TodoState
+           .ThenState<AppState, ApiResult<Todo>>(
+               // Lambda receives clone and actual response, modifies the clone
+               (nextState, response) =>
+                   nextState.Users[request.UserId].Todos[request.TodoId] = new TodoState
                    {
                        Title = request.Title,
                        Completed = false,
                        LastModified = response.Data!.LastModified  // Capture it!
-                   };
-                   return newState;
-               },
+                   },
                // Mock for state space exploration (explained below)
                mock: () => new ApiResult<Todo>
                {
@@ -178,17 +174,15 @@ spec.Operation<CreateOrderRequest, ApiResult<Order>>("CreateOrder", (request, st
                     !string.IsNullOrEmpty(r.Data.OrderId) &&  // Server generates
                     r.Data.Product == request.Product,
                "Should create order with server-generated ID")
-           .ThenState(
-               (ApiResult<Order> response) =>
+           .ThenState<AppState, ApiResult<Order>>(
+               (nextState, response) =>
                {
-                   var newState = (AppState)state.Clone();
                    var orderId = response.Data!.OrderId;  // Capture!
-                   newState.Orders[orderId] = new OrderState
+                   nextState.Orders[orderId] = new OrderState
                    {
                        Product = request.Product,
                        Quantity = request.Quantity
                    };
-                   return newState;
                },
                mock: () => new ApiResult<Order>
                {
@@ -216,13 +210,9 @@ if (job.ResultPath == null && response.Data.Status == JobStatus.Completed)
     return Expect.That<ApiResult<Job>>(
                r => r.Data.ResultPath != null,
                "Should have a ResultPath")
-           .ThenState(
-               (ApiResult<Job> resp) =>
-               {
-                   var newState = (JobQueueState)state.Clone();
-                   newState.Jobs[jobId].ResultPath = resp.Data!.ResultPath;  // Capture
-                   return newState;
-               },
+           .ThenState<JobQueueState, ApiResult<Job>>(
+               (nextState, resp) =>
+                   nextState.Jobs[jobId].ResultPath = resp.Data!.ResultPath,  // Capture
                mock: () => new ApiResult<Job> { /* ... */ });
 }
 
@@ -246,7 +236,7 @@ Response-dependent state handles values you can't predict:
 
 | Pattern | Use Case |
 |---------|----------|
-| `ThenState(lambda, mock)` | Capture server-generated values |
+| `.ThenState<TState, TResponse>((nextState, response) => ..., mock)` | Capture server-generated values |
 | Mock responses | Enable state exploration without real server |
 | Stability checks | Enforce values don't change unexpectedly |
 
