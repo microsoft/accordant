@@ -277,7 +277,11 @@ public class BankAccountTests
         var dot = spec.VisualizeStateSpace(
             initialState,
             inputs,
-            generationOptions: new TestGenerationOptions { MaxDepth = 5 },
+            generationOptions: new TestGenerationOptions 
+            { 
+                MaxDepth = 5,
+                ShouldIncludeTransition = (from, op, to) => from.ToString() != to.ToString()
+            },
             visualizationOptions: new VisualizationOptions
             {
                 NodeLabelLambda = node =>
@@ -290,10 +294,10 @@ public class BankAccountTests
             });
 
         // Write to file
-        var outputPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "state-graph.dot");
-        File.WriteAllText(outputPath, dot);
+        File.WriteAllText("bank-account-state-graph.dot", dot);
         
-        TestContext.WriteLine($"State graph written to: {outputPath}");
+        TestContext.WriteLine("State graph written to: bank-account-state-graph.dot");
+        TestContext.WriteLine("Convert to PNG: dot -Tpng bank-account-state-graph.dot -o bank-account-state-graph.png");
         TestContext.WriteLine();
 
         // Also generate test cases to count them

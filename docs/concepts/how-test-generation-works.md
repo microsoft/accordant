@@ -24,7 +24,7 @@ State fingerprinting ensures efficiency: if two different paths lead to the same
 
 Here's an actual state graph generated from the BankAccount sample:
 
-![State graph from BankAccount sample](../images/state-graph-clean.png)
+![State graph from BankAccount sample](../images/bank-account-state-graph.png)
 
 *Note: Loop-back edges (e.g., calling Deposit on a non-existent account returns to the same state) are omitted to reduce visual clutter.*
 

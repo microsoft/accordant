@@ -27,37 +27,41 @@ From your `InputSet`, Accordant builds this graph and generates test cases that 
 
 ## Generating a Visualization
 
-Add this to your test class:
+Add this to your test class (see the [TodoList sample](https://github.com/microsoft/accordant/tree/main/Samples/TodoList) for a complete example):
 
 ```csharp
 [Test]
 public void VisualizeStateSpace()
 {
     var spec = CreateSpec();
+    var initialState = new AppState();
 
-    // Same inputs as your tests
     var createUser = spec.GetOperation<User, ApiResult<User>>("CreateUser");
-    var getUser = spec.GetOperation<string, ApiResult<User>>("GetUser");
+    var deleteUser = spec.GetOperation<string, int>("DeleteUser");
     var createTodo = spec.GetOperation<Todo, ApiResult<Todo>>("CreateTodo");
+    var getTodo = spec.GetOperation<(string, string), ApiResult<Todo>>("GetTodo");
 
     var inputs = new InputSet()
     {
-        createUser.With(new User("alice", "Alice"), "Create Alice"),
-        getUser.With("alice", "Get Alice"),
-        createTodo.With(new Todo("alice", "task-1", "Buy milk"), "Create todo"),
+        createUser.With(new User("alice", "Alice"), "Create user"),
+        createTodo.With(new Todo("alice", "todo-1", "Task"), "Create todo"),
+        getTodo.With(("alice", "todo-1"), "Get todo"),
+        deleteUser.With("alice", "Delete user"),
     };
 
-    // Generate the DOT file content
-    var dotContent = TestCaseGenerator.VisualizeStateSpace(
-        new TestingContext(spec),
-        new AppState(),  // Initial state
+    var dot = spec.VisualizeStateSpace(
+        initialState,
         inputs,
-        new TestGenerationOptions { MaxDepth = 3 });
+        generationOptions: new TestGenerationOptions { MaxDepth = 4 });
 
-    // Write to file
-    File.WriteAllText("state-graph.dot", dotContent);
-    TestContext.WriteLine("Generated state-graph.dot");
-    TestContext.WriteLine(dotContent);
+    // Write to file for manual PNG conversion
+    File.WriteAllText("todolist-state-graph.dot", dot);
+
+    TestContext.WriteLine("State space visualization (DOT format):");
+    TestContext.WriteLine("Written to todolist-state-graph.dot");
+    TestContext.WriteLine("Convert to PNG: dot -Tpng todolist-state-graph.dot -o todolist-state-graph.png");
+    TestContext.WriteLine();
+    TestContext.WriteLine(dot);
 }
 ```
 
@@ -68,7 +72,7 @@ public void VisualizeStateSpace()
 The output is in [DOT format](https://graphviz.org/doc/info/lang.html). Render it with GraphViz:
 
 ```bash
-dot -Tpng state-graph.dot -o state-graph.png
+dot -Tpng todolist-state-graph.dot -o todolist-state-graph.png
 ```
 
 Or use online tools like [GraphViz Online](https://dreampuf.github.io/GraphvizOnline/).
@@ -77,58 +81,18 @@ Or use online tools like [GraphViz Online](https://dreampuf.github.io/GraphvizOn
 
 ## Understanding the Output
 
-Here's what a simple state graph looks like:
+Here's what the rendered graph looks like:
 
-```dot
-digraph StateGraph {
-    node [shape=box];
-    
-    // States
-    S0 [label="{}"];
-    S1 [label="{Users: {alice: {Name: Alice}}}"];
-    S2 [label="{Users: {alice: {..., Todos: {task-1: {...}}}}}"];
-    
-    // Transitions
-    S0 -> S1 [label="CreateUser(alice)"];
-    S0 -> S0 [label="GetUser(alice) → 404"];
-    S1 -> S1 [label="GetUser(alice) → 200"];
-    S1 -> S1 [label="CreateUser(alice) → 409"];
-    S1 -> S2 [label="CreateTodo(task-1)"];
-}
-```
+![State Graph](../images/todolist-state-graph.png)
+
+**The three states:**
+- **Empty** — `{Users={}}`
+- **User Exists** — `{Users={"alice": {Name="Alice", Todos={}}}}`
+- **Todo Exists** — `{Users={"alice": {Name="Alice", Todos={"todo-1": {Title="Task", Completed=False}}}}}`
 
 **Reading the graph:**
-- `S0` = Initial empty state
-- `S1` = State with user "alice" 
-- Edges show which operations transition between states
-- Self-loops (S1 → S1) are operations that don't change state (GET, or errors)
-
----
-
-## Visual Example
-
-```
-    ┌─────────────────┐
-    │     Empty       │ ◄── Initial state (S0)
-    │   { Users: {} } │
-    └────────┬────────┘
-             │ CreateUser("alice")
-             ▼
-    ┌─────────────────────────┐
-    │    User Exists          │ ◄── S1
-    │ { Users: {alice: ...} } │
-    └────────┬────────────────┘
-             │         ▲
-             │         │ GetUser("alice") → 200 OK
-             │         │ CreateUser("alice") → 409 Conflict
-             │         └─────────────────────┘
-             │ CreateTodo("task-1")
-             ▼
-    ┌─────────────────────────────────┐
-    │      Todo Exists                │ ◄── S2
-    │ { Users: {alice: {Todos: ...}}} │
-    └─────────────────────────────────┘
-```
+- **Edges** show operations that transition between states
+- **Self-loops** are operations that don't change state (GET returns data, errors don't modify anything)
 
 ---
 

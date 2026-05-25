@@ -534,8 +534,12 @@ namespace TodoList.Tests
                 inputs,
                 generationOptions: new TestGenerationOptions { MaxDepth = 4 });
 
+            // Write to file for manual PNG conversion
+            File.WriteAllText("todolist-state-graph.dot", dot);
+
             TestContext.WriteLine("State space visualization (DOT format):");
-            TestContext.WriteLine("Copy to https://dreampuf.github.io/GraphvizOnline/");
+            TestContext.WriteLine("Written to todolist-state-graph.dot");
+            TestContext.WriteLine("Convert to PNG: dot -Tpng todolist-state-graph.dot -o todolist-state-graph.png");
             TestContext.WriteLine();
             TestContext.WriteLine(dot);
 
@@ -658,4 +662,4 @@ namespace TodoList.Tests
             Assert.AreEqual(new[] { 200, 409 }, codes, "One should succeed, one should conflict");
         }
     }
-}
+}   
