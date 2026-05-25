@@ -10,10 +10,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\TodoList-FaultInjection.Api\TodoList-FaultInjection.Api.csproj" />
-		<ProjectReference Include="..\..\..\Accordant.Operations\Accordant.Operations.csproj" />
-		<ProjectReference Include="..\..\..\Accordant.SourceGenerator\Accordant.SourceGenerator.csproj" 
-		                  OutputItemType="Analyzer" 
-		                  ReferenceOutputAssembly="false" />
+		<PackageReference Include="Microsoft.Accordant" />
 	</ItemGroup>
 
 	<ItemGroup>

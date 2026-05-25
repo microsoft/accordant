@@ -16,11 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Booking.Api\Booking.Api.csproj" />
-    <ProjectReference Include="..\..\..\Accordant\Accordant.csproj" />
-    <ProjectReference Include="..\..\..\Accordant.Operations\Accordant.Operations.csproj" />
-    <ProjectReference Include="..\..\..\Accordant.SourceGenerator\Accordant.SourceGenerator.csproj" 
-                      OutputItemType="Analyzer" 
-                      ReferenceOutputAssembly="false" />
+    <PackageReference Include="Microsoft.Accordant" />
   </ItemGroup>
 
 </Project>
