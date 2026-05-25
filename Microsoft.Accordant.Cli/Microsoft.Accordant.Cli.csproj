@@ -16,9 +16,12 @@
     <PackageReference Include="System.CommandLine" />
   </ItemGroup>
 
-  <!-- Embed templates as resources -->
+  <!-- Embed templates and skills as resources -->
   <ItemGroup>
     <EmbeddedResource Include="Templates\**\*" />
+    <EmbeddedResource Include="Skills\**\*" />
+    <!-- Exclude skill examples from compilation (they're just for reference) -->
+    <Compile Remove="Skills\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>

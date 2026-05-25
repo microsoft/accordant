@@ -1,10 +1,9 @@
 namespace {{Name}};
 
-using Accordant;
-using Accordant;
+using Microsoft.Accordant;
 
 /// <summary>
-/// Spec defines expected behavior for each API operation.
+/// Spec defines expected behavior for each operation.
 /// The spec is the single source of truth for what "correct" means.
 /// </summary>
 public static class {{Name}}Spec
@@ -13,65 +12,13 @@ public static class {{Name}}Spec
     {
         var spec = new Spec<{{Name}}State>();
 
-        // ---------------------------------------------------------
-        // CREATE: PUT /api/entities/{id}
-        // ---------------------------------------------------------
-        spec.Operation<{{Name}}Entity, ApiResult<{{Name}}Entity>>("Create", (entity, state) =>
-        {
-            if (state.Entities.ContainsKey(entity.Id))
-            {
-                // 409 Conflict - already exists
-                return Expect.That<ApiResult<{{Name}}Entity>>(r => r.StatusCode == 409,
-                           $"Should return 409 because entity '{entity.Id}' already exists")
-                       .SameState();
-            }
-
-            // 201 Created
-            return Expect.That<ApiResult<{{Name}}Entity>>(
-                       r => r.StatusCode == 201 && r.Data != null && r.Data.Id == entity.Id,
-                       $"Should return 201 with created entity")
-                   .ThenState<{{Name}}State>(s => s.Entities[entity.Id] = entity);
-        });
-
-        // ---------------------------------------------------------
-        // GET: GET /api/entities/{id}
-        // ---------------------------------------------------------
-        spec.Operation<string, ApiResult<{{Name}}Entity>>("Get", (id, state) =>
-        {
-            if (!state.Entities.TryGetValue(id, out var entity))
-            {
-                // 404 Not Found
-                return Expect.That<ApiResult<{{Name}}Entity>>(r => r.StatusCode == 404,
-                           $"Should return 404 because entity '{id}' doesn't exist")
-                       .SameState();
-            }
-
-            // 200 OK
-            return Expect.That<ApiResult<{{Name}}Entity>>(
-                       r => r.StatusCode == 200 && r.Data != null && r.Data.Id == entity.Id,
-                       $"Should return entity '{id}'")
-                   .SameState();
-        });
-
-        // ---------------------------------------------------------
-        // DELETE: DELETE /api/entities/{id}
-        // ---------------------------------------------------------
-        spec.Operation<string, ApiResult<{{Name}}Entity>>("Delete", (id, state) =>
-        {
-            if (!state.Entities.ContainsKey(id))
-            {
-                // 404 Not Found
-                return Expect.That<ApiResult<{{Name}}Entity>>(r => r.StatusCode == 404,
-                           $"Should return 404 because entity '{id}' doesn't exist")
-                       .SameState();
-            }
-
-            // 204 No Content
-            return Expect.That<ApiResult<{{Name}}Entity>>(
-                       r => r.StatusCode == 204,
-                       $"Should return 204")
-                   .ThenState<{{Name}}State>(s => s.Entities.Remove(id));
-        });
+        // Define operations here
+        // Example:
+        // spec.Operation<CreateRequest, CreateResponse>("Create", (request, state) =>
+        // {
+        //     return Expect.That<CreateResponse>(r => r.Success)
+        //                  .ThenState<{{Name}}State>(s => { /* update state */ });
+        // });
 
         return spec;
     }

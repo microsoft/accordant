@@ -1,6 +1,6 @@
 namespace {{Name}};
 
-using Accordant;
+using Microsoft.Accordant;
 
 /// <summary>
 /// State tracks what the system remembers between operations.
@@ -9,18 +9,6 @@ using Accordant;
 [State]
 public partial class {{Name}}State
 {
-    /// <summary>
-    /// Example: Track entities by ID.
-    /// Replace with your domain (e.g., Users, Orders, Accounts).
-    /// </summary>
-    public Dictionary<string, {{Name}}Entity> Entities { get; set; } = new();
-}
-
-/// <summary>
-/// Example entity - replace with your domain model.
-/// </summary>
-public class {{Name}}Entity
-{
-    public string Id { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
+    // Add your state properties here
+    // Example: public Dictionary<string, User> Users { get; set; } = new();
 }
