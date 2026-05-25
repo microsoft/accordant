@@ -258,8 +258,8 @@ dotnet test
 | **[Tutorials](tutorials/index.md)** | Step-by-step guides to learn Accordant |
 | **[Concepts](concepts/index.md)** | Understand the theory — model-based testing, linearizability, state graphs |
 | **[How-To Guides](how-to/index.md)** | Solve specific problems — "how do I reset state between tests?" |
-| **[Samples](https://github.com/microsoft/accordant/tree/main/Samples)** | Working code — BankAccount, TodoList, and more |
-| **[API Reference](../api/)** | Complete API documentation |
+| **[Samples](samples.md)** | Working code — BankAccount, TodoList, and more |
+| **[API Reference](../api/Microsoft.Accordant.html)** | Complete API documentation |
 
 ---
 
