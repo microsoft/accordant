@@ -143,7 +143,7 @@ public partial class ImageState
 }
 ```
 
-The `[JsonAtomic]` attribute tells Accordant to:
+The `[SharedState]` attribute tells Accordant to:
 - **Shallow copy** the property during cloning (reference preservation)
 - Use the specified **fingerprint property** for equality and hashing instead of serializing the full value
 
