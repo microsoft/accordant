@@ -18,4 +18,4 @@ dotnet test
 
 ## See Also
 
-- [Quick Start Guide](../../docs/quickstart.md) — Uses this sample
+- [Overview](../../docs/index.md) — Full introduction to Accordant

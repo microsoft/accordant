@@ -101,7 +101,7 @@ If the actual response matches *any* of these outcomes, the spec considers it va
 
 The same pattern applies to other transient errors like 500 Internal Server Error. Any response where you can't be certain whether the server-side effect occurred should be modeled with multiple possible outcomes.
 
-> **Tip**: If many operations need this pattern, you can write a helper that wraps any operation's normal outcomes with additional timeout/error branches. This avoids duplicating the pattern everywhere. See the [TodoList-FaultInjection sample](../../Samples/TodoList-FaultInjection/) for a complete example using a base class that automatically adds indefinite failure outcomes.
+> **Tip**: If many operations need this pattern, you can write a helper that wraps any operation's normal outcomes with additional timeout/error branches. This avoids duplicating the pattern everywhere. See the [TodoList-FaultInjection sample](https://github.com/microsoft/accordant/tree/main/Samples/TodoList-FaultInjection) for a complete example using a base class that automatically adds indefinite failure outcomes.
 
 ---
 
@@ -207,7 +207,7 @@ This is the power of state profiles: they track what's *possible*, and conforman
 ## See Also
 
 - [Step Functions & Async](step-functions-and-async.md)
-- **Sample**: [TodoList-FaultInjection](../../Samples/TodoList-FaultInjection/) — A complete working example demonstrating:
+- **Sample**: [TodoList-FaultInjection](https://github.com/microsoft/accordant/tree/main/Samples/TodoList-FaultInjection) — A complete working example demonstrating:
   - Server-side fault injection (pre/post save DB faults)
   - Client-side fault injection (network failures)
   - Generic base class pattern for automatic indefinite failure handling

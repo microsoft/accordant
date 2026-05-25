@@ -307,5 +307,5 @@ You don't write concurrent test cases manually. Define the operations and inputs
 ## Full Code Reference
 
 See the complete Booking sample:
-- [BookingTests.cs](../../Samples/Booking/Booking.Tests/BookingTests.cs) - Complete concurrent tests
-- [BookingApiClient.cs](../../Samples/Booking/Booking.Tests/BookingApiClient.cs) - HTTP client
+- [BookingTests.cs](https://github.com/microsoft/accordant/blob/main/Samples/Booking/Booking.Tests/BookingTests.cs) - Complete concurrent tests
+- [BookingApiClient.cs](https://github.com/microsoft/accordant/blob/main/Samples/Booking/Booking.Tests/BookingApiClient.cs) - HTTP client

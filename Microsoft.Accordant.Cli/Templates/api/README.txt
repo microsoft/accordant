@@ -35,5 +35,5 @@ This project contains model-based tests for the {{Name}} API using Accordant.
 ## Learn More
 
 - [Accordant Documentation](https://github.com/your-org/Accordant/docs)
-- [Quick Start](https://github.com/your-org/Accordant/docs/quickstart.md)
+- [Getting Started](https://github.com/microsoft/accordant#get-started)
 - [Full Example: BankAccount Sample](https://github.com/your-org/Accordant/Samples/BankAccount)

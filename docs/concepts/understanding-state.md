@@ -152,6 +152,6 @@ This keeps cloning fast while still correctly detecting distinct states.
 
 ## Next Steps
 
-- **See states in action** → [Quick Start](../quickstart.md)
+- **See states in action** → [Overview](../index.md)
 - **Define operations on state** → [Tutorial 1: Your First Spec](../tutorials/01-your-first-spec.md)
 - **Understand the broader picture** → [What is Model-Based Testing?](what-is-model-based-testing.md)

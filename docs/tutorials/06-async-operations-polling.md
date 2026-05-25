@@ -461,5 +461,5 @@ public class JobQueueSpec : Spec<JobQueueState>
 ## Full Code Reference
 
 See the complete JobQueue sample:
-- [JobQueueTests.cs](../../Samples/JobQueue/JobQueue.Tests/JobQueueTests.cs) - Complete spec
-- [JobsController.cs](../../Samples/JobQueue/JobQueue.Api/Controllers/JobsController.cs) - The API
+- [JobQueueTests.cs](https://github.com/microsoft/accordant/blob/main/Samples/JobQueue/JobQueue.Tests/JobQueueTests.cs) - Complete spec
+- [JobsController.cs](https://github.com/microsoft/accordant/blob/main/Samples/JobQueue/JobQueue.Api/Controllers/JobsController.cs) - The API

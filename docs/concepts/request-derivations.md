@@ -21,7 +21,7 @@ But what about generated tests? When the framework executes a sequence of operat
 
 This is what derivations solve. They teach the framework how to extract response data for use in subsequent requests.
 
-See the [TodoList-Extended sample](../../Samples/TodoList-Extended) for a complete working example of this pattern.
+See the [TodoList-Extended sample](https://github.com/microsoft/accordant/tree/main/Samples/TodoList-Extended) for a complete working example of this pattern.
 
 ---
 

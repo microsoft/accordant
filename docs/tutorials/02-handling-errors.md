@@ -248,4 +248,4 @@ Exceptions are just another expected outcome. The spec describes **all possible 
 ## Full Code Reference
 
 See the complete handling in:
-- [TodoListTests.cs](../../Samples/TodoList/TodoList.Tests/TodoListTests.cs) - Error handling examples
+- [TodoListTests.cs](https://github.com/microsoft/accordant/blob/main/Samples/TodoList/TodoList.Tests/TodoListTests.cs) - Error handling examples

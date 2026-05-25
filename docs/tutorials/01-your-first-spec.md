@@ -11,7 +11,7 @@ In this tutorial, you'll build a complete Accordant specification for a **TodoLi
 - How to run auto-generated tests
 
 **Prerequisites:**
-- Completed the [Quick Start](../quickstart.md) (or familiar with basic C#)
+- Familiar with basic C# (see the [Overview](../index.md) for an introduction)
 - The TodoList sample project (we'll guide you through it)
 
 ---
@@ -401,6 +401,6 @@ You've learned the core Accordant workflow:
 ## Full Code Reference
 
 See the complete TodoList sample:
-- [TodoListTests.cs](../../Samples/TodoList/TodoList.Tests/TodoListTests.cs) - Complete spec
-- [TodoApiClient.cs](../../Samples/TodoList/TodoList.Tests/TodoApiClient.cs) - HTTP client
-- [TodoServiceFactory.cs](../../Samples/TodoList/TodoList.Tests/TodoServiceFactory.cs) - Test server setup
+- [TodoListTests.cs](https://github.com/microsoft/accordant/blob/main/Samples/TodoList/TodoList.Tests/TodoListTests.cs) - Complete spec
+- [TodoApiClient.cs](https://github.com/microsoft/accordant/blob/main/Samples/TodoList/TodoList.Tests/TodoApiClient.cs) - HTTP client
+- [TodoServiceFactory.cs](https://github.com/microsoft/accordant/blob/main/Samples/TodoList/TodoList.Tests/TodoServiceFactory.cs) - Test server setup

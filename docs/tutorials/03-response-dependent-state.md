@@ -263,4 +263,4 @@ The spec captures reality: "I don't know what timestamp the server will return, 
 ## Full Code Reference
 
 See response-dependent state in:
-- [JobQueueTests.cs](../../Samples/JobQueue/JobQueue.Tests/JobQueueTests.cs) - `ResultPath` capture pattern
+- [JobQueueTests.cs](https://github.com/microsoft/accordant/blob/main/Samples/JobQueue/JobQueue.Tests/JobQueueTests.cs) - `ResultPath` capture pattern
