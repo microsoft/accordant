@@ -30,6 +30,9 @@ jobs:
       - name: Install DocFX
         run: dotnet tool install -g docfx
 
+      - name: Create local NuGet source directory
+        run: mkdir -p bin/packages
+
       - name: Generate API metadata
         run: docfx metadata docfx.json
 

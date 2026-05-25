@@ -21,6 +21,9 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Create local NuGet source directory
+        run: mkdir -p bin/packages
+
       - name: Restore dependencies
         run: dotnet restore
 
