@@ -54,15 +54,15 @@ public async Task Withdraw_FromNonexistentAccount_ReturnsNotFound()
 
 This is the standard pattern. Each test tells a story: set up state, call a method, check the result.
 
-These are just three tests. You could write many more. Positive cases: deposit then withdraw, multiple deposits, withdraw exactly the balance. Negative cases: withdraw from empty account, withdraw more than the balance, operate on a deleted account. Interesting sequences: create, deposit, delete, try to deposit again; create the same account twice; withdraw, deposit, withdraw, check the running total. The space of possible tests is large — these three barely scratch the surface. What if you could validate *arbitrary* operation sequences, opening the door to mechanical test generation? (More on that shortly.)
+These are just three tests. You could write many more — deposits followed by withdrawals, operations on deleted accounts, the same account created twice. Different orderings, edge cases compounding. The space of possible sequences is large.
+
+What if you could validate *arbitrary* operation sequences automatically?
 
 Now notice something else. Look at those assertions — not the setup, the assertions.
 
-The first test says: withdraw with sufficient balance should succeed and return the new balance. The second says: withdraw with insufficient balance should fail and leave the balance unchanged. The third says: withdraw from a nonexistent account should return not found.
+The first test says: withdraw with sufficient balance should succeed and return the new balance. The second: insufficient balance should fail and leave the balance unchanged. The third: nonexistent account returns not found.
 
-These aren't three unrelated facts. They're three pieces of the same *contract* — the rules for how Withdraw behaves.
-
-And here's the thing: every test you write has to encode those rules. Each test asserts some aspect of the contract — what the response should be, what should happen to the state. Across all the tests you write, the same rules get repeated over and over, scattered across your test suite.
+These are three pieces of the same *contract* — the rules for how Withdraw behaves. Even if you wrote dozens more tests by hand, you'd repeat these same rules through assertions, scattered across your test suite.
 
 ---
 
