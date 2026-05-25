@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="System.CommandLine" />
-    <PackageReference Include="NSwag.CodeGeneration.CSharp" />
   </ItemGroup>
 
   <!-- Embed templates as resources -->

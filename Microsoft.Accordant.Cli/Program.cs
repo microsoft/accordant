@@ -13,7 +13,6 @@ class Program
         var rootCommand = new RootCommand("Accordant CLI - scaffold model-based testing projects");
 
         rootCommand.AddCommand(NewCommand.Create());
-        rootCommand.AddCommand(FromSwaggerCommand.Create());
 
         return await rootCommand.InvokeAsync(args);
     }
