@@ -211,7 +211,7 @@ The same spec enables other kinds of testing:
 
 - **Async workflows** — Model multi-step processes, background jobs, polling for completion. The spec tracks pending work and expected completions. → [Step Functions & Async](concepts/step-functions-and-async.md)
 
-### Spec-Driven Development
+## Spec-Driven Development
 
 The spec becomes the source of truth for how your system should behave.
 
@@ -229,6 +229,12 @@ Install the package ([NuGet](https://nuget.org/packages/Microsoft.Accordant)):
 
 ```bash
 dotnet add package Microsoft.Accordant
+```
+
+**Working with an AI assistant?** The CLI scaffolds a new project and installs skills that teach Copilot, Cursor, or Claude how to write Accordant specs:
+```bash
+dotnet tool install -g Microsoft.Accordant.Cli
+accordant new MyApi.Tests
 ```
 
 ### Learning Paths

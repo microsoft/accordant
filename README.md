@@ -30,20 +30,6 @@ public async Task Withdraw_WithSufficientBalance_Succeeds()
 }
 
 [Test]
-public async Task Withdraw_WithInsufficientBalance_Fails()
-{
-    await client.CreateAccount("alice");
-    await client.Deposit("alice", 50);
-    
-    var result = await client.Withdraw("alice", 100);
-    
-    Assert.True(result.IsBadRequest);
-    
-    var balance = await client.GetBalance("alice");
-    Assert.Equal(50, balance.Data);  // unchanged
-}
-
-[Test]
 public async Task Withdraw_FromNonexistentAccount_ReturnsNotFound()
 {
     var result = await client.Withdraw("bob", 50);
@@ -54,15 +40,15 @@ public async Task Withdraw_FromNonexistentAccount_ReturnsNotFound()
 
 This is the standard pattern. Each test tells a story: set up state, call a method, check the result.
 
-These are just three tests. You could write many more — deposits followed by withdrawals, operations on deleted accounts, the same account created twice. Different orderings, edge cases compounding. The space of possible sequences is large.
+These are just two tests. You could write many more — deposits followed by withdrawals, operations on deleted accounts, the same account created twice. Different orderings, edge cases compounding. The space of possible sequences is large.
 
 What if you could validate *arbitrary* operation sequences automatically?
 
 Now notice something else. Look at those assertions — not the setup, the assertions.
 
-The first test says: withdraw with sufficient balance should succeed and return the new balance. The second: insufficient balance should fail and leave the balance unchanged. The third: nonexistent account returns not found.
+The first test asserts: withdraw with sufficient balance should succeed and return the new balance. The second: nonexistent account returns not found.
 
-These are three pieces of the same *contract* — the rules for how Withdraw behaves. Even if you wrote dozens more tests by hand, you'd repeat these same rules through assertions, scattered across your test suite.
+These are pieces of the same *contract* — the rules for how Withdraw behaves. Even if you wrote dozens more tests by hand, you'd repeat these same rules through assertions, scattered across your test suite.
 
 ---
 
@@ -113,57 +99,11 @@ The spec doesn't query databases, route HTTP requests, or handle retries. It jus
 
 Once you have a spec — the semantics of your system encoded as executable code — a few things become possible.
 
-### The Spec as Oracle
-
-You can use the spec to validate any operation sequence. Compare this to the example-based tests from earlier:
-
-```csharp
-[Test]
-public async Task Deposit_Then_Withdraw_Sequence()
-{
-    var state = new BankState();
-    
-    // Deposit 100
-    var depositResult = await client.Deposit("alice", 100);
-    var (isValid, message, nextState) = spec.Allows(depositOp, new DepositRequest("alice", 100), depositResult, state);
-    Assert.True(isValid, message);
-    state = nextState;
-    
-    // Withdraw 30
-    var withdrawResult = await client.Withdraw("alice", 30);
-    (isValid, message, nextState) = spec.Allows(withdrawOp, new WithdrawRequest("alice", 30), withdrawResult, state);
-    Assert.True(isValid, message);
-}
-```
-
-In the example above, you still chose the operations and the sequence — this is similar to example-based tests from earlier. But instead of writing `Assert.Equal(70, result.NewBalance)`, you write `spec.Allows(...)`. The scattered assertions are replaced by a single question: "Is this response correct given the state?" The spec answers.
-
-This is already useful — assertions live in one place, reviewable and updateable. But it unlocks something bigger.
-
 ### Automatic Test Generation
 
-If the spec can validate *any* response, you don't have to write every test by hand. You could hook up a fuzzer and generate random operation sequences:
+The spec can validate *any* response — so you don't have to write every test by hand. Hook up a fuzzer, generate random sequences, and the spec checks each response.
 
-```csharp
-await ResetSystem();  // Start from known state
-var state = new BankState();
-
-for (int i = 0; i < 100; i++)
-{
-    // Pick a random operation (CreateAccount, Deposit, etc.) with a random request
-    var (op, request) = PickRandomOperation(random);
-    var response = await CallRealSystem(op, request);
-    
-    var (isValid, message, nextState) = spec.Allows(op, request, response, state);
-    Assert.True(isValid, message);
-    
-    state = nextState;
-}
-```
-
-The spec doesn't care where the sequence came from — it just validates each response.
-
-Accordant does something more interesting. You provide sample inputs — a few account IDs, some amounts — and Accordant explores systematically:
+Accordant does something more systematic. You provide sample inputs — a few account IDs, some amounts — and Accordant explores systematically:
 
 ```csharp
 var inputs = new InputSet
@@ -201,6 +141,8 @@ Executed against BankAccount API
 Results: 31 passed, 0 failed
 ```
 
+This is the **spec as oracle**: for any sequence of operations — ones you thought of, ones you didn't — the spec knows what correct behavior looks like. No hand-coded assertions per scenario. This also improves your example-based tests: even when you hand-craft a specific sequence for a key scenario, the spec validates the responses. Hand-specified or mechanically generated, same oracle.
+
 → [How Test Generation Works](docs/concepts/how-test-generation-works.md)
 
 ### And More
@@ -213,7 +155,7 @@ The same spec enables other kinds of testing:
 
 - **Async workflows** — Model multi-step processes, background jobs, polling for completion. The spec tracks pending work and expected completions. → [Step Functions & Async](docs/concepts/step-functions-and-async.md)
 
-### Spec-Driven Development
+## Spec-Driven Development
 
 The spec becomes the source of truth for how your system should behave.
 
@@ -231,6 +173,12 @@ Install the package ([NuGet](https://nuget.org/packages/Microsoft.Accordant)):
 
 ```bash
 dotnet add package Microsoft.Accordant
+```
+
+**Working with an AI assistant?** The CLI scaffolds a new project and installs skills that teach Copilot, Cursor, or Claude how to write Accordant specs:
+```bash
+dotnet tool install -g Microsoft.Accordant.Cli
+accordant new MyApi.Tests
 ```
 
 ### Learning Paths
