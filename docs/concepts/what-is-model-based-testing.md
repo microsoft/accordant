@@ -57,7 +57,8 @@ An **operation** is anything that changes or observes state — an API endpoint,
 
 ```csharp
 // The state: just a dictionary of account balances
-public class BankState : JsonState
+[State]
+public partial class BankState
 {
     public Dictionary<string, decimal> Accounts { get; set; } = new();
 }

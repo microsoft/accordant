@@ -6,7 +6,8 @@ using Accordant;
 /// State tracks what the system remembers between operations.
 /// Keep it minimal: only what's needed to define expected behavior.
 /// </summary>
-public class {{Name}}State : JsonState
+[State]
+public partial class {{Name}}State
 {
     /// <summary>
     /// Example: Track entities by ID.

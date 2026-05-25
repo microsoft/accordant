@@ -7,10 +7,11 @@ using System.Collections.Generic;
 using Microsoft.Accordant;
 
 /// <summary>
-/// Simple stack state - a minimal example of JsonState.
+/// Simple stack state - a minimal example of [State].
 /// The state is pure data: no methods, no computed properties.
 /// </summary>
-public class StackState<TElement> : JsonState
+[State]
+public partial class StackState<TElement>
 {
     /// <summary>
     /// The items in the stack. Always initialize collections to avoid null reference issues.

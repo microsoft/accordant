@@ -15,7 +15,8 @@ Consider a real banking system. The implementation might involve Entity Framewor
 Just the account balances.
 
 ```csharp
-public class BankState : JsonState
+[State]
+public partial class BankState
 {
     public Dictionary<string, decimal> Accounts { get; set; } = new();
 }
@@ -104,33 +105,35 @@ Under the hood, Accordant needs to do several things with state objects:
 
 All of this is driven by the **string representation** of the state. Two states with the same string representation are considered identical. This is how Accordant knows it's already explored a particular state and doesn't need to explore it again.
 
-### Using JsonState
+### Using [State]
 
-For most specs, the easiest approach is to inherit from `JsonState`:
+For most specs, the easiest approach is to use the `[State]` attribute with a partial class:
 
 ```csharp
-public class BankState : JsonState
+[State]
+public partial class BankState
 {
     public Dictionary<string, decimal> Accounts { get; set; } = new();
 }
 ```
 
-`JsonState` uses JSON serialization for everything — string representation, equality, and cloning. You just define your data as properties, and it all works automatically.
+The `[State]` attribute triggers source generation that handles cloning, equality, and hashing automatically. You just define your data as properties, and it all works.
 
 The key requirement is simple: **distinct logical states must produce distinct JSON strings.** Just use plain data properties and you're good.
 
 **A note on dictionaries:** Dictionary keys are sorted during serialization to ensure the same logical state always produces the same JSON string. Supported key types are `string`, `int`, `long`, and `Guid`.
 
-### Large Values and JsonAtomic
+### Large Values and [SharedState]
 
-Sometimes state includes large values — like binary image data — where full JSON serialization and deep cloning would be expensive. For these cases, you can mark a property with `[JsonAtomic]`:
+Sometimes state includes large values — like binary image data — where full serialization and deep cloning would be expensive. For these cases, you can use `[SharedState]`:
 
 ```csharp
-public class ImageState : JsonState
+[State]
+public partial class ImageState
 {
     public string Name { get; set; }
     
-    [JsonAtomic(nameof(ContentFingerprint))]
+    [SharedState(nameof(ContentFingerprint))]
     public List<byte> Content { get; set; }
     
     // Fingerprint used for equality/hashing instead of serializing the whole list

@@ -45,7 +45,8 @@ For a TodoList, we need to know:
 - Each todo's title and completion status
 
 ```csharp
-public class AppState : JsonState
+[State]
+public partial class AppState
 {
     /// <summary>
     /// Dictionary of users. Key = userId, Value = user data with their todos.
@@ -66,10 +67,10 @@ public class AppState : JsonState
 }
 ```
 
-### Why JsonState?
+### Why [State]?
 
-`JsonState` is a base class that provides:
-- **Automatic cloning** (via JSON serialization)
+The `[State]` attribute triggers source generation that provides:
+- **Automatic cloning** (deep copy of your state)
 - **Automatic equality comparison** (for state deduplication)
 - **Automatic hashing** (for state graph exploration)
 
@@ -371,7 +372,7 @@ This tells you:
 
 You've learned the core Accordant workflow:
 
-1. **Define State** - `JsonState` subclass tracking what matters
+1. **Define State** - `[State]` partial class tracking what matters
 2. **Define Operations** - `spec.Operation<TReq, TResp>(...)` with `Expect.That(...)`
 3. **Bind Execution** - `spec.ExecuteWith<T>().BindAsync(...)`
 4. **Configure & Run** - `ProvideTargetAndInitialState`, `InputSet`, `RunTests`
@@ -379,8 +380,8 @@ You've learned the core Accordant workflow:
 ### Key Concepts
 
 | Concept | Purpose |
-|---------|---------|
-| `JsonState` | Base class for state with auto clone/compare/hash |
+|---------|----------|
+| `[State]` | Attribute for state classes with auto clone/compare/hash |
 | `Expect.That<T>()` | Declare expected response |
 | `.SameState()` | Operation doesn't change state |
 | `.ThenState(newState)` | Operation transitions to new state |

@@ -15,7 +15,7 @@ using BankAccount.Api.Contracts;
 /// This is just a dictionary.
 /// </summary>
 [State]
-public partial class BankState : State
+public partial class BankState
 {
     /// <summary>
     /// Dictionary of account balances. Key = accountId, Value = balance.

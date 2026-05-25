@@ -322,7 +322,8 @@ public class MySpec : Spec<MyState>
 
 ```csharp
 // State
-public class StackState<T> : JsonState
+[State]
+public partial class StackState<T>
 {
     public List<T> Items { get; set; } = new();
 }

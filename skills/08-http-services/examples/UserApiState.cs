@@ -10,7 +10,8 @@ using Microsoft.Accordant;
 /// State for the User API.
 /// Tracks users by ID.
 /// </summary>
-public class UserApiState : JsonState
+[State]
+public partial class UserApiState
 {
     /// <summary>
     /// Users keyed by user ID.

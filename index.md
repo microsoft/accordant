@@ -46,7 +46,8 @@ Accordant flips this. **The spec holds the truth.** Whether you generate a thous
 Here's a spec for a bank account:
 
 ```csharp
-public class BankState : JsonState
+[State]
+public partial class BankState
 {
     public Dictionary<string, decimal> Accounts { get; set; } = new();
 }

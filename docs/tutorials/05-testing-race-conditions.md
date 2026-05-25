@@ -51,7 +51,8 @@ Invalid outcome (BUG!):
 Let's define a booking spec:
 
 ```csharp
-public class BookingState : JsonState
+[State]
+public partial class BookingState
 {
     /// <summary>
     /// Key = slotId, Value = customer name (null if available)

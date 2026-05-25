@@ -10,7 +10,8 @@ using Microsoft.Accordant;
 /// Entity-based state example: Users with nested Todos.
 /// Demonstrates Dictionary-based collections for keyed entities.
 /// </summary>
-public class AppState : JsonState
+[State]
+public partial class AppState
 {
     /// <summary>
     /// Users keyed by user ID. Always initialize to avoid null reference in Apply.
@@ -18,7 +19,7 @@ public class AppState : JsonState
     public Dictionary<string, UserState> Users { get; set; } = new();
 
     /// <summary>
-    /// Nested state class for a user. Can be a plain class or JsonState subclass.
+    /// Nested state class for a user. Can be a plain class or [State] class.
     /// </summary>
     public class UserState
     {

@@ -27,7 +27,7 @@
     <!-- net8.0 -->
     <file src="..\bin\tools\Microsoft.Accordant.Cli\net8.0\*.*" target="tools\net8.0\any" />
 
-    <file src="..\README.md" target="docs\readme.md" />
+    <file src="README.md" target="docs\readme.md" />
     <file src="icon.png" target="icon.png" />
   </files>
 </package>

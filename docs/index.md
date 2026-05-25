@@ -92,7 +92,8 @@ But what's the state? In a stateful system, you can't predict the response from 
 For banking, that's just accounts and their balances:
 
 ```csharp
-public class BankState : JsonState
+[State]
+public partial class BankState
 {
     public Dictionary<string, decimal> Accounts { get; set; } = new();
 }
