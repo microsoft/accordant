@@ -133,17 +133,13 @@ spec.Operation<string, ApiResult<Job>>("CreateJob", (jobName, state) =>
     return Expect.OneOf(
         // Success - server created the job and assigned an ID
         Expect.That<ApiResult<Job>>(r => r.IsSuccess && !string.IsNullOrEmpty(r.Data.JobId))
-              .ThenState(
-                  (ApiResult<Job> response) =>
-                  {
-                      var next = (AppState)state.Clone();
+              .ThenState<AppState, ApiResult<Job>>(
+                  (next, response) =>
                       next.Jobs[response.Data.JobId] = new JobState 
                       { 
                           Name = jobName, 
                           Status = JobStatus.Pending 
-                      };
-                      return next;
-                  },
+                      },
                   mock: () => new ApiResult<Job> 
                   { 
                       Data = new Job { JobId = Guid.NewGuid().ToString(), Name = jobName },

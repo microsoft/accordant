@@ -72,13 +72,11 @@ private static Spec<BookingState> CreateSpec()
                        "Slot already exists")
                    .SameState();
 
-        var newState = (BookingState)state.Clone();
-        newState.Slots[slotId] = null;  // null = available
-
         return Expect.That<ApiResult<Slot>>(
                    r => r.IsSuccess && r.Data.IsAvailable,
                    "Should create available slot")
-               .ThenState(newState);
+               .ThenState<BookingState>(nextState =>
+                   nextState.Slots[slotId] = null);  // null = available
     });
 
     // BOOK SLOT - The critical concurrent operation!
@@ -97,15 +95,13 @@ private static Spec<BookingState> CreateSpec()
                    .SameState();
 
         // Available - book it!
-        var newState = (BookingState)state.Clone();
-        newState.Slots[slotId] = customer;
-
         return Expect.That<ApiResult<Slot>>(
                    r => r.IsSuccess && 
                         r.Data.BookedBy == customer &&
                         !r.Data.IsAvailable,
                    $"Should book slot for '{customer}'")
-               .ThenState(newState);
+               .ThenState<BookingState>(nextState =>
+                   nextState.Slots[slotId] = customer);
     });
 
     // ... bind to API ...
