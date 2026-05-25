@@ -70,7 +70,7 @@ spec.Operation<Todo, ApiResult<Todo>>("CreateTodo", (request, state) =>
                (ApiResult<Todo> response) =>
                {
                    var newState = (AppState)state.Clone();
-                   newState.Users[request.UserId].Todos[request.TodoId] = new AppState.TodoState
+                   newState.Users[request.UserId].Todos[request.TodoId] = new TodoState
                    {
                        Title = request.Title,
                        Completed = false,
@@ -142,19 +142,21 @@ Add `LastModified` to your state:
 public partial class AppState
 {
     public Dictionary<string, UserState> Users { get; set; } = new();
+}
 
-    public class UserState
-    {
-        public string Name { get; set; } = string.Empty;
-        public Dictionary<string, TodoState> Todos { get; set; } = new();
-    }
+[State]
+public partial class UserState
+{
+    public string Name { get; set; } = string.Empty;
+    public Dictionary<string, TodoState> Todos { get; set; } = new();
+}
 
-    public class TodoState
-    {
-        public string Title { get; set; } = string.Empty;
-        public bool Completed { get; set; } = false;
-        public DateTime? LastModified { get; set; }  // Added!
-    }
+[State]
+public partial class TodoState
+{
+    public string Title { get; set; } = string.Empty;
+    public bool Completed { get; set; } = false;
+    public DateTime? LastModified { get; set; }  // Added!
 }
 ```
 
