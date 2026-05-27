@@ -175,12 +175,6 @@ Install the package ([NuGet](https://nuget.org/packages/Microsoft.Accordant)):
 dotnet add package Microsoft.Accordant
 ```
 
-**Working with an AI assistant?** The CLI scaffolds a new project and installs skills that teach Copilot, Cursor, or Claude how to write Accordant specs:
-```bash
-dotnet tool install -g Microsoft.Accordant.Cli
-accordant new MyApi.Tests
-```
-
 ### Learning Paths
 
 **Just want to see it work?**
