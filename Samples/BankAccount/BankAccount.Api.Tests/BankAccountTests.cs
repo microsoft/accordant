@@ -45,39 +45,39 @@ public class BankAccountTests
         // ---------------------------------------------------------
         // CREATE ACCOUNT: PUT /accounts/{accountId}
         // ---------------------------------------------------------
-        spec.Operation<string, ApiResult<decimal>>("CreateAccount", (accountId, state) =>
+        spec.Operation<CreateAccountRequest, CreateAccountResponse>("CreateAccount", (request, state) =>
         {
-            if (state.Accounts.ContainsKey(accountId))
+            if (state.Accounts.ContainsKey(request.AccountId))
             {
                 // 409 Conflict - account already exists
-                return Expect.That<ApiResult<decimal>>(r => r.IsConflict,
-                           $"Should return 409 Conflict because account '{accountId}' already exists")
+                return Expect.That<CreateAccountResponse>(r => r.IsConflict,
+                           $"Should return 409 Conflict because account '{request.AccountId}' already exists")
                        .SameState();
             }
 
             // 201 Created - new account with balance 0
-            return Expect.That<ApiResult<decimal>>(
-                       r => r.IsSuccess && r.Data == 0,
+            return Expect.That<CreateAccountResponse>(
+                       r => r.IsSuccess && r.Balance == 0,
                        $"Should return 201 Created with balance 0")
-                   .ThenState<BankState>(s => s.Accounts[accountId] = 0);
+                   .ThenState<BankState>(s => s.Accounts[request.AccountId] = 0);
         });
 
         // ---------------------------------------------------------
         // GET BALANCE: GET /accounts/{accountId}
         // ---------------------------------------------------------
-        spec.Operation<string, ApiResult<decimal>>("GetBalance", (accountId, state) =>
+        spec.Operation<GetBalanceRequest, GetBalanceResponse>("GetBalance", (request, state) =>
         {
-            if (!state.Accounts.TryGetValue(accountId, out var balance))
+            if (!state.Accounts.TryGetValue(request.AccountId, out var balance))
             {
                 // 404 Not Found - account doesn't exist
-                return Expect.That<ApiResult<decimal>>(r => r.IsNotFound,
-                           $"Should return 404 Not Found because account '{accountId}' doesn't exist")
+                return Expect.That<GetBalanceResponse>(r => r.IsNotFound,
+                           $"Should return 404 Not Found because account '{request.AccountId}' doesn't exist")
                        .SameState();
             }
 
             // 200 OK - return balance
-            return Expect.That<ApiResult<decimal>>(
-                       r => r.IsSuccess && r.Data == balance,
+            return Expect.That<GetBalanceResponse>(
+                       r => r.IsSuccess && r.Balance == balance,
                        $"Should return 200 OK with balance {balance}")
                    .SameState();
         });
@@ -85,20 +85,20 @@ public class BankAccountTests
         // ---------------------------------------------------------
         // DEPOSIT: POST /accounts/{accountId}/deposit
         // ---------------------------------------------------------
-        spec.Operation<(string AccountId, decimal Amount), ApiResult<decimal>>("Deposit", (request, state) =>
+        spec.Operation<DepositRequest, DepositResponse>("Deposit", (request, state) =>
         {
             if (!state.Accounts.TryGetValue(request.AccountId, out var balance))
             {
                 // 404 Not Found - account doesn't exist
-                return Expect.That<ApiResult<decimal>>(r => r.IsNotFound,
+                return Expect.That<DepositResponse>(r => r.IsNotFound,
                            $"Should return 404 Not Found because account '{request.AccountId}' doesn't exist")
                        .SameState();
             }
 
             // 200 OK - deposit succeeds
             var newBalance = balance + request.Amount;
-            return Expect.That<ApiResult<decimal>>(
-                       r => r.IsSuccess && r.Data == newBalance,
+            return Expect.That<DepositResponse>(
+                       r => r.IsSuccess && r.Balance == newBalance,
                        $"Should return 200 OK with new balance {newBalance}")
                    .ThenState<BankState>(s => s.Accounts[request.AccountId] = newBalance);
         });
@@ -106,12 +106,12 @@ public class BankAccountTests
         // ---------------------------------------------------------
         // WITHDRAW: POST /accounts/{accountId}/withdraw
         // ---------------------------------------------------------
-        spec.Operation<(string AccountId, decimal Amount), ApiResult<decimal>>("Withdraw", (request, state) =>
+        spec.Operation<WithdrawRequest, WithdrawResponse>("Withdraw", (request, state) =>
         {
             if (!state.Accounts.TryGetValue(request.AccountId, out var balance))
             {
                 // 404 Not Found - account doesn't exist
-                return Expect.That<ApiResult<decimal>>(r => r.IsNotFound,
+                return Expect.That<WithdrawResponse>(r => r.IsNotFound,
                            $"Should return 404 Not Found because account '{request.AccountId}' doesn't exist")
                        .SameState();
             }
@@ -119,15 +119,15 @@ public class BankAccountTests
             if (balance < request.Amount)
             {
                 // 400 Bad Request - insufficient funds
-                return Expect.That<ApiResult<decimal>>(r => r.IsBadRequest,
+                return Expect.That<WithdrawResponse>(r => r.IsBadRequest,
                            $"Should return 400 Bad Request because balance {balance} < requested {request.Amount}")
                        .SameState();
             }
 
             // 200 OK - withdraw succeeds
             var newBalance = balance - request.Amount;
-            return Expect.That<ApiResult<decimal>>(
-                       r => r.IsSuccess && r.Data == newBalance,
+            return Expect.That<WithdrawResponse>(
+                       r => r.IsSuccess && r.Balance == newBalance,
                        $"Should return 200 OK with new balance {newBalance}")
                    .ThenState<BankState>(s => s.Accounts[request.AccountId] = newBalance);
         });
@@ -135,21 +135,21 @@ public class BankAccountTests
         // ---------------------------------------------------------
         // DELETE ACCOUNT: DELETE /accounts/{accountId}
         // ---------------------------------------------------------
-        spec.Operation<string, ApiResult<decimal>>("DeleteAccount", (accountId, state) =>
+        spec.Operation<DeleteAccountRequest, DeleteAccountResponse>("DeleteAccount", (request, state) =>
         {
-            if (!state.Accounts.ContainsKey(accountId))
+            if (!state.Accounts.ContainsKey(request.AccountId))
             {
                 // 404 Not Found - account doesn't exist
-                return Expect.That<ApiResult<decimal>>(r => r.IsNotFound,
-                           $"Should return 404 Not Found because account '{accountId}' doesn't exist")
+                return Expect.That<DeleteAccountResponse>(r => r.IsNotFound,
+                           $"Should return 404 Not Found because account '{request.AccountId}' doesn't exist")
                        .SameState();
             }
 
             // 204 No Content - account deleted
-            return Expect.That<ApiResult<decimal>>(
+            return Expect.That<DeleteAccountResponse>(
                        r => r.StatusCode == 204,
                        $"Should return 204 No Content")
-                   .ThenState<BankState>(s => s.Accounts.Remove(accountId));
+                   .ThenState<BankState>(s => s.Accounts.Remove(request.AccountId));
         });
 
         return spec;
@@ -180,28 +180,28 @@ public class BankAccountTests
 
         // Bind spec operations to the HTTP client
         spec.ExecuteWith<BankApiClient>()
-            .Bind<string, ApiResult<decimal>>("CreateAccount",
-                (client, accountId) => client.CreateAccount(accountId).Result)
-            .Bind<string, ApiResult<decimal>>("GetBalance",
-                (client, accountId) => client.GetBalance(accountId).Result)
-            .Bind<(string, decimal), ApiResult<decimal>>("Deposit",
-                (client, req) => client.Deposit(req.Item1, req.Item2).Result)
-            .Bind<(string, decimal), ApiResult<decimal>>("Withdraw",
-                (client, req) => client.Withdraw(req.Item1, req.Item2).Result)
-            .Bind<string, ApiResult<decimal>>("DeleteAccount",
-                (client, accountId) => client.DeleteAccount(accountId).Result);
+            .Bind<CreateAccountRequest, CreateAccountResponse>("CreateAccount",
+                (client, req) => client.CreateAccount(req.AccountId).Result)
+            .Bind<GetBalanceRequest, GetBalanceResponse>("GetBalance",
+                (client, req) => client.GetBalance(req.AccountId).Result)
+            .Bind<DepositRequest, DepositResponse>("Deposit",
+                (client, req) => client.Deposit(req.AccountId, req.Amount).Result)
+            .Bind<WithdrawRequest, WithdrawResponse>("Withdraw",
+                (client, req) => client.Withdraw(req.AccountId, req.Amount).Result)
+            .Bind<DeleteAccountRequest, DeleteAccountResponse>("DeleteAccount",
+                (client, req) => client.DeleteAccount(req.AccountId).Result);
 
         // Define the inputs to explore
         var inputs = new InputSet
         {
-            spec.GetOperation<string, ApiResult<decimal>>("CreateAccount").With("alice", "Create alice"),
-            spec.GetOperation<string, ApiResult<decimal>>("CreateAccount").With("bob", "Create bob"),
-            spec.GetOperation<string, ApiResult<decimal>>("GetBalance").With("alice", "Get alice balance"),
-            spec.GetOperation<(string, decimal), ApiResult<decimal>>("Deposit").With(("alice", 100m), "Deposit 100 to alice"),
-            spec.GetOperation<(string, decimal), ApiResult<decimal>>("Deposit").With(("alice", 50m), "Deposit 50 to alice"),
-            spec.GetOperation<(string, decimal), ApiResult<decimal>>("Withdraw").With(("alice", 30m), "Withdraw 30 from alice"),
-            spec.GetOperation<(string, decimal), ApiResult<decimal>>("Withdraw").With(("alice", 200m), "Withdraw 200 from alice"),
-            spec.GetOperation<string, ApiResult<decimal>>("DeleteAccount").With("alice", "Delete alice"),
+            spec.GetOperation<CreateAccountRequest, CreateAccountResponse>("CreateAccount").With(new CreateAccountRequest("alice"), "Create alice"),
+            spec.GetOperation<CreateAccountRequest, CreateAccountResponse>("CreateAccount").With(new CreateAccountRequest("bob"), "Create bob"),
+            spec.GetOperation<GetBalanceRequest, GetBalanceResponse>("GetBalance").With(new GetBalanceRequest("alice"), "Get alice balance"),
+            spec.GetOperation<DepositRequest, DepositResponse>("Deposit").With(new DepositRequest("alice", 100m), "Deposit 100 to alice"),
+            spec.GetOperation<DepositRequest, DepositResponse>("Deposit").With(new DepositRequest("alice", 50m), "Deposit 50 to alice"),
+            spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw").With(new WithdrawRequest("alice", 30m), "Withdraw 30 from alice"),
+            spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw").With(new WithdrawRequest("alice", 200m), "Withdraw 200 from alice"),
+            spec.GetOperation<DeleteAccountRequest, DeleteAccountResponse>("DeleteAccount").With(new DeleteAccountRequest("alice"), "Delete alice"),
         };
 
         // Generate test sequences
@@ -265,12 +265,12 @@ public class BankAccountTests
         // Define inputs to explore - just alice with a few amounts
         var inputs = new InputSet
         {
-            spec.GetOperation<string, ApiResult<decimal>>("CreateAccount").With("alice", "Create(alice)"),
-            spec.GetOperation<(string, decimal), ApiResult<decimal>>("Deposit").With(("alice", 50m), "Deposit(alice, 50)"),
-            spec.GetOperation<(string, decimal), ApiResult<decimal>>("Deposit").With(("alice", 100m), "Deposit(alice, 100)"),
-            spec.GetOperation<(string, decimal), ApiResult<decimal>>("Withdraw").With(("alice", 30m), "Withdraw(alice, 30)"),
-            spec.GetOperation<(string, decimal), ApiResult<decimal>>("Withdraw").With(("alice", 70m), "Withdraw(alice, 70)"),
-            spec.GetOperation<string, ApiResult<decimal>>("DeleteAccount").With("alice", "Delete(alice)"),
+            spec.GetOperation<CreateAccountRequest, CreateAccountResponse>("CreateAccount").With(new CreateAccountRequest("alice"), "Create(alice)"),
+            spec.GetOperation<DepositRequest, DepositResponse>("Deposit").With(new DepositRequest("alice", 50m), "Deposit(alice, 50)"),
+            spec.GetOperation<DepositRequest, DepositResponse>("Deposit").With(new DepositRequest("alice", 100m), "Deposit(alice, 100)"),
+            spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw").With(new WithdrawRequest("alice", 30m), "Withdraw(alice, 30)"),
+            spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw").With(new WithdrawRequest("alice", 70m), "Withdraw(alice, 70)"),
+            spec.GetOperation<DeleteAccountRequest, DeleteAccountResponse>("DeleteAccount").With(new DeleteAccountRequest("alice"), "Delete(alice)"),
         };
 
         // Generate DOT visualization

@@ -59,7 +59,7 @@ What if you wrote those rules once, in one place?
 Here's what that looks like:
 
 ```csharp
-spec.Operation<WithdrawRequest, ApiResult<decimal>>("Withdraw", (request, state) =>
+spec.Operation<WithdrawRequest, WithdrawResponse>("Withdraw", (request, state) =>
 {
     if (!state.Accounts.TryGetValue(request.AccountId, out var balance))
         return Expect.That(r => r.IsNotFound).SameState();
@@ -68,12 +68,12 @@ spec.Operation<WithdrawRequest, ApiResult<decimal>>("Withdraw", (request, state)
         return Expect.That(r => r.IsBadRequest).SameState();
 
     var newBalance = balance - request.Amount;
-    return Expect.That(r => r.IsSuccess && r.Data == newBalance)
+    return Expect.That(r => r.IsSuccess && r.Balance == newBalance)
                  .ThenState<BankState>(s => s.Accounts[request.AccountId] = newBalance);
 });
 ```
 
-This is an `Operation<TRequest, TResponse>`. You're given a request and the current state, and you return the *expected* response — using `Expect.That(...)` — as well as what the next state should be.
+`spec.Operation<TRequest, TResponse>` registers an operation with the spec. The two generic parameters are the request type (`WithdrawRequest` — what the caller sends) and the response type (`WithdrawResponse` — what the system returns). The lambda receives the request and current state, and returns the *expected* outcome: a predicate on the response using `Expect.That(...)`, paired with the expected state transition — either `.SameState()` if the state doesn't change, or `.ThenState(...)` to describe how the state should update.
 
 But what's the state? In a stateful system, you can't predict the response from the request alone. Call Withdraw with the same request twice — the first might succeed, the second might fail because the balance changed. You need to know what the system is tracking.
 
@@ -103,17 +103,25 @@ Once you have a spec — the semantics of your system encoded as executable code
 
 The spec can validate *any* response — so you don't have to write every test by hand. Hook up a fuzzer, generate random sequences, and the spec checks each response.
 
-Accordant does something more systematic. You provide sample inputs — a few account IDs, some amounts — and Accordant explores systematically:
+Accordant does something more systematic. You provide sample inputs — a few account IDs, some amounts — and Accordant explores systematically.
+
+`spec.GetOperation<TRequest, TResponse>(name)` retrieves a typed operation handle by name — the generic parameters must match the request and response types used when registering it with `spec.Operation`. The `.With(request, label)` method pairs that operation with a specific request value, creating a labeled input for the test generator:
 
 ```csharp
 var inputs = new InputSet
 {
-    spec.GetOperation<string>("CreateAccount").With("alice", "Create(alice)"),
-    spec.GetOperation<(string, decimal)>("Deposit").With(("alice", 50m), "Deposit(alice, 50)"),
-    spec.GetOperation<(string, decimal)>("Deposit").With(("alice", 100m), "Deposit(alice, 100)"),
-    spec.GetOperation<(string, decimal)>("Withdraw").With(("alice", 30m), "Withdraw(alice, 30)"),
-    spec.GetOperation<(string, decimal)>("Withdraw").With(("alice", 70m), "Withdraw(alice, 70)"),
-    spec.GetOperation<string>("DeleteAccount").With("alice", "Delete(alice)"),
+    spec.GetOperation<CreateAccountRequest, CreateAccountResponse>("CreateAccount")
+        .With(new CreateAccountRequest("alice"), "Create(alice)"),
+    spec.GetOperation<DepositRequest, DepositResponse>("Deposit")
+        .With(new DepositRequest("alice", 50m), "Deposit(alice, 50)"),
+    spec.GetOperation<DepositRequest, DepositResponse>("Deposit")
+        .With(new DepositRequest("alice", 100m), "Deposit(alice, 100)"),
+    spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw")
+        .With(new WithdrawRequest("alice", 30m), "Withdraw(alice, 30)"),
+    spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw")
+        .With(new WithdrawRequest("alice", 70m), "Withdraw(alice, 70)"),
+    spec.GetOperation<DeleteAccountRequest, DeleteAccountResponse>("DeleteAccount")
+        .With(new DeleteAccountRequest("alice"), "Delete(alice)"),
 };
 
 var testCases = TestCaseGenerator.GenerateSequentialTestCases(

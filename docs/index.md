@@ -71,7 +71,7 @@ What if you wrote those rules once, in one place?
 Here's what that looks like:
 
 ```csharp
-spec.Operation<WithdrawRequest, ApiResult<decimal>>("Withdraw", (request, state) =>
+spec.Operation<WithdrawRequest, WithdrawResponse>("Withdraw", (request, state) =>
 {
     if (!state.Accounts.TryGetValue(request.AccountId, out var balance))
         return Expect.That(r => r.IsNotFound).SameState();
@@ -80,12 +80,12 @@ spec.Operation<WithdrawRequest, ApiResult<decimal>>("Withdraw", (request, state)
         return Expect.That(r => r.IsBadRequest).SameState();
 
     var newBalance = balance - request.Amount;
-    return Expect.That(r => r.IsSuccess && r.Data == newBalance)
+    return Expect.That(r => r.IsSuccess && r.Balance == newBalance)
                  .ThenState<BankState>(s => s.Accounts[request.AccountId] = newBalance);
 });
 ```
 
-This is an `Operation<TRequest, TResponse>`. You're given a request and the current state, and you return the *expected* response — using `Expect.That(...)` — as well as what the next state should be.
+`spec.Operation<TRequest, TResponse>` registers an operation with the spec. The two generic parameters are the request type (`WithdrawRequest` — what the caller sends) and the response type (`WithdrawResponse` — what the system returns). The lambda receives the request and current state, and returns the *expected* outcome: a predicate on the response using `Expect.That(...)`, paired with the expected state transition — either `.SameState()` if the state doesn't change, or `.ThenState(...)` to describe how the state should update.
 
 But what's the state? In a stateful system, you can't predict the response from the request alone. Call Withdraw with the same request twice — the first might succeed, the second might fail because the balance changed. You need to know what the system is tracking.
 
@@ -113,7 +113,14 @@ Once you have a spec — the semantics of your system encoded as executable code
 
 ### The Spec as Oracle
 
-You can use the spec to validate any operation sequence. Compare this to the example-based tests from earlier:
+You can use the spec to validate any operation sequence. First, get typed handles to the operations you want to call:
+
+```csharp
+var depositOp = spec.GetOperation<DepositRequest, DepositResponse>("Deposit");
+var withdrawOp = spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw");
+```
+
+Then use `spec.Allows` to check whether each observed response is correct. `Allows` takes four arguments: the operation, the request, the observed response from the real system, and the current state (or `StateProfile`). It returns a tuple of `(bool IsValid, string Message, StateProfile UpdatedStateProfile)` — telling you whether the response was valid, an explanation if not, and the updated state to carry forward:
 
 ```csharp
 [Test]
@@ -121,15 +128,16 @@ public async Task Deposit_Then_Withdraw_Sequence()
 {
     var state = new BankState();
     
-    // Deposit 100
+    // Deposit 100 — first call passes the initial state directly
     var depositResult = await client.Deposit("alice", 100);
-    var (isValid, message, nextState) = spec.Allows(depositOp, new DepositRequest("alice", 100), depositResult, state);
+    var (isValid, message, stateProfile) = spec.Allows(
+        depositOp, new DepositRequest("alice", 100), depositResult, state);
     Assert.True(isValid, message);
-    state = nextState;
     
-    // Withdraw 30
+    // Withdraw 30 — subsequent calls pass the updated StateProfile
     var withdrawResult = await client.Withdraw("alice", 30);
-    (isValid, message, nextState) = spec.Allows(withdrawOp, new WithdrawRequest("alice", 30), withdrawResult, state);
+    (isValid, message, stateProfile) = spec.Allows(
+        withdrawOp, new WithdrawRequest("alice", 30), withdrawResult, stateProfile);
     Assert.True(isValid, message);
 }
 ```
@@ -144,7 +152,7 @@ If the spec can validate *any* response, you don't have to write every test by h
 
 ```csharp
 await ResetSystem();  // Start from known state
-var state = new BankState();
+var stateProfile = new StateProfile(new BankState());
 
 for (int i = 0; i < 100; i++)
 {
@@ -152,26 +160,34 @@ for (int i = 0; i < 100; i++)
     var (op, request) = PickRandomOperation(random);
     var response = await CallRealSystem(op, request);
     
-    var (isValid, message, nextState) = spec.Allows(op, request, response, state);
+    var (isValid, message, nextStateProfile) = spec.Allows(op, request, response, stateProfile);
     Assert.True(isValid, message);
     
-    state = nextState;
+    stateProfile = nextStateProfile;
 }
 ```
 
 The spec doesn't care where the sequence came from — it just validates each response.
 
-Accordant does something more interesting. You provide sample inputs — a few account IDs, some amounts — and Accordant explores systematically:
+Accordant does something more interesting. You provide sample inputs — a few account IDs, some amounts — and Accordant explores systematically.
+
+`spec.GetOperation<TRequest, TResponse>(name)` retrieves a typed operation handle by name — the generic parameters must match the request and response types used when registering it with `spec.Operation`. The `.With(request, label)` method pairs that operation with a specific request value, creating a labeled input for the test generator:
 
 ```csharp
 var inputs = new InputSet
 {
-    spec.GetOperation<string>("CreateAccount").With("alice", "Create(alice)"),
-    spec.GetOperation<(string, decimal)>("Deposit").With(("alice", 50m), "Deposit(alice, 50)"),
-    spec.GetOperation<(string, decimal)>("Deposit").With(("alice", 100m), "Deposit(alice, 100)"),
-    spec.GetOperation<(string, decimal)>("Withdraw").With(("alice", 30m), "Withdraw(alice, 30)"),
-    spec.GetOperation<(string, decimal)>("Withdraw").With(("alice", 70m), "Withdraw(alice, 70)"),
-    spec.GetOperation<string>("DeleteAccount").With("alice", "Delete(alice)"),
+    spec.GetOperation<CreateAccountRequest, CreateAccountResponse>("CreateAccount")
+        .With(new CreateAccountRequest("alice"), "Create(alice)"),
+    spec.GetOperation<DepositRequest, DepositResponse>("Deposit")
+        .With(new DepositRequest("alice", 50m), "Deposit(alice, 50)"),
+    spec.GetOperation<DepositRequest, DepositResponse>("Deposit")
+        .With(new DepositRequest("alice", 100m), "Deposit(alice, 100)"),
+    spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw")
+        .With(new WithdrawRequest("alice", 30m), "Withdraw(alice, 30)"),
+    spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw")
+        .With(new WithdrawRequest("alice", 70m), "Withdraw(alice, 70)"),
+    spec.GetOperation<DeleteAccountRequest, DeleteAccountResponse>("DeleteAccount")
+        .With(new DeleteAccountRequest("alice"), "Delete(alice)"),
 };
 
 var testCases = TestCaseGenerator.GenerateSequentialTestCases(

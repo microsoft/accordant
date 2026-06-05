@@ -49,16 +49,16 @@ sequenceDiagram
 Let's start with a basic `CreateAccount` operation that only handles normal cases:
 
 ```csharp
-spec.Operation<string, ApiResult<decimal>>("CreateAccount", (accountId, state) =>
+spec.Operation<CreateAccountRequest, CreateAccountResponse>("CreateAccount", (request, state) =>
 {
-    if (state.Accounts.ContainsKey(accountId))
+    if (state.Accounts.ContainsKey(request.AccountId))
     {
-        return Expect.That<ApiResult<decimal>>(r => r.IsConflict)
+        return Expect.That<CreateAccountResponse>(r => r.IsConflict)
                .SameState();
     }
 
-    return Expect.That<ApiResult<decimal>>(r => r.IsSuccess && r.Data == 0)
-           .ThenState<BankState>(next => next.Accounts[accountId] = 0);
+    return Expect.That<CreateAccountResponse>(r => r.IsSuccess && r.Balance == 0)
+           .ThenState<BankState>(next => next.Accounts[request.AccountId] = 0);
 });
 ```
 
@@ -73,26 +73,26 @@ When a socket timeout occurs, we have genuine uncertainty: the operation might h
 Accordant handles this with `Expect.OneOf()`:
 
 ```csharp
-spec.Operation<string, ApiResult<decimal>>("CreateAccount", (accountId, state) =>
+spec.Operation<CreateAccountRequest, CreateAccountResponse>("CreateAccount", (request, state) =>
 {
-    if (state.Accounts.ContainsKey(accountId))
+    if (state.Accounts.ContainsKey(request.AccountId))
     {
-        return Expect.That<ApiResult<decimal>>(r => r.IsConflict)
+        return Expect.That<CreateAccountResponse>(r => r.IsConflict)
                .SameState();
     }
 
     return Expect.OneOf(
         // Normal success
-        Expect.That<ApiResult<decimal>>(r => r.IsSuccess && r.Data == 0)
-              .ThenState<BankState>(next => next.Accounts[accountId] = 0),
+        Expect.That<CreateAccountResponse>(r => r.IsSuccess && r.Balance == 0)
+              .ThenState<BankState>(next => next.Accounts[request.AccountId] = 0),
               
         // Timeout - request never reached server
-        Expect.That<ApiResult<decimal>>(r => r.IsTimeout)
+        Expect.That<CreateAccountResponse>(r => r.IsTimeout)
               .SameState(),
               
         // Timeout - server processed it, but response was lost
-        Expect.That<ApiResult<decimal>>(r => r.IsTimeout)
-              .ThenState<BankState>(next => next.Accounts[accountId] = 0)
+        Expect.That<CreateAccountResponse>(r => r.IsTimeout)
+              .ThenState<BankState>(next => next.Accounts[request.AccountId] = 0)
     );
 });
 ```

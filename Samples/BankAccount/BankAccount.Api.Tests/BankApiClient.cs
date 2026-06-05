@@ -8,7 +8,7 @@ using System.Text.Json;
 using BankAccount.Api.Contracts;
 
 /// <summary>
-/// HTTP client wrapper that converts API responses to ApiResult&lt;T&gt;.
+/// HTTP client wrapper that converts API responses to typed response records.
 /// </summary>
 public class BankApiClient
 {
@@ -27,69 +27,74 @@ public class BankApiClient
     /// Create a new account.
     /// PUT /accounts/{id}
     /// </summary>
-    public async Task<ApiResult<decimal>> CreateAccount(string accountId)
+    public async Task<CreateAccountResponse> CreateAccount(string accountId)
     {
         var response = await _client.PutAsync($"/accounts/{accountId}", null);
-        return await ToApiResult(response);
+        var (statusCode, balance) = await ParseResponse(response);
+        return new CreateAccountResponse(statusCode, balance);
     }
 
     /// <summary>
     /// Get account balance.
     /// GET /accounts/{id}
     /// </summary>
-    public async Task<ApiResult<decimal>> GetBalance(string accountId)
+    public async Task<GetBalanceResponse> GetBalance(string accountId)
     {
         var response = await _client.GetAsync($"/accounts/{accountId}");
-        return await ToApiResult(response);
+        var (statusCode, balance) = await ParseResponse(response);
+        return new GetBalanceResponse(statusCode, balance);
     }
 
     /// <summary>
     /// Deposit funds.
     /// POST /accounts/{id}/deposit
     /// </summary>
-    public async Task<ApiResult<decimal>> Deposit(string accountId, decimal amount)
+    public async Task<DepositResponse> Deposit(string accountId, decimal amount)
     {
         var response = await _client.PostAsJsonAsync(
             $"/accounts/{accountId}/deposit",
             new TransactionRequest(amount));
-        return await ToApiResult(response);
+        var (statusCode, balance) = await ParseResponse(response);
+        return new DepositResponse(statusCode, balance);
     }
 
     /// <summary>
     /// Withdraw funds.
     /// POST /accounts/{id}/withdraw
     /// </summary>
-    public async Task<ApiResult<decimal>> Withdraw(string accountId, decimal amount)
+    public async Task<WithdrawResponse> Withdraw(string accountId, decimal amount)
     {
         var response = await _client.PostAsJsonAsync(
             $"/accounts/{accountId}/withdraw",
             new TransactionRequest(amount));
-        return await ToApiResult(response);
+        var (statusCode, balance) = await ParseResponse(response);
+        return new WithdrawResponse(statusCode, balance);
     }
 
     /// <summary>
     /// Delete an account.
     /// DELETE /accounts/{id}
     /// </summary>
-    public async Task<ApiResult<decimal>> DeleteAccount(string accountId)
+    public async Task<DeleteAccountResponse> DeleteAccount(string accountId)
     {
         var response = await _client.DeleteAsync($"/accounts/{accountId}");
-        return await ToApiResult(response);
+        var (statusCode, balance) = await ParseResponse(response);
+        return new DeleteAccountResponse(statusCode, balance);
     }
 
-    private static async Task<ApiResult<decimal>> ToApiResult(HttpResponseMessage response)
+    private static async Task<(int StatusCode, decimal? Balance)> ParseResponse(HttpResponseMessage response)
     {
         var statusCode = (int)response.StatusCode;
 
         if (!response.IsSuccessStatusCode)
         {
-            return new ApiResult<decimal>(statusCode);
+            return (statusCode, null);
         }
 
         // 204 No Content has no body
         if (statusCode == 204)
         {
-            return new ApiResult<decimal>(statusCode);
+            return (statusCode, null);
         }
 
         var content = await response.Content.ReadAsStringAsync();
@@ -97,9 +102,9 @@ public class BankApiClient
 
         if (doc.RootElement.TryGetProperty("balance", out var balanceElement))
         {
-            return new ApiResult<decimal>(statusCode, balanceElement.GetDecimal());
+            return (statusCode, balanceElement.GetDecimal());
         }
 
-        return new ApiResult<decimal>(statusCode);
+        return (statusCode, null);
     }
 }
