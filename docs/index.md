@@ -113,38 +113,63 @@ Once you have a spec — the semantics of your system encoded as executable code
 
 ### The Spec as Oracle
 
-You can use the spec to validate any operation sequence. First, get typed handles to the operations you want to call:
+Remember the hand-written tests from earlier? Each one carried its own assertions — scattered pieces of the same contract. With a spec, you replace all of them with a single call: `spec.Allows(...)`.
+
+Look at how each test simplifies:
+
+**❌ Before** — each operation needs its own assertions:
 
 ```csharp
-var depositOp = spec.GetOperation<DepositRequest, DepositResponse>("Deposit");
-var withdrawOp = spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw");
+var r1 = await client.CreateAccount("alice");
+Assert.True(r1.IsSuccess);
+
+var r2 = await client.Deposit("alice", 100);
+Assert.True(r2.IsSuccess);
+Assert.Equal(100, r2.Balance);
+
+var r3 = await client.Withdraw("alice", 30);
+Assert.True(r3.IsSuccess);
+Assert.Equal(70, r3.Balance);
+
+var r4 = await client.Withdraw("alice", 200);
+Assert.True(r4.IsBadRequest);
 ```
 
-Then use `spec.Allows` to check whether each observed response is correct. `Allows` takes four arguments: the operation, the request, the observed response from the real system, and the current state (or `StateProfile`). It returns a tuple of `(bool IsValid, string Message, StateProfile UpdatedStateProfile)` — telling you whether the response was valid, an explanation if not, and the updated state to carry forward:
+**✅ After** — the spec validates everything:
 
 ```csharp
-[Test]
-public async Task Deposit_Then_Withdraw_Sequence()
+var stateProfile = new StateProfile(new BankState());
+
+var r1 = await client.CreateAccount("alice");
+stateProfile = Check(createOp, new CreateAccountRequest("alice"), r1, stateProfile);
+
+var r2 = await client.Deposit("alice", 100);
+stateProfile = Check(depositOp, new DepositRequest("alice", 100), r2, stateProfile);
+
+var r3 = await client.Withdraw("alice", 30);
+stateProfile = Check(withdrawOp, new WithdrawRequest("alice", 30), r3, stateProfile);
+
+var r4 = await client.Withdraw("alice", 200);
+stateProfile = Check(withdrawOp, new WithdrawRequest("alice", 200), r4, stateProfile);
+```
+
+Every line is the same shape: `stateProfile = Check(op, request, response, stateProfile)`. No per-operation assertions — the spec already knows the rules for success, bad-request, and not-found. The `StateProfile` threads through, tracking the system's state after each operation.
+
+The `Check` helper wraps `spec.Allows`:
+
+```csharp
+StateProfile Check<TRequest, TResponse>(
+    Operation<TRequest, TResponse> op, TRequest request, TResponse response, StateProfile stateProfile)
 {
-    var state = new BankState();
-    
-    // Deposit 100 — first call passes the initial state directly
-    var depositResult = await client.Deposit("alice", 100);
-    var (isValid, message, stateProfile) = spec.Allows(
-        depositOp, new DepositRequest("alice", 100), depositResult, state);
+    var (isValid, message, updatedStateProfile) = spec.Allows(op, request, response, stateProfile);
     Assert.True(isValid, message);
-    
-    // Withdraw 30 — subsequent calls pass the updated StateProfile
-    var withdrawResult = await client.Withdraw("alice", 30);
-    (isValid, message, stateProfile) = spec.Allows(
-        withdrawOp, new WithdrawRequest("alice", 30), withdrawResult, stateProfile);
-    Assert.True(isValid, message);
+    return updatedStateProfile;
 }
 ```
 
-In the example above, you still chose the operations and the sequence — this is similar to example-based tests from earlier. But instead of writing `Assert.Equal(70, result.NewBalance)`, you write `spec.Allows(...)`. The scattered assertions are replaced by a single question: "Is this response correct given the state?" The spec answers.
+`spec.Allows` takes four arguments: the **operation** handle (obtained via `spec.GetOperation<TRequest, TResponse>(name)`), the **request**, the **observed response** from the real system, and the **current state** (`StateProfile`). It returns `(bool IsValid, string Message, StateProfile UpdatedStateProfile)` — whether the response was valid, an explanation if not, and the updated state to carry forward to the next call.
 
-This is already useful — assertions live in one place, reviewable and updateable. But it unlocks something bigger.
+Now here's what makes this powerful: because `spec.Allows` validates *any* operation against *any* state, you can validate **arbitrary sequences** — deposit, then withdraw, then deposit again, then delete. No hand-written test could cover every ordering. But a loop calling `spec.Allows` after each step can validate sequences you never thought to write.
 
 ### Automatic Test Generation
 
