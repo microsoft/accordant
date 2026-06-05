@@ -1537,6 +1537,32 @@ namespace Microsoft.Accordant.Operations.Tests
         #region Validation Tests
 
         [Test]
+        public void ConcurrentTestCase_NullSegmentsThrows()
+        {
+            var spec = new SimpleStatefulClassSpec();
+            var initialState = new CounterState(0);
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = "null segments test",
+                Segments = null
+            };
+
+            var context = spec.CreateTestingContext();
+            context.Register(new SimpleStatefulClass());
+
+            var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
+                await spec.RunTests(
+                    context,
+                    initialState,
+                    new[] { testCase },
+                    new TestExecutionOptions()));
+
+            Assert.IsTrue(ex.Message.Contains("no segments"),
+                $"Expected 'no segments' in message, got: {ex.Message}");
+        }
+
+        [Test]
         public void ConcurrentTestCase_EmptySegmentThrows()
         {
             var spec = new SimpleStatefulClassSpec();
@@ -1695,6 +1721,32 @@ namespace Microsoft.Accordant.Operations.Tests
             {
                 Description = "empty ops test",
                 OperationCalls = new List<OperationCall>()
+            };
+
+            var context = spec.CreateTestingContext();
+            context.Register(new SimpleStatefulClass());
+
+            var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
+                await spec.RunTests(
+                    context,
+                    initialState,
+                    new[] { testCase },
+                    new TestExecutionOptions()));
+
+            Assert.IsTrue(ex.Message.Contains("no operation calls"),
+                $"Expected 'no operation calls' in message, got: {ex.Message}");
+        }
+
+        [Test]
+        public void SequentialTestCase_NullOperationCallsThrows()
+        {
+            var spec = new SimpleStatefulClassSpec();
+            var initialState = new CounterState(0);
+
+            var testCase = new SequentialTestCase()
+            {
+                Description = "null ops test",
+                OperationCalls = null
             };
 
             var context = spec.CreateTestingContext();

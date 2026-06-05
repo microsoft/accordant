@@ -951,6 +951,13 @@ namespace Microsoft.Accordant
         /// </summary>
         private static void ValidateConcurrentTestCase(ConcurrentTestCase testCase)
         {
+            if (testCase.Segments == null || testCase.Segments.Count == 0)
+            {
+                throw new ArgumentException(
+                    $"Concurrent test case '{testCase.Description}' has no segments. " +
+                    $"Each test case must have at least one segment.");
+            }
+
             var allOperationCallNames = new HashSet<string>();
 
             for (int segmentIndex = 0; segmentIndex < testCase.Segments.Count; segmentIndex++)
@@ -1055,26 +1062,29 @@ namespace Microsoft.Accordant
             // Create a minimal options object for polling (no retry, no step executed hook)
             var pollingOptions = new TestExecutionOptions();
 
-            // Track retry counts per polling entry
+            // Track retry counts per polling entry and which ones are exhausted
             var retryCounts = new int[pollingEntries.Count];
+            var exhausted = new bool[pollingEntries.Count];
 
             while (true)
             {
-                // Execute each polling operation sequentially
+                // Execute each non-exhausted polling operation sequentially
                 for (int i = 0; i < pollingEntries.Count; i++)
                 {
+                    if (exhausted[i])
+                    {
+                        continue;
+                    }
+
                     var (pollingOperation, pollingSetup) = pollingEntries[i];
 
                     retryCounts[i]++;
 
                     if (retryCounts[i] > pollingSetup.MaxRetryCount)
                     {
-                        var failureMessage =
-                            $"Gave up polling using {pollingOperation.Name} after retrying " +
-                            $"{pollingSetup.MaxRetryCount} times with a delay of {pollingSetup.WaitTimeInMs}ms " +
-                            $"between each retry. Some TerminatingStepFunctions did not reach their terminal state.";
-
-                        return (stateProfile, false, failureMessage);
+                        Logger.Log($"Polling operation {pollingOperation.Name} exhausted its retry count ({pollingSetup.MaxRetryCount}).");
+                        exhausted[i] = true;
+                        continue;
                     }
 
                     Logger.Log($"Polling by calling {pollingOperation.Name}");
@@ -1100,8 +1110,19 @@ namespace Microsoft.Accordant
                     return (stateProfile, true, string.Empty);
                 }
 
-                // Wait using the maximum delay across all polling entries
-                var maxWaitTime = pollingEntries.Max(e => e.pollingSetup.WaitTimeInMs);
+                // If all pollers are exhausted and step functions still pending, fail
+                if (exhausted.All(e => e))
+                {
+                    var failureMessage =
+                        $"Gave up polling after all polling operations exhausted their retry counts. " +
+                        $"Some TerminatingStepFunctions did not reach their terminal state.";
+
+                    return (stateProfile, false, failureMessage);
+                }
+
+                // Wait using the maximum delay across non-exhausted polling entries
+                var activeEntries = pollingEntries.Where((_, i) => !exhausted[i]).ToList();
+                var maxWaitTime = activeEntries.Max(e => e.pollingSetup.WaitTimeInMs);
                 await Task.Delay(maxWaitTime);
 
                 LogPendingStepFunctions(stateProfile, stepFunctionsToPollFor);
