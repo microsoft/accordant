@@ -1534,7 +1534,7 @@ namespace Microsoft.Accordant.Operations.Tests
 
         #endregion
 
-        #region Sequential Polling - SkipPolling Step Function Leakage
+        #region Polling - SkipPolling Step Function Leakage
 
         [Test]
         public async Task SequentialTestCase_SkipPollingDoesNotLeakStepFunctionsToNextOp()
@@ -1578,6 +1578,50 @@ namespace Microsoft.Accordant.Operations.Tests
 
             Assert.IsTrue(results.All(r => r.Success),
                 "Unrelated op should not be forced to poll for StartAsync's step function. " +
+                $"Failure: {results.FirstOrDefault(r => !r.Success)?.LastFailureMessage}");
+        }
+
+        [Test]
+        public async Task ConcurrentTestCase_SkipPollingDoesNotLeakToNextSegment()
+        {
+            // Segment 1 (sequential): StartJobA with SkipPolling=true — triggers step function A
+            // Segment 2 (concurrent): StartJobB (has polling) — triggers step function B
+            // After segment 2, polling should only target B's step function, not A's.
+            var spec = new DualAsyncSpec();
+            var initialState = new DualAsyncState();
+
+            var startAInput = new OperationInput("StartJobA", spec["StartJobA"]);
+            startAInput.WithoutPolling();
+
+            var inputSet = new InputSet()
+            {
+                startAInput,
+                new OperationInput("StartJobB", spec["StartJobB"])
+            };
+
+            var segments = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new OperationCall("StartJobA", inputSet["StartJobA"])),
+                new TestCaseSegment(new OperationCall("StartJobB", inputSet["StartJobB"]))
+            };
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments),
+                Segments = segments
+            };
+
+            var context = spec.CreateTestingContext();
+            context.Register(new DualAsyncTarget());
+
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions());
+
+            Assert.IsTrue(results.All(r => r.Success),
+                "Segment 2 should only poll for its own step functions, not segment 1's skipped ones. " +
                 $"Failure: {results.FirstOrDefault(r => !r.Success)?.LastFailureMessage}");
         }
 
