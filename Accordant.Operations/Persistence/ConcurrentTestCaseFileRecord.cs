@@ -11,13 +11,8 @@ namespace Microsoft.Accordant
     public class ConcurrentTestCaseFileRecord : TestCaseFileRecord
     {
         /// <summary>
-        /// List of sequential operation calls that are executed before the concurrent calls.
+        /// The segments of this concurrent test case when serialized.
         /// </summary>
-        public IList<OperationCallFileRecord> SequentialOperationCalls { get; set; }
-
-        /// <summary>
-        /// List of concurrent operation calls executed after the sequential operation calls.
-        /// </summary>
-        public IList<OperationCallFileRecord> ConcurrentOperationCalls { get; set; }
+        public IList<TestCaseSegmentFileRecord> Segments { get; set; }
     }
 }

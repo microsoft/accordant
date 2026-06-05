@@ -7,8 +7,11 @@ namespace Microsoft.Accordant
 
     public class ConcurrentTestCase : TestCase
     {
-        public IList<OperationCall> SequentialOperationCalls { get; set; }
-
-        public IList<OperationCall> ConcurrentOperationCalls { get; set; }
+        /// <summary>
+        /// The segments of this concurrent test case. Each segment contains one or more
+        /// operation calls. Segments with a single call are executed sequentially;
+        /// segments with multiple calls are executed concurrently.
+        /// </summary>
+        public IList<TestCaseSegment> Segments { get; set; }
     }
 }

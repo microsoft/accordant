@@ -513,7 +513,7 @@ namespace Microsoft.Accordant.Operations.Tests
                 });
 
             int uniqueOperationCalls = concurrentTestCases.Sum(
-                tc => tc.SequentialOperationCalls.Count + (tc.ConcurrentOperationCalls.Count > 0 ? 1 : 0));
+                tc => tc.Segments.Count);
 
             int stepExecutedHookCalledTimes = 0;
             int beforeEachCalledTimes = 0;
@@ -1206,5 +1206,332 @@ namespace Microsoft.Accordant.Operations.Tests
             Assert.IsTrue(results.All(r => r.Success),
                 "Test should pass - TriggersWhen should trigger SF when response is 'pending', and polling should complete");
         }
+
+        #region Segment-based ConcurrentTestCase Tests
+
+        [Test]
+        public async Task ConcurrentTestCase_GeneratedTestCasesHaveSegments()
+        {
+            var spec = new SimpleStatefulClassSpec();
+            var initialState = new CounterState(0);
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("Add 2", spec["Add"], 2),
+                new OperationInput("Count", spec["Count"])
+            };
+
+            var concurrentTestCases = spec.GenerateConcurrentTests(
+                initialState,
+                inputSet,
+                new TestGenerationOptions { MaxDepth = 3 });
+
+            Assert.IsTrue(concurrentTestCases.Count > 0, "Should generate concurrent test cases");
+
+            foreach (var testCase in concurrentTestCases)
+            {
+                Assert.IsNotNull(testCase.Segments, "Segments should not be null");
+                Assert.IsTrue(testCase.Segments.Count > 0, "Should have at least one segment");
+
+                foreach (var segment in testCase.Segments)
+                {
+                    Assert.IsNotNull(segment.OperationCalls, "Segment OperationCalls should not be null");
+                    Assert.IsTrue(segment.OperationCalls.Count > 0, "Each segment should have at least one operation call");
+                }
+
+                // Last segment should be concurrent (multiple ops)
+                var lastSegment = testCase.Segments[testCase.Segments.Count - 1];
+                Assert.IsTrue(lastSegment.IsConcurrent, "Last segment should be concurrent");
+
+                // All non-last segments should be sequential (single op)
+                for (int i = 0; i < testCase.Segments.Count - 1; i++)
+                {
+                    Assert.IsTrue(testCase.Segments[i].IsSequential,
+                        $"Segment {i} should be sequential (single op)");
+                }
+            }
+        }
+
+        [Test]
+        public async Task ConcurrentTestCase_ManualMultiSegmentTestCase()
+        {
+            // Create a multi-segment test case manually:
+            // Segment 1 (seq): Add 2
+            // Segment 2 (concurrent): Add 2 || Count
+            // Segment 3 (seq): Count
+            var spec = new SimpleStatefulClassSpec();
+            var initialState = new CounterState(0);
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("Add 2", spec["Add"], 2),
+                new OperationInput("Count", spec["Count"])
+            };
+
+            var segments = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new OperationCall("Add 2", inputSet["Add 2"])),
+                new TestCaseSegment(new List<OperationCall>
+                {
+                    new OperationCall("Add 2 concurrent", inputSet["Add 2"]),
+                    new OperationCall("Count concurrent", inputSet["Count"])
+                }),
+                new TestCaseSegment(new OperationCall("Count final", inputSet["Count"]))
+            };
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments),
+                Segments = segments
+            };
+
+            Assert.IsTrue(testCase.Segments[0].IsSequential);
+            Assert.IsTrue(testCase.Segments[1].IsConcurrent);
+            Assert.IsTrue(testCase.Segments[2].IsSequential);
+
+            var context = spec.CreateTestingContext();
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions
+                {
+                    BeforeEach = _ => context.Register(new SimpleStatefulClass())
+                });
+
+            Assert.IsTrue(results.All(r => r.Success),
+                "Multi-segment concurrent test case should pass");
+        }
+
+        [Test]
+        public async Task ConcurrentTestCase_ConcurrentOnlySegment()
+        {
+            // Test case with no sequential prefix — just a concurrent segment
+            var spec = new SimpleStatefulClassSpec();
+            var initialState = new CounterState(0);
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("Add 2", spec["Add"], 2),
+                new OperationInput("Count", spec["Count"])
+            };
+
+            var segments = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new List<OperationCall>
+                {
+                    new OperationCall("Add 2", inputSet["Add 2"]),
+                    new OperationCall("Count", inputSet["Count"])
+                })
+            };
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments),
+                Segments = segments
+            };
+
+            var context = spec.CreateTestingContext();
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions
+                {
+                    BeforeEach = _ => context.Register(new SimpleStatefulClass())
+                });
+
+            Assert.IsTrue(results.All(r => r.Success),
+                "Concurrent-only test case should pass");
+        }
+
+        [Test]
+        public void ConcurrentTestCase_DescriptionFormatting()
+        {
+            var call1 = new OperationCall("A", null);
+            var call2 = new OperationCall("B", null);
+            var call3 = new OperationCall("C", null);
+
+            // Sequential only
+            var segments1 = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(call1),
+                new TestCaseSegment(call2)
+            };
+            var desc1 = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments1);
+            Assert.AreEqual("A --> B", desc1);
+
+            // Concurrent only
+            var segments2 = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new List<OperationCall> { call1, call2 })
+            };
+            var desc2 = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments2);
+            Assert.AreEqual("A || B", desc2);
+
+            // Mixed: seq -> concurrent -> seq
+            var segments3 = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(call1),
+                new TestCaseSegment(new List<OperationCall> { call2, call3 }),
+                new TestCaseSegment(call1)
+            };
+            var desc3 = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments3);
+            Assert.AreEqual("A --> B || C --> A", desc3);
+        }
+
+        [Test]
+        public async Task ConcurrentTestCase_OnStepExecutedHookCalledPerSegment()
+        {
+            var spec = new SimpleStatefulClassSpec();
+            var initialState = new CounterState(0);
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("Add 2", spec["Add"], 2),
+                new OperationInput("Count", spec["Count"])
+            };
+
+            // Create a test case with 3 segments: seq, concurrent, seq
+            var segments = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new OperationCall("Add 2", inputSet["Add 2"])),
+                new TestCaseSegment(new List<OperationCall>
+                {
+                    new OperationCall("Add 2 again", inputSet["Add 2"]),
+                    new OperationCall("Count concurrent", inputSet["Count"])
+                }),
+                new TestCaseSegment(new OperationCall("Count final", inputSet["Count"]))
+            };
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments),
+                Segments = segments
+            };
+
+            int stepExecutedCount = 0;
+            int singleOpCount = 0;
+            int multiOpCount = 0;
+
+            var context = spec.CreateTestingContext();
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions
+                {
+                    BeforeEach = _ => context.Register(new SimpleStatefulClass()),
+                    OnStepExecuted = (ctx) =>
+                    {
+                        stepExecutedCount++;
+                        if (ctx.IsSingleOperation) singleOpCount++;
+                        else multiOpCount++;
+                    }
+                });
+
+            Assert.IsTrue(results.All(r => r.Success));
+            Assert.AreEqual(3, stepExecutedCount, "OnStepExecuted should be called once per segment");
+            Assert.AreEqual(2, singleOpCount, "Two sequential segments should trigger single-op hooks");
+            Assert.AreEqual(1, multiOpCount, "One concurrent segment should trigger multi-op hook");
+        }
+
+        [Test]
+        public async Task ConcurrentTestCase_BuggyBehaviorDetected()
+        {
+            // Verify that a multi-segment test case can detect buggy behavior
+            var spec = new SimpleStatefulClassSpec();
+            var initialState = new CounterState(0);
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("Add 2", spec["Add"], 2),
+                new OperationInput("Count", spec["Count"])
+            };
+
+            var segments = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new OperationCall("Add 2", inputSet["Add 2"])),
+                new TestCaseSegment(new OperationCall("Count", inputSet["Count"]))
+            };
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments),
+                Segments = segments
+            };
+
+            // Should fail with buggy behavior
+            var context = spec.CreateTestingContext();
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions
+                {
+                    BeforeEach = _ => context.Register(new SimpleStatefulClass(simulateBuggyBehavior: true))
+                });
+
+            Assert.IsTrue(results.Any(r => !r.Success),
+                "Multi-segment test should detect buggy behavior");
+        }
+
+        [Test]
+        public void ConcurrentTestCase_SegmentProperties()
+        {
+            var call1 = new OperationCall("A", null);
+            var call2 = new OperationCall("B", null);
+
+            var seqSegment = new TestCaseSegment(call1);
+            Assert.IsTrue(seqSegment.IsSequential);
+            Assert.IsFalse(seqSegment.IsConcurrent);
+            Assert.AreEqual(1, seqSegment.OperationCalls.Count);
+
+            var concSegment = new TestCaseSegment(new List<OperationCall> { call1, call2 });
+            Assert.IsFalse(concSegment.IsSequential);
+            Assert.IsTrue(concSegment.IsConcurrent);
+            Assert.AreEqual(2, concSegment.OperationCalls.Count);
+        }
+
+        [Test]
+        public void ConcurrentTestCase_SerializationRoundTrip()
+        {
+            var spec = new SimpleStatefulClassSpec();
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("Add 2", spec["Add"], 2),
+                new OperationInput("Count", spec["Count"])
+            };
+
+            var initialState = new CounterState(0);
+
+            var concurrentTestCases = spec.GenerateConcurrentTests(
+                initialState,
+                inputSet,
+                new TestGenerationOptions { MaxDepth = 3 });
+
+            var context = spec.CreateTestingContext();
+
+            var serialized = TestCaseGenerator.SerializeConcurrentTestCases(context, concurrentTestCases);
+            var deserialized = TestCaseGenerator.DeserializeConcurrentTestCases(context, serialized);
+
+            Assert.AreEqual(concurrentTestCases.Count, deserialized.Count);
+
+            for (int i = 0; i < concurrentTestCases.Count; i++)
+            {
+                Assert.AreEqual(concurrentTestCases[i].Description, deserialized[i].Description);
+                Assert.AreEqual(concurrentTestCases[i].Segments.Count, deserialized[i].Segments.Count);
+
+                for (int j = 0; j < concurrentTestCases[i].Segments.Count; j++)
+                {
+                    Assert.AreEqual(
+                        concurrentTestCases[i].Segments[j].OperationCalls.Count,
+                        deserialized[i].Segments[j].OperationCalls.Count);
+                }
+            }
+        }
+
+        #endregion
     }
 }

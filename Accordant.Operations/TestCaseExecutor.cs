@@ -451,7 +451,23 @@ namespace Microsoft.Accordant
             Dictionary<string, object> operationCallResponses,
             TestExecutionOptions options)
         {
-            var stateProfile = new StateProfile(startingState);
+            return await ExecuteSequentialTestCaseInternal(
+                context,
+                new StateProfile(startingState),
+                operationCalls,
+                operationCallRequests,
+                operationCallResponses,
+                options);
+        }
+
+        private static async Task<(StateProfile, bool, string)> ExecuteSequentialTestCaseInternal(
+            TestingContext context,
+            StateProfile stateProfile,
+            IList<OperationCall> operationCalls,
+            Dictionary<string, object> operationCallRequests,
+            Dictionary<string, object> operationCallResponses,
+            TestExecutionOptions options)
+        {
 
             var numExecutions = new Dictionary<OperationCall, int>();
 
@@ -576,66 +592,63 @@ namespace Microsoft.Accordant
             ConcurrentTestCase testCase,
             TestExecutionOptions options)
         {
-            Logger.Log($"Executing {testCase.SequentialOperationCalls.Count} sequential operations");
-
             var operationCallRequests = new Dictionary<string, object>();
             var operationCallResponses = new Dictionary<string, object>();
+            var stateProfile = new StateProfile(startingState);
 
-            StateProfile stateProfileAfterSequentialOperations;
-            using (new Logger(indent: true))
+            for (int segmentIndex = 0; segmentIndex < testCase.Segments.Count; segmentIndex++)
             {
-                (stateProfileAfterSequentialOperations, var success, var failureMessage) = await ExecuteSequentialPartOfConcurrentTestInternal(
-                    context,
-                    testCase,
-                    startingState,
-                    operationCallRequests,
-                    operationCallResponses,
-                    options);
+                var segment = testCase.Segments[segmentIndex];
 
-                if (!success)
+                if (segment.IsSequential)
                 {
-                    return (null, false, failureMessage);
+                    Logger.Log($"Executing sequential segment {segmentIndex + 1} of {testCase.Segments.Count}");
+
+                    using (new Logger(indent: true))
+                    {
+                        var (newStateProfile, success, failureMessage) = await ExecuteSequentialTestCaseInternal(
+                            context,
+                            stateProfile,
+                            segment.OperationCalls,
+                            operationCallRequests,
+                            operationCallResponses,
+                            options);
+
+                        if (!success)
+                        {
+                            return (null, false, failureMessage);
+                        }
+
+                        stateProfile = newStateProfile;
+                    }
+                }
+                else
+                {
+                    Logger.Log(string.Empty);
+                    Logger.Log($"Executing concurrent segment {segmentIndex + 1} of {testCase.Segments.Count} ({segment.OperationCalls.Count} concurrent operations)");
+                    Logger.Log(string.Empty);
+
+                    using (new Logger(indent: true))
+                    {
+                        var (newStateProfile, success, failureMessage) = await ExecuteConcurrentOperationsInternal(
+                            context,
+                            segment.OperationCalls,
+                            stateProfile,
+                            operationCallRequests,
+                            operationCallResponses,
+                            options);
+
+                        if (!success)
+                        {
+                            return (null, false, failureMessage);
+                        }
+
+                        stateProfile = newStateProfile;
+                    }
                 }
             }
 
-            Logger.Log(string.Empty);
-            Logger.Log($"Executing {testCase.ConcurrentOperationCalls.Count} concurrent operations");
-            Logger.Log(string.Empty);
-
-            using (new Logger(indent: true))
-            {
-                var (stateProfile, success, failureMessage) = await ExecuteConcurrentOperationsInternal(
-                    context,
-                    testCase.ConcurrentOperationCalls,
-                    stateProfileAfterSequentialOperations,
-                    operationCallRequests,
-                    operationCallResponses,
-                    options);
-
-                return (stateProfile, success, failureMessage);
-            }
-        }
-
-        private static async Task<(StateProfile, bool, string)> ExecuteSequentialPartOfConcurrentTestInternal(
-            TestingContext context,
-            ConcurrentTestCase testCase,
-            IState startingState,
-            Dictionary<string, object> operationCallRequests,
-            Dictionary<string, object> operationCallResponses,
-            TestExecutionOptions options)
-        {
-            var (stateProfileAfterSequentialOperations, success, failureMessage) = await ExecuteSequentialTestCaseInternal(
-                context,
-                startingState,
-                testCase.SequentialOperationCalls,
-                operationCallRequests,
-                operationCallResponses,
-                options);
-
-            return (
-                stateProfileAfterSequentialOperations,
-                success,
-                failureMessage);
+            return (stateProfile, true, string.Empty);
         }
 
         private static async Task<(StateProfile, bool, string)> ExecuteConcurrentOperationsInternal(

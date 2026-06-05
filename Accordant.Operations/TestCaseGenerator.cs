@@ -92,9 +92,10 @@ namespace Microsoft.Accordant
                 context,
                 rootNode);
 
-            // Filter out empty test cases (those with no operations)
+            // Filter out empty test cases (those with no segments or all empty segments)
             testCases = testCases
-                .Where(tc => tc.SequentialOperationCalls.Count > 0 || tc.ConcurrentOperationCalls.Count > 0)
+                .Where(tc => tc.Segments != null && tc.Segments.Count > 0 &&
+                    tc.Segments.Any(s => s.OperationCalls.Count > 0))
                 .ToList();
 
             return testCases;
@@ -236,13 +237,22 @@ namespace Microsoft.Accordant
                     concurrentOperationNames,
                     baseIndex: sequentialPrefixOperationNames.Count);
 
+            var segments = new List<TestCaseSegment>();
+
+            foreach (var call in sequentialOperationCalls)
+            {
+                segments.Add(new TestCaseSegment(call));
+            }
+
+            if (concurrentOperationCalls.Count > 0)
+            {
+                segments.Add(new TestCaseSegment(concurrentOperationCalls));
+            }
+
             var testCase = new ConcurrentTestCase()
             {
-                Description = ConstructDescriptionForConcurrentTestCase(
-                    sequentialOperationCalls,
-                    concurrentOperationCalls),
-                SequentialOperationCalls = sequentialOperationCalls,
-                ConcurrentOperationCalls = concurrentOperationCalls
+                Description = ConstructDescriptionForConcurrentTestCase(segments),
+                Segments = segments
             };
 
             return testCase;
@@ -337,20 +347,23 @@ namespace Microsoft.Accordant
         }
 
         public static string ConstructDescriptionForConcurrentTestCase(
-            IList<OperationCall> sequentialCallPrefix,
-            IList<OperationCall> concurrentCalls)
+            IList<TestCaseSegment> segments)
         {
-            var sequentialPart = string.Join("; ", sequentialCallPrefix.Select(c => c.Name));
-            var concurrentPart = string.Join(" || ", concurrentCalls.Select(c => c.Name));
+            var parts = new List<string>();
 
-            if (sequentialPart.Length > 0)
+            foreach (var segment in segments)
             {
-                return sequentialPart + " --> " + concurrentPart;
+                if (segment.IsSequential)
+                {
+                    parts.Add(segment.OperationCalls[0].Name);
+                }
+                else
+                {
+                    parts.Add(string.Join(" || ", segment.OperationCalls.Select(c => c.Name)));
+                }
             }
-            else
-            {
-                return concurrentPart;
-            }
+
+            return string.Join(" --> ", parts);
         }
 
         public static string SerializeSequentialTestCases(

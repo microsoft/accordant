@@ -56,35 +56,31 @@ namespace Microsoft.Accordant
             this ConcurrentTestCaseFileRecord testCaseFileRecord,
             ISpec spec)
         {
-            var sequentialOperationCalls = new List<OperationCall>();
-            var previousSequentialOperationCalls = new Dictionary<string, OperationCall>();
+            var segments = new List<TestCaseSegment>();
+            var previousOperationCalls = new Dictionary<string, OperationCall>();
 
-            foreach (var callFileRecord in testCaseFileRecord.SequentialOperationCalls)
+            foreach (var segmentFileRecord in testCaseFileRecord.Segments)
             {
-                var operationCall = callFileRecord.ToOperationCall(
-                    spec,
-                    previousSequentialOperationCalls);
+                var operationCalls = new List<OperationCall>();
 
-                sequentialOperationCalls.Add(operationCall);
-                previousSequentialOperationCalls[operationCall.Name] = operationCall;
-            }
+                foreach (var callFileRecord in segmentFileRecord.OperationCalls)
+                {
+                    var operationCall = callFileRecord.ToOperationCall(
+                        spec,
+                        previousOperationCalls);
 
-            var concurrentOperationCalls = new List<OperationCall>();
-            foreach (var callFileRecord in testCaseFileRecord.ConcurrentOperationCalls)
-            {
-                var operationCall = callFileRecord.ToOperationCall(
-                    spec,
-                    previousSequentialOperationCalls);
+                    operationCalls.Add(operationCall);
+                    previousOperationCalls[operationCall.Name] = operationCall;
+                }
 
-                concurrentOperationCalls.Add(operationCall);
+                segments.Add(new TestCaseSegment(operationCalls));
             }
 
             return new ConcurrentTestCase()
             {
                 Description = testCaseFileRecord.Description,
                 Comments = testCaseFileRecord.Comments,
-                SequentialOperationCalls = sequentialOperationCalls,
-                ConcurrentOperationCalls = concurrentOperationCalls
+                Segments = segments
             };
         }
 
@@ -96,12 +92,12 @@ namespace Microsoft.Accordant
             {
                 Description = testCase.Description,
                 Comments = testCase.Comments,
-                SequentialOperationCalls = testCase
-                    .SequentialOperationCalls
-                    .Select(call => call.ToOperationCallFileRecord(spec)).ToList(),
-                ConcurrentOperationCalls = testCase
-                    .ConcurrentOperationCalls
-                    .Select(call => call.ToOperationCallFileRecord(spec)).ToList()
+                Segments = testCase.Segments
+                    .Select(segment => new TestCaseSegmentFileRecord()
+                    {
+                        OperationCalls = segment.OperationCalls
+                            .Select(call => call.ToOperationCallFileRecord(spec)).ToList()
+                    }).ToList()
             };
         }
 

@@ -48,21 +48,26 @@ namespace Microsoft.Accordant
                     {
                         var operationCall = (OperationCall)edge.Metadata;
 
-                        var sequentialOperationCalls = sequentialPrefix.ToList();
+                        var sequentialSegments = sequentialPrefix
+                            .Select(call => new TestCaseSegment(call))
+                            .ToList();
+
                         var concurrentOperationCalls = new List<OperationCall>()
                         {
                             operationCall,
                             operationCall
                         };
 
+                        var segments = new List<TestCaseSegment>(sequentialSegments)
+                        {
+                            new TestCaseSegment(concurrentOperationCalls)
+                        };
+
                         // Performing the same operation concurrently
                         testCases.Add(new ConcurrentTestCase()
                         {
-                            Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(
-                                sequentialOperationCalls,
-                                concurrentOperationCalls),
-                            SequentialOperationCalls = sequentialOperationCalls,
-                            ConcurrentOperationCalls = concurrentOperationCalls
+                            Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments),
+                            Segments = segments
                         });
                     }
 
@@ -75,14 +80,20 @@ namespace Microsoft.Accordant
                         {
                             var concurrentOperationList = edgeList.Select(e => (OperationCall)e.Metadata).ToList();
 
+                            var sequentialSegments = sequentialPrefix
+                                .Select(call => new TestCaseSegment(call))
+                                .ToList();
+
+                            var segments = new List<TestCaseSegment>(sequentialSegments)
+                            {
+                                new TestCaseSegment(concurrentOperationList)
+                            };
+
                             // Performing all the operations from the current node concurrently
                             testCases.Add(new ConcurrentTestCase()
                             {
-                                Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(
-                                    sequentialPrefix,
-                                    concurrentOperationList),
-                                SequentialOperationCalls = sequentialPrefix,
-                                ConcurrentOperationCalls = concurrentOperationList
+                                Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments),
+                                Segments = segments
                             });
                         }
                     }
@@ -98,14 +109,20 @@ namespace Microsoft.Accordant
                             {
                                 var concurrentOperationList = subset.Select(e => (OperationCall)e.Metadata).ToList();
 
+                                var sequentialSegments = sequentialPrefix
+                                    .Select(call => new TestCaseSegment(call))
+                                    .ToList();
+
+                                var segments = new List<TestCaseSegment>(sequentialSegments)
+                                {
+                                    new TestCaseSegment(concurrentOperationList)
+                                };
+
                                 // Performing subset of operations from the current node concurrently
                                 testCases.Add(new ConcurrentTestCase()
                                 {
-                                    Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(
-                                        sequentialPrefix,
-                                        concurrentOperationList),
-                                    SequentialOperationCalls = sequentialPrefix,
-                                    ConcurrentOperationCalls = concurrentOperationList
+                                    Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments),
+                                    Segments = segments
                                 });
                             }
                         }

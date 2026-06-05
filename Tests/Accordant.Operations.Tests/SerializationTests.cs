@@ -120,13 +120,29 @@ namespace Microsoft.Accordant.Operations.Tests
                 tc1.Description == tc2.Description &&
                 tc1.Comments == tc2.Comments &&
                 AreListsSame(
-                    tc1.SequentialOperationCalls,
-                    tc2.SequentialOperationCalls,
-                    AreOperationCallsSame) &&
-                AreListsSame(
-                    tc1.ConcurrentOperationCalls,
-                    tc2.ConcurrentOperationCalls,
-                    AreOperationCallsSame);
+                    tc1.Segments,
+                    tc2.Segments,
+                    AreSegmentsSame);
+        }
+
+        private static bool AreSegmentsSame(
+            TestCaseSegment s1,
+            TestCaseSegment s2)
+        {
+            if (s1 == null)
+            {
+                return s2 == null;
+            }
+
+            if (s2 == null)
+            {
+                return s1 == null;
+            }
+
+            return AreListsSame(
+                s1.OperationCalls,
+                s2.OperationCalls,
+                AreOperationCallsSame);
         }
 
         private static bool AreSequentialTestCaseSame(
