@@ -749,4 +749,209 @@ namespace Microsoft.Accordant.Operations.Tests
     }
 
     #endregion
+
+    #region DualAsync Spec - Two Independent Async Operations
+
+    /// <summary>
+    /// State for two independent async jobs (A and B).
+    /// </summary>
+    [State]
+    public partial class DualAsyncState : State
+    {
+        public string JobAStatus { get; set; } = "none";
+        public string JobBStatus { get; set; } = "none";
+    }
+
+    /// <summary>
+    /// Spec with two independent async operations (StartJobA, StartJobB),
+    /// each with its own polling operation (PollJobA, PollJobB).
+    /// Designed to test concurrent polling after a concurrent segment.
+    /// </summary>
+    public class DualAsyncSpec : Spec<DualAsyncState>
+    {
+        public StartJobAOperation StartJobA { get; } = new();
+        public PollJobAOperation PollJobA { get; } = new();
+        public StartJobBOperation StartJobB { get; } = new();
+        public PollJobBOperation PollJobB { get; } = new();
+
+        public DualAsyncSpec()
+        {
+            this["StartJobA"] = StartJobA;
+            this["PollJobA"] = PollJobA;
+            this["StartJobB"] = StartJobB;
+            this["PollJobB"] = PollJobB;
+        }
+    }
+
+    public class JobAStepFunction : TerminatingStepFunction
+    {
+        public override Func<IState, bool> IsTerminalState => state =>
+        {
+            var s = (DualAsyncState)state;
+            return s.JobAStatus != "pending";
+        };
+
+        protected override IList<StepResult> GetStepResults(IState state)
+        {
+            var next = (DualAsyncState)state.Clone();
+            next.JobAStatus = "done";
+            return new[] { new StepResult { State = next } };
+        }
+    }
+
+    public class JobBStepFunction : TerminatingStepFunction
+    {
+        public override Func<IState, bool> IsTerminalState => state =>
+        {
+            var s = (DualAsyncState)state;
+            return s.JobBStatus != "pending";
+        };
+
+        protected override IList<StepResult> GetStepResults(IState state)
+        {
+            var next = (DualAsyncState)state.Clone();
+            next.JobBStatus = "done";
+            return new[] { new StepResult { State = next } };
+        }
+    }
+
+    public class StartJobAOperation : Operation<Unit, string, DualAsyncState>
+    {
+        public StartJobAOperation() : base("StartJobA") { }
+
+        public override PollingSetup Polling => new PollingSetup
+        {
+            Operation = "PollJobA",
+            WaitTimeInMs = 10,
+            MaxRetryCount = 100
+        };
+
+        public override ExpectedOutcomes Apply(Unit request, DualAsyncState state)
+        {
+            if (state.JobAStatus != "none")
+                return Expect.That(r => r == "already started", "already started").SameState();
+
+            return Expect.That(r => r == "pending", "job A started")
+                         .WithNextState(new DualAsyncState { JobAStatus = "pending", JobBStatus = state.JobBStatus })
+                         .Triggers(new JobAStepFunction());
+        }
+
+        public override string Execute(TestingContext context, Unit request)
+        {
+            return context.Get<DualAsyncTarget>().StartJobA();
+        }
+    }
+
+    public class PollJobAOperation : Operation<Unit, string, DualAsyncState>
+    {
+        public PollJobAOperation() : base("PollJobA") { }
+
+        public override IReadOnlyList<RequestDerivation> DerivedFrom => new[]
+        {
+            Derive.From<Unit, string, Unit>("StartJobA")
+                  .As((req, resp) => Unit.Value)
+        };
+
+        public override ExpectedOutcomes Apply(Unit request, DualAsyncState state)
+        {
+            return Expect.That(r => r == state.JobAStatus, $"should return '{state.JobAStatus}'")
+                         .SameState();
+        }
+
+        public override string Execute(TestingContext context, Unit request)
+        {
+            return context.Get<DualAsyncTarget>().GetJobAStatus();
+        }
+    }
+
+    public class StartJobBOperation : Operation<Unit, string, DualAsyncState>
+    {
+        public StartJobBOperation() : base("StartJobB") { }
+
+        public override PollingSetup Polling => new PollingSetup
+        {
+            Operation = "PollJobB",
+            WaitTimeInMs = 10,
+            MaxRetryCount = 100
+        };
+
+        public override ExpectedOutcomes Apply(Unit request, DualAsyncState state)
+        {
+            if (state.JobBStatus != "none")
+                return Expect.That(r => r == "already started", "already started").SameState();
+
+            return Expect.That(r => r == "pending", "job B started")
+                         .WithNextState(new DualAsyncState { JobAStatus = state.JobAStatus, JobBStatus = "pending" })
+                         .Triggers(new JobBStepFunction());
+        }
+
+        public override string Execute(TestingContext context, Unit request)
+        {
+            return context.Get<DualAsyncTarget>().StartJobB();
+        }
+    }
+
+    public class PollJobBOperation : Operation<Unit, string, DualAsyncState>
+    {
+        public PollJobBOperation() : base("PollJobB") { }
+
+        public override IReadOnlyList<RequestDerivation> DerivedFrom => new[]
+        {
+            Derive.From<Unit, string, Unit>("StartJobB")
+                  .As((req, resp) => Unit.Value)
+        };
+
+        public override ExpectedOutcomes Apply(Unit request, DualAsyncState state)
+        {
+            return Expect.That(r => r == state.JobBStatus, $"should return '{state.JobBStatus}'")
+                         .SameState();
+        }
+
+        public override string Execute(TestingContext context, Unit request)
+        {
+            return context.Get<DualAsyncTarget>().GetJobBStatus();
+        }
+    }
+
+    /// <summary>
+    /// Target with two independent async jobs.
+    /// </summary>
+    public class DualAsyncTarget
+    {
+        private string jobAStatus = "none";
+        private string jobBStatus = "none";
+
+        public string StartJobA()
+        {
+            if (jobAStatus == "none")
+            {
+                jobAStatus = "pending";
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(5);
+                    jobAStatus = "done";
+                });
+            }
+            return jobAStatus;
+        }
+
+        public string StartJobB()
+        {
+            if (jobBStatus == "none")
+            {
+                jobBStatus = "pending";
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(5);
+                    jobBStatus = "done";
+                });
+            }
+            return jobBStatus;
+        }
+
+        public string GetJobAStatus() => jobAStatus;
+        public string GetJobBStatus() => jobBStatus;
+    }
+
+    #endregion
 }

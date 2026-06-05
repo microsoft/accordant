@@ -32,6 +32,11 @@ namespace Microsoft.Accordant
             if (initialState == null) throw new ArgumentNullException(nameof(initialState));
             options ??= new TestExecutionOptions();
 
+            foreach (var testCase in testCases)
+            {
+                ValidateSequentialTestCase(testCase);
+            }
+
             var spec = context.Spec;
             var runStartTime = DateTime.UtcNow;
 
@@ -177,6 +182,11 @@ namespace Microsoft.Accordant
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (initialState == null) throw new ArgumentNullException(nameof(initialState));
             options ??= new TestExecutionOptions();
+
+            foreach (var testCase in testCases)
+            {
+                ValidateConcurrentTestCase(testCase);
+            }
 
             var spec = context.Spec;
             var runStartTime = DateTime.UtcNow;
@@ -592,8 +602,6 @@ namespace Microsoft.Accordant
             ConcurrentTestCase testCase,
             TestExecutionOptions options)
         {
-            ValidateConcurrentTestCase(testCase);
-
             var operationCallRequests = new Dictionary<string, object>();
             var operationCallResponses = new Dictionary<string, object>();
             var stateProfile = new StateProfile(startingState);
@@ -907,6 +915,32 @@ namespace Microsoft.Accordant
             }
 
             return (stateProfile, true, string.Empty);
+        }
+
+        /// <summary>
+        /// Validates a sequential test case before execution. Checks:
+        /// - Must have at least one operation call
+        /// - No duplicate operation call names
+        /// </summary>
+        private static void ValidateSequentialTestCase(SequentialTestCase testCase)
+        {
+            if (testCase.OperationCalls == null || testCase.OperationCalls.Count == 0)
+            {
+                throw new ArgumentException(
+                    $"Sequential test case '{testCase.Description}' has no operation calls. " +
+                    $"Each test case must have at least one operation call.");
+            }
+
+            var allNames = new HashSet<string>();
+            foreach (var operationCall in testCase.OperationCalls)
+            {
+                if (!allNames.Add(operationCall.Name))
+                {
+                    throw new ArgumentException(
+                        $"Duplicate operation call name '{operationCall.Name}' found in sequential test case '{testCase.Description}'. " +
+                        $"Operation call names must be unique.");
+                }
+            }
         }
 
         /// <summary>
