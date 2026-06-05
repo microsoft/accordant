@@ -480,6 +480,7 @@ namespace Microsoft.Accordant
         {
 
             var numExecutions = new Dictionary<OperationCall, int>();
+            var stepFunctionsBefore = GetStepFunctionsToPollFor(stateProfile);
 
             for (int i = 0; i < operationCalls.Count; i++)
             {
@@ -567,13 +568,14 @@ namespace Microsoft.Accordant
 
                 stateProfile = newStateProfile;
 
-                // Check if any step functions require polling (are TerminatingStepFunction)
-                // and this input hasn't disabled polling
+                // Check if this operation introduced new step functions that require polling.
+                // Only poll for newly introduced ones (not pre-existing from earlier ops that skipped polling).
                 if (!operationCall.OperationInput.SkipPolling)
                 {
-                    var stepFunctionsToPollFor = GetStepFunctionsToPollFor(stateProfile);
+                    var stepFunctionsAfter = GetStepFunctionsToPollFor(stateProfile);
+                    stepFunctionsAfter.ExceptWith(stepFunctionsBefore);
 
-                    if (stepFunctionsToPollFor.Count > 0)
+                    if (stepFunctionsAfter.Count > 0)
                     {
                         var pollingSetup = FetchPollingSetup(operationCall);
                         var pollingOperation = FetchPollingOperation(context, operationCall, request, response);
@@ -583,7 +585,7 @@ namespace Microsoft.Accordant
                             stateProfile,
                             pollingOperation,
                             pollingSetup,
-                            stepFunctionsToPollFor);
+                            stepFunctionsAfter);
 
                         if (!success)
                         {
@@ -591,6 +593,9 @@ namespace Microsoft.Accordant
                         }
                     }
                 }
+
+                // Update snapshot for next iteration
+                stepFunctionsBefore = GetStepFunctionsToPollFor(stateProfile);
             }
 
             return (stateProfile, true, string.Empty);

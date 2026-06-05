@@ -1534,6 +1534,55 @@ namespace Microsoft.Accordant.Operations.Tests
 
         #endregion
 
+        #region Sequential Polling - SkipPolling Step Function Leakage
+
+        [Test]
+        public async Task SequentialTestCase_SkipPollingDoesNotLeakStepFunctionsToNextOp()
+        {
+            // Op A (StartAsync) with SkipPolling=true triggers a step function.
+            // Op B (Unrelated) has no polling configured.
+            // With the bug: B sees A's non-terminal step function, tries to poll,
+            //   and crashes because B has no polling setup.
+            // With the fix: B only considers step functions introduced by itself (none),
+            //   so no polling is attempted and the test passes.
+            var spec = new AsyncOperationSpec();
+            var initialState = new AsyncOperationState();
+
+            var startInput = new OperationInput("StartAsync", spec["StartAsync"]);
+            startInput.WithoutPolling();
+
+            var inputSet = new InputSet()
+            {
+                startInput,
+                new OperationInput("Unrelated", spec["Unrelated"])
+            };
+
+            var testCase = new SequentialTestCase()
+            {
+                Description = "SkipPolling leakage test",
+                OperationCalls = new List<OperationCall>
+                {
+                    new OperationCall("StartAsync", inputSet["StartAsync"]),
+                    new OperationCall("Unrelated", inputSet["Unrelated"])
+                }
+            };
+
+            var context = spec.CreateTestingContext();
+            context.Register(new AsyncWorkTarget());
+
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions());
+
+            Assert.IsTrue(results.All(r => r.Success),
+                "Unrelated op should not be forced to poll for StartAsync's step function. " +
+                $"Failure: {results.FirstOrDefault(r => !r.Success)?.LastFailureMessage}");
+        }
+
+        #endregion
+
         #region Validation Tests
 
         [Test]
