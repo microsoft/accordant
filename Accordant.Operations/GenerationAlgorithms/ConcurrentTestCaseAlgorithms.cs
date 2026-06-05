@@ -52,10 +52,13 @@ namespace Microsoft.Accordant
                             .Select(call => new TestCaseSegment(call))
                             .ToList();
 
+                        var clonedOperationCall = operationCall.Clone();
+                        clonedOperationCall.Name = operationCall.Name + " (2)";
+
                         var concurrentOperationCalls = new List<OperationCall>()
                         {
                             operationCall,
-                            operationCall
+                            clonedOperationCall
                         };
 
                         var segments = new List<TestCaseSegment>(sequentialSegments)

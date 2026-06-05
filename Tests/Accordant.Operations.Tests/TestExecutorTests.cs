@@ -1533,5 +1533,292 @@ namespace Microsoft.Accordant.Operations.Tests
         }
 
         #endregion
+
+        #region Validation Tests
+
+        [Test]
+        public async Task ConcurrentTestCase_EmptySegmentThrows()
+        {
+            var spec = new SimpleStatefulClassSpec();
+            var initialState = new CounterState(0);
+
+            var segments = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new List<OperationCall>()) // empty!
+            };
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = "empty segment test",
+                Segments = segments
+            };
+
+            var context = spec.CreateTestingContext();
+            context.Register(new SimpleStatefulClass());
+
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions());
+
+            Assert.IsFalse(results[0].Success, "Test should fail for empty segment");
+            Assert.IsTrue(results[0].LastFailureMessage.Contains("no operation calls"),
+                $"Expected 'no operation calls' in message, got: {results[0].LastFailureMessage}");
+        }
+
+        [Test]
+        public async Task ConcurrentTestCase_DuplicateOpNameAcrossSegmentsThrows()
+        {
+            var spec = new SimpleStatefulClassSpec();
+            var initialState = new CounterState(0);
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("Add 2", spec["Add"], 2),
+                new OperationInput("Count", spec["Count"])
+            };
+
+            // Same name "Add 2" in two different segments
+            var segments = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new OperationCall("Add 2", inputSet["Add 2"])),
+                new TestCaseSegment(new OperationCall("Add 2", inputSet["Add 2"]))
+            };
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = "duplicate name test",
+                Segments = segments
+            };
+
+            var context = spec.CreateTestingContext();
+            context.Register(new SimpleStatefulClass());
+
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions());
+
+            Assert.IsFalse(results[0].Success, "Test should fail for duplicate names");
+            Assert.IsTrue(results[0].LastFailureMessage.Contains("Duplicate operation call name"),
+                $"Expected 'Duplicate operation call name' in message, got: {results[0].LastFailureMessage}");
+        }
+
+        [Test]
+        public async Task ConcurrentTestCase_SameSegmentDerivedRequestThrows()
+        {
+            var spec = new SimpleStatefulClassSpec();
+            var initialState = new CounterState(0);
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("Add 2", spec["Add"], 2),
+                new OperationInput("Count", spec["Count"])
+            };
+
+            // Create an operation call that derives from another in the same concurrent segment
+            var sourceCall = new OperationCall("Source", inputSet["Add 2"]);
+            var derivedInput = new OperationInput(
+                "Derived",
+                spec["Count"],
+                Unit.Value,
+                new List<OperationCall> { sourceCall },
+                null);
+            var derivedCall = new OperationCall("Derived", derivedInput);
+
+            var segments = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new List<OperationCall> { sourceCall, derivedCall })
+            };
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = "same-segment derived test",
+                Segments = segments
+            };
+
+            var context = spec.CreateTestingContext();
+            context.Register(new SimpleStatefulClass());
+
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions());
+
+            Assert.IsFalse(results[0].Success, "Test should fail for same-segment derived request");
+            Assert.IsTrue(results[0].LastFailureMessage.Contains("same segment"),
+                $"Expected 'same segment' in message, got: {results[0].LastFailureMessage}");
+        }
+
+        [Test]
+        public async Task ConcurrentTestCase_GeneratedTestCasesHaveUniqueNames()
+        {
+            var spec = new SimpleStatefulClassSpec();
+            var initialState = new CounterState(0);
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("Add 2", spec["Add"], 2),
+                new OperationInput("Count", spec["Count"])
+            };
+
+            var concurrentTestCases = spec.GenerateConcurrentTests(
+                initialState,
+                inputSet,
+                new TestGenerationOptions { MaxDepth = 3 });
+
+            // Verify that all generated test cases have unique names within each test case
+            foreach (var testCase in concurrentTestCases)
+            {
+                var allNames = testCase.Segments
+                    .SelectMany(s => s.OperationCalls)
+                    .Select(c => c.Name)
+                    .ToList();
+
+                var uniqueNames = new HashSet<string>(allNames);
+                Assert.AreEqual(allNames.Count, uniqueNames.Count,
+                    $"Test case '{testCase.Description}' has duplicate operation call names: " +
+                    $"{string.Join(", ", allNames)}");
+            }
+        }
+
+        #endregion
+
+        #region Concurrent Polling Tests
+
+        [Test]
+        public async Task ConcurrentTestCase_PollingAfterConcurrentSegment()
+        {
+            // Use the AsyncOperationSpec which has StartAsync (with polling) and Unrelated (no polling)
+            var spec = new AsyncOperationSpec();
+            var initialState = new AsyncOperationState();
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("StartAsync", spec["StartAsync"]),
+                new OperationInput("Unrelated", spec["Unrelated"])
+            };
+
+            // Create a concurrent segment with StartAsync + Unrelated
+            // StartAsync has polling configured — polling should run after the concurrent segment
+            var segments = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new List<OperationCall>
+                {
+                    new OperationCall("StartAsync", inputSet["StartAsync"]),
+                    new OperationCall("Unrelated", inputSet["Unrelated"])
+                })
+            };
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments),
+                Segments = segments
+            };
+
+            var context = spec.CreateTestingContext();
+            context.Register(new AsyncWorkTarget());
+
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions());
+
+            Assert.IsTrue(results.All(r => r.Success),
+                "Concurrent test with polling should pass — polling should complete the async work. " +
+                $"Failure: {results.FirstOrDefault(r => !r.Success)?.LastFailureMessage}");
+        }
+
+        [Test]
+        public async Task ConcurrentTestCase_PollingSkippedWhenFlagSet()
+        {
+            // Verify SkipPolling is respected for concurrent segments
+            var spec = new AsyncOperationSpec();
+            var initialState = new AsyncOperationState();
+
+            var inputWithoutPolling = new OperationInput("StartAsync", spec["StartAsync"]);
+            inputWithoutPolling.WithoutPolling();
+
+            var inputSet = new InputSet()
+            {
+                inputWithoutPolling,
+                new OperationInput("Unrelated", spec["Unrelated"])
+            };
+
+            // Create test with concurrent segment where polling is skipped
+            var segments = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new List<OperationCall>
+                {
+                    new OperationCall("StartAsync", inputSet["StartAsync"]),
+                    new OperationCall("Unrelated", inputSet["Unrelated"])
+                })
+            };
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = "skip polling test",
+                Segments = segments
+            };
+
+            var context = spec.CreateTestingContext();
+            context.Register(new AsyncWorkTarget());
+
+            // Should succeed — no polling means we accept the state as is
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions());
+
+            // The test should complete (not hang or throw polling-related errors)
+            Assert.IsTrue(results.Count == 1, "Should have exactly one result");
+        }
+
+        [Test]
+        public async Task ConcurrentTestCase_MultiSegmentWithPolling()
+        {
+            // seq(StartAsync) -> polling completes -> seq(GetStatus should show success)
+            var spec = new AsyncOperationSpec();
+            var initialState = new AsyncOperationState();
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("StartAsync", spec["StartAsync"]),
+                new OperationInput("Unrelated", spec["Unrelated"])
+            };
+
+            // Segment 1: Start async (sequential — polling happens after this)
+            // Segment 2: Unrelated (sequential — should work after polling completed)
+            var segments = new List<TestCaseSegment>
+            {
+                new TestCaseSegment(new OperationCall("StartAsync", inputSet["StartAsync"])),
+                new TestCaseSegment(new OperationCall("Unrelated", inputSet["Unrelated"]))
+            };
+
+            var testCase = new ConcurrentTestCase()
+            {
+                Description = TestCaseGenerator.ConstructDescriptionForConcurrentTestCase(segments),
+                Segments = segments
+            };
+
+            var context = spec.CreateTestingContext();
+            context.Register(new AsyncWorkTarget());
+
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions());
+
+            Assert.IsTrue(results.All(r => r.Success),
+                "Multi-segment test with polling should pass");
+        }
+
+        #endregion
     }
 }
