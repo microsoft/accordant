@@ -337,7 +337,15 @@ namespace Microsoft.Accordant
                 lines.Add($"\"{node}\" [label=\"{label}\"];");
             }
 
-            foreach (var (source, target, label) in edges)
+            // Group edges between the same pair of nodes and combine their labels
+            var groupedEdges = edges
+                .GroupBy(e => (e.Item1, e.Item2))
+                .Select(g => (
+                    source: g.Key.Item1,
+                    target: g.Key.Item2,
+                    label: string.Join("\\n", g.Select(e => e.Item3))));
+
+            foreach (var (source, target, label) in groupedEdges)
             {
                 lines.Add($"\"{source}\" -> \"{target}\" [label=\"{label}\"];");
             }

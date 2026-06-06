@@ -280,7 +280,6 @@ public class BankAccountTests
             generationOptions: new TestGenerationOptions 
             { 
                 MaxDepth = 5,
-                ShouldIncludeTransition = (from, op, to) => from.ToString() != to.ToString()
             },
             visualizationOptions: new VisualizationOptions
             {
