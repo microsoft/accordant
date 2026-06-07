@@ -288,7 +288,16 @@ public class BankAccountTests
             sp = next;
         }
 
+        // Reset both model and system state between scenarios
+        async Task Reset()
+        {
+            foreach (var id in new[] { "alice", "bob", "carol", "ghost" })
+                await client.DeleteAccount(id);
+            sp = new StateProfile(new BankState());
+        }
+
         // --- Scenario 1: Full lifecycle (create → deposit → withdraw → check → delete → verify gone) ---
+        await Reset();
         Check(createOp, new CreateAccountRequest("alice"), await client.CreateAccount("alice"));
         Check(depositOp, new DepositRequest("alice", 200m), await client.Deposit("alice", 200m));
         Check(withdrawOp, new WithdrawRequest("alice", 75m), await client.Withdraw("alice", 75m));
@@ -297,17 +306,18 @@ public class BankAccountTests
         Check(getBalanceOp, new GetBalanceRequest("alice"), await client.GetBalance("alice")); // 404
 
         // --- Scenario 2: Insufficient funds rejected ---
+        await Reset();
         Check(createOp, new CreateAccountRequest("bob"), await client.CreateAccount("bob"));
         Check(depositOp, new DepositRequest("bob", 50m), await client.Deposit("bob", 50m));
         Check(withdrawOp, new WithdrawRequest("bob", 100m), await client.Withdraw("bob", 100m)); // 400
-        Check(deleteOp, new DeleteAccountRequest("bob"), await client.DeleteAccount("bob"));
 
         // --- Scenario 3: Duplicate create returns 409 ---
+        await Reset();
         Check(createOp, new CreateAccountRequest("carol"), await client.CreateAccount("carol"));
         Check(createOp, new CreateAccountRequest("carol"), await client.CreateAccount("carol")); // 409
-        Check(deleteOp, new DeleteAccountRequest("carol"), await client.DeleteAccount("carol"));
 
         // --- Scenario 4: All operations on nonexistent account return 404 ---
+        await Reset();
         Check(getBalanceOp, new GetBalanceRequest("ghost"), await client.GetBalance("ghost"));
         Check(depositOp, new DepositRequest("ghost", 100m), await client.Deposit("ghost", 100m));
         Check(withdrawOp, new WithdrawRequest("ghost", 50m), await client.Withdraw("ghost", 50m));
