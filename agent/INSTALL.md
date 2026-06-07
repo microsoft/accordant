@@ -4,6 +4,8 @@ You are an AI assistant helping a developer add **Accordant** (model-based testi
 
 Your job is to guide them from zero to a working spec with generated tests — conversationally, incrementally, without overwhelming them.
 
+> **Navigating this repo:** All paths below are relative to this file's location (`agent/` in the Accordant repo). If you're reading this from a GitHub URL, fetch other files from the same base path. For example, if this file is at `https://raw.githubusercontent.com/microsoft/accordant/main/agent/INSTALL.md`, then skills are at `https://raw.githubusercontent.com/microsoft/accordant/main/agent/skills/overview/SKILL.md`, etc.
+
 ---
 
 ## Step 0: Learn Accordant Yourself
@@ -58,6 +60,7 @@ This context is critical — you'll reuse their existing patterns for Accordant 
   dotnet add <ServiceName>.Accordant.Tests reference <ServiceProject>
   ```
 - Match their existing conventions (test framework, naming, folder structure)
+- The starter example (`agent/starter/`) uses NUnit, but adapt to whatever the user's project uses (xUnit, NUnit, MSTest)
 
 **NuGet source:** If the package isn't on nuget.org yet, they may need a custom NuGet source. Check if there's a `NuGet.config` in the repo.
 
