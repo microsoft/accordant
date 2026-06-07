@@ -78,10 +78,28 @@ Copy the `agent/skills/` folder to the appropriate location in the user's projec
 | Windsurf | `.windsurf/skills/accordant/` |
 | Unknown | Ask the user |
 
-Copy the entire `agent/skills/` folder contents (including all subdirectories) to the appropriate path above.
-
 If you're not sure which agent the user is using, ask:
 > "Which AI coding assistant are you using? (GitHub Copilot, Cursor, Claude Code, Windsurf, or something else?)"
+
+### How to get the skills files
+
+**Option A: Sparse clone (preferred)** — Only downloads the `agent/` folder, fast and minimal:
+
+```bash
+git clone --depth 1 --filter=blob:none --sparse https://github.com/microsoft/accordant.git <temp-dir>
+cd <temp-dir>
+git sparse-checkout set agent/
+```
+
+Then copy `<temp-dir>/agent/skills/` to the target skills path, and `<temp-dir>/agent/AGENTS.md` to the user's project. Remove the temp directory when done.
+
+**Option B: GitHub API** — If git isn't available, list files via the API:
+
+```
+GET https://api.github.com/repos/microsoft/accordant/contents/agent/skills
+```
+
+This returns JSON with each entry's `name`, `type` (file/dir), and `download_url`. Recurse into subdirectories and fetch each file's raw content.
 
 ---
 
