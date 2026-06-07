@@ -280,20 +280,19 @@ public class BankAccountTests
         var deleteOp = spec.GetOperation<DeleteAccountRequest, DeleteAccountResponse>("DeleteAccount");
 
         // Helper: validate response against spec, advance state profile
-        var sp = new StateProfile(new BankState());
+        var stateProfile = new StateProfile(new BankState());
         void Check<TReq, TResp>(Operation<TReq, TResp, BankState> op, TReq request, object response)
         {
-            var (isValid, message, next) = spec.Allows(op, request, response, sp);
+            var (isValid, message, next) = spec.Allows(op, request, response, stateProfile);
             Assert.That(isValid, Is.True, message);
-            sp = next;
+            stateProfile = next;
         }
 
         // Reset both model and system state between scenarios
         async Task Reset()
         {
-            foreach (var id in new[] { "alice", "bob", "carol", "ghost" })
-                await client.DeleteAccount(id);
-            sp = new StateProfile(new BankState());
+            await client.DeleteAccount("alice");
+            stateProfile = new StateProfile(new BankState());
         }
 
         // --- Scenario 1: Full lifecycle (create → deposit → withdraw → check → delete → verify gone) ---
@@ -307,21 +306,21 @@ public class BankAccountTests
 
         // --- Scenario 2: Insufficient funds rejected ---
         await Reset();
-        Check(createOp, new CreateAccountRequest("bob"), await client.CreateAccount("bob"));
-        Check(depositOp, new DepositRequest("bob", 50m), await client.Deposit("bob", 50m));
-        Check(withdrawOp, new WithdrawRequest("bob", 100m), await client.Withdraw("bob", 100m)); // 400
+        Check(createOp, new CreateAccountRequest("alice"), await client.CreateAccount("alice"));
+        Check(depositOp, new DepositRequest("alice", 50m), await client.Deposit("alice", 50m));
+        Check(withdrawOp, new WithdrawRequest("alice", 100m), await client.Withdraw("alice", 100m)); // 400
 
         // --- Scenario 3: Duplicate create returns 409 ---
         await Reset();
-        Check(createOp, new CreateAccountRequest("carol"), await client.CreateAccount("carol"));
-        Check(createOp, new CreateAccountRequest("carol"), await client.CreateAccount("carol")); // 409
+        Check(createOp, new CreateAccountRequest("alice"), await client.CreateAccount("alice"));
+        Check(createOp, new CreateAccountRequest("alice"), await client.CreateAccount("alice")); // 409
 
         // --- Scenario 4: All operations on nonexistent account return 404 ---
         await Reset();
-        Check(getBalanceOp, new GetBalanceRequest("ghost"), await client.GetBalance("ghost"));
-        Check(depositOp, new DepositRequest("ghost", 100m), await client.Deposit("ghost", 100m));
-        Check(withdrawOp, new WithdrawRequest("ghost", 50m), await client.Withdraw("ghost", 50m));
-        Check(deleteOp, new DeleteAccountRequest("ghost"), await client.DeleteAccount("ghost"));
+        Check(getBalanceOp, new GetBalanceRequest("alice"), await client.GetBalance("alice"));
+        Check(depositOp, new DepositRequest("alice", 100m), await client.Deposit("alice", 100m));
+        Check(withdrawOp, new WithdrawRequest("alice", 50m), await client.Withdraw("alice", 50m));
+        Check(deleteOp, new DeleteAccountRequest("alice"), await client.DeleteAccount("alice"));
     }
 
     // ============================================================
