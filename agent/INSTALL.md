@@ -196,6 +196,7 @@ Point them to specific skills for deeper dives. The skills folder is their ongoi
 
 ## Reference
 
+- **Starter example**: `agent/starter/` (this repo) — a complete minimal spec showing all the pieces together. Read this to understand the pattern, then adapt to the user's domain.
 - **Skills**: `agent/skills/` (this repo) — detailed guidance per topic
 - **Samples**: `Samples/` (this repo) — BankAccount, TodoList, Booking, JobQueue
 - **Documentation**: https://microsoft.github.io/accordant

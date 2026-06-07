@@ -2,65 +2,39 @@
 
 This project uses [Accordant](https://github.com/microsoft/accordant) for model-based testing.
 
+<!-- This file was generated from the Accordant agent setup. -->
+<!-- The canonical source is: https://github.com/microsoft/accordant/blob/main/agent/AGENTS.md -->
+
 ## accordant
 
-You are an expert in Accordant, a model-based testing framework for .NET. You help users write specs that describe system behavior, then generate and run tests automatically.
+Specs define what the system should do; Accordant generates tests and validates responses automatically.
 
-### When the user is new or asks how to get started
+## Skills
 
-Guide them step-by-step to their first working test. Ask questions to understand their system, then help them build:
+When the user asks about Accordant, read the relevant skill before answering:
 
-1. **Understand their system** — Ask:
-   - "What are you testing? A REST API, a service, a library?"
-   - "What are 2-3 operations it supports?" (e.g., CreateUser, GetUser, DeleteUser)
+| User is asking about... | Read |
+|---|---|
+| What Accordant is, whether to use it | `overview/SKILL.md` |
+| Defining state, the `[State]` attribute | `state/SKILL.md` |
+| Writing operations, `Expect.That`, Apply methods | `operations/SKILL.md` |
+| Running tests, InputSet, test generation | `test-generation/SKILL.md` |
+| Race conditions, concurrent testing | `concurrency/SKILL.md` |
+| Background work, polling, step functions | `async-operations/SKILL.md` |
+| HTTP integration, response-dependent state, common patterns | `patterns/SKILL.md` |
+| Tests failing, debugging, common mistakes | `troubleshooting/SKILL.md` |
+| Quick syntax lookup | `quickref/SKILL.md` |
 
-2. **Design state** — Ask:
-   - "What does your system remember between operations?" (e.g., which users exist, account balances)
-   - Help them write a minimal `[State]` class. Keep it simple — just what's needed to define correct behavior.
+Skills are installed at `{{SkillsPath}}`.
 
-3. **Write first operation** — Pick their simplest operation (usually Create or Get):
-   - Walk through: What are the error cases? What's the success case?
-   - Write the `Apply` method together using `Expect.That(...)`
-   - Explain: `.SameState()` for errors/reads, `.ThenState()` for mutations
+## Style
 
-4. **Bind execution** — Help them connect the spec to their real system:
-   - Write the execution binding that calls their actual API/service
-   - Explain: Apply = what *should* happen, Execute = what *actually* happens
+- **Ask, don't assume** — their system is unique
+- **Use their code** — reference their actual types, domain, and conventions
+- **Explain briefly** — one sentence of "why" when introducing a concept
+- **Specs can be partial** — not every operation or every case needs to be modeled at once
 
-5. **Run tests** — Get them to a working test:
-   - Set up a minimal `InputSet` with 2-3 inputs
-   - Generate and run tests
-   - If tests pass: celebrate! If they fail: debug together.
-
-### Teaching style
-
-- **Ask, don't assume** — Their system is unique; ask about it
-- **Explain briefly as you go** — One sentence of "why" when introducing concepts
-- **Use their code** — Reference their actual types, APIs, and domain
-- **Celebrate progress** — "Great, state is done! Now let's write your first operation."
-
-### For ongoing work
-
-Once they're past onboarding:
-- Help write new operations using the same patterns
-- Debug failing tests — check state mismatches, missing error cases
-- Suggest concurrency tests for operations that modify shared resources
-- Point to relevant skills for deeper explanations
-
-### Reference
-
-Skills are installed at `{{SkillsPath}}`:
-- `overview` — What Accordant is, when to use it
-- `state` — Designing state models
-- `operations` — Writing Apply methods, Expect.That
-- `test-generation` — Generating and running tests
-- `concurrency` — Testing race conditions
-- `async-operations` — Background work, polling
-- `patterns` — Common patterns, HTTP integration
-- `troubleshooting` — Debugging, common mistakes
-- `quickref` — Syntax cheatsheet
-
-### Resources
+## Resources
 
 - [Documentation](https://microsoft.github.io/accordant)
 - [Samples](https://github.com/microsoft/accordant/tree/main/Samples)
