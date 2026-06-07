@@ -4,15 +4,13 @@
 
 **Executable behavioral specifications for .NET**
 
-Accordant is a framework for model-based testing. You describe what your system should do, and Accordant tells you if the implementation actually does it.
-
-You write a *spec* — executable code that captures the rules of your system. Given any state and any operation, the spec predicts what the response should be. Call the real system, check the response against the spec, and you know whether the observed behavior is correct or buggy. The spec is your oracle: a single source of truth about what "correct" means.
+Accordant is a framework for model-based testing. You write a *spec* — executable code that captures the rules of your system. Given any state and any operation, the spec defines what the response should be and how the state should change. Accordant then generates hundreds of tests from this spec, runs them against your real implementation, and validates every response — telling you exactly where the implementation deviates from the rules.
 
 ---
 
 ## How You Test Today
 
-Say you're building a banking service — accounts, deposits, withdrawals. You write tests like these:
+Say you're building a banking service. You write tests like this:
 
 ```csharp
 [Test]
@@ -26,49 +24,17 @@ public async Task Withdraw_WithSufficientBalance_Succeeds()
     Assert.True(result.IsSuccess);
     Assert.Equal(70, result.Data);
 }
-
-[Test]
-public async Task Withdraw_WithInsufficientBalance_Fails()
-{
-    await client.CreateAccount("alice");
-    await client.Deposit("alice", 50);
-    
-    var result = await client.Withdraw("alice", 100);
-    
-    Assert.True(result.IsBadRequest);
-    
-    var balance = await client.GetBalance("alice");
-    Assert.Equal(50, balance.Data);  // unchanged
-}
-
-[Test]
-public async Task Withdraw_FromNonexistentAccount_ReturnsNotFound()
-{
-    var result = await client.Withdraw("bob", 50);
-    
-    Assert.True(result.IsNotFound);
-}
 ```
 
-This is the standard pattern. Each test tells a story: set up state, call a method, check the result.
+Now imagine thirty more — insufficient balance, nonexistent account, duplicate creates, deposits after deletes, different orderings. Each test carries its own assertions, but they're all expressing pieces of the same *contract*: the rules for how your system behaves. Those rules end up scattered across your test suite, repeated in slightly different forms.
 
-These are just three tests. You could write many more — deposits followed by withdrawals, operations on deleted accounts, the same account created twice. Different orderings, edge cases compounding. The space of possible sequences is large.
-
-What if you could validate *arbitrary* operation sequences automatically?
-
-Now notice something else. Look at those assertions — not the setup, the assertions.
-
-The first test says: withdraw with sufficient balance should succeed and return the new balance. The second: insufficient balance should fail and leave the balance unchanged. The third: nonexistent account returns not found.
-
-These are three pieces of the same *contract* — the rules for how Withdraw behaves. Even if you wrote dozens more tests by hand, you'd repeat these same rules through assertions, scattered across your test suite.
+What if you wrote them once?
 
 ---
 
 ## Extract the Contract
 
-What if you wrote those rules once, in one place?
-
-Here's what that looks like:
+Here's the complete contract for Withdraw, in one place:
 
 ```csharp
 spec.Operation<WithdrawRequest, WithdrawResponse>("Withdraw", (request, state) =>
@@ -85,11 +51,9 @@ spec.Operation<WithdrawRequest, WithdrawResponse>("Withdraw", (request, state) =
 });
 ```
 
-`spec.Operation<TRequest, TResponse>` registers an operation with the spec. The two generic parameters are the request type (`WithdrawRequest` — what the caller sends) and the response type (`WithdrawResponse` — what the system returns). The lambda receives the request and current state, and returns the *expected* outcome: a predicate on the response using `Expect.That(...)`, paired with the expected state transition — either `.SameState()` if the state doesn't change, or `.ThenState(...)` to describe how the state should update.
+`spec.Operation` registers an operation. The lambda receives the request and current state, and returns what the response should look like (`Expect.That(...)`) paired with how the state should change (`.SameState()` or `.ThenState(...)`). Read it as a truth table: account doesn't exist → not-found, state unchanged; insufficient balance → bad-request, state unchanged; otherwise → success with new balance, state updated.
 
-But what's the state? In a stateful system, you can't predict the response from the request alone. Call Withdraw with the same request twice — the first might succeed, the second might fail because the balance changed. You need to know what the system is tracking.
-
-For banking, that's just accounts and their balances:
+The state is whatever information you need to define what correct behavior means. For banking, that's just accounts and their balances:
 
 ```csharp
 [State]
@@ -99,9 +63,7 @@ public partial class BankState
 }
 ```
 
-The state captures the minimal structure needed to say what correct behavior means. Nothing more complex is required. We treat the system as a black box — we don't need to know whether data is stored in a database, files, a cache, or anything else.
-
-The spec doesn't query databases, route HTTP requests, or handle retries. It just encodes the semantics — what should happen, not how it's implemented.
+The `[State]` attribute triggers source generation for cloning and equality — you define the data structure, Accordant handles the rest. The state is intentionally simpler than the real implementation. We treat the system as a black box; we don't care whether data lives in SQL Server, Redis, or a flat file.
 
 → [See the full BankAccount spec](https://github.com/microsoft/accordant/tree/main/Samples/BankAccount)
 
@@ -109,132 +71,32 @@ The spec doesn't query databases, route HTTP requests, or handle retries. It jus
 
 ## What This Unlocks
 
-Once you have a spec — the semantics of your system encoded as executable code — a few things become possible.
-
-### The Spec as Oracle
-
-Remember the hand-written tests from earlier? Each one carried its own assertions — scattered pieces of the same contract. With a spec, you replace all of them with a single call: `spec.Allows(...)`.
-
-Look at how each test simplifies:
-
-**❌ Before** — each operation needs its own assertions:
+Provide a few sample inputs — some account IDs, some amounts:
 
 ```csharp
-var r1 = await client.CreateAccount("alice");
-Assert.True(r1.IsSuccess);
-
-var r2 = await client.Deposit("alice", 100);
-Assert.True(r2.IsSuccess);
-Assert.Equal(100, r2.Balance);
-
-var r3 = await client.Withdraw("alice", 30);
-Assert.True(r3.IsSuccess);
-Assert.Equal(70, r3.Balance);
-
-var r4 = await client.Withdraw("alice", 200);
-Assert.True(r4.IsBadRequest);
-```
-
-**✅ After** — the spec validates everything:
-
-```csharp
-var stateProfile = new StateProfile(new BankState());
-
-var r1 = await client.CreateAccount("alice");
-stateProfile = Check(createOp, new CreateAccountRequest("alice"), r1, stateProfile);
-
-var r2 = await client.Deposit("alice", 100);
-stateProfile = Check(depositOp, new DepositRequest("alice", 100), r2, stateProfile);
-
-var r3 = await client.Withdraw("alice", 30);
-stateProfile = Check(withdrawOp, new WithdrawRequest("alice", 30), r3, stateProfile);
-
-var r4 = await client.Withdraw("alice", 200);
-stateProfile = Check(withdrawOp, new WithdrawRequest("alice", 200), r4, stateProfile);
-```
-
-Every line is the same shape: `stateProfile = Check(op, request, response, stateProfile)`. No per-operation assertions — the spec already knows the rules for success, bad-request, and not-found. The `StateProfile` threads through, tracking the system's state after each operation.
-
-The `Check` helper wraps `spec.Allows`:
-
-```csharp
-StateProfile Check<TRequest, TResponse>(
-    Operation<TRequest, TResponse> op, TRequest request, TResponse response, StateProfile stateProfile)
-{
-    var (isValid, message, updatedStateProfile) = spec.Allows(op, request, response, stateProfile);
-    Assert.True(isValid, message);
-    return updatedStateProfile;
-}
-```
-
-`spec.Allows` takes four arguments: the **operation** handle (obtained via `spec.GetOperation<TRequest, TResponse>(name)`), the **request**, the **observed response** from the real system, and the **current state** (`StateProfile`). It returns `(bool IsValid, string Message, StateProfile UpdatedStateProfile)` — whether the response was valid, an explanation if not, and the updated state to carry forward to the next call.
-
-Now here's what makes this powerful: because `spec.Allows` validates *any* operation against *any* state, you can validate **arbitrary sequences** — deposit, then withdraw, then deposit again, then delete. No hand-written test could cover every ordering. But a loop calling `spec.Allows` after each step can validate sequences you never thought to write.
-
-### Automatic Test Generation
-
-If the spec can validate *any* response, you don't have to write every test by hand. You could hook up a fuzzer and generate random operation sequences:
-
-```csharp
-await ResetSystem();  // Start from known state
-var stateProfile = new StateProfile(new BankState());
-
-for (int i = 0; i < 100; i++)
-{
-    // Pick a random operation (CreateAccount, Deposit, etc.) with a random request
-    var (op, request) = PickRandomOperation(random);
-    var response = await CallRealSystem(op, request);
-    
-    var (isValid, message, nextStateProfile) = spec.Allows(op, request, response, stateProfile);
-    Assert.True(isValid, message);
-    
-    stateProfile = nextStateProfile;
-}
-```
-
-The spec doesn't care where the sequence came from — it just validates each response.
-
-Accordant does something more interesting. You provide sample inputs — a few account IDs, some amounts — and Accordant explores systematically.
-
-`spec.GetOperation<TRequest, TResponse>(name)` retrieves a typed operation handle by name — the generic parameters must match the request and response types used when registering it with `spec.Operation`. The `.With(request, label)` method pairs that operation with a specific request value, creating a labeled input for the test generator:
-
-```csharp
+// Operation handles obtained via spec.GetOperation<TRequest, TResponse>(name)
 var inputs = new InputSet
 {
-    spec.GetOperation<CreateAccountRequest, CreateAccountResponse>("CreateAccount")
-        .With(new CreateAccountRequest("alice"), "Create(alice)"),
-    spec.GetOperation<DepositRequest, DepositResponse>("Deposit")
-        .With(new DepositRequest("alice", 50m), "Deposit(alice, 50)"),
-    spec.GetOperation<DepositRequest, DepositResponse>("Deposit")
-        .With(new DepositRequest("alice", 100m), "Deposit(alice, 100)"),
-    spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw")
-        .With(new WithdrawRequest("alice", 30m), "Withdraw(alice, 30)"),
-    spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw")
-        .With(new WithdrawRequest("alice", 70m), "Withdraw(alice, 70)"),
-    spec.GetOperation<DeleteAccountRequest, DeleteAccountResponse>("DeleteAccount")
-        .With(new DeleteAccountRequest("alice"), "Delete(alice)"),
+    createAccount.With(new CreateAccountRequest("alice"), "Create(alice)"),
+    deposit.With(new DepositRequest("alice", 50m), "Deposit(alice, 50)"),
+    deposit.With(new DepositRequest("alice", 100m), "Deposit(alice, 100)"),
+    withdraw.With(new WithdrawRequest("alice", 30m), "Withdraw(alice, 30)"),
+    withdraw.With(new WithdrawRequest("alice", 70m), "Withdraw(alice, 70)"),
+    deleteAccount.With(new DeleteAccountRequest("alice"), "Delete(alice)"),
 };
-
-var testCases = TestCaseGenerator.GenerateSequentialTestCases(
-    context,
-    initialState: new BankState(),
-    inputs,
-    new TestGenerationOptions { MaxDepth = 5 });
 ```
 
-Because the spec defines what each operation does to state, Accordant can *simulate* the system — predicting what happens without running real code. Starting from an empty state, it tries every operation with every input. Operations that change the state produce new nodes (e.g., creating an account that doesn't exist); operations that don't change state loop back to the same node (e.g., depositing into a nonexistent account, or a read-only query). From each new node, it tries every operation again. The reachable states naturally unfold, and the graph captures how operations drive the system into deeper, more interesting states.
+Because the spec defines what each operation does to state, Accordant can *simulate* the system — predicting what happens without running real code. Starting from an empty state, it tries every operation with every input. Operations that change the state produce new nodes (e.g., creating an account that doesn't exist); operations that don't change state loop back to the same node (e.g., withdrawing from a nonexistent account). From each new node, it tries every operation again. The reachable states naturally unfold into a graph:
 
 ![State graph from BankAccount sample](images/bank-account-state-graph.png)
-
-*The `[s]`, `[u]`, `[p]` prefixes are unique identifiers assigned to each operation call — they let generated test cases reference specific calls in the graph. Self-loop edges represent operations that don't change the state (e.g., withdrawing from a nonexistent account).*
 
 Accordant then picks paths through this graph as test sequences:
 
 1. `Create(alice)` → `Deposit(alice, 100)` → `Withdraw(alice, 70)` ✓ balance now 30
-2. `Create(alice)` → `Deposit(alice, 50)` → `Withdraw(alice, 70)` ✗ insufficient funds (self-loop)
+2. `Create(alice)` → `Deposit(alice, 50)` → `Withdraw(alice, 70)` ✗ insufficient funds
 3. `Create(alice)` → `Deposit(alice, 50)` → `Delete(alice)` ✓ back to empty
 
-These aren't random — they're systematic walks designed to exercise different branches. Each sequence is then run against the real system, and the spec validates every response — checking that the real implementation matches the model.
+These aren't random — they're systematic walks designed to exercise different branches. Each sequence is run against the real system, and the spec validates every response along the way:
 
 ```
 Generated 31 test cases
@@ -242,9 +104,73 @@ Executed against BankAccount API
 Results: 31 passed, 0 failed
 ```
 
+From six sample inputs, Accordant generated thirty-one test cases that cover the reachable state space, with every response validated automatically.
+
 → [How Test Generation Works](concepts/how-test-generation-works.md)
 
-### And More
+### It's Not Just Auto-Generation
+
+The spec separates two concerns that traditional tests tangle together: **deciding what sequence to run** and **deciding whether the result is correct**. The spec handles the second part — it's an oracle. You bring whatever sequences you like.
+
+That means you can pair the oracle with any source of test sequences:
+
+- Hand-written scenarios that exercise specific edge cases
+- Accordant's built-in state-graph exploration (what we just saw)
+- Your own custom generation algorithms
+- A fuzzer producing random operation streams
+- Sequences replayed from production logs
+
+In all cases, validation is the same single call:
+
+```csharp
+var (isValid, message, nextState) = spec.Allows(operation, request, response, currentState);
+```
+
+This also improves your existing hand-written tests. Compare — today each test carries bespoke assertions that duplicate business logic:
+
+```csharp
+var r1 = await client.CreateAccount("alice");
+Assert.True(r1.IsSuccess);
+
+var r2 = await client.Deposit("alice", 100);
+Assert.True(r2.IsSuccess);
+Assert.Equal(100, r2.Balance);         // ← business rule repeated here
+
+var r3 = await client.Withdraw("alice", 30);
+Assert.True(r3.IsSuccess);
+Assert.Equal(70, r3.Balance);          // ← and here
+```
+
+With the spec as oracle, the same test becomes:
+
+```csharp
+var r1 = await client.CreateAccount("alice");
+spec.Validate(createOp, request1, r1);  // ← one call, all rules checked
+
+var r2 = await client.Deposit("alice", 100);
+spec.Validate(depositOp, request2, r2); // ← same call, same rules
+
+var r3 = await client.Withdraw("alice", 30);
+spec.Validate(withdrawOp, request3, r3); // ← same call, same rules
+```
+
+The test is now *just a sequence* — it says what operations to run, and the spec says whether the responses are correct. When the contract changes, you update the spec once and every test that uses it automatically validates against the new rules.
+
+→ [Conformance Testing](concepts/conformance-testing.md)
+
+---
+
+## Why This Matters
+
+**Reviewable** — Business rules live in one place: 60 lines of clear logic rather than scattered across hundreds of assertions. Reviewing a spec change is easier than reviewing changes to dozens of test files — you see the rule, not the repetition.
+
+**Confidence through change** — Refactor the implementation freely. When requirements change, update the spec and test generation adapts automatically. No hunting through test files to find every assumption that needs updating.
+
+**Natural fit with AI** — A spec lets you precisely state what you want and mechanically verify that you got it — through automatically generated test cases that check the implementation against your intent. AI can help write the spec, and the spec provides strong guardrails when AI generates the implementation.
+
+---
+
+## And More
 
 The same spec enables other kinds of testing:
 
@@ -253,16 +179,6 @@ The same spec enables other kinds of testing:
 - **Indefinite failures** — A socket timeout is ambiguous: maybe the request never reached the server, or maybe it did but you never heard the response. Specs can encode this non-determinism — the operation either happened or didn't. Combined with deterministic simulation (injecting controlled failures), you can test retry logic, idempotency, and recovery paths. → [Modeling Indefinite Failures](how-to/indefinite-failures.md)
 
 - **Async workflows** — Model multi-step processes, background jobs, polling for completion. The spec tracks pending work and expected completions. → [Step Functions & Async](concepts/step-functions-and-async.md)
-
-## Spec-Driven Development
-
-Once you have a spec, it changes how you develop, review, and evolve your system.
-
-**Reviewable** — Business rules live in one place: 60 lines of clear logic rather than scattered across hundreds of assertions. Reviewing a spec change is easier than reviewing changes to dozens of test files — you see the rule, not the repetition.
-
-**Confidence through change** — Refactor the implementation freely. When requirements change, update the spec and test generation adapts automatically. No hunting through test files to find every assumption that needs updating.
-
-**Natural fit with AI** — A spec lets you precisely state what you want and mechanically verify that you got it — through automatically generated test cases that check the implementation against your intent. AI can help write the spec, and the spec provides strong guardrails when AI generates the implementation.
 
 ---
 
