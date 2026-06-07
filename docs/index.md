@@ -197,6 +197,9 @@ dotnet add package Microsoft.Accordant
 
 ### Learning Paths
 
+**Want an AI assistant to guide you?**
+Point your AI coding agent (Copilot, Cursor, Claude Code, etc.) at [`agent/INSTALL.md`](https://github.com/microsoft/accordant/blob/main/agent/INSTALL.md) and it will walk you through setup and your first spec — interactively, using your actual project and domain.
+
 **Just want to see it work?**
 Clone the repo and run the BankAccount sample:
 ```bash
