@@ -242,9 +242,76 @@ public class BankAccountTests
         });
 
         // Report results
+        var logPath = results.FirstOrDefault()?.LogFilePath;
         TestContext.WriteLine($"Generated and ran {results.Count} test cases");
+        if (logPath != null)
+        {
+            TestContext.WriteLine($"Detailed test logs: {logPath}");
+            TestContext.WriteLine($"  Open test-runner.txt in that folder to see step-by-step execution details.");
+        }
         Assert.That(results.All(r => r.Success), Is.True,
             $"Failed: {results.FirstOrDefault(r => !r.Success)?.LastFailureMessage}");
+    }
+
+    // ============================================================
+    // Hand-written tests using the spec as oracle
+    // ============================================================
+    // 
+    // You don't have to rely only on auto-generated tests.
+    // Write targeted scenarios — the spec validates every response.
+    // A local Check() helper keeps it concise.
+    // ============================================================
+
+    [Test]
+    public async Task HandWrittenScenarios()
+    {
+        var spec = CreateSpec();
+        var httpClient = _factory.CreateClient();
+        var client = new BankApiClient(httpClient);
+
+        // Clean up any leftover state from other tests
+        foreach (var id in new[] { "alice", "bob", "carol", "ghost" })
+            await client.DeleteAccount(id);
+
+        var createOp = spec.GetOperation<CreateAccountRequest, CreateAccountResponse>("CreateAccount");
+        var depositOp = spec.GetOperation<DepositRequest, DepositResponse>("Deposit");
+        var withdrawOp = spec.GetOperation<WithdrawRequest, WithdrawResponse>("Withdraw");
+        var getBalanceOp = spec.GetOperation<GetBalanceRequest, GetBalanceResponse>("GetBalance");
+        var deleteOp = spec.GetOperation<DeleteAccountRequest, DeleteAccountResponse>("DeleteAccount");
+
+        // Helper: validate response against spec, advance state profile
+        var sp = new StateProfile(new BankState());
+        void Check<TReq, TResp>(Operation<TReq, TResp, BankState> op, TReq request, object response)
+        {
+            var (isValid, message, next) = spec.Allows(op, request, response, sp);
+            Assert.That(isValid, Is.True, message);
+            sp = next;
+        }
+
+        // --- Scenario 1: Full lifecycle (create → deposit → withdraw → check → delete → verify gone) ---
+        Check(createOp, new CreateAccountRequest("alice"), await client.CreateAccount("alice"));
+        Check(depositOp, new DepositRequest("alice", 200m), await client.Deposit("alice", 200m));
+        Check(withdrawOp, new WithdrawRequest("alice", 75m), await client.Withdraw("alice", 75m));
+        Check(getBalanceOp, new GetBalanceRequest("alice"), await client.GetBalance("alice"));
+        Check(deleteOp, new DeleteAccountRequest("alice"), await client.DeleteAccount("alice"));
+        Check(getBalanceOp, new GetBalanceRequest("alice"), await client.GetBalance("alice")); // 404
+
+        // --- Scenario 2: Insufficient funds rejected ---
+        Check(createOp, new CreateAccountRequest("bob"), await client.CreateAccount("bob"));
+        Check(depositOp, new DepositRequest("bob", 50m), await client.Deposit("bob", 50m));
+        Check(withdrawOp, new WithdrawRequest("bob", 100m), await client.Withdraw("bob", 100m)); // 400
+        Check(deleteOp, new DeleteAccountRequest("bob"), await client.DeleteAccount("bob"));
+
+        // --- Scenario 3: Duplicate create returns 409 ---
+        Check(createOp, new CreateAccountRequest("carol"), await client.CreateAccount("carol"));
+        Check(createOp, new CreateAccountRequest("carol"), await client.CreateAccount("carol")); // 409
+        Check(deleteOp, new DeleteAccountRequest("carol"), await client.DeleteAccount("carol"));
+
+        // --- Scenario 4: All operations on nonexistent account return 404 ---
+        Check(getBalanceOp, new GetBalanceRequest("ghost"), await client.GetBalance("ghost"));
+        Check(depositOp, new DepositRequest("ghost", 100m), await client.Deposit("ghost", 100m));
+        Check(withdrawOp, new WithdrawRequest("ghost", 50m), await client.Withdraw("ghost", 50m));
+        Check(deleteOp, new DeleteAccountRequest("ghost"), await client.DeleteAccount("ghost"));
     }
 
     // ============================================================
