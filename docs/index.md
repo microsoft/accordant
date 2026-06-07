@@ -230,9 +230,9 @@ Because the spec defines what each operation does to state, Accordant can *simul
 
 Accordant then picks paths through this graph as test sequences:
 
-1. `Create(alice)` → `Deposit(alice, 100)` → `Withdraw(alice, 30)` → `Withdraw(alice, 70)` ✓ balance now 0
-2. `Create(alice)` → `Deposit(alice, 50)` → `Withdraw(alice, 70)` ✗ insufficient funds
-3. `Create(alice)` → `Deposit(alice, 50)` → `Delete(alice)` → `Withdraw(alice, 30)` ✗ account not found
+1. `Create(alice)` → `Deposit(alice, 100)` → `Withdraw(alice, 70)` ✓ balance now 30
+2. `Create(alice)` → `Deposit(alice, 50)` → `Withdraw(alice, 70)` ✗ insufficient funds (self-loop)
+3. `Create(alice)` → `Deposit(alice, 50)` → `Delete(alice)` ✓ back to empty
 
 These aren't random — they're systematic walks designed to exercise different branches. Each sequence is then run against the real system, and the spec validates every response — checking that the real implementation matches the model.
 
@@ -256,13 +256,13 @@ The same spec enables other kinds of testing:
 
 ## Spec-Driven Development
 
-The spec becomes the source of truth for how your system should behave.
+Once you have a spec, it changes how you develop, review, and evolve your system.
 
-**Reviewable and self-documenting** — Business rules live in one place: 60 lines of clear logic, not 600 lines of scattered assertions. A product manager can read the spec and say "yes, that's what we want." And unlike markdown docs, the spec is always up to date — if it doesn't match reality, tests fail.
+**Reviewable** — Business rules live in one place: 60 lines of clear logic rather than scattered across hundreds of assertions. Reviewing a spec change is easier than reviewing changes to dozens of test files — you see the rule, not the repetition.
 
 **Confidence through change** — Refactor the implementation freely. When requirements change, update the spec and test generation adapts automatically. No hunting through test files to find every assumption that needs updating.
 
-**AI-assisted development** — This pairs exceptionally well with AI coding assistants. You write the spec — the contract, the thing that matters. AI implements the mechanics: database layer, HTTP endpoints, retry policies, logging. The spec validates the result. You review 60 lines of spec logic, not 2000 lines of generated code. Run the tests — if the spec accepts every response, the implementation is correct.
+**Natural fit with AI** — A spec lets you precisely state what you want and mechanically verify that you got it — through automatically generated test cases that check the implementation against your intent. AI can help write the spec, and the spec provides strong guardrails when AI generates the implementation.
 
 ---
 
