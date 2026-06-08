@@ -121,7 +121,7 @@ public partial class BankState
 The `[State]` attribute triggers a **source generator** that handles all of the above automatically. You just define your data as properties, and it generates:
 
 - **Deep cloning** — each property is cloned according to its type (deep copy for collections and nested `[State]` objects, value copy for primitives)
-- **Efficient hashing** — field values are hashed directly using XxHash64, without allocating intermediate strings
+- **Efficient hashing** — field values are hashed directly using XxHash64
 - **Freeze propagation** — nested `[State]` objects and collections are recursively frozen
 - **String representation** — a deterministic text form for debugging and diagnostics
 
