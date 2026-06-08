@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
     
     <!-- NuGet Package Defaults -->
     <Version>0.1.5</Version>

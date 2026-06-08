@@ -4,12 +4,10 @@
 namespace Microsoft.Accordant.Operations.Tests
 {
     using System;
-    using Microsoft.Accordant;
     using System.Collections.Generic;
-    using Microsoft.Accordant;
     using System.Linq;
     using Microsoft.Accordant;
-        using NUnit.Framework;
+    using NUnit.Framework;
 
     /// <summary>
     /// Tests for the Expect fluent API.
