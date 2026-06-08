@@ -1,13 +1,6 @@
-# {{ProjectName}}
+# Accordant
 
-This project uses [Accordant](https://github.com/microsoft/accordant) for model-based testing.
-
-<!-- This file was generated from the Accordant agent setup. -->
-<!-- The canonical source is: https://github.com/microsoft/accordant/blob/main/agent/AGENTS.md -->
-
-## accordant
-
-Specs define what the system should do; Accordant generates tests and validates responses automatically.
+This project uses [Accordant](https://github.com/microsoft/accordant) — a model-based testing framework for .NET. Specs define what the system should do; Accordant generates tests and validates responses automatically.
 
 ## Skills
 
@@ -24,8 +17,6 @@ When the user asks about Accordant, read the relevant skill before answering:
 | HTTP integration, response-dependent state, common patterns | `patterns/SKILL.md` |
 | Tests failing, debugging, common mistakes | `troubleshooting/SKILL.md` |
 | Quick syntax lookup | `quickref/SKILL.md` |
-
-Skills are installed at `{{SkillsPath}}`.
 
 ## Style
 

@@ -43,23 +43,23 @@ Simpler state has real benefits:
 
 ---
 
-## Immutability and the ThenState Pattern
+## State Transitions and the ThenState Pattern
 
-In Accordant, operations don't modify state directly. Instead, they return **expected outcomes** that describe both what the response should look like and what the next state should be.
+In Accordant, operations don't modify the current state directly. Instead, they return **expected outcomes** that describe both what the response should look like and what the next state should be.
 
 Here's a complete operation:
 
 ```csharp
-spec.Operation<string, ApiResult<decimal>>("CreateAccount", (accountId, state) =>
+spec.Operation<CreateAccountRequest, CreateAccountResponse>("CreateAccount", (request, state) =>
 {
-    if (state.Accounts.ContainsKey(accountId))
+    if (state.Accounts.ContainsKey(request.AccountId))
     {
-        return Expect.That<ApiResult<decimal>>(r => r.IsConflict)
+        return Expect.That<CreateAccountResponse>(r => r.IsConflict)
                      .SameState();
     }
 
-    return Expect.That<ApiResult<decimal>>(r => r.IsSuccess && r.Data == 0)
-                 .ThenState<BankState>(nextState => nextState.Accounts[accountId] = 0);
+    return Expect.That<CreateAccountResponse>(r => r.IsSuccess && r.Balance == 0)
+                 .ThenState<BankState>(nextState => nextState.Accounts[request.AccountId] = 0);
 });
 ```
 
@@ -69,7 +69,9 @@ Two patterns appear here:
 
 - **`.ThenState(nextState => ...)`** means the operation transitions to a new state. The lambda receives a cloned copy of the current state, which you can modify to describe the next state.
 
-This keeps the original state untouched. You're not mutating anything — you're describing a transition.
+The original state stays untouched — you're describing a transition on a clone, not mutating the pre-operation state.
+
+Under the hood, state objects follow a **create → modify → freeze** lifecycle. When first created (or cloned), a state object is mutable — you can set properties freely. Once the framework is done with setup, it freezes the state, after which it's treated as immutable. The only way forward from a frozen state is to clone it, producing a fresh mutable copy.
 
 ---
 
@@ -99,11 +101,10 @@ The `objectMap` lets you translate references from the original object graph to 
 
 Under the hood, Accordant needs to do several things with state objects:
 
+- **Clone them** — to create fresh copies for `.ThenState(...)` transitions
 - **Hash them** — to detect whether we've visited this state before during exploration
-- **Compare them for equality** — to deduplicate equivalent states
-- **Clone them** — to create the immutable copies that make `.ThenState(...)` work
-
-All of this is driven by the **string representation** of the state. Two states with the same string representation are considered identical. This is how Accordant knows it's already explored a particular state and doesn't need to explore it again.
+- **Compare them** — to deduplicate equivalent states
+- **Freeze them** — to lock state after setup, preventing accidental mutation
 
 ### Using [State]
 
@@ -117,15 +118,20 @@ public partial class BankState
 }
 ```
 
-The `[State]` attribute triggers source generation that handles cloning, equality, and hashing automatically. You just define your data as properties, and it all works.
+The `[State]` attribute triggers a **source generator** that handles all of the above automatically. You just define your data as properties, and it generates:
 
-The key requirement is simple: **distinct logical states must produce distinct JSON strings.** Just use plain data properties and you're good.
+- **Deep cloning** — each property is cloned according to its type (deep copy for collections and nested `[State]` objects, value copy for primitives)
+- **Efficient hashing** — field values are hashed directly using XxHash64
+- **Freeze propagation** — nested `[State]` objects and collections are recursively frozen
+- **String representation** — a deterministic text form for debugging and diagnostics
 
-**A note on dictionaries:** Dictionary keys are sorted during serialization to ensure the same logical state always produces the same JSON string. Supported key types are `string`, `int`, `long`, and `Guid`.
+Two states with the same property values will produce the same hash. This is how Accordant knows it's already explored a particular state and doesn't need to explore it again.
+
+**A note on dictionaries:** Dictionary keys are sorted during hashing and serialization to ensure the same logical state always produces the same result regardless of insertion order. Supported key types are `string`, `int`, `long`, and `Guid`.
 
 ### Large Values and [SharedState]
 
-Sometimes state includes large values — like binary image data — where full serialization and deep cloning would be expensive. For these cases, you can use `[SharedState]`:
+Sometimes state includes large values — like binary image data — where full deep cloning and hashing would be expensive. For these cases, you can use `[SharedState]`:
 
 ```csharp
 [State]
@@ -136,7 +142,7 @@ public partial class ImageState
     [SharedState(nameof(ContentFingerprint))]
     public List<byte> Content { get; set; }
     
-    // Fingerprint used for equality/hashing instead of serializing the whole list
+    // Fingerprint used for hashing instead of processing the whole list
     public string ContentFingerprint => Content == null 
         ? null 
         : Convert.ToHexString(Content.ToArray());
@@ -145,11 +151,11 @@ public partial class ImageState
 
 The `[SharedState]` attribute tells Accordant to:
 - **Shallow copy** the property during cloning (reference preservation)
-- Use the specified **fingerprint property** for equality and hashing instead of serializing the full value
+- Use the specified **fingerprint property** for hashing instead of processing the full value
 
 **Important:** Since the value is shared by reference across clones, you must treat it as immutable — never modify it after it's set. If you need to change the value, create a new one.
 
-This keeps cloning fast while still correctly detecting distinct states.
+This keeps cloning and hashing fast while still correctly detecting distinct states.
 
 ---
 

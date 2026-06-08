@@ -585,7 +585,8 @@ namespace Microsoft.Accordant
                             stateProfile,
                             pollingOperation,
                             pollingSetup,
-                            stepFunctionsAfter);
+                            stepFunctionsAfter,
+                            options);
 
                         if (!success)
                         {
@@ -1170,10 +1171,19 @@ namespace Microsoft.Accordant
             StateProfile stateProfile,
             OperationInput pollingOperationInput,
             PollingSetup pollingSetup,
-            HashSet<TerminatingStepFunction> stepFunctionsToPollFor)
+            HashSet<TerminatingStepFunction> stepFunctionsToPollFor,
+            TestExecutionOptions options)
         {
-            // Create a minimal options object for polling (no retry, no step executed hook during polling)
-            var pollingOptions = new TestExecutionOptions();
+            // Create a minimal options object for polling.
+            // We forward the OnStepExecuted hook so callers have visibility into poll
+            // request/response pairs, but we explicitly exclude ShouldRetry to avoid
+            // nested retries — polling already has its own retry loop (MaxRetryCount).
+            var pollingOptions = new TestExecutionOptions
+            {
+                OnStepExecuted = options.OnStepExecuted,
+                OnStepExecutedAsync = options.OnStepExecutedAsync,
+                ShouldRetry = null
+            };
 
             for (int retryCount = 0; retryCount < pollingSetup.MaxRetryCount; retryCount++)
             {

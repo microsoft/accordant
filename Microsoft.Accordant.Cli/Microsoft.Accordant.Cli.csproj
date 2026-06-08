@@ -19,9 +19,10 @@
   <!-- Embed templates and skills as resources -->
   <ItemGroup>
     <EmbeddedResource Include="Templates\**\*" />
-    <EmbeddedResource Include="Skills\**\*" />
+    <!-- Skills now live in agent/skills/ at repo root; link them as embedded resources -->
+    <EmbeddedResource Include="..\agent\skills\**\*" Link="Skills\%(RecursiveDir)%(Filename)%(Extension)" />
     <!-- Exclude skill examples from compilation (they're just for reference) -->
-    <Compile Remove="Skills\**\*.cs" />
+    <Compile Remove="..\agent\skills\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>

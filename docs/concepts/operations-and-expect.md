@@ -11,7 +11,7 @@ An **operation** represents a single, atomic action your system can perform — 
 Every operation has a name, a typed request, and a typed response. The key design decision: *specification* and *execution* are separate.
 
 ```csharp
-spec.Operation<(string AccountId, decimal Amount), ApiResult<decimal>>("Withdraw", 
+spec.Operation<WithdrawRequest, WithdrawResponse>("Withdraw", 
     (request, state) => { ... })   // Apply: what SHOULD happen
     .WithExecution(async (request, ctx) => { ... });  // Execute: what ACTUALLY happens
 ```
@@ -31,16 +31,16 @@ The Apply method receives the request and current state, and returns what Accord
 Here's a deposit operation:
 
 ```csharp
-spec.Operation<(string AccountId, decimal Amount), ApiResult<decimal>>("Deposit", (request, state) =>
+spec.Operation<DepositRequest, DepositResponse>("Deposit", (request, state) =>
 {
     if (!state.Accounts.ContainsKey(request.AccountId))
     {
-        return Expect.That<ApiResult<decimal>>(r => r.IsNotFound)
+        return Expect.That<DepositResponse>(r => r.IsNotFound)
                .SameState();
     }
 
     var newBalance = state.Accounts[request.AccountId] + request.Amount;
-    return Expect.That<ApiResult<decimal>>(r => r.IsSuccess && r.Data == newBalance)
+    return Expect.That<DepositResponse>(r => r.IsSuccess && r.Balance == newBalance)
            .ThenState<BankState>(nextState => nextState.Accounts[request.AccountId] = newBalance);
 });
 ```
@@ -212,9 +212,9 @@ Apply says what *should* happen. ExecuteAsync makes it *actually* happen.
 For simpler specs, you can define everything inline:
 
 ```csharp
-spec.Operation<string, decimal>("GetBalance", (accountId, state) => { ... })
-    .WithExecution(async (accountId, ctx) => 
-        await ctx.Get<BankClient>().GetBalanceAsync(accountId));
+spec.Operation<GetBalanceRequest, GetBalanceResponse>("GetBalance", (request, state) => { ... })
+    .WithExecution(async (request, ctx) => 
+        await ctx.Get<BankClient>().GetBalanceAsync(request.AccountId));
 ```
 
 Same separation, more compact syntax.
@@ -246,26 +246,26 @@ Or maybe the server processed your request successfully, but the response got lo
 From your perspective as the client, **both states are possible**. You can't tell which until you check. A good spec expresses this uncertainty:
 
 ```csharp
-spec.Operation<string, ApiResult<decimal>>("CreateAccount", (accountId, state) =>
+spec.Operation<CreateAccountRequest, CreateAccountResponse>("CreateAccount", (request, state) =>
 {
-    if (state.Accounts.ContainsKey(accountId))
+    if (state.Accounts.ContainsKey(request.AccountId))
     {
-        return Expect.That<ApiResult<decimal>>(r => r.IsConflict)
+        return Expect.That<CreateAccountResponse>(r => r.IsConflict)
                .SameState();
     }
 
     return Expect.OneOf(
         // Success: account created
-        Expect.That<ApiResult<decimal>>(r => r.IsSuccess && r.Data == 0)
-              .ThenState<BankState>(nextState => nextState.Accounts[accountId] = 0),
+        Expect.That<CreateAccountResponse>(r => r.IsSuccess && r.Balance == 0)
+              .ThenState<BankState>(nextState => nextState.Accounts[request.AccountId] = 0),
               
         // Timeout case 1: request never reached server
-        Expect.That<ApiResult<decimal>>(r => r.IsTimeout)
+        Expect.That<CreateAccountResponse>(r => r.IsTimeout)
               .SameState(),
               
         // Timeout case 2: server processed it, but response was lost
-        Expect.That<ApiResult<decimal>>(r => r.IsTimeout)
-              .ThenState<BankState>(nextState => nextState.Accounts[accountId] = 0)
+        Expect.That<CreateAccountResponse>(r => r.IsTimeout)
+              .ThenState<BankState>(nextState => nextState.Accounts[request.AccountId] = 0)
     );
 });
 ```

@@ -64,22 +64,22 @@ public partial class BankState
 }
 
 // The model for Withdraw
-spec.Operation<(string AccountId, decimal Amount), ApiResult<decimal>>("Withdraw", (request, state) =>
+spec.Operation<WithdrawRequest, WithdrawResponse>("Withdraw", (request, state) =>
 {
     if (!state.Accounts.TryGetValue(request.AccountId, out var balance))
     {
-        return Expect.That<ApiResult<decimal>>(r => r.IsNotFound)
+        return Expect.That<WithdrawResponse>(r => r.IsNotFound)
                      .SameState();
     }
 
     if (balance < request.Amount)
     {
-        return Expect.That<ApiResult<decimal>>(r => r.IsBadRequest)
+        return Expect.That<WithdrawResponse>(r => r.IsBadRequest)
                      .SameState();
     }
 
     var newBalance = balance - request.Amount;
-    return Expect.That<ApiResult<decimal>>(r => r.IsSuccess && r.Data == newBalance)
+    return Expect.That<WithdrawResponse>(r => r.IsSuccess && r.Balance == newBalance)
                  .ThenState<BankState>(s => s.Accounts[request.AccountId] = newBalance);
 });
 ```

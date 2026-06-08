@@ -21,7 +21,7 @@ public partial class BankState
 }
 
 // Define an operation
-spec.Operation<WithdrawRequest, ApiResult<decimal>>("Withdraw", (request, state) =>
+spec.Operation<WithdrawRequest, WithdrawResponse>("Withdraw", (request, state) =>
 {
     if (!state.Accounts.TryGetValue(request.AccountId, out var balance))
         return Expect.That(r => r.IsNotFound).SameState();
@@ -30,7 +30,7 @@ spec.Operation<WithdrawRequest, ApiResult<decimal>>("Withdraw", (request, state)
         return Expect.That(r => r.IsBadRequest).SameState();
 
     var newBalance = balance - request.Amount;
-    return Expect.That(r => r.IsSuccess && r.Data == newBalance)
+    return Expect.That(r => r.IsSuccess && r.Balance == newBalance)
                  .ThenState<BankState>(s => s.Accounts[request.AccountId] = newBalance);
 });
 ```

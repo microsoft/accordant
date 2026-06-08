@@ -26,9 +26,7 @@ Here's an actual state graph generated from the BankAccount sample:
 
 ![State graph from BankAccount sample](../images/bank-account-state-graph.png)
 
-*Note: Loop-back edges (e.g., calling Deposit on a non-existent account returns to the same state) are omitted to reduce visual clutter.*
-
-Each node is a state (the set of accounts and balances), and each edge is an operation that transitions to a new state. Paths through this graph become test cases.
+Each node is a state (the set of accounts and balances), and each edge is an operation that transitions to a new state. Self-loop edges represent operations that don't change the state (e.g., withdrawing from a nonexistent account). Paths through this graph become test cases.
 
 ---
 
