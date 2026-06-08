@@ -2175,5 +2175,62 @@ namespace Microsoft.Accordant.Operations.Tests
         }
 
         #endregion
+
+        /// <summary>
+        /// Test that OnStepExecuted hook is invoked during polling operations.
+        /// When an async operation triggers polling, each poll call should fire the hook
+        /// so callers have visibility into poll request/response pairs.
+        /// </summary>
+        [Test]
+        public async Task OnStepExecutedHook_CalledDuringPolling()
+        {
+            var spec = new AsyncOperationSpec();
+            var initialState = new AsyncOperationState { Status = "none" };
+
+            var inputSet = new InputSet()
+            {
+                new OperationInput("StartAsync", spec["StartAsync"]),
+            };
+
+            // Create a test case that just calls StartAsync (which triggers polling via GetStatus)
+            var testCase = TestCaseGenerator.CreateManualSequentialTestCase(
+                spec.CreateTestingContext(),
+                inputSet,
+                "StartAsync");
+
+            var context = spec.CreateTestingContext();
+
+            var stepExecutedCalls = new List<StepExecutedInfo>();
+
+            var results = await spec.RunTests(
+                context,
+                initialState,
+                new[] { testCase },
+                new TestExecutionOptions
+                {
+                    BeforeEach = _ => context.Register(new AsyncWorkTarget()),
+                    OnStepExecuted = (info) =>
+                    {
+                        stepExecutedCalls.Add(info);
+                    }
+                });
+
+            Assert.IsTrue(results.All(r => r.Success), "Test should pass");
+
+            // We expect at least 2 calls: one for StartAsync itself, and at least one for a poll (GetStatus)
+            Assert.IsTrue(stepExecutedCalls.Count >= 2,
+                $"Expected at least 2 OnStepExecuted calls (1 for StartAsync + at least 1 poll), " +
+                $"but got {stepExecutedCalls.Count}");
+
+            // First call should be StartAsync
+            Assert.AreEqual("StartAsync", stepExecutedCalls[0].Operation.Name);
+
+            // Subsequent calls should be GetStatus (polling)
+            for (int i = 1; i < stepExecutedCalls.Count; i++)
+            {
+                Assert.AreEqual("GetStatus", stepExecutedCalls[i].Operation.Name,
+                    $"Call {i} should be a GetStatus poll operation");
+            }
+        }
     }
 }

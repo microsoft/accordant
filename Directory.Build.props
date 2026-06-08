@@ -4,7 +4,7 @@
     <NoWarn>CS1591</NoWarn>
     
     <!-- NuGet Package Defaults -->
-    <Version>0.1.5</Version>
+    <Version>0.1.6</Version>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
     <Copyright>Copyright (c) 2024-2026 Microsoft Corporation</Copyright>
