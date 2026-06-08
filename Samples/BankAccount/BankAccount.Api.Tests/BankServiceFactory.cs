@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using BankAccount.Api.Data;
 
 /// <summary>
@@ -33,6 +34,11 @@ public class BankServiceFactory : WebApplicationFactory<BankAccount.Api.Program>
             // Add InMemory database with a unique name
             services.AddDbContext<BankDbContext>(options =>
                 options.UseInMemoryDatabase(_databaseName));
+        });
+
+        builder.ConfigureLogging(logging =>
+        {
+            logging.SetMinimumLevel(LogLevel.Warning);
         });
 
         builder.UseEnvironment("Testing");
