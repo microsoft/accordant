@@ -375,24 +375,6 @@ public class BankAccountTests
         TestContext.WriteLine("Convert to PNG: dot -Tpng bank-account-state-graph.dot -o bank-account-state-graph.png");
         TestContext.WriteLine();
 
-        // Also generate test cases to count them
-        var context = spec.CreateTestingContext();
-        var testCases = TestCaseGenerator.GenerateSequentialTestCases(
-            context,
-            initialState,
-            inputs,
-            new TestGenerationOptions { MaxDepth = 5 });
-
-        TestContext.WriteLine($"Generated {testCases.Count} test cases");
-        TestContext.WriteLine();
-        
-        // Show all test cases
-        foreach (var tc in testCases)
-        {
-            var sequence = string.Join(" → ", tc.OperationCalls.Select(op => op.Name));
-            TestContext.WriteLine($"  {sequence}");
-        }
-
         Assert.IsNotEmpty(dot);
     }
 }
