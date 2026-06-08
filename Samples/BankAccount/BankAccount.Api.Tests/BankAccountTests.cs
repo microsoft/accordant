@@ -248,8 +248,9 @@ public class BankAccountTests
         var logPath = results.FirstOrDefault()?.LogFilePath;
         TestContext.WriteLine($"Generated and ran {results.Count} test cases");
         
-        // Show a few example sequences
-        foreach (var tc in testCases.Take(7))
+        // Show a few example sequences (longest first)
+        var sampleCases = testCases.OrderByDescending(tc => tc.OperationCalls.Count).Take(7);
+        foreach (var tc in sampleCases)
         {
             var sequence = string.Join(" → ", tc.OperationCalls.Select(op => op.Name));
             TestContext.WriteLine($"  {sequence}");
