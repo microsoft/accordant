@@ -249,14 +249,14 @@ public class BankAccountTests
         TestContext.WriteLine($"Generated and ran {results.Count} test cases");
         
         // Show a few example sequences (longest first)
-        var sampleCases = testCases.OrderByDescending(tc => tc.OperationCalls.Count).Take(7);
+        var sampleCases = testCases.OrderByDescending(tc => tc.OperationCalls.Count).Take(10);
         foreach (var tc in sampleCases)
         {
             var sequence = string.Join(" → ", tc.OperationCalls.Select(op => op.Name));
             TestContext.WriteLine($"  {sequence}");
         }
-        if (testCases.Count > 7)
-            TestContext.WriteLine($"  ... and {testCases.Count - 7} more");
+        if (testCases.Count > 10)
+            TestContext.WriteLine($"  ... and {testCases.Count - 10} more");
 
         if (logPath != null)
         {
