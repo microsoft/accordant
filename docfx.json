@@ -5,7 +5,7 @@
       "src": [
         {
           "files": ["**/*.csproj"],
-          "exclude": ["**/bin/**", "**/obj/**", "Tests/**", "Samples/**"],
+          "exclude": ["**/bin/**", "**/obj/**", "Tests/**", "Samples/**", "agent/**"],
           "src": "."
         }
       ],
