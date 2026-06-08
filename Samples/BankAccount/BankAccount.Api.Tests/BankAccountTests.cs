@@ -386,9 +386,10 @@ public class BankAccountTests
             });
 
         // Write to file
-        File.WriteAllText("bank-account-state-graph.dot", dot);
+        var dotPath = Path.GetFullPath("bank-account-state-graph.dot");
+        File.WriteAllText(dotPath, dot);
         
-        TestContext.WriteLine("State graph written to: bank-account-state-graph.dot");
+        TestContext.WriteLine($"State graph written to: {dotPath}");
         TestContext.WriteLine("Convert to PNG: dot -Tpng bank-account-state-graph.dot -o bank-account-state-graph.png");
         TestContext.WriteLine();
 
