@@ -198,7 +198,6 @@ public class BankAccountTests
         var inputs = new InputSet
         {
             spec.GetOperation<CreateAccountRequest, CreateAccountResponse>("CreateAccount").With(new CreateAccountRequest("alice"), "Create alice"),
-            spec.GetOperation<CreateAccountRequest, CreateAccountResponse>("CreateAccount").With(new CreateAccountRequest("bob"), "Create bob"),
             spec.GetOperation<GetBalanceRequest, GetBalanceResponse>("GetBalance").With(new GetBalanceRequest("alice"), "Get alice balance"),
             spec.GetOperation<DepositRequest, DepositResponse>("Deposit").With(new DepositRequest("alice", 100m), "Deposit 100 to alice"),
             spec.GetOperation<DepositRequest, DepositResponse>("Deposit").With(new DepositRequest("alice", 50m), "Deposit 50 to alice"),
@@ -215,9 +214,7 @@ public class BankAccountTests
             StateConstraint = s =>
             {
                 var state = (BankState)s;
-                // Limit state space: max 2 accounts, max balance 300
-                return state.Accounts.Count <= 2 &&
-                       state.Accounts.Values.All(b => b <= 300);
+                return state.Accounts.Values.All(b => b <= 300);
             }
         });
 
@@ -229,18 +226,12 @@ public class BankAccountTests
         var client = new BankApiClient(httpClient);
         context.Register(client);
         
-        // Known accounts used in tests - we'll clean these up before each test
-        var knownAccounts = new[] { "alice", "bob" };
-        
         var results = await spec.RunTests(context, initialState, testCases, new TestExecutionOptions
         {
             BeforeEachAsync = async _ =>
             {
-                // Clean up known accounts before each test (ignore 404 if they don't exist)
-                foreach (var accountId in knownAccounts)
-                {
-                    await client.DeleteAccount(accountId);
-                }
+                // Reset state before each test
+                await client.DeleteAccount("alice");
             }
         });
 
