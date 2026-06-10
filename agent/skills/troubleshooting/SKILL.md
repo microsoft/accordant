@@ -264,7 +264,8 @@ var seqResults = await spec.RunTests(context, initialState, testCases);
 Assert.That(seqResults.All(r => r.Success), "Fix sequential tests first!");
 
 // Then run concurrent
-var concResults = await spec.RunConcurrentTests(context, initialState, inputs, options);
+var concTestCases = spec.GenerateConcurrentTests(initialState, inputs, options);
+var concResults = await spec.RunTests(context, initialState, concTestCases);
 ```
 
 ### Non-Deterministic Failures
@@ -282,7 +283,8 @@ var concResults = await spec.RunConcurrentTests(context, initialState, inputs, o
 for (int i = 0; i < 10; i++)
 {
     await ResetState();
-    var result = await spec.RunConcurrentTests(...);
+    var concTestCases = spec.GenerateConcurrentTests(initialState, inputs, options);
+    var result = await spec.RunTests(context, initialState, concTestCases);
     Console.WriteLine($"Run {i}: {(result.All(r => r.Success) ? "PASS" : "FAIL")}");
 }
 ```

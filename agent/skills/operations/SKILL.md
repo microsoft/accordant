@@ -63,7 +63,7 @@ public class WithdrawOperation : Operation<WithdrawRequest, ApiResult<decimal>, 
 
     public override async Task<ApiResult<decimal>> ExecuteAsync(
         WithdrawRequest request, 
-        ITestContext context)
+        TestingContext context)
     {
         var client = context.Get<BankApiClient>();
         return await client.WithdrawAsync(request.AccountId, request.Amount);

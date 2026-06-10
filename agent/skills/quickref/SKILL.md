@@ -186,12 +186,11 @@ Assert.That(results.All(r => r.Success));
 ## Concurrent Tests
 
 ```csharp
-var results = await spec.RunConcurrentTests(
-    context,
-    initialState,
-    inputs,
-    generationOptions: new TestGenerationOptions { MaxDepth = 4 },
-    executionOptions: new TestExecutionOptions { ... });
+var concurrentTestCases = spec.GenerateConcurrentTests(initialState, inputs,
+    new TestGenerationOptions { MaxDepth = 4 });
+
+var results = await spec.RunTests(context, initialState, concurrentTestCases,
+    new TestExecutionOptions { ... });
 ```
 
 ## Manual Conformance Testing
