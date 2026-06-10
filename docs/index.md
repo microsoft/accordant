@@ -189,7 +189,7 @@ The same spec enables other kinds of testing:
 
 ## Get Started
 
-Install the package ([NuGet](https://nuget.org/packages/Microsoft.Accordant)):
+Install the package ([NuGet](https://www.nuget.org/packages/Microsoft.Accordant)):
 
 ```bash
 dotnet add package Microsoft.Accordant

@@ -297,7 +297,6 @@ You don't write concurrent test cases manually. Define the operations and inputs
 ## What's Next?
 
 - **[Tutorial 6: Async Operations](06-async-operations-polling.md)** - Testing background processing
-- **[Concept: Concurrent Test Validation](../concepts/concurrent-test-validation.md)** - How linearizability checking works
 
 ---
 

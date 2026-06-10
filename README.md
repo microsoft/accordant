@@ -4,7 +4,7 @@
 
 **Executable behavioral specifications for .NET**
 
-[Documentation](https://microsoft.github.io/accordant) · [NuGet](https://nuget.org/packages/Microsoft.Accordant) · [Samples](Samples/)
+[Documentation](https://microsoft.github.io/accordant) · [NuGet](https://www.nuget.org/packages/Microsoft.Accordant) · [Samples](Samples/)
 
 Accordant is a framework for model-based testing. You write a *spec* — executable code that captures the rules of your system. Given any state and any operation, the spec defines what the response should be and how the state should change. Accordant then generates hundreds of tests from this spec, runs them against your real implementation, and validates every response — telling you exactly where the implementation deviates from the rules.
 
@@ -191,7 +191,7 @@ The same spec enables other kinds of testing:
 
 ## Get Started
 
-Install the package ([NuGet](https://nuget.org/packages/Microsoft.Accordant)):
+Install the package ([NuGet](https://www.nuget.org/packages/Microsoft.Accordant)):
 
 ```bash
 dotnet add package Microsoft.Accordant
@@ -235,7 +235,7 @@ Passed VisualizeStateSpace [20 ms]
 | **[Concepts](docs/concepts/index.md)** | Understand the theory — model-based testing, linearizability, state graphs |
 | **[How-To Guides](docs/how-to/index.md)** | Solve specific problems — "how do I reset state between tests?" |
 | **[Samples](Samples/)** | Working code — BankAccount, TodoList, and more |
-| **[API Reference](api/)** | Complete API documentation |
+| **[API Reference](https://microsoft.github.io/accordant/api/Microsoft.Accordant.html)** | Complete API documentation |
 
 ---
 

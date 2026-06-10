@@ -395,7 +395,6 @@ You've learned the core Accordant workflow:
 
 - **[Tutorial 2: Handling Errors](02-handling-errors.md)** - Exception handling with `Expect.Throws<>`
 - **[Tutorial 3: Response-Dependent State](03-response-dependent-state.md)** - When the server returns values you need to track
-- **[Concept: Not Just HTTP](../concepts/not-just-http.md)** - Accordant works for any stateful class, not just REST APIs
 
 ---
 
