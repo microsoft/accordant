@@ -39,7 +39,7 @@ Accordant handles this with a two-part approach:
 
 ### Part 1: Capture with Response Lambda
 
-When creating a todo, use `.ThenState<TState, TResponse>` which passes both a cloned state and the response to your lambda:
+When creating a todo, use `.ThenState<TState>` which passes both a cloned state and the response to your lambda:
 
 ```csharp
 spec.Operation<Todo, ApiResult<Todo>>("CreateTodo", (request, state) =>
@@ -65,9 +65,9 @@ spec.Operation<Todo, ApiResult<Todo>>("CreateTodo", (request, state) =>
                     r.Data.TodoId == request.TodoId &&
                     r.Data.LastModified != null,  // Just verify it exists
                "Should create todo with timestamp")
-           .ThenState<AppState, ApiResult<Todo>>(
+           .ThenState<AppState>(
                // Lambda receives response and clone, modifies the clone
-               (response, nextState) =>
+               (ApiResult<Todo> response, AppState nextState) =>
                    nextState.Users[request.UserId].Todos[request.TodoId] = new TodoState
                    {
                        Title = request.Title,
@@ -174,8 +174,8 @@ spec.Operation<CreateOrderRequest, ApiResult<Order>>("CreateOrder", (request, st
                     !string.IsNullOrEmpty(r.Data.OrderId) &&  // Server generates
                     r.Data.Product == request.Product,
                "Should create order with server-generated ID")
-           .ThenState<AppState, ApiResult<Order>>(
-               (response, nextState) =>
+           .ThenState<AppState>(
+               (ApiResult<Order> response, AppState nextState) =>
                {
                    var orderId = response.Data!.OrderId;  // Capture!
                    nextState.Orders[orderId] = new OrderState
@@ -210,8 +210,8 @@ if (job.ResultPath == null && response.Data.Status == JobStatus.Completed)
     return Expect.That<ApiResult<Job>>(
                r => r.Data.ResultPath != null,
                "Should have a ResultPath")
-           .ThenState<JobQueueState, ApiResult<Job>>(
-               (resp, nextState) =>
+           .ThenState<JobQueueState>(
+               (ApiResult<Job> resp, JobQueueState nextState) =>
                    nextState.Jobs[jobId].ResultPath = resp.Data!.ResultPath,  // Capture
                mock: () => new ApiResult<Job> { /* ... */ });
 }
@@ -236,7 +236,7 @@ Response-dependent state handles values you can't predict:
 
 | Pattern | Use Case |
 |---------|----------|
-| `.ThenState<TState, TResponse>((response, nextState) => ..., mock)` | Capture server-generated values |
+| `.ThenState<TState>((TResponse response, TState nextState) => ..., mock)` | Capture server-generated values |
 | Mock responses | Enable state exploration without real server |
 | Stability checks | Enforce values don't change unexpectedly |
 
