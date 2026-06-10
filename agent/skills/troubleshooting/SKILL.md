@@ -344,7 +344,11 @@ Console.WriteLine($"Remaining possible states: {stateProfile.StatesAndStepFuncti
 ```csharp
 var results = await spec.RunTests(context, initialState, testCases, new TestExecutionOptions
 {
-    LogLevel = LogLevel.Verbose
+    OnStepExecuted = info =>
+    {
+        foreach (var (op, req, resp) in info.Operations)
+            Console.WriteLine($"{op.Name}({req}) → {resp}");
+    }
 });
 ```
 

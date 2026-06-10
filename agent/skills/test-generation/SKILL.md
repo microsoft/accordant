@@ -44,7 +44,7 @@ var testCases = spec.GenerateTests(initialState, inputs, new TestGenerationOptio
 |--------|-------------|---------|
 | `MaxDepth` | Maximum sequence length | 5 |
 | `StateConstraint` | Prune states during exploration | None |
-| `MaxConcurrencyLevel` | For concurrent test generation | 2 |
+| `MaxConcurrencyLevel` | For concurrent test generation | 3 |
 | `SequentialTestCaseAlgorithm` | How paths are extracted | StateCoverage |
 
 ### Constraining the State Space
@@ -135,7 +135,7 @@ Assert.IsEmpty(failures, $"Failed: {failures.FirstOrDefault()?.LastFailureMessag
 |--------|-------------|
 | `BeforeEachAsync` | Reset system before each test case |
 | `AfterEachAsync` | Cleanup after each test case |
-| `LogLevel` | Control verbosity |
+| `OnStepExecuted` | Log each operation's request/response for debugging |
 
 ## Resetting State
 

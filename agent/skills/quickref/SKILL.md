@@ -219,7 +219,7 @@ File.WriteAllText("graph.dot", dot);
 |--------|------|---------|-------------|
 | `MaxDepth` | int | 5 | Max sequence length |
 | `StateConstraint` | Func<State, bool> | null | Prune states |
-| `MaxConcurrencyLevel` | int | 2 | Concurrent ops |
+| `MaxConcurrencyLevel` | int | 3 | Concurrent ops |
 | `SequentialTestCaseAlgorithm` | delegate | StateCoverage | Walk algorithm |
 
 ## Test Case Algorithms
