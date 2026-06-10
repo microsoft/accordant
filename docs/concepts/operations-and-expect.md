@@ -11,9 +11,14 @@ An **operation** represents a single, atomic action your system can perform — 
 Every operation has a name, a typed request, and a typed response. The key design decision: *specification* and *execution* are separate.
 
 ```csharp
+// Define the spec (Apply): what SHOULD happen
 spec.Operation<WithdrawRequest, WithdrawResponse>("Withdraw", 
-    (request, state) => { ... })   // Apply: what SHOULD happen
-    .WithExecution(async (request, ctx) => { ... });  // Execute: what ACTUALLY happens
+    (request, state) => { ... });
+
+// Bind execution: what ACTUALLY happens
+spec.ExecuteWith<BankApiClient>()
+    .BindAsync<WithdrawRequest, WithdrawResponse>("Withdraw",
+        (client, request) => client.WithdrawAsync(request));
 ```
 
 The **Apply** method describes valid behavior. Given this request and this state, what should the response look like? How should the state change? Apply doesn't touch the real system — it's pure logic, a specification of correctness.
@@ -187,16 +192,18 @@ So far we've talked about Apply — the specification side. But at some point, y
 When you define operations as classes, you override both Apply and ExecuteAsync:
 
 ```csharp
-public class WithdrawOperation : Operation<WithdrawRequest, decimal>
+public class WithdrawOperation : Operation<WithdrawRequest, decimal, BankState>
 {
+    public WithdrawOperation() : base("Withdraw") { }
+
     public override ExpectedOutcomes Apply(WithdrawRequest request, BankState state)
     {
         // ... spec logic ...
     }
     
     public override async Task<decimal> ExecuteAsync(
-        WithdrawRequest request, 
-        ITestContext context)
+        TestingContext context,
+        WithdrawRequest request)
     {
         var client = context.Get<HttpClient>();
         var response = await client.PostAsync($"/accounts/{request.Id}/withdraw", ...);
@@ -212,9 +219,11 @@ Apply says what *should* happen. ExecuteAsync makes it *actually* happen.
 For simpler specs, you can define everything inline:
 
 ```csharp
-spec.Operation<GetBalanceRequest, GetBalanceResponse>("GetBalance", (request, state) => { ... })
-    .WithExecution(async (request, ctx) => 
-        await ctx.Get<BankClient>().GetBalanceAsync(request.AccountId));
+spec.Operation<GetBalanceRequest, GetBalanceResponse>("GetBalance", (request, state) => { ... });
+
+spec.ExecuteWith<BankClient>()
+    .BindAsync<GetBalanceRequest, GetBalanceResponse>("GetBalance",
+        (client, request) => client.GetBalanceAsync(request.AccountId));
 ```
 
 Same separation, more compact syntax.

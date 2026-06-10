@@ -261,7 +261,7 @@ public async Task SequentialConformanceTests()
     var testCases = spec.GenerateTests(initialState, inputs);
     var results = await spec.RunTests(context, initialState, testCases);
     
-    Assert.IsTrue(results.All(r => r.Passed));
+    Assert.IsTrue(results.All(r => r.Success));
 }
 
 [TestMethod]
@@ -275,7 +275,7 @@ public async Task ConcurrentConformanceTests()
     var testCases = spec.GenerateConcurrentTests(initialState, inputs);
     var results = await spec.RunTests(context, initialState, testCases);
     
-    Assert.IsTrue(results.All(r => r.Passed));
+    Assert.IsTrue(results.All(r => r.Success));
 }
 ```
 

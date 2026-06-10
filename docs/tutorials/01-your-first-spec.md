@@ -277,12 +277,7 @@ public async Task SequentialTests_UsersAndTodos()
 {
     using var factory = new TodoServiceFactory();  // Starts the API
     var spec = CreateSpec();
-
-    // Tell the spec how to get a client and initial state
-    spec.ProvideTargetAndInitialState(() => (
-        new TodoApiClient(factory.CreateTestClient()),
-        new AppState()  // Empty state
-    ));
+    var client = new TodoApiClient(factory.CreateTestClient());
 
     // Get operation references for building inputs
     var createUser = spec.GetOperation<User, ApiResult<User>>("CreateUser");
@@ -300,21 +295,27 @@ public async Task SequentialTests_UsersAndTodos()
         getTodo.With(("alice", "todo-1"), "Get todo"),
     };
 
+    // Generate test sequences from inputs
+    var initialState = new AppState();
+    var testCases = spec.GenerateTests(initialState, inputs, new TestGenerationOptions
+    {
+        MaxDepth = 4  // Sequences up to length 4
+    });
+
+    // Create a testing context and register the client
+    var context = spec.CreateTestingContext();
+    context.Register(client);
+
     // Run the tests
-    var results = await spec.RunTests(
-        inputs,
-        generationOptions: new TestGenerationOptions
+    var results = await spec.RunTests(context, initialState, testCases,
+        new TestExecutionOptions
         {
-            MaxDepth = 4  // Sequences up to length 4
-        },
-        executionOptions: new TestExecutionOptions
-        {
-            BeforeEachAsync = async ctx =>
+            BeforeEachAsync = async info =>
             {
                 // Reset database before each test
-                var client = ctx.Context.Get<TodoApiClient>();
-                await client.DeleteUserAsync("alice");
-                await client.DeleteUserAsync("unknown");
+                var c = info.Context.Get<TodoApiClient>();
+                await c.DeleteUserAsync("alice");
+                await c.DeleteUserAsync("unknown");
             }
         });
 
@@ -375,7 +376,7 @@ You've learned the core Accordant workflow:
 1. **Define State** - `[State]` partial class tracking what matters
 2. **Define Operations** - `spec.Operation<TReq, TResp>(...)` with `Expect.That(...)`
 3. **Bind Execution** - `spec.ExecuteWith<T>().BindAsync(...)`
-4. **Configure & Run** - `ProvideTargetAndInitialState`, `InputSet`, `RunTests`
+4. **Configure & Run** - `CreateTestingContext`, `Register`, `InputSet`, `GenerateTests`, `RunTests`
 
 ### Key Concepts
 
@@ -386,6 +387,8 @@ You've learned the core Accordant workflow:
 | `.SameState()` | Operation doesn't change state |
 | `.ThenState(newState)` | Operation transitions to new state |
 | `InputSet` | Values to try—Accordant explores sequences |
+| `CreateTestingContext` | Create context for DI and test execution |
+| `context.Register(client)` | Register your API client for use during tests |
 | `MaxDepth` | Limit sequence length |
 | `BeforeEachAsync` | Reset state before each test |
 

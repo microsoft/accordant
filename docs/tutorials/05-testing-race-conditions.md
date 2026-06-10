@@ -5,7 +5,7 @@ Concurrency bugs are notoriously hard to find. A system might work perfectly in 
 **Time:** 20 minutes
 
 **What you'll learn:**
-- Using `RunConcurrentTests` to test interleavings
+- Using `GenerateConcurrentTests` to test interleavings
 - Understanding linearizability (the correctness criterion)
 - The "double-booking" pattern for finding race conditions
 
@@ -114,7 +114,7 @@ private static Spec<BookingState> CreateSpec()
 
 ## Running Concurrent Tests
 
-The magic is in `RunConcurrentTests`:
+The magic is in `GenerateConcurrentTests`:
 
 ```csharp
 [Test]
@@ -122,10 +122,7 @@ public async Task ConcurrentTests_DoubleBookingPrevented()
 {
     using var factory = new BookingServiceFactory();
     var spec = CreateSpec();
-
-    spec.ProvideTargetAndInitialState(() => (
-        new BookingApiClient(factory.CreateTestClient()),
-        new BookingState()));
+    var client = new BookingApiClient(factory.CreateTestClient());
 
     var createSlot = spec.GetOperation<string, ApiResult<Slot>>("CreateSlot");
     var bookSlot = spec.GetOperation<(string, string), ApiResult<Slot>>("BookSlot");
@@ -144,15 +141,24 @@ public async Task ConcurrentTests_DoubleBookingPrevented()
         getSlot.With("9am", "Check who got the slot"),
     };
 
-    var results = await spec.RunConcurrentTests(  // <-- Note: RunConcurrentTests
-        inputs,
-        generationOptions: new TestGenerationOptions { MaxDepth = 4 },
-        executionOptions: new TestExecutionOptions
+    // Generate concurrent test cases
+    var initialState = new BookingState();
+    var testCases = spec.GenerateConcurrentTests(  // <-- Generates concurrent tests
+        initialState, inputs,
+        new TestGenerationOptions { MaxDepth = 4 });
+
+    // Create context and register client
+    var context = spec.CreateTestingContext();
+    context.Register(client);
+
+    // Run the tests
+    var results = await spec.RunTests(context, initialState, testCases,
+        new TestExecutionOptions
         {
-            BeforeEachAsync = async ctx =>
+            BeforeEachAsync = async info =>
             {
-                var client = ctx.Context.Get<BookingApiClient>();
-                await client.DeleteSlotAsync("9am");
+                var c = info.Context.Get<BookingApiClient>();
+                await c.DeleteSlotAsync("9am");
             }
         });
 
@@ -189,7 +195,7 @@ T3: GetSlot("9am")
 
 ## What Gets Generated
 
-`RunConcurrentTests` generates test cases with concurrent operation pairs:
+`GenerateConcurrentTests` generates test cases with concurrent operation pairs:
 
 ```
 Test Case 1:
@@ -284,7 +290,7 @@ Concurrent testing finds race conditions:
 
 | Concept | Meaning |
 |---------|---------|
-| `RunConcurrentTests` | Tests operations running in parallel |
+| `GenerateConcurrentTests` | Generates test cases with concurrent operations |
 | Linearizability | Results must match some sequential order |
 | Double-booking | Classic race condition pattern |
 

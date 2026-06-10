@@ -133,8 +133,7 @@ Before running tests, check that the state graph matches your mental model:
 You can customize how nodes are labeled:
 
 ```csharp
-var dotContent = TestCaseGenerator.VisualizeStateSpace(
-    new TestingContext(spec),
+var dotContent = spec.VisualizeStateSpace(
     new AppState(),
     inputs,
     new TestGenerationOptions { MaxDepth = 3 },
@@ -187,7 +186,7 @@ Visualization helps you understand and debug:
 ### Key Command
 
 ```csharp
-var dot = TestCaseGenerator.VisualizeStateSpace(context, initialState, inputs, options);
+var dot = spec.VisualizeStateSpace(initialState, inputs, options);
 File.WriteAllText("graph.dot", dot);
 // Then: dot -Tpng graph.dot -o graph.png
 ```
