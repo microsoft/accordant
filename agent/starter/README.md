@@ -14,7 +14,7 @@ Use this as a reference when helping a user build their first spec. Adapt the pa
 |------|---------|
 | `ExampleState.cs` | The `[State]` class — minimal, just what operations need |
 | `ExampleSpec.cs` | A few related operations with error cases and success cases |
-| `ExampleTests.cs` | Wiring up execution, state reset, inputs, and running tests |
+| `ExampleTests.cs` | Wiring up execution, generating tests, state reset, and running tests |
 
 ## Key Patterns Shown
 
@@ -26,4 +26,4 @@ Use this as a reference when helping a user build their first spec. Adapt the pa
 - Execution bindings with `spec.ExecuteWith<T>().BindAsync(...)`
 - `InputSet` with labeled inputs
 - `BeforeEachAsync` for state reset
-- `spec.RunTests(...)` to generate and execute
+- `spec.GenerateTests(...)` and `spec.RunTests(...)` to generate and execute

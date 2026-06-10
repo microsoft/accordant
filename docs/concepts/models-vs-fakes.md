@@ -36,7 +36,8 @@ public class KeyValueFake
 ### As a Model
 
 ```csharp
-public class KeyValueState : JsonState
+[State]
+public partial class KeyValueState
 {
     public Dictionary<string, string> Store { get; set; } = new();
 }

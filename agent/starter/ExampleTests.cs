@@ -25,13 +25,7 @@ public class KvTests
             .BindAsync<string, ApiResult>("Delete",
                 (client, key) => client.DeleteAsync(key));
 
-        // 3. Provide a way to get a fresh client and initial state
-        spec.ProvideTargetAndInitialState(() => (
-            new KvClient(/* your HttpClient or service reference */),
-            new KvState()  // Empty — no items exist initially
-        ));
-
-        // 4. Define inputs — Accordant explores all sequences of these
+        // 3. Define inputs — Accordant explores all sequences of these
         var put = spec.GetOperation<PutRequest, ApiResult>("Put");
         var get = spec.GetOperation<string, ApiResult<string>>("Get");
         var delete = spec.GetOperation<string, ApiResult>("Delete");
@@ -45,14 +39,22 @@ public class KvTests
             delete.With("key1", "Delete key1"),
         };
 
-        // 5. Run tests
+        // 4. Generate test cases
+        var initialState = new KvState();
+        var testCases = spec.GenerateTests(initialState, inputs, new TestGenerationOptions
+        {
+            MaxDepth = 4  // Sequences up to 4 operations long
+        });
+
+        // 5. Create context and run tests
+        var context = spec.CreateTestingContext();
+        context.Register(new KvClient(/* your HttpClient or service reference */));
+
         var results = await spec.RunTests(
-            inputs,
-            generationOptions: new TestGenerationOptions
-            {
-                MaxDepth = 4  // Sequences up to 4 operations long
-            },
-            executionOptions: new TestExecutionOptions
+            context,
+            initialState,
+            testCases,
+            new TestExecutionOptions
             {
                 BeforeEachAsync = async ctx =>
                 {

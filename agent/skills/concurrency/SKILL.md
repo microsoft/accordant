@@ -89,15 +89,19 @@ public async Task ConcurrentTests_FindsRaceConditions()
         spec.GetOperation<(string, string), ApiResult<Slot>>("BookSlot").With(("9am", "Bob"), "Bob books"),
     };
 
+    var testCases = spec.GenerateConcurrentTests(
+        new BookingState(),
+        inputs,
+        new TestGenerationOptions { MaxDepth = 4 });
+
     var context = spec.CreateTestingContext();
     context.Register(new BookingApiClient(CreateHttpClient()));
 
-    var results = await spec.RunConcurrentTests(
+    var results = await spec.RunTests(
         context,
         new BookingState(),
-        inputs,
-        generationOptions: new TestGenerationOptions { MaxDepth = 4 },
-        executionOptions: new TestExecutionOptions
+        testCases,
+        new TestExecutionOptions
         {
             BeforeEachAsync = async _ => await ResetDatabase()
         });
