@@ -6,10 +6,10 @@ namespace Booking.Tests;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Accordant;
-using NUnit.Framework;
 using Booking.Api.Contracts;
 using Booking.Api.Controllers;
+using Microsoft.Accordant;
+using NUnit.Framework;
 
 // ============================================================
 // State Definition
@@ -288,11 +288,11 @@ public class BookingTests
         {
             // Setup: create a slot
             createSlot.With("9am", "Create 9am slot"),
-            
+        
             // The concurrent operations: Alice and Bob both try to book
             bookSlot.With(("9am", "Alice"), "Alice books 9am"),
             bookSlot.With(("9am", "Bob"), "Bob books 9am"),
-            
+        
             // Verify final state
             getSlot.With("9am", "Check who got the slot"),
         };
@@ -507,7 +507,7 @@ public class BookingTests
 
             // This assertion will FAIL when the bug is enabled - that's the point!
             var failures = results.Where(r => !r.Success).ToList();
-            Assert.IsEmpty(failures, 
+            Assert.IsEmpty(failures,
                 $"BUG DETECTED! {failures.Count} test(s) failed due to double-booking. " +
                 $"First failure: {failures.FirstOrDefault()?.LastFailureMessage}");
         }

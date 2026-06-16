@@ -3,7 +3,6 @@
 
 namespace Booking.Tests;
 
-using System.Net;
 using System.Net.Http.Json;
 using Booking.Api.Contracts; // For Slot, BookSlotRequest
 

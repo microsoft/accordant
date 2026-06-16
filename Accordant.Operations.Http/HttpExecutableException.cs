@@ -1,14 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
-{
-    using System;
+namespace Microsoft.Accordant;
 
-    public class HttpExecutableException : Exception
+using System;
+
+public class HttpExecutableException : Exception
+{
+    public HttpExecutableException(string message) : base(message)
     {
-        public HttpExecutableException(string message) : base(message)
-        {
-        }
     }
 }

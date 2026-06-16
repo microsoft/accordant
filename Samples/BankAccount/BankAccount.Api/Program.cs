@@ -3,10 +3,10 @@
 
 namespace BankAccount.Api;
 
+using BankAccount.Api.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using BankAccount.Api.Data;
 
 public class Program
 {

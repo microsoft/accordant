@@ -1,14 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
+namespace Microsoft.Accordant;
+
+using System;
+public class InputSetException : Exception
 {
-    using System;
-    public class InputSetException : Exception
+    public InputSetException(string message)
+        : base(message)
     {
-        public InputSetException(string message)
-            : base(message)
-        {
-        }
     }
 }

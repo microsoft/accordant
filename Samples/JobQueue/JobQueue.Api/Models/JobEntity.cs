@@ -13,9 +13,9 @@ public class JobEntity
 {
     [Key]
     public string JobId { get; set; } = string.Empty;
-    
+
     public JobStatus Status { get; set; } = JobStatus.Pending;
-    
+
     /// <summary>
     /// Path to the result - only set when Status is Completed.
     /// </summary>

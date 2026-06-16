@@ -5,9 +5,9 @@ namespace BankAccount.Api.Tests;
 
 using System.Linq;
 using System.Threading.Tasks;
+using BankAccount.Api.Contracts;
 using Microsoft.Accordant;
 using NUnit.Framework;
-using BankAccount.Api.Contracts;
 
 /// <summary>
 /// State tracks accounts and their balances.
@@ -220,12 +220,12 @@ public class BankAccountTests
 
         // Run tests
         var context = spec.CreateTestingContext();
-        
+
         // Create a single client - simulates a real client talking to a persistent service
         var httpClient = _factory.CreateClient();
         var client = new BankApiClient(httpClient);
         context.Register(client);
-        
+
         var results = await spec.RunTests(context, initialState, testCases, new TestExecutionOptions
         {
             BeforeEachAsync = async _ =>
@@ -238,7 +238,7 @@ public class BankAccountTests
         // Report results
         var logPath = results.FirstOrDefault()?.LogFilePath;
         TestContext.WriteLine($"Generated and ran {results.Count} test cases");
-        
+
         // Show a few example sequences (longest first)
         var sampleCases = testCases.OrderByDescending(tc => tc.OperationCalls.Count).Take(10);
         foreach (var tc in sampleCases)
@@ -362,8 +362,8 @@ public class BankAccountTests
         var dot = spec.VisualizeStateSpace(
             initialState,
             inputs,
-            generationOptions: new TestGenerationOptions 
-            { 
+            generationOptions: new TestGenerationOptions
+            {
                 MaxDepth = 5,
             },
             visualizationOptions: new VisualizationOptions
@@ -380,7 +380,7 @@ public class BankAccountTests
         // Write to file
         var dotPath = Path.GetFullPath("bank-account-state-graph.dot");
         File.WriteAllText(dotPath, dot);
-        
+
         TestContext.WriteLine($"State graph written to: {dotPath}");
         TestContext.WriteLine("Convert to PNG: dot -Tpng bank-account-state-graph.dot -o bank-account-state-graph.png");
         TestContext.WriteLine();

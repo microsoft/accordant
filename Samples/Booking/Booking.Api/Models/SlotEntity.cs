@@ -12,7 +12,7 @@ public class SlotEntity
 {
     [Key]
     public string SlotId { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// The customer who booked this slot, or null if available.
     /// </summary>

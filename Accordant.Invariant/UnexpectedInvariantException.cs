@@ -1,14 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
-{
-    using System;
+namespace Microsoft.Accordant;
 
-    public class UnexpectedInvariantException : Exception
+using System;
+
+public class UnexpectedInvariantException : Exception
+{
+    public UnexpectedInvariantException(string messge = null) : base(messge)
     {
-        public UnexpectedInvariantException(string messge = null) : base(messge)
-        {
-        }
     }
 }

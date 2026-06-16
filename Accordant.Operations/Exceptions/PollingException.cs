@@ -1,15 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
-{
-    using System;
+namespace Microsoft.Accordant;
 
-    public class PollingException : Exception
+using System;
+
+public class PollingException : Exception
+{
+    public PollingException(string message)
+        : base(message)
     {
-        public PollingException(string message)
-            : base(message)
-        {
-        }
     }
 }

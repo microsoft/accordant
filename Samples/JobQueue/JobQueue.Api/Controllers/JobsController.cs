@@ -3,12 +3,12 @@
 
 namespace JobQueue.Api.Controllers;
 
+using System.Collections.Concurrent;
 using JobQueue.Api.Contracts;
 using JobQueue.Api.Data;
 using JobQueue.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Concurrent;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -17,7 +17,7 @@ public class JobsController : ControllerBase
     private readonly JobQueueDbContext _context;
     private readonly IServiceScopeFactory _scopeFactory;
     private static readonly SemaphoreSlim _writeLock = new(1, 1);
-    
+
     // Track active background tasks (internal tracking only)
     private static readonly ConcurrentDictionary<string, Task> _backgroundTasks = new();
 

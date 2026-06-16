@@ -7,7 +7,6 @@ using Booking.Api.Contracts;
 using Booking.Api.Data;
 using Booking.Api.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -123,7 +122,7 @@ public class SlotsController : ControllerBase
 
         // When DisableBookingLock is true, skip the lock to demonstrate race condition
         var useLock = !DisableBookingLock;
-        
+
         if (useLock)
         {
             await _writeLock.WaitAsync();

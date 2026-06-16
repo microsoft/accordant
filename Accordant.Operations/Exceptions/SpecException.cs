@@ -1,15 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
-{
-    using System;
+namespace Microsoft.Accordant;
 
-    public class SpecException : Exception
+using System;
+
+public class SpecException : Exception
+{
+    public SpecException(string message) :
+        base(message)
     {
-        public SpecException(string message) :
-            base(message)
-        {
-        }
     }
 }

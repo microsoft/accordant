@@ -1,18 +1,17 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
-{
-    using System.Collections.Generic;
+namespace Microsoft.Accordant;
 
+using System.Collections.Generic;
+
+/// <summary>
+/// This class represents the file layout of <see cref="TestCaseSegment"/> when serialized.
+/// </summary>
+public class TestCaseSegmentFileRecord
+{
     /// <summary>
-    /// This class represents the file layout of <see cref="TestCaseSegment"/> when serialized.
+    /// The operation calls in this segment.
     /// </summary>
-    public class TestCaseSegmentFileRecord
-    {
-        /// <summary>
-        /// The operation calls in this segment.
-        /// </summary>
-        public IList<OperationCallFileRecord> OperationCalls { get; set; }
-    }
+    public IList<OperationCallFileRecord> OperationCalls { get; set; }
 }

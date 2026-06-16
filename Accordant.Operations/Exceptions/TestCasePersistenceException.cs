@@ -1,15 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
-{
-    using System;
+namespace Microsoft.Accordant;
 
-    public class TestCasePersistenceException : Exception
+using System;
+
+public class TestCasePersistenceException : Exception
+{
+    public TestCasePersistenceException(string message)
+        : base(message)
     {
-        public TestCasePersistenceException(string message)
-            : base(message)
-        {
-        }
     }
 }
