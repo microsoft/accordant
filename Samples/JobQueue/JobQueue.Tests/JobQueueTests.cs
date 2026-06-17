@@ -7,10 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Accordant;
-using NUnit.Framework;
 using JobQueue.Api.Contracts;
 using JobQueue.Api.Controllers;
+using Microsoft.Accordant;
+using NUnit.Framework;
 
 // ============================================================
 // State Definition
@@ -29,7 +29,7 @@ public partial class JobQueueState
 public partial class JobState
 {
     public JobStatus Status { get; set; }
-    
+
     /// <summary>
     /// Path to the result - null while Pending, server-generated once Completed.
     /// Once set, this value is stable and never changes.
@@ -101,10 +101,10 @@ public class JobQueueTests
                             r.Data.Status == JobStatus.Pending &&
                             r.Data.ResultPath == null,  // Must be null when pending!
                        $"Should return 200 OK with job '{jobId}' in Pending status")
-                   .ThenState(nextState => nextState.Jobs[jobId] = new JobState 
-                   { 
-                       Status = JobStatus.Pending, 
-                       ResultPath = null 
+                   .ThenState(nextState => nextState.Jobs[jobId] = new JobState
+                   {
+                       Status = JobStatus.Pending,
+                       ResultPath = null
                    })
                    .Triggers(AsyncOperation.Create<JobQueueState>(
                        // Step function terminates when job is no longer Pending
@@ -186,10 +186,12 @@ public class JobQueueTests
                                     !string.IsNullOrEmpty(r.Data.ResultPath),
                                $"Should return job '{jobId}' as Completed with a ResultPath")
                            .ThenState(
-                               (ApiResult<Job> resp, JobQueueState nextState) => {
+                               (ApiResult<Job> resp, JobQueueState nextState) =>
+                               {
                                    nextState.Jobs[jobId].ResultPath = resp.Data!.ResultPath;
                                },
-                               mock: () => new ApiResult<Job> {
+                               mock: () => new ApiResult<Job>
+                               {
                                    Data = new Job(jobId, JobStatus.Completed, $"/api/jobs/{jobId}/result/mock123"),
                                    StatusCode = 200
                                });

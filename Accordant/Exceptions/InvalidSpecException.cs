@@ -1,15 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
-{
-    using System;
+namespace Microsoft.Accordant;
 
-    public class InvalidSpecException : Exception
+using System;
+
+public class InvalidSpecException : Exception
+{
+    public InvalidSpecException(string message, Exception innerException = null)
+        : base(message, innerException)
     {
-        public InvalidSpecException(string message, Exception innerException = null)
-            : base(message, innerException)
-        {
-        }
     }
 }

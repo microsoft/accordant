@@ -1,14 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
-{
-    using System;
+namespace Microsoft.Accordant;
 
-    public class StateFrozenException : Exception
+using System;
+
+public class StateFrozenException : Exception
+{
+    public StateFrozenException(string message = "State is frozen and cannot be modified.") : base(message)
     {
-        public StateFrozenException(string message = "State is frozen and cannot be modified.") : base(message)
-        {
-        }
     }
 }

@@ -3,10 +3,9 @@
 
 namespace BankAccount.Api.Controllers;
 
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using BankAccount.Api.Contracts;
 using BankAccount.Api.Data;
+using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
 /// Bank accounts REST API controller.
@@ -23,7 +22,7 @@ using BankAccount.Api.Data;
 public class AccountsController : ControllerBase
 {
     private readonly BankDbContext _db;
-    
+
     // InMemory DB doesn't support transactions - use lock for test correctness
     private static readonly SemaphoreSlim _lock = new(1, 1);
 

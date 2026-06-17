@@ -1,16 +1,15 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
+namespace Microsoft.Accordant;
+
+using System.Collections.Generic;
+
+public class TestCaseFileRecordsWithMetadata<TMetadata, TTestCaseFileRecord>
+    where TMetadata : ITestingMetadata
+    where TTestCaseFileRecord : TestCaseFileRecord
 {
-    using System.Collections.Generic;
+    public TMetadata Metadata { get; set; }
 
-    public class TestCaseFileRecordsWithMetadata<TMetadata, TTestCaseFileRecord>
-        where TMetadata : ITestingMetadata
-        where TTestCaseFileRecord : TestCaseFileRecord
-    {
-        public TMetadata Metadata { get; set; }
-
-        public List<TTestCaseFileRecord> TestCases { get; set; }
-    }
+    public List<TTestCaseFileRecord> TestCases { get; set; }
 }

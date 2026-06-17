@@ -10,10 +10,10 @@ public enum JobStatus
 {
     /// <summary>Job created, processing has not completed yet.</summary>
     Pending,
-    
+
     /// <summary>Job completed successfully, ResultPath is available.</summary>
     Completed,
-    
+
     /// <summary>Job failed, no result available.</summary>
     Failed
 }

@@ -1,27 +1,26 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
+namespace Microsoft.Accordant;
+
+using System.Collections.Generic;
+
+internal class ChooseExpressionLambdaConfig
 {
-    using System.Collections.Generic;
+    internal List<ChoiceSet> ChoiceSpaceCoordinate { get; set; } = null;
 
-    internal class ChooseExpressionLambdaConfig
+    internal int ChoiceSetIndex { get; set; } = 0;
+
+    internal List<ChoiceSet> LastKnownChoiceSpaceCoordinate { get; set; } = new List<ChoiceSet>();
+
+    internal ChooseExpressionLambdaConfig()
     {
-        internal List<ChoiceSet> ChoiceSpaceCoordinate { get; set; } = null;
+        ChoiceSpaceCoordinate = LastKnownChoiceSpaceCoordinate;
+    }
 
-        internal int ChoiceSetIndex { get; set; } = 0;
-
-        internal List<ChoiceSet> LastKnownChoiceSpaceCoordinate { get; set; } = new List<ChoiceSet>();
-
-        internal ChooseExpressionLambdaConfig()
-        {
-            ChoiceSpaceCoordinate = LastKnownChoiceSpaceCoordinate;
-        }
-
-        internal object CurrentChoice()
-        {
-            var choiceSet = ChoiceSpaceCoordinate[ChoiceSetIndex];
-            return choiceSet.CurrentChoice();
-        }
+    internal object CurrentChoice()
+    {
+        var choiceSet = ChoiceSpaceCoordinate[ChoiceSetIndex];
+        return choiceSet.CurrentChoice();
     }
 }

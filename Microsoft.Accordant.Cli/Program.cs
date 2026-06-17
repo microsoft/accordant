@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+namespace Microsoft.Accordant.Cli;
+
 using System.CommandLine;
 using Microsoft.Accordant.Cli.Commands;
-
-namespace Microsoft.Accordant.Cli;
 
 class Program
 {
@@ -26,7 +26,7 @@ class Program
     static void PrintBanner()
     {
         Console.WriteLine();
-        
+
         // ASCII art inspired by the Accordant logo's stylized A
         Console.ForegroundColor = ConsoleColor.DarkYellow;
         Console.WriteLine(@"    /\    ");
@@ -39,7 +39,7 @@ class Program
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine(@"ccordant");
         Console.ResetColor();
-        
+
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine(@"  Executable behavioral specifications for .NET");
         Console.ResetColor();

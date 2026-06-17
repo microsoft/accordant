@@ -1,76 +1,75 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
+namespace Microsoft.Accordant;
+
+using System.Collections;
+using System.Collections.Generic;
+
+/// <summary>
+/// This class represents a set of operation inputs. Each operation input
+/// has a unique name and two inputs cannot share the same
+/// name.
+/// </summary>
+public class InputSet : IEnumerable<OperationInput>
 {
-    using System.Collections;
-    using System.Collections.Generic;
+    private Dictionary<string, OperationInput> inputDict =
+        new Dictionary<string, OperationInput>();
 
     /// <summary>
-    /// This class represents a set of operation inputs. Each operation input
-    /// has a unique name and two inputs cannot share the same
-    /// name.
+    /// List of operation inputs in this set.
     /// </summary>
-    public class InputSet : IEnumerable<OperationInput>
+    public IEnumerable<OperationInput> Inputs
     {
-        private Dictionary<string, OperationInput> inputDict =
-            new Dictionary<string, OperationInput>();
+        get => inputDict.Values;
+    }
 
-        /// <summary>
-        /// List of operation inputs in this set.
-        /// </summary>
-        public IEnumerable<OperationInput> Inputs
+    /// <summary>
+    /// The indexer property can be used to get the operation input given its name.
+    /// </summary>
+    public OperationInput this[string name]
+    {
+        get => inputDict[name];
+    }
+
+    /// <summary>
+    /// This method adds an operation input to this set.
+    /// </summary>
+    public void Add(OperationInput input)
+    {
+        if (inputDict.ContainsKey(input.Name))
         {
-            get => inputDict.Values;
+            throw new InputSetException(
+                $"Encountered two operation inputs with the same name '{input.Name}'");
         }
 
-        /// <summary>
-        /// The indexer property can be used to get the operation input given its name.
-        /// </summary>
-        public OperationInput this[string name]
-        {
-            get => inputDict[name];
-        }
+        inputDict[input.Name] = input;
+    }
 
-        /// <summary>
-        /// This method adds an operation input to this set.
-        /// </summary>
-        public void Add(OperationInput input)
-        {
-            if (inputDict.ContainsKey(input.Name))
-            {
-                throw new InputSetException(
-                    $"Encountered two operation inputs with the same name '{input.Name}'");
-            }
+    /// <summary>
+    /// This method retrieves the operation input given its name.
+    /// </summary>
+    public OperationInput GetInput(string name)
+    {
+        return inputDict[name];
+    }
 
-            inputDict[input.Name] = input;
-        }
+    /// <summary>
+    /// This method indicates whether an operation input with the given name
+    /// exists in this set.
+    /// </summary>
+    public bool ContainsInput(string name)
+    {
+        return inputDict.ContainsKey(name);
+    }
 
-        /// <summary>
-        /// This method retrieves the operation input given its name.
-        /// </summary>
-        public OperationInput GetInput(string name)
-        {
-            return inputDict[name];
-        }
+    public IEnumerator<OperationInput> GetEnumerator()
+    {
+        return inputDict.Values.GetEnumerator();
+    }
 
-        /// <summary>
-        /// This method indicates whether an operation input with the given name
-        /// exists in this set.
-        /// </summary>
-        public bool ContainsInput(string name)
-        {
-            return inputDict.ContainsKey(name);
-        }
-
-        public IEnumerator<OperationInput> GetEnumerator()
-        {
-            return inputDict.Values.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return inputDict.Values.GetEnumerator();
-        }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return inputDict.Values.GetEnumerator();
     }
 }

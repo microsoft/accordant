@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+namespace Microsoft.Accordant.Cli.Commands;
+
 using System.CommandLine;
 using System.Reflection;
-
-namespace Microsoft.Accordant.Cli.Commands;
 
 public static class NewCommand
 {
     private static readonly Assembly Assembly = typeof(NewCommand).Assembly;
-    
+
     // Supported AI editors and their skill paths
     private static readonly Dictionary<string, string> EditorSkillPaths = new()
     {
@@ -19,7 +19,7 @@ public static class NewCommand
         ["windsurf"] = ".windsurf/skills/accordant",
         ["universal"] = ".agents/skills/accordant",
     };
-    
+
     // Template file mappings: output filename -> embedded resource name
     private static readonly Dictionary<string, List<(string OutputName, string ResourceName)>> TemplateFiles = new()
     {
@@ -136,7 +136,7 @@ public static class NewCommand
                 Console.WriteLine($"Error: File path '{filePath}' is outside the target directory.");
                 return;
             }
-            
+
             File.WriteAllText(filePath, fileContent);
             Console.WriteLine($"  Created: {fileName}");
         }
@@ -205,7 +205,7 @@ public static class NewCommand
     {
         var skillsPath = EditorSkillPaths[editor];
         var skillsDir = Path.Combine(targetDir, skillsPath);
-        
+
         Directory.CreateDirectory(skillsDir);
 
         // Find and extract all skill resources
@@ -227,7 +227,7 @@ public static class NewCommand
                 // Convert back from resource name format: _00_overview -> 00-overview
                 // _02_design_state -> 02-design-state
                 skillFolder = skillFolder.TrimStart('_').Replace('_', '-');
-                
+
                 var skillDir = Path.Combine(skillsDir, skillFolder);
                 Directory.CreateDirectory(skillDir);
 
@@ -251,7 +251,7 @@ public static class NewCommand
             agentsContent = agentsContent
                 .Replace("{{ProjectName}}", projectName)
                 .Replace("{{SkillsPath}}", skillsPath);
-            
+
             var agentsPath = Path.Combine(targetDir, "AGENTS.md");
             File.WriteAllText(agentsPath, agentsContent);
             Console.WriteLine("  Created: AGENTS.md");
@@ -261,7 +261,7 @@ public static class NewCommand
     private static string? ReadEmbeddedResource(string folder, string subfolder, string resourceName)
     {
         var allResources = Assembly.GetManifestResourceNames();
-        
+
         // Build resource path based on folder structure
         string fullResourceName;
         if (string.IsNullOrEmpty(subfolder))
@@ -272,7 +272,7 @@ public static class NewCommand
         {
             fullResourceName = $"Microsoft.Accordant.Cli.{folder}.{subfolder}.{resourceName}";
         }
-        
+
         using var stream = Assembly.GetManifestResourceStream(fullResourceName);
         if (stream != null)
         {
@@ -281,13 +281,13 @@ public static class NewCommand
         }
 
         // Fallback: find resource by partial match
-        var searchPattern = string.IsNullOrEmpty(subfolder) 
-            ? $".{folder}." 
+        var searchPattern = string.IsNullOrEmpty(subfolder)
+            ? $".{folder}."
             : $".{folder}.{subfolder}.";
-            
-        var match = allResources.FirstOrDefault(r => 
+
+        var match = allResources.FirstOrDefault(r =>
             r.Contains(searchPattern) && r.EndsWith(resourceName));
-        
+
         if (match != null)
         {
             using var matchStream = Assembly.GetManifestResourceStream(match);
@@ -297,7 +297,7 @@ public static class NewCommand
                 return matchReader.ReadToEnd();
             }
         }
-        
+
         return null;
     }
 }

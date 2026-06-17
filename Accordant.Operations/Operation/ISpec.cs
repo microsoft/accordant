@@ -1,47 +1,44 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
+namespace Microsoft.Accordant;
+
+using System.Collections.Generic;
+
+/// <summary>
+/// Non-generic interface for specs, allowing type-erased usage.
+/// </summary>
+public interface ISpec
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+    /// <summary>
+    /// The operations registered in this spec.
+    /// </summary>
+    IEnumerable<IOperation> Operations { get; }
 
     /// <summary>
-    /// Non-generic interface for specs, allowing type-erased usage.
+    /// Indexer to get/set operations by name.
     /// </summary>
-    public interface ISpec
-    {
-        /// <summary>
-        /// The operations registered in this spec.
-        /// </summary>
-        IEnumerable<IOperation> Operations { get; }
+    IOperation this[string name] { get; set; }
 
-        /// <summary>
-        /// Indexer to get/set operations by name.
-        /// </summary>
-        IOperation this[string name] { get; set; }
+    /// <summary>
+    /// Registers an operation with this spec.
+    /// </summary>
+    void Add(IOperation operation);
 
-        /// <summary>
-        /// Registers an operation with this spec.
-        /// </summary>
-        void Add(IOperation operation);
+    /// <summary>
+    /// Gets an operation by name.
+    /// </summary>
+    IOperation GetOperation(string name);
 
-        /// <summary>
-        /// Gets an operation by name.
-        /// </summary>
-        IOperation GetOperation(string name);
+    /// <summary>
+    /// Gets the name the given operation was registered under.
+    /// </summary>
+    string GetOperationName(IOperation operation);
 
-        /// <summary>
-        /// Gets the name the given operation was registered under.
-        /// </summary>
-        string GetOperationName(IOperation operation);
-
-        /// <summary>
-        /// Creates a new testing context for this spec.
-        /// </summary>
-        /// <param name="testDirectoryPath">Optional path for test output.</param>
-        /// <returns>A new testing context.</returns>
-        TestingContext CreateTestingContext(string testDirectoryPath = null);
-    }
+    /// <summary>
+    /// Creates a new testing context for this spec.
+    /// </summary>
+    /// <param name="testDirectoryPath">Optional path for test output.</param>
+    /// <returns>A new testing context.</returns>
+    TestingContext CreateTestingContext(string testDirectoryPath = null);
 }

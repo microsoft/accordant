@@ -1,14 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.Accordant
-{
-    using System;
+namespace Microsoft.Accordant;
 
-    public class UnexpectedException : Exception
+using System;
+
+public class UnexpectedException : Exception
+{
+    public UnexpectedException(string message = null) : base(message)
     {
-        public UnexpectedException(string message = null) : base(message)
-        {
-        }
     }
 }

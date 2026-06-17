@@ -1,0 +1,149 @@
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# YAML / JSON
+[*.{yml,yaml,json}]
+indent_size = 2
+
+# XML project files
+[*.{csproj,props,targets}]
+indent_size = 2
+
+# Markdown — keep trailing whitespace (line breaks)
+[*.md]
+trim_trailing_whitespace = false
+
+# PowerShell
+[*.{ps1,psm1}]
+indent_size = 4
+
+# C# files
+[*.cs]
+indent_size = 4
+tab_width = 4
+
+#### .NET code style ####
+
+# this. preferences — codebase omits this.
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+
+# Language keywords vs framework types
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+
+# Modern language features
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_prefer_auto_properties = true:suggestion
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
+dotnet_style_prefer_conditional_expression_over_assignment = true:silent
+dotnet_style_prefer_conditional_expression_over_return = true:silent
+
+# Parentheses for clarity
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
+
+# Accessibility modifiers required
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
+
+# Field preferences
+dotnet_style_readonly_field = true:suggestion
+
+# Unused value / parameter
+dotnet_code_quality_unused_parameters = all:suggestion
+
+#### C# code style ####
+
+# Namespaces — file-scoped, usings inside
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_using_directive_placement = inside_namespace:warning
+
+# var preferences — codebase uses explicit types mostly
+csharp_style_var_for_built_in_types = false:silent
+csharp_style_var_when_type_is_apparent = false:silent
+csharp_style_var_elsewhere = false:silent
+
+# Expression-bodied members
+csharp_style_expression_bodied_methods = false:silent
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion
+
+# Pattern matching
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
+csharp_style_prefer_switch_expression = true:suggestion
+
+# Null-checking
+csharp_style_throw_expression = true:suggestion
+csharp_style_conditional_delegate_call = true:suggestion
+
+# Modifier order
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
+
+# Braces — codebase uses Allman, always braces
+csharp_prefer_braces = true:suggestion
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
+# Indentation
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = one_less_than_current
+
+# Spacing
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+
+# using sorting — System directives first
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+#### Naming conventions ####
+
+# Interfaces start with I
+dotnet_naming_rule.interfaces_should_be_prefixed_with_i.severity = suggestion
+dotnet_naming_rule.interfaces_should_be_prefixed_with_i.symbols = interface_symbols
+dotnet_naming_rule.interfaces_should_be_prefixed_with_i.style = prefixed_with_i_style
+dotnet_naming_symbols.interface_symbols.applicable_kinds = interface
+dotnet_naming_symbols.interface_symbols.applicable_accessibilities = *
+dotnet_naming_style.prefixed_with_i_style.required_prefix = I
+dotnet_naming_style.prefixed_with_i_style.capitalization = pascal_case
+
+# Types and members PascalCase
+dotnet_naming_rule.types_and_members_pascal_case.severity = suggestion
+dotnet_naming_rule.types_and_members_pascal_case.symbols = type_and_member_symbols
+dotnet_naming_rule.types_and_members_pascal_case.style = pascal_case_style
+dotnet_naming_symbols.type_and_member_symbols.applicable_kinds = class,struct,enum,property,method,event,delegate
+dotnet_naming_symbols.type_and_member_symbols.applicable_accessibilities = *
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# Private fields camelCase (codebase mixes _prefix and plain; allow camelCase)
+dotnet_naming_rule.private_fields_camel_case.severity = silent
+dotnet_naming_rule.private_fields_camel_case.symbols = private_field_symbols
+dotnet_naming_rule.private_fields_camel_case.style = camel_case_style
+dotnet_naming_symbols.private_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_field_symbols.applicable_accessibilities = private
+dotnet_naming_style.camel_case_style.capitalization = camel_case

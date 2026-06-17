@@ -1,61 +1,60 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace TodoListExtended.Tests
+namespace TodoListExtended.Tests;
+
+using System;
+using System.Net.Http;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using TodoListExtended.Api.Data;
+
+/// <summary>
+/// Factory to create the ASP.NET test host with an InMemory database.
+/// Each test run gets a fresh database.
+/// </summary>
+public class TodoServiceFactory : WebApplicationFactory<TodoListExtended.Api.Program>
 {
-    using System;
-    using System.Net.Http;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc.Testing;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using TodoListExtended.Api.Data;
+    private readonly string _databaseName = $"TodoExtendedTestDb_{Guid.NewGuid()}";
 
-    /// <summary>
-    /// Factory to create the ASP.NET test host with an InMemory database.
-    /// Each test run gets a fresh database.
-    /// </summary>
-    public class TodoServiceFactory : WebApplicationFactory<TodoListExtended.Api.Program>
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        private readonly string _databaseName = $"TodoExtendedTestDb_{Guid.NewGuid()}";
-
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        builder.ConfigureServices(services =>
         {
-            builder.ConfigureServices(services =>
+            // Remove the existing DbContext registration
+            var descriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(DbContextOptions<TodoDbContext>));
+
+            if (descriptor != null)
             {
-                // Remove the existing DbContext registration
-                var descriptor = services.SingleOrDefault(
-                    d => d.ServiceType == typeof(DbContextOptions<TodoDbContext>));
-
-                if (descriptor != null)
-                {
-                    services.Remove(descriptor);
-                }
-
-                // Add InMemory database with a unique name
-                services.AddDbContext<TodoDbContext>(options =>
-                    options.UseInMemoryDatabase(_databaseName));
-            });
-
-            builder.UseEnvironment("Testing");
-        }
-
-        public HttpClient CreateTestClient()
-        {
-            var client = CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false,
-                HandleCookies = false
-            });
-
-            // Ensure database is created
-            using (var scope = Services.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
-                dbContext.Database.EnsureCreated();
+                services.Remove(descriptor);
             }
 
-            return client;
+            // Add InMemory database with a unique name
+            services.AddDbContext<TodoDbContext>(options =>
+                options.UseInMemoryDatabase(_databaseName));
+        });
+
+        builder.UseEnvironment("Testing");
+    }
+
+    public HttpClient CreateTestClient()
+    {
+        var client = CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+            HandleCookies = false
+        });
+
+        // Ensure database is created
+        using (var scope = Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
+            dbContext.Database.EnsureCreated();
         }
+
+        return client;
     }
 }
