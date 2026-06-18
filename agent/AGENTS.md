@@ -15,6 +15,7 @@ When the user asks about Accordant, read the relevant skill before answering:
 | Race conditions, concurrent testing | `concurrency/SKILL.md` |
 | Background work, polling, step functions | `async-operations/SKILL.md` |
 | HTTP integration, response-dependent state, common patterns | `patterns/SKILL.md` |
+| System not in .NET, trace validation, exporting test plans | `cross-language/SKILL.md` |
 | Tests failing, debugging, common mistakes | `troubleshooting/SKILL.md` |
 | Quick syntax lookup | `quickref/SKILL.md` |
 

@@ -185,6 +185,8 @@ The same spec enables other kinds of testing:
 
 - **Async workflows** — Model multi-step processes, background jobs, polling for completion. The spec tracks pending work and expected completions. → [Step Functions & Async](concepts/step-functions-and-async.md)
 
+- **Language-independent testing** — Your system doesn't *have* to be in .NET. Export test plans to JSON, execute from any language, and validate traces against the spec. → [Testing Any System](how-to/testing-any-system.md)
+
 ---
 
 ## Get Started

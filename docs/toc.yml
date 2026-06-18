@@ -52,5 +52,7 @@
       href: how-to/modeling-large-data.md
     - name: Resetting State
       href: how-to/resetting-state.md
+    - name: Cross-Language Testing
+      href: how-to/testing-any-system.md
 - name: Samples
   href: samples.md
