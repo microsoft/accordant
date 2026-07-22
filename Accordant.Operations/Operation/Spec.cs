@@ -5,6 +5,7 @@ namespace Microsoft.Accordant;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -282,14 +283,76 @@ public class Spec<TState> : ISpec where TState : class, IState
         StateProfile stateProfile,
         IList<(IOperation operation, object request, object response)> concurrentCalls)
     {
-        var concurrentSteps = new List<ContractStepFunction>();
+        return AllowsConcurrent(stateProfile, concurrentCalls, Array.Empty<(int, int)>());
+    }
 
-        foreach (var concurrentCall in concurrentCalls)
+    /// <summary>
+    /// Validates whether the spec allows the observed responses for a set of operations
+    /// that were invoked concurrently, with happens-before constraints.
+    ///
+    /// Each edge (before, after) means the call at index <c>before</c> must be linearized
+    /// before the call at index <c>after</c>. Operations without a happens-before relationship
+    /// are still reordered freely.
+    ///
+    /// This enables linearizability checking for partially ordered histories: derive edges
+    /// from wall-clock precedence (one call completes before another starts) and pass them
+    /// here to prune orderings that violate real-time ordering.
+    /// </summary>
+    /// <param name="stateProfile">The state profile representing possible states before the concurrent operations.</param>
+    /// <param name="concurrentCalls">The list of concurrent operation calls with their requests and responses.</param>
+    /// <param name="happensBefore">Edges (before, after) constraining the linearization order.</param>
+    /// <returns>A tuple of (isValid, explanationMessage, updatedStateProfile).</returns>
+    public (bool IsValid, string Message, StateProfile UpdatedStateProfile) AllowsConcurrent(
+        StateProfile stateProfile,
+        IList<(IOperation operation, object request, object response)> concurrentCalls,
+        IEnumerable<(int before, int after)> happensBefore)
+    {
+        // Build step functions first so IDs are stable for edge wiring.
+        var steps = concurrentCalls
+            .Select(c => new ContractStepFunction(
+                c.request, c.response, c.operation.Verify))
+            .ToArray();
+
+        if (happensBefore != null && happensBefore.Count() > 0)
         {
-            concurrentSteps.Add(new ContractStepFunction(
-                concurrentCall.request,
-                concurrentCall.response,
-                concurrentCall.operation.Verify));
+            var predecessorIds = new Dictionary<int, List<string>>();
+            var successors = new Dictionary<int, List<int>>();
+            var inDegree = new int[steps.Length];
+            foreach (var (before, after) in happensBefore)
+            {
+                if (before == after)
+                {
+                    throw new ArgumentException(
+                        $"Self-loop at index {before}: an operation cannot happen before itself.");
+                }
+
+                if (before < 0 || before >= steps.Length ||
+                    after < 0 || after >= steps.Length)
+                {
+                    throw new ArgumentException(
+                        $"Happens-before edge ({before}, {after}) references an index " +
+                        $"outside the range [0, {steps.Length - 1}].");
+                }
+
+                if (!predecessorIds.ContainsKey(after))
+                    predecessorIds[after] = [];
+                predecessorIds[after].Add(steps[before].StepFunctionId);
+
+                if (!successors.ContainsKey(before))
+                    successors[before] = [];
+                successors[before].Add(after);
+                inDegree[after]++;
+            }
+
+            ThrowIfCyclic(successors, inDegree);
+
+            for (int i = 0; i < steps.Length; i++)
+            {
+                if (predecessorIds.TryGetValue(i, out var ids))
+                {
+                    steps[i].SetPredecessorIds(ids);
+                }
+            }
         }
 
         try
@@ -297,7 +360,7 @@ public class Spec<TState> : ISpec where TState : class, IState
             stateProfile = SystemChecker.Validate(
                 new IStepFunction[][]
                 {
-                    concurrentSteps.ToArray(),
+                    steps,
                 },
                 stateProfile);
 
@@ -305,8 +368,6 @@ public class Spec<TState> : ISpec where TState : class, IState
         }
         catch (InvalidSpecException ex) when (ex.InnerException is StepFunctionApplicationException)
         {
-            // The spec itself threw an exception - this is a bug in the spec, not an invalid response.
-            // Re-throw so the caller sees it's a spec bug, not a response mismatch.
             throw;
         }
         catch (InvalidSpecException)
@@ -316,6 +377,44 @@ public class Spec<TState> : ISpec where TState : class, IState
 
             return (false, failureMessage, null);
         }
+    }
+
+    /// <summary>
+    /// Kahn's algorithm: drain nodes with no remaining predecessors. Any node
+    /// still holding in-degree &gt; 0 afterwards belongs to (or feeds) a cycle.
+    /// O(V+E), negligible for the small N this method handles (linearizability
+    /// itself is O(N!)). Mutates <paramref name="inDegree"/>.
+    /// </summary>
+    private static void ThrowIfCyclic(Dictionary<int, List<int>> successors, int[] inDegree)
+    {
+        var queue = new Queue<int>();
+        for (int i = 0; i < inDegree.Length; i++)
+        {
+            if (inDegree[i] == 0) queue.Enqueue(i);
+        }
+
+        int visited = 0;
+        while (queue.Count > 0)
+        {
+            var n = queue.Dequeue();
+            visited++;
+            if (!successors.TryGetValue(n, out var succList)) continue;
+            foreach (var m in succList)
+            {
+                if (--inDegree[m] == 0) queue.Enqueue(m);
+            }
+        }
+
+        if (visited == inDegree.Length) return;
+
+        var cycle = new List<int>();
+        for (int i = 0; i < inDegree.Length; i++)
+        {
+            if (inDegree[i] > 0) cycle.Add(i);
+        }
+        throw new ArgumentException(
+            $"Cycle in happens-before constraints involving indices [{string.Join(", ", cycle)}]: " +
+            $"no linearization can satisfy a cyclic ordering.");
     }
 
     #endregion
@@ -363,7 +462,7 @@ public class Spec<TState> : ISpec where TState : class, IState
     /// <example>
     /// <code>
     /// spec.Operation&lt;(string, string), ApiResult&lt;Todo&gt;&gt;("GetTodo", (req, state) =&gt; { ... });
-    /// 
+    ///
     /// spec.ConfigureDerivations("GetTodo",
     ///     Derive.From&lt;Todo, ApiResult&lt;Todo&gt;, (string, string)&gt;("CreateTodo")
     ///         .When((req, resp) =&gt; resp.IsSuccess)
@@ -401,7 +500,7 @@ public class Spec<TState> : ISpec where TState : class, IState
     /// <example>
     /// <code>
     /// spec.Operation&lt;string, ApiResult&lt;Job&gt;&gt;("CreateJob", (req, state) =&gt; { ... });
-    /// 
+    ///
     /// spec.ConfigurePolling("CreateJob", new PollingSetup
     /// {
     ///     Operation = "GetJob",

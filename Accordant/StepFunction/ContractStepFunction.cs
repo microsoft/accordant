@@ -31,18 +31,41 @@ public class ContractStepFunction : BaseStepFunction
 
     public VerifyFunc Verify { get; private set; }
 
+    private IReadOnlyCollection<string> _predecessorIds;
+
     public ContractStepFunction(
         object request,
         object observedResponse,
-        VerifyFunc verify)
+        VerifyFunc verify,
+        IReadOnlyCollection<string> predecessorIds = null)
     {
         Request = request;
         ObservedResponse = observedResponse;
         Verify = verify ?? throw new ArgumentNullException(nameof(verify));
+        _predecessorIds = predecessorIds ?? Array.Empty<string>();
     }
 
-    protected override IList<StepResult> ApplyInternal(IState state)
+    /// <summary>
+    /// Sets the happens-before predecessor IDs after construction.
+    /// Used to wire edges without replacing the step object (which would change its GUID).
+    /// </summary>
+    public void SetPredecessorIds(IReadOnlyCollection<string> ids)
     {
+        _predecessorIds = ids ?? Array.Empty<string>();
+    }
+
+    protected override IList<StepResult> ApplyInternal(
+        IState state,
+        IReadOnlyList<(IStepFunction, StateGraphNode)> path)
+    {
+        // ponytail: gate on happens-before predecessors; disabled until all are in path.
+        if (_predecessorIds.Count > 0)
+        {
+            var appliedIds = new HashSet<string>(path.Select(p => p.Item1?.StepFunctionId).Where(id => id != null));
+            if (!_predecessorIds.All(id => appliedIds.Contains(id)))
+                return null;
+        }
+
         var (valid, stateProfile) = Verify(
             Request,
             state,
