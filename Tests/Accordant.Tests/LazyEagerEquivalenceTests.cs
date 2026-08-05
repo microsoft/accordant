@@ -32,12 +32,11 @@ using NUnit.Framework;
 /// each other.</item>
 /// </list>
 ///
-/// <para>Two further eager-only invariants guard the risk surface exercised
-/// in production on this branch (there is no production lazy consumer here):
-/// eager exploration is <em>deterministic</em> across repeated runs, and the
-/// memory-lean <c>generateStateGraph:false</c> traversal (used by
-/// <c>SystemChecker</c>, which retains no edges) still fires its pre- and
-/// post-hooks on exactly the same node set as the full eager graph.</para>
+/// <para>Two further eager-only invariants: eager exploration is
+/// <em>deterministic</em> across repeated runs, and the memory-lean
+/// <c>generateStateGraph:false</c> traversal (used by <c>SystemChecker</c>,
+/// which retains no edges) still fires its pre- and post-hooks on exactly
+/// the same node set as the full eager graph.</para>
 /// </summary>
 [TestFixture]
 public class LazyEagerEquivalenceTests
