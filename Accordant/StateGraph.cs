@@ -5,7 +5,6 @@ namespace Microsoft.Accordant;
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO.Hashing;
 using System.Linq;
 using System.Security.Cryptography;
@@ -36,180 +35,75 @@ public static class StateGraph
         Action<StateGraphNode> hook = null,
         Action<StateGraphNode> postHook = null,
         Func<IState, bool> stateConstraint = null,
-        Func<IState, IStepFunction, StepResult, bool> shouldIncludeStepFunctionResult = null)
+        Func<IState, IStepFunction, StepResult, bool> shouldIncludeStepFunctionResult = null,
+        bool lazy = false)
     {
-        var processedNodeMap = new Dictionary<string, StateGraphNode>();
-        var nodeMap = new Dictionary<string, StateGraphNode>();
-        var parentChildMap = new Dictionary<
-            string,
-            List<(StateGraphNode child, IStepFunction step, object edgeMetadata)>>();
-        var stack = new Stack<(
-            StateGraphNode node,
-            int depth,
-            StateGraphNode parent,
-            IStepFunction parentStep,
-            object edgeMetadata,
-            ImmutableList<(IStepFunction, StateGraphNode)> path)>();
-
-        // Helper method to return a state graph node if it's already been seen,
-        // or create a new one otherwise.
-        StateGraphNode GetOrCreateStateGraphNode(
-            IState state,
-            IList<IStepFunction> stepFunctions)
+        if (lazy && !generateStateGraph)
         {
-            var nodeFingerprint = StateGraphNode.GetNodeFingerprint(
-                state,
-                stepFunctions);
-
-            if (!nodeMap.ContainsKey(nodeFingerprint))
-            {
-                nodeMap[nodeFingerprint] = new StateGraphNode()
-                {
-                    State = state,
-                    StepFunctions = stepFunctions
-                };
-            }
-
-            return nodeMap[nodeFingerprint];
+            throw new ArgumentException(
+                "Lazy exploration builds the graph on demand and therefore requires generateStateGraph = true.",
+                nameof(generateStateGraph));
         }
 
-        var rootGraphNode = GetOrCreateStateGraphNode(
-            startingState,
-            steps.OrderBy(s => s.StepFunctionId).ToList());
+        var expander = new StateGraphExpander(
+            maxDepth,
+            stateConstraint,
+            shouldIncludeStepFunctionResult,
+            hook,
+            postHook,
+            lazy);
 
-        stack.Push((
-            rootGraphNode,
-            1,
-            null,
-            null,
-            null,
-            ImmutableList<(IStepFunction, StateGraphNode)>.Empty.Add((null, rootGraphNode))));
+        var rootGraphNode = expander.GetOrCreateNode(
+            startingState,
+            steps.OrderBy(s => s.StepFunctionId).ToList(),
+            discoveredFrom: null,
+            discoveredVia: null,
+            depth: 1);
+
+        if (lazy)
+        {
+            // Return a root whose outgoing edges (and, transitively, the
+            // whole reachable graph) materialize on demand as the graph is
+            // walked — e.g. by the model-checking emptiness search, which
+            // then stops at the first counterexample without ever building
+            // the unreached remainder of the graph.
+            return rootGraphNode;
+        }
+
+        // Eager exploration: drive the same per-node expansion over a
+        // worklist so every reachable node is materialized up front. Each
+        // node is expanded at most once (its first pop); the resulting edges
+        // are stored on the node and their targets are queued for expansion.
+        // Both the traversal path and the depth handed to expansion are read
+        // from each node (reconstructed from its discovery back-pointers),
+        // exactly as in lazy mode, so the worklist carries only the nodes.
+        var processed = new HashSet<string>();
+        var stack = new Stack<StateGraphNode>();
+
+        stack.Push(rootGraphNode);
 
         while (stack.Count > 0)
         {
-            var (node, depth, parent, parentStep, edgeMetadata, path) = stack.Pop();
+            var node = stack.Pop();
 
-            if (maxDepth != -1 && depth > maxDepth)
+            if (!processed.Add(node.GetNodeFingerprint()))
             {
                 continue;
             }
 
-            if (stateConstraint != null && !stateConstraint(node.State))
+            var edges = expander.ExpandNode(node);
+
+            if (generateStateGraph)
             {
-                continue;
+                node.SetExpandedEdges(edges);
             }
 
-            if (generateStateGraph && parent != null)
+            foreach (var edge in edges)
             {
-                var parentFingerprint = parent.GetNodeFingerprint();
-
-                if (!parentChildMap.ContainsKey(parentFingerprint))
+                var child = edge.Target;
+                if (!processed.Contains(child.GetNodeFingerprint()))
                 {
-                    parentChildMap[parentFingerprint] =
-                        new List<(StateGraphNode child, IStepFunction step, object edgeMetadata)>();
-                }
-
-                parentChildMap[parentFingerprint].Add((node, parentStep, edgeMetadata));
-            }
-
-            var fingerprint = node.GetNodeFingerprint();
-            if (processedNodeMap.ContainsKey(fingerprint))
-            {
-                continue;
-            }
-
-            processedNodeMap[fingerprint] = node;
-
-            var state = node.State;
-            var stepFunctions = node.StepFunctions;
-
-            if (hook != null)
-            {
-                hook(node);
-            }
-
-            foreach (var stepFunction in stepFunctions)
-            {
-                IList<StepResult> stepResults;
-
-                try
-                {
-                    stepResults = stepFunction.Apply(state, path);
-                }
-                catch (Exception ex)
-                {
-                    throw new StepFunctionApplicationException(
-                        ex,
-                        node,
-                        path,
-                        stepFunction);
-                }
-
-                if (stepResults == null || stepResults.Count == 0)
-                {
-                    continue;
-                }
-
-                foreach (var stepResult in stepResults)
-                {
-                    if (shouldIncludeStepFunctionResult != null &&
-                        !shouldIncludeStepFunctionResult(
-                        state,
-                        stepFunction,
-                        stepResult))
-                    {
-                        continue;
-                    }
-
-                    var newStepFunctions = stepFunctions.Where(s => s.StepFunctionId != stepFunction.StepFunctionId).ToList();
-                    if (stepResult.StepFunctions != null)
-                    {
-                        newStepFunctions.AddRange(stepResult.StepFunctions);
-                    }
-
-                    var nextGraphNode = GetOrCreateStateGraphNode(
-                        stepResult.State,
-                        newStepFunctions.OrderBy(s => s.StepFunctionId).ToList());
-
-                    stack.Push((
-                        nextGraphNode,
-                        depth + 1,
-                        node,
-                        stepFunction,
-                        stepResult.EdgeMetadata,
-                        path.Add((stepFunction, nextGraphNode))));
-                }
-            }
-
-            if (postHook != null)
-            {
-                postHook(node);
-            }
-        }
-
-        if (generateStateGraph)
-        {
-            foreach (var kvp in parentChildMap)
-            {
-                var parentFingerprint = kvp.Key;
-                var parent = processedNodeMap[parentFingerprint];
-
-                foreach (var (child, step, edgeMetadata) in kvp.Value)
-                {
-                    var childFingerprint = child.GetNodeFingerprint();
-                    var exists = parent.Edges.Any(e =>
-                        e.StepFunction.StepFunctionId == step.StepFunctionId &&
-                        e.Target.GetNodeFingerprint() == childFingerprint);
-
-                    if (!exists)
-                    {
-                        parent.Edges.Add(new StateGraphEdge()
-                        {
-                            StepFunction = step,
-                            Target = child,
-                            Metadata = edgeMetadata
-                        });
-                    }
+                    stack.Push(child);
                 }
             }
         }
@@ -217,6 +111,86 @@ public static class StateGraph
         return generateStateGraph ?
             rootGraphNode :
             null;
+    }
+
+    /// <summary>
+    /// Generates the raw successors of a node — the single source of truth
+    /// for successor generation shared by eager
+    /// (<see cref="ExploreStateGraph"/>) and lazy
+    /// (<see cref="StateGraphExpander.ExpandNode"/>) construction.
+    ///
+    /// <para>For each step function attached to the node it invokes
+    /// <see cref="IStepFunction.Apply"/> (wrapping failures in a
+    /// <see cref="StepFunctionApplicationException"/>), skips empty results,
+    /// applies the optional <paramref name="shouldIncludeStepFunctionResult"/>
+    /// filter, and computes the successor's step-function set (the current
+    /// step consumed, any newly-produced steps added, ordered by id).</para>
+    ///
+    /// <para>It deliberately does <em>not</em> apply the
+    /// <c>stateConstraint</c> or <c>maxDepth</c> bounds, perform node
+    /// interning, or build edges: those differ between the eager and lazy
+    /// drivers and remain each driver's responsibility. Keeping only the
+    /// path-independent per-step logic here guarantees the two drivers can
+    /// never silently diverge on how a successor state and its step-function
+    /// set are derived.</para>
+    /// </summary>
+    internal static IEnumerable<(
+        IStepFunction stepFunction,
+        IState childState,
+        IList<IStepFunction> childStepFunctions,
+        object edgeMetadata)> GenerateSuccessors(
+        StateGraphNode node,
+        IReadOnlyList<(IStepFunction, StateGraphNode)> path,
+        Func<IState, IStepFunction, StepResult, bool> shouldIncludeStepFunctionResult)
+    {
+        var state = node.State;
+        var stepFunctions = node.StepFunctions;
+
+        foreach (var stepFunction in stepFunctions)
+        {
+            IList<StepResult> stepResults;
+
+            try
+            {
+                stepResults = stepFunction.Apply(state, path);
+            }
+            catch (Exception ex)
+            {
+                throw new StepFunctionApplicationException(
+                    ex,
+                    node,
+                    path.ToList(),
+                    stepFunction);
+            }
+
+            if (stepResults == null || stepResults.Count == 0)
+            {
+                continue;
+            }
+
+            foreach (var stepResult in stepResults)
+            {
+                if (shouldIncludeStepFunctionResult != null &&
+                    !shouldIncludeStepFunctionResult(state, stepFunction, stepResult))
+                {
+                    continue;
+                }
+
+                var newStepFunctions = stepFunctions
+                    .Where(s => s.StepFunctionId != stepFunction.StepFunctionId)
+                    .ToList();
+                if (stepResult.StepFunctions != null)
+                {
+                    newStepFunctions.AddRange(stepResult.StepFunctions);
+                }
+
+                yield return (
+                    stepFunction,
+                    stepResult.State,
+                    newStepFunctions.OrderBy(s => s.StepFunctionId).ToList(),
+                    stepResult.EdgeMetadata);
+            }
+        }
     }
 }
 
@@ -244,10 +218,157 @@ public class StateGraphNode
     /// </summary>
     public IList<IStepFunction> StepFunctions { get; set; }
 
+    private List<StateGraphEdge> edges = new List<StateGraphEdge>();
+
+    private bool expanded;
+
+    /// <summary>
+    /// The expander bound to this node in lazy (on-the-fly) exploration, which
+    /// computes the node's outgoing edges the first time <see cref="Edges"/> is
+    /// accessed. This is the single flag distinguishing the two modes:
+    /// <list type="bullet">
+    /// <item><c>null</c> ⇒ an <b>eager</b> (or manually constructed) node. The
+    /// eager worklist has already computed and stored its edges via
+    /// <see cref="SetExpandedEdges"/>, so the lazy machinery is inert and
+    /// <see cref="Edges"/> behaves as a plain list.</item>
+    /// <item>non-<c>null</c> ⇒ a <b>lazy</b> node
+    /// (<c>StateGraph.ExploreStateGraph(..., lazy: true)</c>) that materializes
+    /// its edges on first <see cref="Edges"/> access.</item>
+    /// </list>
+    /// </summary>
+    internal StateGraphExpander LazyExpander { get; set; }
+
+    /// <summary>
+    /// Discovery depth of this node (root = 1), set once when the node is
+    /// first created. Both eager and lazy expansion read it to create
+    /// successors at <c>Depth + 1</c> and to honor the construction-time
+    /// <c>maxDepth</c> bound.
+    /// </summary>
+    internal int Depth { get; set; }
+
+    /// <summary>
+    /// The node from which this node was first discovered (its parent in the
+    /// discovery tree), or <c>null</c> for the root. Together with
+    /// <see cref="DiscoveredVia"/> this forms an immutable, prefix-shared
+    /// chain from any node back to the root — the single source of truth for
+    /// the traversal <see cref="Path"/>, used identically by eager and lazy
+    /// exploration. Set exactly once, when the node is first created.
+    /// </summary>
+    internal StateGraphNode DiscoveredFrom { get; set; }
+
+    /// <summary>
+    /// The step function whose edge first reached this node, or <c>null</c>
+    /// for the root. See <see cref="DiscoveredFrom"/>.
+    /// </summary>
+    internal IStepFunction DiscoveredVia { get; set; }
+
+    private IReadOnlyList<(IStepFunction, StateGraphNode)> materializedPath;
+
+    /// <summary>
+    /// The root→this traversal path handed to step functions during
+    /// expansion, in the shape <c>[(null, root), …, (DiscoveredVia, this)]</c>
+    /// (root first, this node last).
+    ///
+    /// <para>The path is <em>not</em> stored eagerly: it is reconstructed on
+    /// demand by walking the <see cref="DiscoveredFrom"/>/<see cref="DiscoveredVia"/>
+    /// back-pointer chain — which is O(1) memory per node and structurally
+    /// shared across descendants — and then flattened once and memoized here,
+    /// so repeat readers never recompute. Eager and lazy exploration derive
+    /// the path the same way, so a given node is handed an identical path in
+    /// either mode.</para>
+    ///
+    /// <para>This is the <em>discovery</em> witness path: interning means a
+    /// node is expanded at most once, so exactly one of the (possibly many)
+    /// root→node paths is materialized. Because successor generation is
+    /// path-independent, the path only feeds step functions that read history
+    /// (e.g. to prune), never the computed successor set.</para>
+    /// </summary>
+    internal IReadOnlyList<(IStepFunction, StateGraphNode)> Path
+    {
+        get
+        {
+            if (materializedPath == null)
+            {
+                var reversed = new List<(IStepFunction, StateGraphNode)>();
+                for (var node = this; node != null; node = node.DiscoveredFrom)
+                {
+                    reversed.Add((node.DiscoveredVia, node));
+                }
+
+                reversed.Reverse();
+                materializedPath = reversed;
+            }
+
+            return materializedPath;
+        }
+    }
+
     /// <summary>
     /// Edges which lead to the outgoing set of state graph nodes.
+    ///
+    /// <para>For lazily explored nodes the outgoing edges are computed and
+    /// memoized on first access via <see cref="EnsureExpanded"/>. This makes
+    /// on-the-fly model checking transparent to every consumer that walks
+    /// the graph through <see cref="Edges"/> (emptiness checkers, dot
+    /// visualization, BFS traversals) — the graph materializes only as far
+    /// as it is actually walked.</para>
     /// </summary>
-    public List<StateGraphEdge> Edges { get; set; } = new List<StateGraphEdge>();
+    public List<StateGraphEdge> Edges
+    {
+        get
+        {
+            EnsureExpanded();
+            return edges;
+        }
+
+        set => edges = value;
+    }
+
+    /// <summary>
+    /// Ensures this node's outgoing edges have been computed. A no-op for
+    /// eager / manually built nodes (<see cref="LazyExpander"/> is <c>null</c>)
+    /// and idempotent for lazy nodes (expansion runs at most once).
+    /// </summary>
+    internal void EnsureExpanded()
+    {
+        if (expanded)
+        {
+            return;
+        }
+
+        // Mark expanded before invoking the expander so that any re-entrant
+        // access to this node's Edges during expansion returns the
+        // (currently empty) backing list rather than recursing.
+        expanded = true;
+
+        if (LazyExpander != null)
+        {
+            edges = LazyExpander.ExpandNode(this);
+        }
+    }
+
+    /// <summary>
+    /// Stores the eagerly-computed outgoing edges for this node and marks it
+    /// expanded so that a later <see cref="Edges"/> access is a no-op rather
+    /// than triggering (re)computation. Used by the eager explorer, whose
+    /// worklist has already produced the node's edges.
+    /// </summary>
+    internal void SetExpandedEdges(List<StateGraphEdge> computedEdges)
+    {
+        // Eager and lazy are mutually exclusive per node: an eager node must
+        // never be lazy-bound, or a later Edges access would re-expand it
+        // (with an empty path) and overwrite these edges. Guard explicitly so
+        // the invariant fails loudly in every build, not just DEBUG.
+        if (LazyExpander != null)
+        {
+            throw new InvalidOperationException(
+                "SetExpandedEdges is the eager store path and must not be called on a " +
+                "lazy-bound node (LazyExpander != null).");
+        }
+
+        edges = computedEdges;
+        expanded = true;
+    }
 
     /// <summary>
     /// Returns the node fingerprint which is a hash computed over the state hash
