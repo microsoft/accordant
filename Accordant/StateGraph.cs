@@ -223,14 +223,20 @@ public class StateGraphNode
     private bool expanded;
 
     /// <summary>
-    /// The expander that lazily computes this node's outgoing edges the
-    /// first time <see cref="Edges"/> is accessed. Non-<c>null</c> only for
-    /// nodes produced by lazy (on-the-fly) exploration
-    /// (<c>StateGraph.ExploreStateGraph(..., lazy: true)</c>). For eagerly
-    /// explored or manually constructed nodes this is <c>null</c> and the
-    /// lazy machinery is inert — <see cref="Edges"/> behaves as a plain list.
+    /// The expander bound to this node in lazy (on-the-fly) exploration, which
+    /// computes the node's outgoing edges the first time <see cref="Edges"/> is
+    /// accessed. This is the single flag distinguishing the two modes:
+    /// <list type="bullet">
+    /// <item><c>null</c> ⇒ an <b>eager</b> (or manually constructed) node. The
+    /// eager worklist has already computed and stored its edges via
+    /// <see cref="SetExpandedEdges"/>, so the lazy machinery is inert and
+    /// <see cref="Edges"/> behaves as a plain list.</item>
+    /// <item>non-<c>null</c> ⇒ a <b>lazy</b> node
+    /// (<c>StateGraph.ExploreStateGraph(..., lazy: true)</c>) that materializes
+    /// its edges on first <see cref="Edges"/> access.</item>
+    /// </list>
     /// </summary>
-    internal StateGraphExpander Expander { get; set; }
+    internal StateGraphExpander LazyExpander { get; set; }
 
     /// <summary>
     /// Discovery depth of this node (root = 1), set once when the node is
@@ -320,7 +326,7 @@ public class StateGraphNode
 
     /// <summary>
     /// Ensures this node's outgoing edges have been computed. A no-op for
-    /// eager / manually built nodes (<see cref="Expander"/> is <c>null</c>)
+    /// eager / manually built nodes (<see cref="LazyExpander"/> is <c>null</c>)
     /// and idempotent for lazy nodes (expansion runs at most once).
     /// </summary>
     internal void EnsureExpanded()
@@ -335,9 +341,9 @@ public class StateGraphNode
         // (currently empty) backing list rather than recursing.
         expanded = true;
 
-        if (Expander != null)
+        if (LazyExpander != null)
         {
-            edges = Expander.ComputeEdges(this);
+            edges = LazyExpander.ExpandNode(this);
         }
     }
 
@@ -349,6 +355,17 @@ public class StateGraphNode
     /// </summary>
     internal void SetExpandedEdges(List<StateGraphEdge> computedEdges)
     {
+        // Eager and lazy are mutually exclusive per node: an eager node must
+        // never be lazy-bound, or a later Edges access would re-expand it
+        // (with an empty path) and overwrite these edges. Guard explicitly so
+        // the invariant fails loudly in every build, not just DEBUG.
+        if (LazyExpander != null)
+        {
+            throw new InvalidOperationException(
+                "SetExpandedEdges is the eager store path and must not be called on a " +
+                "lazy-bound node (LazyExpander != null).");
+        }
+
         edges = computedEdges;
         expanded = true;
     }

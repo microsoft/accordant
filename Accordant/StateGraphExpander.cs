@@ -30,7 +30,7 @@ using System.Linq;
 /// either mode. Successor generation is path-independent for model
 /// programs; the path only feeds step functions that read history.</item>
 /// <item><b>Whether created nodes self-expand.</b> Lazy nodes carry a back
-/// reference to this expander (<see cref="StateGraphNode.Expander"/>) so
+/// reference to this expander (<see cref="StateGraphNode.LazyExpander"/>) so
 /// their edges materialize on demand; eager nodes do not, since the worklist
 /// has already computed and stored their edges.</item>
 /// </list>
@@ -94,7 +94,7 @@ internal sealed class StateGraphExpander
             {
                 State = state,
                 StepFunctions = stepFunctions,
-                Expander = this.lazy ? this : null,
+                LazyExpander = this.lazy ? this : null,
                 DiscoveredFrom = discoveredFrom,
                 DiscoveredVia = discoveredVia,
                 Depth = depth
@@ -107,16 +107,11 @@ internal sealed class StateGraphExpander
     }
 
     /// <summary>
-    /// The lazy on-demand entry point, invoked from
-    /// <see cref="StateGraphNode.EnsureExpanded"/> the first time a node's
-    /// edges are accessed.
-    /// </summary>
-    internal List<StateGraphEdge> ComputeEdges(StateGraphNode node)
-        => ExpandNode(node);
-
-    /// <summary>
     /// Expands a single node — the one place both modes compute a node's
-    /// outgoing edges. A node failing the state constraint contributes no
+    /// outgoing edges. It is the eager worklist's per-node step and, via
+    /// <see cref="StateGraphNode.EnsureExpanded"/>, the lazy on-demand entry
+    /// point invoked the first time a node's edges are accessed.
+    /// A node failing the state constraint contributes no
     /// edges and fires no hook. Otherwise the pre-hook runs, successors are
     /// drawn from the path-independent
     /// <see cref="StateGraph.GenerateSuccessors"/> kernel (handed the node's
