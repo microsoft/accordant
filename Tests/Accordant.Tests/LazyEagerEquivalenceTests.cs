@@ -31,11 +31,18 @@ using NUnit.Framework;
 /// bounded graph is a subgraph of the unbounded one — not that they equal
 /// each other.</item>
 /// </list>
+///
+/// <para>Two further eager-only invariants guard the risk surface exercised
+/// in production on this branch (there is no production lazy consumer here):
+/// eager exploration is <em>deterministic</em> across repeated runs, and the
+/// memory-lean <c>generateStateGraph:false</c> traversal (used by
+/// <c>SystemChecker</c>, which retains no edges) still fires its pre- and
+/// post-hooks on exactly the same node set as the full eager graph.</para>
 /// </summary>
 [TestFixture]
 public class LazyEagerEquivalenceTests
 {
-    private const int Seeds = 200;
+    private const int Seeds = 400;
 
     #region Randomized model
 
@@ -148,9 +155,9 @@ public class LazyEagerEquivalenceTests
 
     private static (IStepFunction[] steps, VectorState start) BuildModel(Random rnd)
     {
-        var dims = rnd.Next(1, 3);       // 1..2
-        var bound = rnd.Next(2, 4);      // 2..3
-        var numSteps = rnd.Next(2, 5);   // 2..4
+        var dims = rnd.Next(1, 4);       // 1..3
+        var bound = rnd.Next(2, 5);      // 2..4
+        var numSteps = rnd.Next(2, 6);   // 2..5
 
         var steps = new List<IStepFunction>();
         var hasMovement = false;
@@ -325,5 +332,71 @@ public class LazyEagerEquivalenceTests
         Assert.That(eagerPostHooks, Is.Empty, "eager must not post-hook a constraint-failing node");
         Assert.That(lazyHooks, Is.Empty, "lazy must not hook a constraint-failing node");
         Assert.That(lazyPostHooks, Is.Empty, "lazy must not post-hook a constraint-failing node");
+    }
+
+    [Test]
+    public void EagerExploration_IsDeterministic_AcrossRepeatedRuns()
+    {
+        for (var seed = 0; seed < Seeds; seed++)
+        {
+            var (steps, start) = BuildModel(new Random(seed));
+
+            var hooksA = new HashSet<string>();
+            var rootA = StateGraph.ExploreStateGraph(
+                steps, (VectorState)start.Clone(),
+                hook: n => hooksA.Add(n.GetNodeFingerprint()));
+
+            // Re-run the same model with the same (stateless) step instances;
+            // interning, ordering and hook firing must reproduce exactly.
+            var hooksB = new HashSet<string>();
+            var rootB = StateGraph.ExploreStateGraph(
+                steps, (VectorState)start.Clone(),
+                hook: n => hooksB.Add(n.GetNodeFingerprint()));
+
+            Assert.That(NodeSet(rootB).SetEquals(NodeSet(rootA)), Is.True,
+                $"seed {seed}: repeated eager runs produced different node sets");
+            Assert.That(EdgeSet(rootB).SetEquals(EdgeSet(rootA)), Is.True,
+                $"seed {seed}: repeated eager runs produced different edge sets");
+            Assert.That(hooksB.SetEquals(hooksA), Is.True,
+                $"seed {seed}: repeated eager runs hooked different node sets");
+        }
+    }
+
+    [Test]
+    public void GenerateStateGraphFalse_HooksSameNodes_AsEagerGraph()
+    {
+        for (var seed = 0; seed < Seeds; seed++)
+        {
+            var (steps, start) = BuildModel(new Random(seed));
+
+            // Full eager graph: collect the pre- and post-hooked node sets and
+            // the reachable node set.
+            var graphHooks = new HashSet<string>();
+            var graphPostHooks = new HashSet<string>();
+            var graphRoot = StateGraph.ExploreStateGraph(
+                steps, (VectorState)start.Clone(),
+                hook: n => graphHooks.Add(n.GetNodeFingerprint()),
+                postHook: n => graphPostHooks.Add(n.GetNodeFingerprint()));
+
+            // Memory-lean eager traversal (the SystemChecker mode): it retains
+            // no edges and returns no root, but must still visit — and hook —
+            // exactly the same nodes.
+            var leanHooks = new HashSet<string>();
+            var leanPostHooks = new HashSet<string>();
+            var leanRoot = StateGraph.ExploreStateGraph(
+                steps, (VectorState)start.Clone(),
+                generateStateGraph: false,
+                hook: n => leanHooks.Add(n.GetNodeFingerprint()),
+                postHook: n => leanPostHooks.Add(n.GetNodeFingerprint()));
+
+            Assert.That(leanRoot, Is.Null,
+                $"seed {seed}: generateStateGraph:false must return no graph root");
+            Assert.That(graphHooks.SetEquals(NodeSet(graphRoot)), Is.True,
+                $"seed {seed}: eager should hook every reachable node exactly once");
+            Assert.That(leanHooks.SetEquals(graphHooks), Is.True,
+                $"seed {seed}: lean traversal hooked a different node set than the full graph");
+            Assert.That(leanPostHooks.SetEquals(graphPostHooks), Is.True,
+                $"seed {seed}: lean traversal post-hooked a different node set than the full graph");
+        }
     }
 }
