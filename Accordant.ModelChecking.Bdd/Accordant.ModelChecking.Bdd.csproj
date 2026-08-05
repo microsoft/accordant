@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<OutputType>Library</OutputType>
+		<OutputPath>../bin</OutputPath>
+		<IsPackable>false</IsPackable>
+		<RootNamespace>Microsoft.Accordant.ModelChecking.Bdd</RootNamespace>
+		<NoWarn>$(NoWarn);CA2255</NoWarn>
+		<Description>BDD-backed Effective Boolean Algebra for Accordant.ModelChecking. Reflection-wraps the in-box System.Text.RegularExpressions.Symbolic.CharSetSolver (.NET 7+) to provide precise propositional decisions (IsSatisfiable, AreEquivalent, Implies) without any external SAT/SMT dependency. Self-registers as the default StatePropEba via a module initializer.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Accordant.ModelChecking\Accordant.ModelChecking.csproj" />
+	</ItemGroup>
+
+</Project>
