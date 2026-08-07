@@ -88,7 +88,12 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             IEnumerable<Successor<TNbwState>> Successors(Node<TNbwState> p)
             {
                 var nbwTrans = nbw.GetTransition(p.NbwState);
-                var nbwSuccs = EvaluateNbwTransitions(nbwTrans, p.SystemNode.State, registry, nbwCmp);
+                var state = p.SystemNode.State;
+
+                // GetTransition has now registered this node's guard predicates,
+                // so awareness reflects whether any of them inspect the action
+                // or target state.
+                var anyTransitionAware = AnyTransitionAware(registry);
 
                 var edges = p.SystemNode.Edges;
                 var atFrontier = (maxDepth > 0 && p.Depth >= maxDepth);
@@ -96,13 +101,34 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
                 if (terminal || atFrontier)
                 {
-                    foreach (var q in nbwSuccs)
+                    // Stutter self-loop letter: state --(stutter)--> state.
+                    var stutterSuccs = EvaluateNbwTransitions(
+                        nbwTrans, TransitionContext.Stutter(state), registry, nbwCmp);
+                    foreach (var q in stutterSuccs)
                         yield return new Successor<TNbwState>(p.SystemNode, q, null);
                     yield break;
                 }
 
+                if (!anyTransitionAware)
+                {
+                    // Fast path: no proposition inspects the action or target,
+                    // so the NBW successors depend only on the source state.
+                    // Evaluate once and reuse for every outgoing edge.
+                    var nbwSuccs = EvaluateNbwTransitions(
+                        nbwTrans, TransitionContext.Source(state), registry, nbwCmp);
+                    foreach (var edge in edges)
+                        foreach (var q in nbwSuccs)
+                            yield return new Successor<TNbwState>(edge.Target, q, edge.StepFunction);
+                    yield break;
+                }
+
+                // Transition-aware: evaluate guards per edge so propositions
+                // can observe the action and target state.
                 foreach (var edge in edges)
                 {
+                    var ctx = TransitionContext.Edge(
+                        state, edge.StepFunction, edge.Metadata, edge.Target.State);
+                    var nbwSuccs = EvaluateNbwTransitions(nbwTrans, ctx, registry, nbwCmp);
                     foreach (var q in nbwSuccs)
                         yield return new Successor<TNbwState>(edge.Target, q, edge.StepFunction);
                 }
@@ -311,14 +337,14 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         /// </summary>
         private static HashSet<TNbwState> EvaluateNbwTransitions<TNbwState>(
             IReadOnlyList<TransitionTerm<StateSet<TNbwState>>> transitions,
-            IState systemState,
+            in TransitionContext ctx,
             ConditionRegistry<IStatePredicate> registry,
             IEqualityComparer<TNbwState> comparer)
         {
             var result = new HashSet<TNbwState>(comparer);
             foreach (var term in transitions)
             {
-                var leaf = EvaluateTerm(term, systemState, registry);
+                var leaf = EvaluateTerm(term, in ctx, registry);
                 if (leaf != null)
                     foreach (var s in leaf)
                         result.Add(s);
@@ -327,12 +353,12 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         }
 
         /// <summary>
-        /// Walks an ITE transition term against a concrete state, following
-        /// the unique path to a leaf.
+        /// Walks an ITE transition term against a concrete transition letter,
+        /// following the unique path to a leaf.
         /// </summary>
         private static StateSet<TNbwState> EvaluateTerm<TNbwState>(
             TransitionTerm<StateSet<TNbwState>> term,
-            IState systemState,
+            in TransitionContext ctx,
             ConditionRegistry<IStatePredicate> registry)
         {
             while (true)
@@ -341,8 +367,22 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     return leaf.Value;
                 var ite = (TransitionTermIte<StateSet<TNbwState>>)term;
                 var pred = registry.GetPredicate(ite.ConditionIndex);
-                term = pred.Eval(systemState) ? ite.Hi : ite.Lo;
+                term = pred.Eval(in ctx) ? ite.Hi : ite.Lo;
             }
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if any predicate registered with
+        /// <paramref name="registry"/> inspects the action or target state of
+        /// a transition. When <c>false</c>, guard evaluation depends only on
+        /// the source state and can be hoisted to once per node.
+        /// </summary>
+        internal static bool AnyTransitionAware(ConditionRegistry<IStatePredicate> registry)
+        {
+            foreach (var p in registry.Predicates)
+                if (p.IsTransitionAware)
+                    return true;
+            return false;
         }
 
         private static string MakeKey<TNbwState>(StateGraphNode sys, TNbwState q)

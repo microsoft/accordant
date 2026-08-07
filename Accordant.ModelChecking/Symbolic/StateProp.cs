@@ -3,12 +3,21 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Microsoft.Accordant;
 
     /// <summary>
-    /// A named atomic proposition over model program states.
+    /// A named atomic proposition over model program transitions.
     /// Each proposition has a unique integer Id for identity/ordering
-    /// and a Name for display. The evaluation function tests the proposition
-    /// against a concrete <see cref="State"/>.
+    /// and a Name for display.
+    ///
+    /// <para>The general evaluation function <see cref="EvaluateTransition"/>
+    /// tests the proposition against a full transition letter
+    /// <c>(s, a, s')</c> (see <see cref="TransitionContext"/>). State-only
+    /// propositions <c>p(s)</c> read only the source state and are reported by
+    /// <see cref="IsTransitionAware"/> == <c>false</c>, which lets the product
+    /// evaluators keep the historical once-per-node fast path. The
+    /// <see cref="Evaluate"/> callback is the state-only view, used by the SAT
+    /// decision procedure and counterexample valuation.</para>
     /// </summary>
     public sealed class StateProp : IEquatable<StateProp>, IComparable<StateProp>
     {
@@ -20,15 +29,60 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         /// <summary>Display name.</summary>
         public string Name { get; }
 
-        /// <summary>Evaluation: tests whether the proposition holds in a state.</summary>
+        /// <summary>
+        /// State-only view: tests whether the proposition holds given only a
+        /// source state. For transition-aware propositions this evaluates the
+        /// proposition against the stutter self-loop at the state
+        /// (<c>from == to</c>, stutter action).
+        /// </summary>
         public Func<State, bool> Evaluate { get; }
 
+        /// <summary>
+        /// General evaluation: tests whether the proposition holds for a full
+        /// transition letter <c>(s, a, s')</c>.
+        /// </summary>
+        public Func<TransitionContext, bool> EvaluateTransition { get; }
+
+        /// <summary>
+        /// <c>true</c> when the proposition may inspect the action or the
+        /// target state (i.e. it was defined as <c>p(s, s')</c> or
+        /// <c>p(s, a, s')</c>). When <c>false</c> the proposition depends only
+        /// on the source state and the evaluators may evaluate it once per
+        /// node rather than once per edge.
+        /// </summary>
+        public bool IsTransitionAware { get; }
+
+        /// <summary>
+        /// Creates a state-only proposition <c>p(s)</c>.
+        /// </summary>
         public StateProp(string name, Func<State, bool> evaluate)
         {
+            if (evaluate == null) throw new ArgumentNullException(nameof(evaluate));
             Id = System.Threading.Interlocked.Increment(ref _nextId);
             Name = name ?? throw new ArgumentNullException(nameof(name));
-            Evaluate = evaluate ?? throw new ArgumentNullException(nameof(evaluate));
+            Evaluate = evaluate;
+            EvaluateTransition = ctx => evaluate((State)ctx.From);
+            IsTransitionAware = false;
         }
+
+        private StateProp(string name, Func<TransitionContext, bool> evaluateTransition, bool _)
+        {
+            if (evaluateTransition == null) throw new ArgumentNullException(nameof(evaluateTransition));
+            Id = System.Threading.Interlocked.Increment(ref _nextId);
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            EvaluateTransition = evaluateTransition;
+            Evaluate = state => evaluateTransition(TransitionContext.Stutter(state));
+            IsTransitionAware = true;
+        }
+
+        /// <summary>
+        /// Creates a transition-aware proposition <c>p(s, a, s')</c>. The
+        /// state-only view (<see cref="Evaluate"/>) evaluates the proposition
+        /// against the stutter self-loop at the given state.
+        /// </summary>
+        public static StateProp OverTransition(
+            string name, Func<TransitionContext, bool> evaluateTransition)
+            => new StateProp(name, evaluateTransition, false);
 
         public bool Equals(StateProp other) => other != null && Id == other.Id;
         public override bool Equals(object obj) => Equals(obj as StateProp);
@@ -228,13 +282,26 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
     /// </summary>
     public interface IStatePredicate : IEquatable<IStatePredicate>
     {
+        /// <summary>State-only evaluation (source state). For
+        /// transition-aware predicates this is the stutter self-loop view.</summary>
         bool Eval(IState state);
+
+        /// <summary>General evaluation over a full transition letter.</summary>
+        bool Eval(in TransitionContext ctx);
+
+        /// <summary>
+        /// <c>true</c> when this predicate (transitively) inspects the action
+        /// or target state of a transition.
+        /// </summary>
+        bool IsTransitionAware { get; }
     }
 
     public sealed class StatePredTrue : IStatePredicate
     {
         public static readonly StatePredTrue Instance = new StatePredTrue();
         public bool Eval(IState state) => true;
+        public bool Eval(in TransitionContext ctx) => true;
+        public bool IsTransitionAware => false;
         public bool Equals(IStatePredicate other) => other is StatePredTrue;
         public override bool Equals(object obj) => obj is StatePredTrue;
         public override int GetHashCode() => 1;
@@ -245,6 +312,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
     {
         public static readonly StatePredFalse Instance = new StatePredFalse();
         public bool Eval(IState state) => false;
+        public bool Eval(in TransitionContext ctx) => false;
+        public bool IsTransitionAware => false;
         public bool Equals(IStatePredicate other) => other is StatePredFalse;
         public override bool Equals(object obj) => obj is StatePredFalse;
         public override int GetHashCode() => 0;
@@ -256,6 +325,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         public StateProp Prop { get; }
         public StatePredAtom(StateProp prop) { Prop = prop; }
         public bool Eval(IState state) => Prop.Evaluate((State)state);
+        public bool Eval(in TransitionContext ctx) => Prop.EvaluateTransition(ctx);
+        public bool IsTransitionAware => Prop.IsTransitionAware;
         public bool Equals(IStatePredicate other)
             => other is StatePredAtom a && Prop.Id == a.Prop.Id;
         public override bool Equals(object obj) => obj is IStatePredicate p && Equals(p);
@@ -268,6 +339,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         public IStatePredicate Inner { get; }
         public StatePredNot(IStatePredicate inner) { Inner = inner; }
         public bool Eval(IState state) => !Inner.Eval(state);
+        public bool Eval(in TransitionContext ctx) => !Inner.Eval(in ctx);
+        public bool IsTransitionAware => Inner.IsTransitionAware;
         public bool Equals(IStatePredicate other)
             => other is StatePredNot n && Inner.Equals(n.Inner);
         public override bool Equals(object obj) => obj is IStatePredicate p && Equals(p);
@@ -282,6 +355,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         public StatePredAnd(IStatePredicate left, IStatePredicate right)
         { Left = left; Right = right; }
         public bool Eval(IState state) => Left.Eval(state) && Right.Eval(state);
+        public bool Eval(in TransitionContext ctx) => Left.Eval(in ctx) && Right.Eval(in ctx);
+        public bool IsTransitionAware => Left.IsTransitionAware || Right.IsTransitionAware;
         public bool Equals(IStatePredicate other)
             => other is StatePredAnd a && Left.Equals(a.Left) && Right.Equals(a.Right);
         public override bool Equals(object obj) => obj is IStatePredicate p && Equals(p);
@@ -299,6 +374,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         public StatePredOr(IStatePredicate left, IStatePredicate right)
         { Left = left; Right = right; }
         public bool Eval(IState state) => Left.Eval(state) || Right.Eval(state);
+        public bool Eval(in TransitionContext ctx) => Left.Eval(in ctx) || Right.Eval(in ctx);
+        public bool IsTransitionAware => Left.IsTransitionAware || Right.IsTransitionAware;
         public bool Equals(IStatePredicate other)
             => other is StatePredOr o && Left.Equals(o.Left) && Right.Equals(o.Right);
         public override bool Equals(object obj) => obj is IStatePredicate p && Equals(p);

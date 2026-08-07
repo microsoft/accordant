@@ -43,6 +43,50 @@ namespace Microsoft.Accordant.ModelChecking
             return new Observation(new StatePredAtom(prop));
         }
 
+        /// <summary>
+        /// Define an atomic observation (proposition) over a transition,
+        /// inspecting both the source state <c>s</c> and the target state
+        /// <c>s'</c>. This is the two-argument overload of the general
+        /// <c>p(s, a, s')</c> form; the action is ignored.
+        /// </summary>
+        /// <param name="predicate">Transition predicate <c>(s, s') =&gt; bool</c>,
+        /// evaluated against concrete source/target states during model
+        /// checking. At a stutter self-loop <c>s'</c> equals <c>s</c>.</param>
+        /// <param name="name">Display name for diagnostics and counterexample traces.</param>
+        public Observation Observe(Func<TState, TState, bool> predicate, string name)
+        {
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            var prop = StateProp.OverTransition(
+                name,
+                ctx => predicate((TState)ctx.From, (TState)ctx.To));
+            return new Observation(new StatePredAtom(prop));
+        }
+
+        /// <summary>
+        /// Define an atomic observation (proposition) over a full transition
+        /// <c>(s, a, s')</c>: the source state <c>s</c>, the action <c>a</c>
+        /// that produced the transition (with its edge metadata), and the
+        /// target state <c>s'</c>.
+        /// </summary>
+        /// <param name="predicate">Transition predicate
+        /// <c>(s, a, s') =&gt; bool</c>, evaluated against concrete transitions
+        /// during model checking. At a stutter self-loop <c>s'</c> equals
+        /// <c>s</c> and <see cref="Transition.IsStutter"/> is <c>true</c>.</param>
+        /// <param name="name">Display name for diagnostics and counterexample traces.</param>
+        public Observation Observe(Func<TState, Transition, TState, bool> predicate, string name)
+        {
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            var prop = StateProp.OverTransition(
+                name,
+                ctx => predicate(
+                    (TState)ctx.From,
+                    new Transition(ctx.Action, ctx.Metadata),
+                    (TState)ctx.To));
+            return new Observation(new StatePredAtom(prop));
+        }
+
         #endregion
 
         #region Constants

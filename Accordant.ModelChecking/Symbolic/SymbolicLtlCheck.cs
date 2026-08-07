@@ -151,7 +151,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     // <see cref="NestedDfsCheck"/> frontier handling.
                     var nbwTransitionsFr = nbw.GetTransition(current.NbwState);
                     var frontierSuccs = EvaluateNbwTransitions(
-                        nbwTransitionsFr, current.SystemNode.State, registry);
+                        nbwTransitionsFr, TransitionContext.Stutter(current.SystemNode.State),
+                        registry);
                     foreach (var succNbwState in frontierSuccs)
                     {
                         var succKey = MakeProductKey(current.SystemNode, succNbwState);
@@ -174,13 +175,16 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 // Get NBW transitions for current NBW state
                 var nbwTransitions = nbw.GetTransition(nbwState);
 
+                // GetTransition has registered this node's guard predicates.
+                var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
+
                 // If system node is terminal (no outgoing edges): stutter self-loop
                 var sysEdges = sysNode.Edges;
                 if (sysEdges == null || sysEdges.Count == 0)
                 {
                     // Stutter: stay in same system state, advance NBW
                     var successorNbwStates = EvaluateNbwTransitions(
-                        nbwTransitions, sysNode.State, registry);
+                        nbwTransitions, TransitionContext.Stutter(sysNode.State), registry);
 
                     foreach (var succNbwState in successorNbwStates)
                     {
@@ -198,15 +202,44 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     continue;
                 }
 
-                // Normal transitions
+                if (!anyTransitionAware)
+                {
+                    // Fast path: NBW successors depend only on the source
+                    // system state (the label is consumed at the source), so
+                    // evaluate once and reuse for every outgoing edge.
+                    var successorNbwStates = EvaluateNbwTransitions(
+                        nbwTransitions, TransitionContext.Source(sysNode.State), registry);
+
+                    foreach (var edge in sysEdges)
+                    {
+                        var nextSysNode = edge.Target;
+                        foreach (var succNbwState in successorNbwStates)
+                        {
+                            var succKey = MakeProductKey(nextSysNode, succNbwState);
+                            if (!productNodes.TryGetValue(succKey, out var succInfo))
+                            {
+                                succInfo = new ProductNodeInfo(
+                                    nextSysNode, succNbwState, succKey, current.Depth + 1,
+                                    edge.StepFunction, current);
+                                productNodes[succKey] = succInfo;
+                                worklist.Enqueue(succInfo);
+                            }
+                            current.Successors.Add(succInfo);
+                        }
+                    }
+                    continue;
+                }
+
+                // Transition-aware: evaluate guards per edge so propositions
+                // can observe the action and target state.
                 foreach (var edge in sysEdges)
                 {
                     var nextSysNode = edge.Target;
 
-                    // Evaluate NBW transitions against the CURRENT system state
-                    // (the label is consumed at the source)
+                    var ctx = TransitionContext.Edge(
+                        sysNode.State, edge.StepFunction, edge.Metadata, nextSysNode.State);
                     var successorNbwStates = EvaluateNbwTransitions(
-                        nbwTransitions, sysNode.State, registry);
+                        nbwTransitions, ctx, registry);
 
                     foreach (var succNbwState in successorNbwStates)
                     {
@@ -252,7 +285,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         /// </summary>
         private static HashSet<BreakpointState<Ltl<IStatePredicate>>> EvaluateNbwTransitions(
             IReadOnlyList<TransitionTerm<StateSet<BreakpointState<Ltl<IStatePredicate>>>>> transitions,
-            IState systemState,
+            in TransitionContext ctx,
             ConditionRegistry<IStatePredicate> registry)
         {
             var result = new HashSet<BreakpointState<Ltl<IStatePredicate>>>(
@@ -260,7 +293,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
             foreach (var term in transitions)
             {
-                var successorSet = EvaluateTerm(term, systemState, registry);
+                var successorSet = EvaluateTerm(term, in ctx, registry);
                 if (successorSet != null)
                 {
                     foreach (var s in successorSet)
@@ -272,12 +305,12 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         }
 
         /// <summary>
-        /// Evaluates a single transition term (ADD) against a concrete state,
-        /// following the unique path through the ITE tree.
+        /// Evaluates a single transition term (ADD) against a concrete
+        /// transition letter, following the unique path through the ITE tree.
         /// </summary>
         private static StateSet<BreakpointState<Ltl<IStatePredicate>>> EvaluateTerm(
             TransitionTerm<StateSet<BreakpointState<Ltl<IStatePredicate>>>> term,
-            IState systemState,
+            in TransitionContext ctx,
             ConditionRegistry<IStatePredicate> registry)
         {
             while (true)
@@ -287,7 +320,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
                 var ite = (TransitionTermIte<StateSet<BreakpointState<Ltl<IStatePredicate>>>>)term;
                 var pred = registry.GetPredicate(ite.ConditionIndex);
-                term = pred.Eval(systemState) ? ite.Hi : ite.Lo;
+                term = pred.Eval(in ctx) ? ite.Hi : ite.Lo;
             }
         }
 

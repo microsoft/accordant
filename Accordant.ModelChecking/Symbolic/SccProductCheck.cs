@@ -96,7 +96,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     // <see cref="NestedDfsCheck"/> frontier handling.
                     var frontierNbw = nbw.GetTransition(current.NbwState);
                     var frontierSuccs = EvaluateNbwTransitions(
-                        frontierNbw, current.SystemNode.State, registry, nbwStateComparer);
+                        frontierNbw, TransitionContext.Stutter(current.SystemNode.State),
+                        registry, nbwStateComparer);
                     foreach (var succNbw in frontierSuccs)
                     {
                         var succ = GetOrCreate(
@@ -110,10 +111,14 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 var sysNode = current.SystemNode;
                 var sysEdges = sysNode.Edges;
 
+                // GetTransition has registered this node's guard predicates.
+                var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
+
                 if (sysEdges == null || sysEdges.Count == 0)
                 {
                     var stutterSuccs = EvaluateNbwTransitions(
-                        nbwTrans, sysNode.State, registry, nbwStateComparer);
+                        nbwTrans, TransitionContext.Stutter(sysNode.State),
+                        registry, nbwStateComparer);
                     foreach (var succNbw in stutterSuccs)
                     {
                         var succ = GetOrCreate(sysNode, succNbw, current.Depth + 1, null, current);
@@ -122,14 +127,36 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     continue;
                 }
 
-                // NBW transitions depend only on the source system state,
-                // so evaluate once and reuse for all outgoing edges.
-                var nbwSuccsAll = EvaluateNbwTransitions(
-                    nbwTrans, sysNode.State, registry, nbwStateComparer);
+                if (!anyTransitionAware)
+                {
+                    // Fast path: NBW successors depend only on the source
+                    // system state, so evaluate once and reuse for all edges.
+                    var nbwSuccsAll = EvaluateNbwTransitions(
+                        nbwTrans, TransitionContext.Source(sysNode.State),
+                        registry, nbwStateComparer);
 
+                    foreach (var edge in sysEdges)
+                    {
+                        foreach (var succNbw in nbwSuccsAll)
+                        {
+                            var succ = GetOrCreate(
+                                edge.Target, succNbw, current.Depth + 1, edge.StepFunction, current);
+                            current.Successors.Add(
+                                new ProductEdge<TNbwState>(edge.StepFunction, succ));
+                        }
+                    }
+                    continue;
+                }
+
+                // Transition-aware: evaluate guards per edge so propositions
+                // can observe the action and target state.
                 foreach (var edge in sysEdges)
                 {
-                    foreach (var succNbw in nbwSuccsAll)
+                    var ctx = TransitionContext.Edge(
+                        sysNode.State, edge.StepFunction, edge.Metadata, edge.Target.State);
+                    var nbwSuccs = EvaluateNbwTransitions(
+                        nbwTrans, ctx, registry, nbwStateComparer);
+                    foreach (var succNbw in nbwSuccs)
                     {
                         var succ = GetOrCreate(
                             edge.Target, succNbw, current.Depth + 1, edge.StepFunction, current);
@@ -166,14 +193,14 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
         private static HashSet<TNbwState> EvaluateNbwTransitions<TNbwState>(
             IReadOnlyList<TransitionTerm<StateSet<TNbwState>>> transitions,
-            IState systemState,
+            in TransitionContext ctx,
             ConditionRegistry<IStatePredicate> registry,
             IEqualityComparer<TNbwState> cmp)
         {
             var result = new HashSet<TNbwState>(cmp);
             foreach (var term in transitions)
             {
-                var leaf = EvaluateTerm(term, systemState, registry);
+                var leaf = EvaluateTerm(term, in ctx, registry);
                 if (leaf == null) continue;
                 foreach (var s in leaf) result.Add(s);
             }
@@ -182,7 +209,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
         private static StateSet<TNbwState> EvaluateTerm<TNbwState>(
             TransitionTerm<StateSet<TNbwState>> term,
-            IState systemState,
+            in TransitionContext ctx,
             ConditionRegistry<IStatePredicate> registry)
         {
             while (true)
@@ -191,7 +218,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     return leaf.Value;
                 var ite = (TransitionTermIte<StateSet<TNbwState>>)term;
                 var pred = registry.GetPredicate(ite.ConditionIndex);
-                term = pred.Eval(systemState) ? ite.Hi : ite.Lo;
+                term = pred.Eval(in ctx) ? ite.Hi : ite.Lo;
             }
         }
 
