@@ -83,6 +83,40 @@ This is why a mapping can return a newly allocated abstract state:
 
 State comparison uses the same semantic state hashes as graph identity.
 
+## Retain several abstract explanations
+
+Use relational correspondence when the concrete state does not yet determine
+one abstract state:
+
+```csharp
+var result = Refinement
+    .Between<ConcreteState, AbstractState>(concreteRoot, abstractRoot)
+    .Corresponds((concrete, abstraction) =>
+        concrete.Stage == abstraction.Stage &&
+        (concrete.RevealedChoice == null ||
+            concrete.RevealedChoice == abstraction.Choice))
+    .Check();
+```
+
+The checker retains every corresponding abstract configuration reachable by
+an abstract step or stutter. Later concrete states prune candidates that are no
+longer consistent:
+
+```text
+concrete choice unknown:  { red, blue }
+concrete reveals blue:    { blue }
+```
+
+Candidate selection is path coherent. A later concrete state cannot switch to
+an abstract configuration whose earlier history was already pruned. This
+supports many finite-state prophecy-style correspondences without adding a
+future-choice field to the concrete model.
+
+Functional `.Map(...)` and relational `.Corresponds(...)` use the same
+step-aligned engine. Functional mapping is preferable when one abstract state
+is already determined because it is simpler and generally retains fewer
+candidates.
+
 ## Bounded graphs
 
 A genuine terminal state is complete and does not make safety refinement
@@ -100,5 +134,4 @@ inconclusive. A construction-time depth frontier has unknown successors.
 
 This first refinement mode checks strict step-aligned safety only. It does not
 yet compare actions or edge metadata, apply fairness, check temporal
-properties, use relational correspondence, or search finite abstract paths per
-concrete step.
+properties, or search finite abstract paths per concrete step.

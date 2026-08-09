@@ -27,7 +27,7 @@ public enum RefinementCheckingStatus
 /// </summary>
 public enum RefinementFailureKind
 {
-    /// <summary>The mapped concrete initial state is not the abstract initial state.</summary>
+    /// <summary>The concrete and abstract initial states do not correspond.</summary>
     InitialStateMismatch,
 
     /// <summary>A concrete transition has no coherent abstract match.</summary>
@@ -62,7 +62,10 @@ public sealed class RefinementTraceItem
     /// <summary>Metadata on the incoming concrete edge, if any.</summary>
     public object ConcreteEdgeMetadata { get; }
 
-    /// <summary>The abstract state produced by the refinement mapping.</summary>
+    /// <summary>
+    /// The abstract state produced by a functional refinement mapping, or
+    /// null for relational correspondence.
+    /// </summary>
     public IState MappedAbstractState { get; }
 
     /// <summary>
@@ -73,7 +76,7 @@ public sealed class RefinementTraceItem
 }
 
 /// <summary>
-/// Result of checking functional safety refinement.
+/// Result of checking safety refinement.
 /// </summary>
 public sealed class RefinementCheckingResult
 {
@@ -146,7 +149,7 @@ public sealed class RefinementCheckingResult
         else
         {
             sb.AppendLine(FailureKind == RefinementFailureKind.InitialStateMismatch
-                ? "Refinement failed: the mapped concrete initial state does not match the abstract initial state."
+                ? "Refinement failed: the concrete and abstract initial states do not correspond."
                 : "Refinement failed: a concrete transition has no coherent abstract match.");
         }
 
@@ -163,10 +166,13 @@ public sealed class RefinementCheckingResult
             sb.Append("  --")
                 .Append(step)
                 .Append("--> concrete ")
-                .Append(item.ConcreteNode.State)
-                .Append("; mapped abstract ")
-                .Append(item.MappedAbstractState)
-                .Append("; candidates ")
+                .Append(item.ConcreteNode.State);
+            if (item.MappedAbstractState != null)
+            {
+                sb.Append("; mapped abstract ")
+                    .Append(item.MappedAbstractState);
+            }
+            sb.Append("; candidates ")
                 .Append(item.AbstractCandidates.Count);
 
             if (item.AbstractCandidates.Count > 0)

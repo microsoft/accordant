@@ -62,6 +62,50 @@ public sealed class RefinementBuilder<TConcrete, TAbstract>
             concreteRoot,
             abstractRoot,
             mapping ?? throw new ArgumentNullException(nameof(mapping)));
+
+    /// <summary>
+    /// Defines a relational correspondence between concrete and abstract
+    /// states. The checker retains every path-coherent abstract candidate
+    /// until a later concrete state rules it out.
+    /// </summary>
+    public RelationalRefinementCheck<TConcrete, TAbstract> Corresponds(
+        Func<TConcrete, TAbstract, bool> correspondence)
+        => new RelationalRefinementCheck<TConcrete, TAbstract>(
+            concreteRoot,
+            abstractRoot,
+            correspondence ?? throw new ArgumentNullException(nameof(correspondence)));
+}
+
+/// <summary>
+/// A configured relational safety-refinement check.
+/// </summary>
+public sealed class RelationalRefinementCheck<TConcrete, TAbstract>
+    where TConcrete : IState
+    where TAbstract : IState
+{
+    private readonly StateGraphNode concreteRoot;
+    private readonly StateGraphNode abstractRoot;
+    private readonly Func<TConcrete, TAbstract, bool> correspondence;
+
+    internal RelationalRefinementCheck(
+        StateGraphNode concreteRoot,
+        StateGraphNode abstractRoot,
+        Func<TConcrete, TAbstract, bool> correspondence)
+    {
+        this.concreteRoot = concreteRoot;
+        this.abstractRoot = abstractRoot;
+        this.correspondence = correspondence;
+    }
+
+    /// <summary>
+    /// Checks strict step-aligned relational safety refinement. Candidate
+    /// abstract configurations are retained and pruned path-coherently.
+    /// </summary>
+    public RefinementCheckingResult Check()
+        => RelationalSafetyRefinement.Check(
+            concreteRoot,
+            abstractRoot,
+            correspondence);
 }
 
 /// <summary>
