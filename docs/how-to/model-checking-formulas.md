@@ -47,13 +47,41 @@ identify a top-level assertion:
 var property = f.Always(ready).Named("System remains ready");
 ```
 
-## Opt out of the guarantee explicitly
+## Observe transitions safely
+
+The default builder also supports relations over a source and target state:
+
+```csharp
+var advances = f.ObserveTransition(
+    (state, next) => next.Version > state.Version);
+
+var property = f.Always(advances);
+```
+
+A temporal position is anchored at its source state: state observations read
+`s`, while transition observations read `(s, s')`. Accordant uses full
+semantic state equality to classify an edge as changed or unchanged.
+
+The safe operators lift transition observations according to their role:
+
+| Operator role | Interpretation |
+| --- | --- |
+| Continuing condition | `Allowed(A) = Unchanged || A` |
+| Trigger, goal, or occurrence | `Occurs(A) = Changed && A` |
+
+Consequently, `Always(A)` permits stutter edges, `Eventually(A)` requires a
+changing occurrence, and `Until(H, G)` means `Allowed(H) U Occurs(G)`.
+`Release`, `InfinitelyOften`, `Stabilizes`, and `LeadsTo` follow the same
+continuing-condition versus occurrence distinction. Mixed state/transition
+overloads use ordinary source-position LTL semantics.
+
+## Opt into stutter-sensitive formulas explicitly
 
 Some properties must observe exact transition boundaries or use operators that
 are not yet classified as stutter-invariant:
 
 ```csharp
-var exact = f.WithoutStutterGuarantee();
+var exact = f.AllowStutterSensitiveFormulas();
 
 var changed = exact.ObserveTransition(
     (state, nextState) => state.Value != nextState.Value);
@@ -61,20 +89,14 @@ var changed = exact.ObserveTransition(
 var changedNext = exact.Next(changed);
 ```
 
-`WithoutStutterGuarantee()` does not mean the resulting formula is necessarily
-stutter-sensitive. It means Accordant's type system no longer guarantees that
-it is stutter-invariant.
+The sensitive builder interprets transition observations literally at every
+physical edge position. That includes named unchanged model edges and the
+synthetic self-loop used at terminal and bounded-depth frontier nodes. It also
+exposes `Next`.
 
-Full transition observations can inspect the source state, action and target
-state:
-
-```csharp
-var sent = exact.ObserveTransition(
-    (state, transition, nextState) => transition.ActionId == "Send");
-```
-
-At terminal and bounded-depth frontier nodes, model checking presents the
-synthetic self-loop as a transition whose `IsStutter` property is `true`.
+`AllowStutterSensitiveFormulas()` does not claim every resulting formula is
+stutter-sensitive. It means Accordant's type system no longer guarantees
+stutter invariance.
 
 ## Type propagation
 
@@ -95,3 +117,23 @@ TemporalFormula mixed = safe & next;
 This lets IntelliSense guide normal property authoring toward the guaranteed
 subset while keeping the complete language available through an explicit
 opt-out.
+
+## Add fairness explicitly
+
+Checks use `Fairness.None` unless a fairness constraint is supplied. Fairness
+always concerns changing edges; an action that produces an unchanged state
+does not count as enabled or taken for fairness.
+
+```csharp
+var byStep = Fairness.Weak<SendStep>();
+var byRelation = Fairness.Strong<OrderState>(
+    (state, next) => next.Status == Status.Sent);
+var byEdge = Fairness.Weak<OrderState>(
+    (state, action, next) =>
+        action.StepFunctionId == "Send" && next.Status == Status.Sent);
+```
+
+Weak fairness requires a continuously enabled changing action to occur.
+Strong fairness requires a changing action enabled infinitely often to occur
+infinitely often. Constraints can be combined with `+`; use
+`Fairness.WeakAll` to apply weak fairness to every changing step.

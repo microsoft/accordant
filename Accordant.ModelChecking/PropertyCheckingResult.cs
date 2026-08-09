@@ -167,15 +167,17 @@ namespace Microsoft.Accordant.ModelChecking
             // at the end.
             var nodesInSCC = new HashSet<string>(scc.Nodes.Select(n => n.GetNodeFingerprint()));
 
-            IEnumerable<IStepFunction> EnabledAt(StateGraphNode n)
-                => n.Edges.Select(e => e.StepFunction);
+            IEnumerable<FairnessEdge> EnabledAt(StateGraphNode n)
+                => n.Edges.Select(e =>
+                    new FairnessEdge(n, e.StepFunction, e.Metadata, e.Target));
 
-            IEnumerable<IStepFunction> Taken()
+            IEnumerable<FairnessEdge> Taken()
             {
                 foreach (var n in scc.Nodes)
                     foreach (var e in n.Edges)
                         if (nodesInSCC.Contains(e.Target.GetNodeFingerprint()))
-                            yield return e.StepFunction;
+                            yield return new FairnessEdge(
+                                n, e.StepFunction, e.Metadata, e.Target);
             }
 
             var analysis = CycleFairness.Compute(scc.Nodes, EnabledAt, Taken());

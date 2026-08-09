@@ -23,6 +23,18 @@ public static class Formula
 /// </summary>
 public class FormulaBuilder<TState> where TState : State
 {
+    private readonly Rltl<IStatePredicate> unchanged;
+    private readonly Rltl<IStatePredicate> changed;
+
+    public FormulaBuilder()
+    {
+        var unchangedProp = StateProp.OverTransition(
+            "Unchanged",
+            context => StateSemantics.Equal(context.From, context.To));
+        unchanged = Rltl<IStatePredicate>.Atom(new StatePredAtom(unchangedProp));
+        changed = RltlAlgebra.Default.Not(unchanged);
+    }
+
     #region Observation factory
 
     /// <summary>
@@ -44,6 +56,24 @@ public class FormulaBuilder<TState> where TState : State
         var diagnosticName = ResolveObservationName(name, expression);
         var prop = new StateProp(diagnosticName, state => predicate((TState)state));
         return new Observation(new StatePredAtom(prop));
+    }
+
+    /// <summary>
+    /// Define an atomic observation over a source and target state.
+    /// Stutter-safe temporal operators ignore unchanged transitions when
+    /// interpreting this observation.
+    /// </summary>
+    public TransitionObservation ObserveTransition(
+        Func<TState, TState, bool> predicate,
+        string name = null,
+        [CallerArgumentExpression("predicate")] string expression = null)
+    {
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+        var diagnosticName = ResolveObservationName(name, expression);
+        var prop = StateProp.OverTransition(
+            diagnosticName,
+            context => predicate((TState)context.From, (TState)context.To));
+        return new TransitionObservation(new StatePredAtom(prop));
     }
 
     #endregion
@@ -95,25 +125,77 @@ public class FormulaBuilder<TState> where TState : State
     public StutterSafeFormula Until(StutterSafeFormula hold, StutterSafeFormula goal)
         => new StutterSafeFormula(Rltl<IStatePredicate>.Until(hold.Core, goal.Core));
 
+    public StutterSafeFormula Until(
+        StutterSafeFormula hold,
+        TransitionObservation goal)
+        => new StutterSafeFormula(
+            Rltl<IStatePredicate>.Until(hold.Core, Occurs(goal)));
+
+    public StutterSafeFormula Until(
+        TransitionObservation hold,
+        StutterSafeFormula goal)
+        => new StutterSafeFormula(
+            Rltl<IStatePredicate>.Until(Allowed(hold), goal.Core));
+
+    public StutterSafeFormula Until(
+        TransitionObservation hold,
+        TransitionObservation goal)
+        => new StutterSafeFormula(
+            Rltl<IStatePredicate>.Until(Allowed(hold), Occurs(goal)));
+
     /// <summary>Release: <c>φ R ψ</c> — dual of Until.</summary>
     public StutterSafeFormula Release(StutterSafeFormula release, StutterSafeFormula hold)
         => new StutterSafeFormula(Rltl<IStatePredicate>.Release(release.Core, hold.Core));
+
+    public StutterSafeFormula Release(
+        StutterSafeFormula release,
+        TransitionObservation hold)
+        => new StutterSafeFormula(
+            Rltl<IStatePredicate>.Release(release.Core, Allowed(hold)));
+
+    public StutterSafeFormula Release(
+        TransitionObservation release,
+        StutterSafeFormula hold)
+        => new StutterSafeFormula(
+            Rltl<IStatePredicate>.Release(Occurs(release), hold.Core));
+
+    public StutterSafeFormula Release(
+        TransitionObservation release,
+        TransitionObservation hold)
+        => new StutterSafeFormula(
+            Rltl<IStatePredicate>.Release(Occurs(release), Allowed(hold)));
 
     /// <summary>Eventually: <c>◇φ</c> — φ holds at some future state.</summary>
     public StutterSafeFormula Eventually(StutterSafeFormula inner)
         => new StutterSafeFormula(Rltl<IStatePredicate>.Eventually(inner.Core));
 
+    public StutterSafeFormula Eventually(TransitionObservation inner)
+        => new StutterSafeFormula(Rltl<IStatePredicate>.Eventually(Occurs(inner)));
+
     /// <summary>Always: <c>□φ</c> — φ holds at every future state.</summary>
     public StutterSafeFormula Always(StutterSafeFormula inner)
         => new StutterSafeFormula(Rltl<IStatePredicate>.Globally(inner.Core));
+
+    public StutterSafeFormula Always(TransitionObservation inner)
+        => new StutterSafeFormula(Rltl<IStatePredicate>.Globally(Allowed(inner)));
 
     /// <summary>Infinitely often: <c>□◇φ</c> — φ holds infinitely often.</summary>
     public StutterSafeFormula InfinitelyOften(StutterSafeFormula inner)
         => Always(Eventually(inner));
 
+    public StutterSafeFormula InfinitelyOften(TransitionObservation inner)
+        => new StutterSafeFormula(
+            Rltl<IStatePredicate>.Globally(
+                Rltl<IStatePredicate>.Eventually(Occurs(inner))));
+
     /// <summary>Stabilizes: <c>◇□φ</c> — φ eventually holds forever.</summary>
     public StutterSafeFormula Stabilizes(StutterSafeFormula inner)
         => Eventually(Always(inner));
+
+    public StutterSafeFormula Stabilizes(TransitionObservation inner)
+        => new StutterSafeFormula(
+            Rltl<IStatePredicate>.Eventually(
+                Rltl<IStatePredicate>.Globally(Allowed(inner))));
 
     /// <summary>Leads-to: <c>φ ~> ψ</c> = <c>□(φ → ◇ψ)</c> — whenever φ holds,
     /// ψ eventually follows.</summary>
@@ -122,14 +204,47 @@ public class FormulaBuilder<TState> where TState : State
         StutterSafeFormula response)
         => Always(Implies(trigger, Eventually(response)));
 
+    public StutterSafeFormula LeadsTo(
+        StutterSafeFormula trigger,
+        TransitionObservation response)
+        => new StutterSafeFormula(
+            Rltl<IStatePredicate>.Globally(
+                RltlAlgebra.Default.Implies(
+                    trigger.Core,
+                    Rltl<IStatePredicate>.Eventually(Occurs(response)))));
+
+    public StutterSafeFormula LeadsTo(
+        TransitionObservation trigger,
+        StutterSafeFormula response)
+        => new StutterSafeFormula(
+            Rltl<IStatePredicate>.Globally(
+                RltlAlgebra.Default.Implies(
+                    Occurs(trigger),
+                    Rltl<IStatePredicate>.Eventually(response.Core))));
+
+    public StutterSafeFormula LeadsTo(
+        TransitionObservation trigger,
+        TransitionObservation response)
+        => new StutterSafeFormula(
+            Rltl<IStatePredicate>.Globally(
+                RltlAlgebra.Default.Implies(
+                    Occurs(trigger),
+                    Rltl<IStatePredicate>.Eventually(Occurs(response)))));
+
     #endregion
 
     /// <summary>
     /// Opt out of the default stutter-invariance guarantee and access the
     /// complete supported formula language.
     /// </summary>
-    public UnrestrictedFormulaBuilder<TState> WithoutStutterGuarantee()
-        => new UnrestrictedFormulaBuilder<TState>();
+    public StutterSensitiveFormulaBuilder<TState> AllowStutterSensitiveFormulas()
+        => new StutterSensitiveFormulaBuilder<TState>();
+
+    private Rltl<IStatePredicate> Allowed(TransitionObservation observation)
+        => RltlAlgebra.Default.Or(unchanged, observation.RltlCore);
+
+    private Rltl<IStatePredicate> Occurs(TransitionObservation observation)
+        => RltlAlgebra.Default.And(changed, observation.RltlCore);
 
     protected static string ResolveObservationName(string name, string expression)
     {
@@ -149,7 +264,7 @@ public class FormulaBuilder<TState> where TState : State
 /// Formula builder for the complete supported language. Formulas created here
 /// may still be stutter-invariant, but the SDK does not guarantee that they are.
 /// </summary>
-public sealed class UnrestrictedFormulaBuilder<TState> : FormulaBuilder<TState>
+public sealed class StutterSensitiveFormulaBuilder<TState> : FormulaBuilder<TState>
     where TState : State
 {
     #region Transition observations
@@ -157,7 +272,7 @@ public sealed class UnrestrictedFormulaBuilder<TState> : FormulaBuilder<TState>
     /// <summary>
     /// Define an observation over a transition's source and target states.
     /// </summary>
-    public TransitionObservation ObserveTransition(
+    public new TemporalFormula ObserveTransition(
         Func<TState, TState, bool> predicate,
         string name = null,
         [CallerArgumentExpression("predicate")] string expression = null)
@@ -167,27 +282,8 @@ public sealed class UnrestrictedFormulaBuilder<TState> : FormulaBuilder<TState>
         var prop = StateProp.OverTransition(
             diagnosticName,
             ctx => predicate((TState)ctx.From, (TState)ctx.To));
-        return new TransitionObservation(new StatePredAtom(prop));
-    }
-
-    /// <summary>
-    /// Define an observation over a transition's source state, action and
-    /// target state.
-    /// </summary>
-    public TransitionObservation ObserveTransition(
-        Func<TState, Transition, TState, bool> predicate,
-        string name = null,
-        [CallerArgumentExpression("predicate")] string expression = null)
-    {
-        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
-        var diagnosticName = ResolveObservationName(name, expression);
-        var prop = StateProp.OverTransition(
-            diagnosticName,
-            ctx => predicate(
-                (TState)ctx.From,
-                new Transition(ctx.Action, ctx.Metadata),
-                (TState)ctx.To));
-        return new TransitionObservation(new StatePredAtom(prop));
+        return new TemporalFormula(
+            Rltl<IStatePredicate>.Atom(new StatePredAtom(prop)));
     }
 
     #endregion

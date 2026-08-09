@@ -205,6 +205,80 @@ namespace Accordant.ModelChecking.Tests
                 Is.False, "δ enabled inf. often, never taken");
         }
 
+        [Test]
+        public void StatePairRelation_CanDefineWeakFairness()
+        {
+            var cycle = new NamedStep("cycle");
+            var escape = new NamedStep("escape");
+            var outside = Node("outside");
+            var v = Node("v", cycle, escape);
+            var w = Node("w", cycle, escape);
+            AddEdge(v, w, cycle);
+            AddEdge(w, v, cycle);
+            AddEdge(v, outside, escape);
+            AddEdge(w, outside, escape);
+
+            var fairness = Fairness.Weak<TestState>(
+                (_, next) => next.Label == "outside");
+
+            Assert.That(fairness.IsFairCycle(Scc(v, w)), Is.False);
+        }
+
+        [Test]
+        public void FullEdgePredicate_CanDefineStrongFairness()
+        {
+            var cycle = new NamedStep("cycle");
+            var escape = new NamedStep("escape");
+            var outside = Node("outside");
+            var v = Node("v", cycle, escape);
+            var w = Node("w", cycle);
+            AddEdge(v, w, cycle);
+            AddEdge(w, v, cycle);
+            AddEdge(v, outside, escape);
+
+            var fairness = Fairness.Strong<TestState>(
+                (_, action, _) => action.StepFunctionId == "escape");
+
+            Assert.That(fairness.IsFairCycle(Scc(v, w)), Is.False);
+        }
+
+        [Test]
+        public void TransitionObservation_CanDefineFairness()
+        {
+            var cycle = new NamedStep("cycle");
+            var escape = new NamedStep("escape");
+            var outside = Node("outside");
+            var v = Node("v", cycle, escape);
+            var w = Node("w", cycle, escape);
+            AddEdge(v, w, cycle);
+            AddEdge(w, v, cycle);
+            AddEdge(v, outside, escape);
+            AddEdge(w, outside, escape);
+            var formula = Formula.For<TestState>();
+            var leavesCycle = formula.ObserveTransition(
+                (_, next) => next.Label == "outside");
+
+            Assert.That(
+                Fairness.Weak(leavesCycle).IsFairCycle(Scc(v, w)),
+                Is.False);
+        }
+
+        [Test]
+        public void Fairness_IgnoresValueEqualEdgesToDistinctNodes()
+        {
+            var cycle = new NamedStep("cycle");
+            var noOp = new NamedStep("no-op");
+            var v = Node("same", cycle, noOp);
+            var equalOutside = Node("same");
+            AddEdge(v, v, cycle);
+            AddEdge(v, equalOutside, noOp);
+
+            Assert.That(
+                Fairness.Weak(step => step.StepFunctionId == "no-op")
+                    .IsFairCycle(Scc(v)),
+                Is.True);
+        }
+
         // ---------------- predicate scoping ----------------
 
         /// <summary>

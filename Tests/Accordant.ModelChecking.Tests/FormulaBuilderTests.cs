@@ -93,11 +93,11 @@ public class FormulaBuilderTests
 
         StutterSafeFormula safe = p.Always(p.Eventually(visible)) & !p.False;
 
-        var unrestricted = p.WithoutStutterGuarantee();
-        TemporalFormula next = unrestricted.Next(visible);
-        var changed = unrestricted.ObserveTransition((state, nextState) =>
+        var sensitive = p.AllowStutterSensitiveFormulas();
+        TemporalFormula next = sensitive.Next(visible);
+        var changed = sensitive.ObserveTransition((state, nextState) =>
             state.Visible != nextState.Visible, "Changed");
-        TemporalFormula transitionSensitive = unrestricted.Always(changed);
+        TemporalFormula transitionSensitive = sensitive.Always(changed);
         TemporalFormula mixed = safe & transitionSensitive;
 
         Assert.That(safe, Is.TypeOf<StutterSafeFormula>());
@@ -113,7 +113,7 @@ public class FormulaBuilderTests
 
         var inferred = f.Observe(state => state.Visible);
         var explicitName = f.Observe(state => state.Visible, "Visible");
-        var transitions = f.WithoutStutterGuarantee();
+        var transitions = f.AllowStutterSensitiveFormulas();
         var inferredTransition = transitions.ObserveTransition(
             (state, nextState) => state.Visible != nextState.Visible);
 

@@ -102,7 +102,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     {
                         var succ = GetOrCreate(
                             current.SystemNode, succNbw, current.Depth + 1, null, current);
-                        current.Successors.Add(new ProductEdge<TNbwState>(null, succ));
+                        current.Successors.Add(
+                            new ProductEdge<TNbwState>(null, null, succ));
                     }
                     continue;
                 }
@@ -122,7 +123,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     foreach (var succNbw in stutterSuccs)
                     {
                         var succ = GetOrCreate(sysNode, succNbw, current.Depth + 1, null, current);
-                        current.Successors.Add(new ProductEdge<TNbwState>(null, succ));
+                        current.Successors.Add(
+                            new ProductEdge<TNbwState>(null, null, succ));
                     }
                     continue;
                 }
@@ -142,7 +144,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                             var succ = GetOrCreate(
                                 edge.Target, succNbw, current.Depth + 1, edge.StepFunction, current);
                             current.Successors.Add(
-                                new ProductEdge<TNbwState>(edge.StepFunction, succ));
+                                new ProductEdge<TNbwState>(
+                                    edge.StepFunction, edge.Metadata, succ));
                         }
                     }
                     continue;
@@ -161,7 +164,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                         var succ = GetOrCreate(
                             edge.Target, succNbw, current.Depth + 1, edge.StepFunction, current);
                         current.Successors.Add(
-                            new ProductEdge<TNbwState>(edge.StepFunction, succ));
+                            new ProductEdge<TNbwState>(
+                                edge.StepFunction, edge.Metadata, succ));
                     }
                 }
             }
@@ -251,15 +255,20 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
             var sccNodes = new HashSet<ProductNode<TNbwState>>(scc.Nodes);
 
-            IEnumerable<IStepFunction> EnabledAt(StateGraphNode sys)
-                => sys.Edges.Select(e => e.StepFunction);
+            IEnumerable<FairnessEdge> EnabledAt(StateGraphNode sys)
+                => sys.Edges.Select(e =>
+                    new FairnessEdge(sys, e.StepFunction, e.Metadata, e.Target));
 
-            IEnumerable<IStepFunction> Taken()
+            IEnumerable<FairnessEdge> Taken()
             {
                 foreach (var n in scc.Nodes)
                     foreach (var pe in n.Successors)
                         if (sccNodes.Contains(pe.Target))
-                            yield return pe.StepFunction;
+                            yield return new FairnessEdge(
+                                n.SystemNode,
+                                pe.StepFunction,
+                                pe.Metadata,
+                                pe.Target.SystemNode);
             }
 
             var analysis = CycleFairness.Compute(systemNodes.Values, EnabledAt, Taken());
@@ -454,11 +463,16 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         private sealed class ProductEdge<TNbwState>
         {
             public IStepFunction StepFunction { get; }
+            public object Metadata { get; }
             public ProductNode<TNbwState> Target { get; }
 
-            public ProductEdge(IStepFunction stepFunction, ProductNode<TNbwState> target)
+            public ProductEdge(
+                IStepFunction stepFunction,
+                object metadata,
+                ProductNode<TNbwState> target)
             {
                 StepFunction = stepFunction;
+                Metadata = metadata;
                 Target = target;
             }
         }

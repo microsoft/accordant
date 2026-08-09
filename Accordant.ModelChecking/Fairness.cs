@@ -3,153 +3,196 @@ namespace Microsoft.Accordant.ModelChecking
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Microsoft.Accordant.ModelChecking.Symbolic;
 
     /// <summary>
-    /// Represents fairness constraints for liveness checking.
-    /// Fairness filters out "unfair" cycles where enabled actions are never taken.
+    /// Fairness constraints over changing model transitions.
     /// </summary>
-    public class Fairness
+    public sealed class Fairness
     {
+        /// <summary>No fairness constraints.</summary>
+        public static Fairness None { get; } = new Fairness();
+
+        /// <summary>Weak fairness for every step function.</summary>
+        public static Fairness WeakAll { get; } = Weak(_ => true);
+
+        /// <summary>Compatibility name for <see cref="WeakAll"/>.</summary>
+        public static Fairness WeakFairAll => WeakAll;
+
         /// <summary>
-        /// No fairness - all cycles are considered valid counterexamples.
-        /// This is the strictest setting.
+        /// Selects step functions subject to weak fairness.
         /// </summary>
-        public static Fairness None { get; } = new Fairness
+        public Func<IStepFunction, bool> WeakFairPredicate { get; private set; } = _ => false;
+
+        /// <summary>
+        /// Selects step functions subject to strong fairness.
+        /// </summary>
+        public Func<IStepFunction, bool> StrongFairPredicate { get; private set; } = _ => false;
+
+        internal IReadOnlyList<EdgeConstraint> EdgeConstraints { get; private set; }
+            = Array.Empty<EdgeConstraint>();
+
+        /// <summary>Creates weak fairness for selected step functions.</summary>
+        public static Fairness Weak(Func<IStepFunction, bool> selector)
+            => ForStep(false, selector);
+
+        /// <summary>Creates strong fairness for selected step functions.</summary>
+        public static Fairness Strong(Func<IStepFunction, bool> selector)
+            => ForStep(true, selector);
+
+        /// <summary>Creates weak fairness for a step-function type.</summary>
+        public static Fairness Weak<TStep>() where TStep : IStepFunction
+            => Weak(step => step is TStep);
+
+        /// <summary>Creates strong fairness for a step-function type.</summary>
+        public static Fairness Strong<TStep>() where TStep : IStepFunction
+            => Strong(step => step is TStep);
+
+        /// <summary>Creates weak fairness for a state-pair relation.</summary>
+        public static Fairness Weak<TState>(Func<TState, TState, bool> relation)
+            where TState : State
         {
-            WeakFairPredicate = _ => false,
-            StrongFairPredicate = _ => false
-        };
+            if (relation == null) throw new ArgumentNullException(nameof(relation));
+            return ForEdge(
+                false,
+                edge => relation((TState)edge.Source.State, (TState)edge.Target.State));
+        }
 
-        /// <summary>
-        /// Weak fairness on all step functions.
-        /// "If an action is continuously enabled, it will eventually be taken."
-        /// This is the default.
-        /// </summary>
-        public static Fairness WeakFairAll { get; } = new Fairness
+        /// <summary>Creates strong fairness for a state-pair relation.</summary>
+        public static Fairness Strong<TState>(Func<TState, TState, bool> relation)
+            where TState : State
         {
-            WeakFairPredicate = _ => true,
-            StrongFairPredicate = _ => false
-        };
+            if (relation == null) throw new ArgumentNullException(nameof(relation));
+            return ForEdge(
+                true,
+                edge => relation((TState)edge.Source.State, (TState)edge.Target.State));
+        }
 
-        /// <summary>
-        /// Predicate that returns true for step functions that should have weak fairness.
-        /// </summary>
-        public Func<IStepFunction, bool> WeakFairPredicate { get; set; } = _ => true;
+        /// <summary>Creates weak fairness for a full edge predicate.</summary>
+        public static Fairness Weak<TState>(
+            Func<TState, IStepFunction, TState, bool> predicate)
+            where TState : State
+        {
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            return ForEdge(
+                false,
+                edge => predicate(
+                    (TState)edge.Source.State,
+                    edge.StepFunction,
+                    (TState)edge.Target.State));
+        }
 
-        /// <summary>
-        /// Predicate that returns true for step functions that should have strong fairness.
-        /// </summary>
-        public Func<IStepFunction, bool> StrongFairPredicate { get; set; } = _ => false;
+        /// <summary>Creates strong fairness for a full edge predicate.</summary>
+        public static Fairness Strong<TState>(
+            Func<TState, IStepFunction, TState, bool> predicate)
+            where TState : State
+        {
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            return ForEdge(
+                true,
+                edge => predicate(
+                    (TState)edge.Source.State,
+                    edge.StepFunction,
+                    (TState)edge.Target.State));
+        }
 
-        /// <summary>
-        /// Creates weak fairness for step functions matching the predicate.
-        /// </summary>
+        /// <summary>Creates weak fairness for an observed transition relation.</summary>
+        public static Fairness Weak(TransitionObservation observation)
+        {
+            if (observation == null) throw new ArgumentNullException(nameof(observation));
+            return ForEdge(false, edge => observation.PredicateCore.Eval(edge.Context));
+        }
+
+        /// <summary>Creates strong fairness for an observed transition relation.</summary>
+        public static Fairness Strong(TransitionObservation observation)
+        {
+            if (observation == null) throw new ArgumentNullException(nameof(observation));
+            return ForEdge(true, edge => observation.PredicateCore.Eval(edge.Context));
+        }
+
+        /// <summary>Compatibility name for weak step-function fairness.</summary>
         public static Fairness WeakFair(Func<IStepFunction, bool> predicate)
-        {
-            return new Fairness
-            {
-                WeakFairPredicate = predicate,
-                StrongFairPredicate = _ => false
-            };
-        }
+            => Weak(predicate);
 
-        /// <summary>
-        /// Creates weak fairness for a specific step function type.
-        /// </summary>
-        public static Fairness WeakFair<T>() where T : IStepFunction
-        {
-            return WeakFair(sf => sf is T);
-        }
+        /// <summary>Compatibility name for weak fairness by step type.</summary>
+        public static Fairness WeakFair<TStep>() where TStep : IStepFunction
+            => Weak<TStep>();
 
-        /// <summary>
-        /// Creates strong fairness for step functions matching the predicate.
-        /// </summary>
+        /// <summary>Compatibility name for strong step-function fairness.</summary>
         public static Fairness StrongFair(Func<IStepFunction, bool> predicate)
+            => Strong(predicate);
+
+        /// <summary>Compatibility name for strong fairness by step type.</summary>
+        public static Fairness StrongFair<TStep>() where TStep : IStepFunction
+            => Strong<TStep>();
+
+        /// <summary>Combines two sets of fairness constraints.</summary>
+        public static Fairness operator +(Fairness left, Fairness right)
         {
+            if (left == null) throw new ArgumentNullException(nameof(left));
+            if (right == null) throw new ArgumentNullException(nameof(right));
+
             return new Fairness
             {
-                WeakFairPredicate = _ => false,
-                StrongFairPredicate = predicate
+                WeakFairPredicate =
+                    step => left.WeakFairPredicate(step) || right.WeakFairPredicate(step),
+                StrongFairPredicate =
+                    step => left.StrongFairPredicate(step) || right.StrongFairPredicate(step),
+                EdgeConstraints = left.EdgeConstraints.Concat(right.EdgeConstraints).ToArray()
             };
         }
 
-        /// <summary>
-        /// Creates strong fairness for a specific step function type.
-        /// </summary>
-        public static Fairness StrongFair<T>() where T : IStepFunction
-        {
-            return StrongFair(sf => sf is T);
-        }
-
-        /// <summary>
-        /// Combines two fairness constraints.
-        /// </summary>
-        public static Fairness operator +(Fairness a, Fairness b)
-        {
-            return new Fairness
-            {
-                WeakFairPredicate = sf => a.WeakFairPredicate(sf) || b.WeakFairPredicate(sf),
-                StrongFairPredicate = sf => a.StrongFairPredicate(sf) || b.StrongFairPredicate(sf)
-            };
-        }
-
-        /// <summary>
-        /// Checks if a cycle (SCC) is fair according to these constraints.
-        /// A cycle is unfair if there's a fair action that is enabled but
-        /// never taken inside the SCC.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// "Enabled at a node" is derived from the node's outgoing edges:
-        /// the state-graph explorer records an outgoing edge only for a
-        /// step function whose <c>Apply</c> succeeded on that state, so
-        /// the set of step-function ids appearing on outgoing edges is
-        /// exactly the set actually enabled there. The static
-        /// <see cref="StateGraphNode.StepFunctions"/> list is the model-
-        /// wide step menu and is <em>not</em> a per-state "enabled" set —
-        /// using it would over-approximate the enabled set and incorrectly
-        /// reject genuinely fair cycles (e.g., deadlock self-loops where
-        /// only the stutter step is actually enabled).
-        /// </para>
-        /// <para>
-        /// Definitions:
-        /// </para>
-        /// <list type="bullet">
-        /// <item><description>
-        /// <b>enabledInSCC</b> — union over SCC nodes of "enabled at this
-        /// node"; the steps that fire infinitely often along any cyclic
-        /// run through the SCC.
-        /// </description></item>
-        /// <item><description>
-        /// <b>continuouslyEnabled</b> — enabled at <em>every</em> SCC node;
-        /// the steps that are continuously enabled along any cyclic run.
-        /// </description></item>
-        /// <item><description>
-        /// <b>takenInSCC</b> — labels of edges whose source and target are
-        /// both in the SCC.
-        /// </description></item>
-        /// </list>
-        /// </remarks>
+        /// <summary>Checks whether a system SCC satisfies these constraints.</summary>
         public bool IsFairCycle(StronglyConnectedComponent scc)
         {
-            var nodesInSCC = new HashSet<string>(scc.Nodes.Select(n => n.GetNodeFingerprint()));
+            if (scc == null) throw new ArgumentNullException(nameof(scc));
+            var nodes = new HashSet<string>(
+                scc.Nodes.Select(node => node.GetNodeFingerprint()));
 
-            // Per-node enabled = step functions on the node's outgoing edges.
-            // Taken-in-cycle = step functions on edges whose source AND
-            // target are both inside the SCC.
-            IEnumerable<IStepFunction> EnabledAt(StateGraphNode n)
-                => n.Edges.Select(e => e.StepFunction);
+            IEnumerable<FairnessEdge> EnabledAt(StateGraphNode node)
+                => node.Edges.Select(edge =>
+                    new FairnessEdge(node, edge.StepFunction, edge.Metadata, edge.Target));
 
-            IEnumerable<IStepFunction> Taken()
+            IEnumerable<FairnessEdge> Taken()
             {
-                foreach (var n in scc.Nodes)
-                    foreach (var e in n.Edges)
-                        if (nodesInSCC.Contains(e.Target.GetNodeFingerprint()))
-                            yield return e.StepFunction;
+                foreach (var node in scc.Nodes)
+                    foreach (var edge in node.Edges)
+                        if (nodes.Contains(edge.Target.GetNodeFingerprint()))
+                            yield return new FairnessEdge(
+                                node, edge.StepFunction, edge.Metadata, edge.Target);
             }
 
-            var analysis = CycleFairness.Compute(scc.Nodes, EnabledAt, Taken());
-            return CycleFairness.IsFair(analysis, this);
+            return CycleFairness.IsFair(
+                CycleFairness.Compute(scc.Nodes, EnabledAt, Taken()),
+                this);
+        }
+
+        private static Fairness ForEdge(bool isStrong, Func<FairnessEdge, bool> matches)
+            => new Fairness
+            {
+                EdgeConstraints = new[] { new EdgeConstraint(isStrong, matches) }
+            };
+
+        private static Fairness ForStep(
+            bool isStrong,
+            Func<IStepFunction, bool> selector)
+        {
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
+            return isStrong
+                ? new Fairness { StrongFairPredicate = selector }
+                : new Fairness { WeakFairPredicate = selector };
+        }
+
+        internal sealed class EdgeConstraint
+        {
+            public bool IsStrong { get; }
+            public Func<FairnessEdge, bool> Matches { get; }
+
+            public EdgeConstraint(bool isStrong, Func<FairnessEdge, bool> matches)
+            {
+                IsStrong = isStrong;
+                Matches = matches;
+            }
         }
     }
 }

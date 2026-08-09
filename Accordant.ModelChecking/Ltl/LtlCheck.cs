@@ -61,11 +61,16 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
     {
         public ProductNode Target { get; }
         public IStepFunction StepFunction { get; }
+        public object Metadata { get; }
 
-        public ProductEdge(ProductNode target, IStepFunction stepFunction)
+        public ProductEdge(
+            ProductNode target,
+            IStepFunction stepFunction,
+            object metadata = null)
         {
             Target = target;
             StepFunction = stepFunction;
+            Metadata = metadata;
         }
     }
 
@@ -108,14 +113,14 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
         /// </summary>
         /// <param name="root">The root of the system state graph.</param>
         /// <param name="formula">The LTL formula to check.</param>
-        /// <param name="fairness">Fairness constraints (default: weak fairness on all).</param>
+        /// <param name="fairness">Fairness constraints (default: none).</param>
         /// <returns>Result indicating success or failure with counterexample.</returns>
         public static PropertyCheckingResult Check(
             StateGraphNode root,
             LtlFormula formula,
             Fairness fairness = null)
         {
-            fairness ??= Fairness.WeakFairAll;
+            fairness ??= Fairness.None;
 
             // Build the product graph on-the-fly
             var (productRoot, allNodes) = BuildProductGraph(root, formula);
@@ -231,7 +236,8 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
                             existingReject = rejectSink;
                             // Do NOT enqueue: a (sys, False) node is a terminal sink.
                         }
-                        current.Edges.Add(new ProductEdge(existingReject, edge.StepFunction));
+                        current.Edges.Add(
+                            new ProductEdge(existingReject, edge.StepFunction, edge.Metadata));
                         continue;
                     }
 
@@ -245,7 +251,8 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
                         existingNode = successor;
                     }
 
-                    current.Edges.Add(new ProductEdge(existingNode, edge.StepFunction));
+                    current.Edges.Add(
+                        new ProductEdge(existingNode, edge.StepFunction, edge.Metadata));
                 }
             }
 
@@ -687,15 +694,20 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
             // AND target are both inside the product SCC.
             var productSccFps = new HashSet<string>(productSCC.Nodes.Select(n => n.GetFingerprint()));
 
-            IEnumerable<IStepFunction> EnabledAt(StateGraphNode sys)
-                => sys.Edges.Select(e => e.StepFunction);
+            IEnumerable<FairnessEdge> EnabledAt(StateGraphNode sys)
+                => sys.Edges.Select(e =>
+                    new FairnessEdge(sys, e.StepFunction, e.Metadata, e.Target));
 
-            IEnumerable<IStepFunction> Taken()
+            IEnumerable<FairnessEdge> Taken()
             {
                 foreach (var pn in productSCC.Nodes)
                     foreach (var edge in pn.Edges)
                         if (productSccFps.Contains(edge.Target.GetFingerprint()))
-                            yield return edge.StepFunction;
+                            yield return new FairnessEdge(
+                                pn.SystemNode,
+                                edge.StepFunction,
+                                edge.Metadata,
+                                edge.Target.SystemNode);
             }
 
             var analysis = CycleFairness.Compute(systemNodes.Values, EnabledAt, Taken());

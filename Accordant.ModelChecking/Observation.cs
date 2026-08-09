@@ -36,19 +36,6 @@ namespace Microsoft.Accordant.ModelChecking
             return new Observation(rltl, ere);
         }
 
-        /// <summary>
-        /// Conjunction with a transition observation. The result no longer
-        /// carries a stutter-invariance guarantee.
-        /// </summary>
-        public static TransitionObservation operator &(Observation a, TransitionObservation b)
-            => TransitionObservation.Combine(
-                a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: true);
-
-        /// <summary>Disjunction with a transition observation.</summary>
-        public static TransitionObservation operator |(Observation a, TransitionObservation b)
-            => TransitionObservation.Combine(
-                a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: false);
-
         // Internal constructors for compound observations
         private Observation(
             Rltl<IStatePredicate> rltlA, Rltl<IStatePredicate> rltlB,
@@ -90,60 +77,60 @@ namespace Microsoft.Accordant.ModelChecking
     public sealed class TransitionObservation
     {
         internal Rltl<IStatePredicate> RltlCore { get; }
-        internal Ere<IStatePredicate> EreCore { get; }
+        internal IStatePredicate PredicateCore { get; }
 
         internal TransitionObservation(StatePredAtom atom)
         {
             RltlCore = Rltl<IStatePredicate>.Atom(atom);
-            EreCore = Ere<IStatePredicate>.Atom(atom);
+            PredicateCore = atom;
         }
 
-        private TransitionObservation(Rltl<IStatePredicate> rltl, Ere<IStatePredicate> ere)
+        private TransitionObservation(
+            Rltl<IStatePredicate> rltl,
+            IStatePredicate predicate)
         {
             RltlCore = rltl;
-            EreCore = ere;
+            PredicateCore = predicate;
         }
 
         internal static TransitionObservation Combine(
             Rltl<IStatePredicate> rltlA,
             Rltl<IStatePredicate> rltlB,
-            Ere<IStatePredicate> ereA,
-            Ere<IStatePredicate> ereB,
+            IStatePredicate predicateA,
+            IStatePredicate predicateB,
             bool and)
             => new TransitionObservation(
                 and
                     ? RltlAlgebra.Default.And(rltlA, rltlB)
                     : RltlAlgebra.Default.Or(rltlA, rltlB),
                 and
-                    ? Ere<IStatePredicate>.Intersect(ereA, ereB)
-                    : Ere<IStatePredicate>.Union(ereA, ereB));
+                    ? new StatePredAnd(predicateA, predicateB)
+                    : new StatePredOr(predicateA, predicateB));
 
         public static TransitionObservation operator &(
             TransitionObservation a,
             TransitionObservation b)
-            => Combine(a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: true);
+            => Combine(
+                a.RltlCore,
+                b.RltlCore,
+                a.PredicateCore,
+                b.PredicateCore,
+                and: true);
 
         public static TransitionObservation operator |(
             TransitionObservation a,
             TransitionObservation b)
-            => Combine(a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: false);
+            => Combine(
+                a.RltlCore,
+                b.RltlCore,
+                a.PredicateCore,
+                b.PredicateCore,
+                and: false);
 
         public static TransitionObservation operator !(TransitionObservation a)
             => new TransitionObservation(
                 RltlAlgebra.Default.Not(a.RltlCore),
-                Ere<IStatePredicate>.Complement(a.EreCore));
-
-        public static TransitionObservation operator &(TransitionObservation a, Observation b)
-            => Combine(a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: true);
-
-        public static TransitionObservation operator |(TransitionObservation a, Observation b)
-            => Combine(a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: false);
-
-        public static implicit operator TemporalFormula(TransitionObservation obs)
-            => new TemporalFormula(obs.RltlCore);
-
-        public static implicit operator RegexPattern(TransitionObservation obs)
-            => new RegexPattern(obs.EreCore);
+                new StatePredNot(a.PredicateCore));
 
         public override string ToString() => RltlCore.ToString();
     }
