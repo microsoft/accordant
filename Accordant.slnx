@@ -18,6 +18,7 @@
     <Project Path="Samples/TodoList-Extended/TodoList-Extended.Tests/TodoList-Extended.Tests.csproj" />
     <Project Path="Samples/DiningPhilosophers/DiningPhilosophers.csproj" />
     <Project Path="Samples/Peterson/Peterson.csproj" />
+    <Project Path="Samples/RelationalRefinement/RelationalRefinement.csproj" />
     <Project Path="Samples/Paxos/Paxos.csproj" />
     <Project Path="Samples/TerminationDetection/TerminationDetection.csproj" />
     <Project Path="Samples/AlternatingBit/AlternatingBit.csproj" />

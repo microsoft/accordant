@@ -112,6 +112,45 @@ an abstract configuration whose earlier history was already pruned. This
 supports many finite-state prophecy-style correspondences without adding a
 future-choice field to the concrete model.
 
+### Representative example: a choice revealed late
+
+The
+[`Samples/RelationalRefinement`](../../Samples/RelationalRefinement/)
+sample models an order sent to either a card or bank gateway.
+
+The abstract model chooses the gateway when the order is sent. The
+implementation does not record which gateway handled the order until the
+authorization response arrives:
+
+```text
+position       concrete                 surviving abstract candidates
+initial        New / unknown            { New }
+sent           Sent / unknown           { Sent(card), Sent(bank) }
+authorized     Authorized / bank        { Authorized(bank) }
+completed      Completed / bank         { Completed(bank) }
+```
+
+The relation says that stages must agree and, once the implementation reveals
+the gateway, the gateway must agree too:
+
+```csharp
+.Corresponds((implementation, specification) =>
+    implementation.Stage == specification.Stage &&
+    (implementation.ResolvedGateway == null ||
+        implementation.ResolvedGateway == specification.ChosenGateway))
+```
+
+This is not permission to choose an abstract history after every step. Both
+histories coexist while the gateway is unknown. Revealing `bank` permanently
+prunes the `card` history. If only the card history can complete, the final
+concrete bank step fails refinement; it cannot revive the discarded card
+candidate.
+
+The sample tests also demonstrate the quantifiers: **every** concrete
+nondeterministic branch must have **some one coherent** abstract explanation.
+One unsupported concrete gateway is therefore enough to produce a
+counterexample.
+
 Functional `.Map(...)` and relational `.Corresponds(...)` use the same
 step-aligned engine. Functional mapping is preferable when one abstract state
 is already determined because it is simpler and generally retains fewer
