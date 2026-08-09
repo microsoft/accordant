@@ -50,6 +50,8 @@
       href: how-to/validating-your-model.md
     - name: Model-Checking Formulas
       href: how-to/model-checking-formulas.md
+    - name: Checking Safety Refinement
+      href: how-to/checking-refinement.md
     - name: Modeling Large Data
       href: how-to/modeling-large-data.md
     - name: Resetting State
