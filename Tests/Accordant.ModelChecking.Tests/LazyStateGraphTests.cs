@@ -134,7 +134,7 @@ namespace Accordant.ModelChecking.Tests
             var eagerRoot = Build(lazy: false);
             var lazyRoot = Build(lazy: true);
 
-            var p = new Properties<CounterState>();
+            var p = Formula.For<CounterState>();
             var inRange = p.Observe(s => s.Count >= 0 && s.Count <= max, "InRange");
             var atTwo = p.Observe(s => s.Count == 2, "AtTwo");
             var atZero = p.Observe(s => s.Count == 0, "AtZero");
@@ -174,7 +174,7 @@ namespace Accordant.ModelChecking.Tests
                 var lazyRoot = Build(lazy: true);
 
                 var target = rnd.Next(0, max + 2);
-                var p = new Properties<CounterState>();
+                var p = Formula.For<CounterState>();
                 var atTarget = p.Observe(s => s.Count == target, "AtTarget");
                 var atZero = p.Observe(s => s.Count == 0, "AtZero");
 
@@ -278,7 +278,7 @@ namespace Accordant.ModelChecking.Tests
                 new RegionState { Region = 0, Count = 0 },
                 lazy: true);
 
-            var p = new Properties<RegionState>();
+            var p = Formula.For<RegionState>();
             var inRegion0 = p.Observe(s => s.Region == 0, "InRegion0");
             var safety = p.Always(inRegion0);
 
@@ -315,7 +315,7 @@ namespace Accordant.ModelChecking.Tests
                 new IStepFunction[] { new ToBadStep(), new GrowStep(int.MaxValue) },
                 new RegionState { Region = 0, Count = 0 }, maxDepth: 5, lazy: true);
 
-            var p = new Properties<RegionState>();
+            var p = Formula.For<RegionState>();
             var safety = p.Always(p.Observe(s => s.Region == 0, "InRegion0"));
 
             // Depth 1: root only, no edge to region 1 -> property holds.

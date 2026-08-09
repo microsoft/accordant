@@ -31,7 +31,9 @@ namespace Microsoft.Accordant.ModelChecking
         {
             if (root == null) throw new ArgumentNullException(nameof(root));
             if (formula == null) throw new ArgumentNullException(nameof(formula));
-            return SymbolicRltlCheck.Check(root, formula.Core, maxDepth, fairness);
+            return SymbolicRltlCheck
+                .Check(root, formula.Core, maxDepth, fairness)
+                .WithPropertyName(formula.Name);
         }
     }
 }

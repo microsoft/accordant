@@ -48,6 +48,8 @@
       href: how-to/indefinite-failures.md
     - name: Validating Your Model
       href: how-to/validating-your-model.md
+    - name: Model-Checking Formulas
+      href: how-to/model-checking-formulas.md
     - name: Modeling Large Data
       href: how-to/modeling-large-data.md
     - name: Resetting State

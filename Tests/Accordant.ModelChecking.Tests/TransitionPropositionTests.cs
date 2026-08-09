@@ -101,8 +101,9 @@ namespace Accordant.ModelChecking.Tests
         public void TargetProposition_NonDecreasing_Holds_WhenOnlyIncrementing()
         {
             var root = IncrementOnly(max: 4);
-            var p = new Properties<CounterState>();
-            var nonDecreasing = p.Observe((s, sp) => sp.Count >= s.Count, "NonDecreasing");
+            var p = Formula.For<CounterState>().WithoutStutterGuarantee();
+            var nonDecreasing = p.ObserveTransition(
+                (s, sp) => sp.Count >= s.Count, "NonDecreasing");
 
             // Every real edge increments; the terminal stutter has s' == s, so
             // the property holds everywhere.
@@ -114,8 +115,9 @@ namespace Accordant.ModelChecking.Tests
         public void TargetProposition_NonDecreasing_Fails_WhenDecrementPresent()
         {
             var root = IncrementAndDecrement(max: 3);
-            var p = new Properties<CounterState>();
-            var nonDecreasing = p.Observe((s, sp) => sp.Count >= s.Count, "NonDecreasing");
+            var p = Formula.For<CounterState>().WithoutStutterGuarantee();
+            var nonDecreasing = p.ObserveTransition(
+                (s, sp) => sp.Count >= s.Count, "NonDecreasing");
 
             // A decrement edge takes s' = s - 1 < s, violating the property.
             var result = root.Check(p.Always(nonDecreasing));
@@ -131,8 +133,8 @@ namespace Accordant.ModelChecking.Tests
         public void ActionProposition_NoDecrementTaken_Holds_WhenOnlyIncrementing()
         {
             var root = IncrementOnly(max: 4);
-            var p = new Properties<CounterState>();
-            var decrementTaken = p.Observe(
+            var p = Formula.For<CounterState>().WithoutStutterGuarantee();
+            var decrementTaken = p.ObserveTransition(
                 (s, a, sp) => a.ActionId == "Decrement", "DecrementTaken");
 
             // No Decrement edge exists; the stutter action is not "Decrement".
@@ -144,8 +146,8 @@ namespace Accordant.ModelChecking.Tests
         public void ActionProposition_DetectsDecrement_Fails_WhenDecrementPresent()
         {
             var root = IncrementAndDecrement(max: 3);
-            var p = new Properties<CounterState>();
-            var decrementTaken = p.Observe(
+            var p = Formula.For<CounterState>().WithoutStutterGuarantee();
+            var decrementTaken = p.ObserveTransition(
                 (s, a, sp) => a.ActionId == "Decrement", "DecrementTaken");
 
             var result = root.Check(p.Always(!decrementTaken));
@@ -156,8 +158,8 @@ namespace Accordant.ModelChecking.Tests
         [Test]
         public void ActionProposition_EdgeMetadata_IsObservable()
         {
-            var p = new Properties<CounterState>();
-            var notDecMetadata = p.Observe(
+            var p = Formula.For<CounterState>().WithoutStutterGuarantee();
+            var notDecMetadata = p.ObserveTransition(
                 (s, a, sp) => (a.Metadata as string) != "dec", "NotDecMetadata");
 
             // Increment edges carry "inc"; stutter carries null; neither is "dec".
@@ -176,8 +178,9 @@ namespace Accordant.ModelChecking.Tests
             // stutter self-loop is emitted. A proposition that is true exactly
             // on the stutter action must eventually hold on that model.
             var root = IncrementOnly(max: 3);
-            var p = new Properties<CounterState>();
-            var stutter = p.Observe((s, a, sp) => a.IsStutter, "Stutter");
+            var p = Formula.For<CounterState>().WithoutStutterGuarantee();
+            var stutter = p.ObserveTransition(
+                (s, a, sp) => a.IsStutter, "Stutter");
 
             var result = root.Check(p.Eventually(stutter));
             Assert.That(result.Valid, Is.True);
@@ -192,7 +195,7 @@ namespace Accordant.ModelChecking.Tests
         {
             const int max = 3;
             var root = IncrementAndDecrement(max);
-            var p = new Properties<CounterState>();
+            var p = Formula.For<CounterState>();
             var inBounds = p.Observe(s => s.Count >= 0 && s.Count <= max, "InBounds");
 
             var result = root.Check(p.Always(inBounds));
@@ -203,9 +206,9 @@ namespace Accordant.ModelChecking.Tests
         public void StateProposition_And_TransitionProposition_Compose()
         {
             var root = IncrementAndDecrement(max: 3);
-            var p = new Properties<CounterState>();
+            var p = Formula.For<CounterState>().WithoutStutterGuarantee();
             var atZero = p.Observe(s => s.Count == 0, "AtZero");
-            var decrementTaken = p.Observe(
+            var decrementTaken = p.ObserveTransition(
                 (s, a, sp) => a.ActionId == "Decrement", "DecrementTaken");
 
             // You cannot take a Decrement from Count == 0 (it is disabled), so

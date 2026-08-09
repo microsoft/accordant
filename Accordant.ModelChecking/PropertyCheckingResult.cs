@@ -35,6 +35,11 @@ namespace Microsoft.Accordant.ModelChecking
         public bool Valid { get; private set; }
 
         /// <summary>
+        /// Optional human-readable name of the checked formula.
+        /// </summary>
+        public string PropertyName { get; private set; }
+
+        /// <summary>
         /// The counterexample trace if the property doesn't hold.
         /// For liveness properties, this is the path to the bad cycle.
         /// </summary>
@@ -52,11 +57,20 @@ namespace Microsoft.Accordant.ModelChecking
         {
             if (Valid || Trace == null)
             {
-                return "Property holds - no counterexample.";
+                return PropertyName == null
+                    ? "Property holds - no counterexample."
+                    : $"Property '{PropertyName}' holds - no counterexample.";
             }
 
             var sb = new StringBuilder();
-            sb.AppendLine("Counterexample trace:");
+            if (PropertyName == null)
+            {
+                sb.AppendLine("Counterexample trace:");
+            }
+            else
+            {
+                sb.AppendLine($"Counterexample for property '{PropertyName}':");
+            }
 
             bool inCycleSection = false;
             foreach (var item in Trace)
@@ -96,6 +110,12 @@ namespace Microsoft.Accordant.ModelChecking
             }
 
             return sb.ToString();
+        }
+
+        internal PropertyCheckingResult WithPropertyName(string propertyName)
+        {
+            PropertyName = propertyName;
+            return this;
         }
 
         /// <summary>

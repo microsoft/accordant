@@ -11,7 +11,8 @@ namespace Peterson
     public class PetersonModelCheckingTests
     {
         private StateGraphNode _root;
-        private Properties<PetersonState> _p;
+        private FormulaBuilder<PetersonState> _p;
+        private UnrestrictedFormulaBuilder<PetersonState> _unrestricted;
 
         // Temporal observations
         private Observation _crit0;
@@ -24,7 +25,8 @@ namespace Peterson
         {
             _root = StateGraph.ExploreStateGraph(Peterson.AllSteps(), Peterson.InitialState(), lazy: true);
 
-            _p = new Properties<PetersonState>();
+            _p = Formula.For<PetersonState>();
+            _unrestricted = _p.WithoutStutterGuarantee();
             _crit0 = _p.Observe(s => s.PC0 == PetersonPC.CS, "Crit0");
             _crit1 = _p.Observe(s => s.PC1 == PetersonPC.CS, "Crit1");
             _want0 = _p.Observe(s => s.PC0 == PetersonPC.SetFlag
@@ -138,7 +140,8 @@ namespace Peterson
                 .Then(w1nc0.Star())
                 .Then(w1c0);
 
-            var phi = _p.Trigger(bad0, _p.False) & _p.Trigger(bad1, _p.False);
+            var phi = _unrestricted.Trigger(bad0, _p.False)
+                & _unrestricted.Trigger(bad1, _p.False);
             var result = _root.Check(phi);
             Assert.IsTrue(result.Valid, result.GetTraceString());
         }
@@ -150,7 +153,7 @@ namespace Peterson
         public void Regex_WheneverCrit0_NotCrit1()
         {
             RegexPattern prefix = RegexPattern.Sigma.Star().Then(_crit0);
-            var phi = _p.Match(prefix, _p.Not(_crit1));
+            var phi = _unrestricted.Match(prefix, _p.Not(_crit1));
             var result = _root.Check(phi);
             Assert.IsTrue(result.Valid, result.GetTraceString());
         }

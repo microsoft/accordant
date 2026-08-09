@@ -7,7 +7,7 @@ namespace Microsoft.Accordant.ModelChecking
     /// <summary>
     /// An observation over a model state — an atomic proposition that can be
     /// used in both temporal formulas and regex patterns. Created via
-    /// <see cref="Properties{TState}.Observe"/>.
+    /// <see cref="FormulaBuilder{TState}.Observe"/>.
     /// </summary>
     public sealed class Observation
     {
@@ -36,6 +36,19 @@ namespace Microsoft.Accordant.ModelChecking
             return new Observation(rltl, ere);
         }
 
+        /// <summary>
+        /// Conjunction with a transition observation. The result no longer
+        /// carries a stutter-invariance guarantee.
+        /// </summary>
+        public static TransitionObservation operator &(Observation a, TransitionObservation b)
+            => TransitionObservation.Combine(
+                a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: true);
+
+        /// <summary>Disjunction with a transition observation.</summary>
+        public static TransitionObservation operator |(Observation a, TransitionObservation b)
+            => TransitionObservation.Combine(
+                a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: false);
+
         // Internal constructors for compound observations
         private Observation(
             Rltl<IStatePredicate> rltlA, Rltl<IStatePredicate> rltlB,
@@ -60,9 +73,9 @@ namespace Microsoft.Accordant.ModelChecking
             EreCore = ere;
         }
 
-        /// <summary>Implicit conversion to a temporal formula.</summary>
-        public static implicit operator TemporalFormula(Observation obs)
-            => new TemporalFormula(obs.RltlCore);
+        /// <summary>Implicit conversion to a stutter-safe temporal formula.</summary>
+        public static implicit operator StutterSafeFormula(Observation obs)
+            => new StutterSafeFormula(obs.RltlCore);
 
         /// <summary>Implicit conversion to a regex pattern.</summary>
         public static implicit operator RegexPattern(Observation obs)
@@ -72,17 +85,91 @@ namespace Microsoft.Accordant.ModelChecking
     }
 
     /// <summary>
-    /// A temporal formula (RLTL) over model-program states. Constructed via
-    /// <see cref="Properties{TState}"/> methods like <see cref="Properties{TState}.Always"/>,
-    /// <see cref="Properties{TState}.Eventually"/>, etc.
+    /// An observation over one concrete transition.
     /// </summary>
-    public sealed class TemporalFormula
+    public sealed class TransitionObservation
+    {
+        internal Rltl<IStatePredicate> RltlCore { get; }
+        internal Ere<IStatePredicate> EreCore { get; }
+
+        internal TransitionObservation(StatePredAtom atom)
+        {
+            RltlCore = Rltl<IStatePredicate>.Atom(atom);
+            EreCore = Ere<IStatePredicate>.Atom(atom);
+        }
+
+        private TransitionObservation(Rltl<IStatePredicate> rltl, Ere<IStatePredicate> ere)
+        {
+            RltlCore = rltl;
+            EreCore = ere;
+        }
+
+        internal static TransitionObservation Combine(
+            Rltl<IStatePredicate> rltlA,
+            Rltl<IStatePredicate> rltlB,
+            Ere<IStatePredicate> ereA,
+            Ere<IStatePredicate> ereB,
+            bool and)
+            => new TransitionObservation(
+                and
+                    ? RltlAlgebra.Default.And(rltlA, rltlB)
+                    : RltlAlgebra.Default.Or(rltlA, rltlB),
+                and
+                    ? Ere<IStatePredicate>.Intersect(ereA, ereB)
+                    : Ere<IStatePredicate>.Union(ereA, ereB));
+
+        public static TransitionObservation operator &(
+            TransitionObservation a,
+            TransitionObservation b)
+            => Combine(a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: true);
+
+        public static TransitionObservation operator |(
+            TransitionObservation a,
+            TransitionObservation b)
+            => Combine(a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: false);
+
+        public static TransitionObservation operator !(TransitionObservation a)
+            => new TransitionObservation(
+                RltlAlgebra.Default.Not(a.RltlCore),
+                Ere<IStatePredicate>.Complement(a.EreCore));
+
+        public static TransitionObservation operator &(TransitionObservation a, Observation b)
+            => Combine(a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: true);
+
+        public static TransitionObservation operator |(TransitionObservation a, Observation b)
+            => Combine(a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: false);
+
+        public static implicit operator TemporalFormula(TransitionObservation obs)
+            => new TemporalFormula(obs.RltlCore);
+
+        public static implicit operator RegexPattern(TransitionObservation obs)
+            => new RegexPattern(obs.EreCore);
+
+        public override string ToString() => RltlCore.ToString();
+    }
+
+    /// <summary>
+    /// A temporal formula (RLTL) over model-program states.
+    /// </summary>
+    public class TemporalFormula
     {
         internal Rltl<IStatePredicate> Core { get; }
 
-        internal TemporalFormula(Rltl<IStatePredicate> core)
+        /// <summary>Optional human-readable name used in diagnostics.</summary>
+        public string Name { get; }
+
+        internal TemporalFormula(Rltl<IStatePredicate> core, string name = null)
         {
             Core = core ?? throw new ArgumentNullException(nameof(core));
+            Name = name;
+        }
+
+        /// <summary>Return this formula with a diagnostic name.</summary>
+        public TemporalFormula Named(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Formula name cannot be empty.", nameof(name));
+            return new TemporalFormula(Core, name);
         }
 
         /// <summary>Conjunction <c>φ ∧ ψ</c>.</summary>
@@ -98,6 +185,42 @@ namespace Microsoft.Accordant.ModelChecking
             => new TemporalFormula(RltlAlgebra.Default.Not(a.Core));
 
         public override string ToString() => Core.ToString();
+    }
+
+    /// <summary>
+    /// A temporal formula guaranteed to be invariant under finite repetitions
+    /// of indistinguishable states.
+    /// </summary>
+    public sealed class StutterSafeFormula : TemporalFormula
+    {
+        internal StutterSafeFormula(Rltl<IStatePredicate> core, string name = null)
+            : base(core, name)
+        {
+        }
+
+        /// <summary>
+        /// Return this formula with a diagnostic name while preserving its
+        /// stutter-invariance guarantee.
+        /// </summary>
+        public new StutterSafeFormula Named(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Formula name cannot be empty.", nameof(name));
+            return new StutterSafeFormula(Core, name);
+        }
+
+        public static StutterSafeFormula operator &(
+            StutterSafeFormula a,
+            StutterSafeFormula b)
+            => new StutterSafeFormula(RltlAlgebra.Default.And(a.Core, b.Core));
+
+        public static StutterSafeFormula operator |(
+            StutterSafeFormula a,
+            StutterSafeFormula b)
+            => new StutterSafeFormula(RltlAlgebra.Default.Or(a.Core, b.Core));
+
+        public static StutterSafeFormula operator !(StutterSafeFormula a)
+            => new StutterSafeFormula(RltlAlgebra.Default.Not(a.Core));
     }
 
     /// <summary>
