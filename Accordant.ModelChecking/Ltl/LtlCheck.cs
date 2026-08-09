@@ -194,7 +194,22 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
 
                 if (current.SystemNode.IsDepthFrontier)
                 {
-                    reachedDepthFrontier = true;
+                    var derivedFormula = current.Formula.Derivative(current.SystemNode.State);
+                    if (derivedFormula.IsFalse)
+                    {
+                        var rejectSink = new ProductNode(current.SystemNode, derivedFormula);
+                        var rejectFp = rejectSink.GetFingerprint();
+                        if (!allNodes.TryGetValue(rejectFp, out var existingReject))
+                        {
+                            allNodes[rejectFp] = rejectSink;
+                            existingReject = rejectSink;
+                        }
+                        current.Edges.Add(new ProductEdge(existingReject, StutterStep.Instance));
+                    }
+                    else if (!derivedFormula.IsTrue)
+                    {
+                        reachedDepthFrontier = true;
+                    }
                     continue;
                 }
 

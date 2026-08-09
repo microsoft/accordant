@@ -125,6 +125,38 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         }
 
         [Test]
+        public void CheckerDepthFrontier_AlreadySatisfiedEventuallyStillHolds()
+        {
+            var s0 = BuildChain();
+            var phi = Ltl<IStatePredicate>.Eventually(
+                Ltl<IStatePredicate>.Atom(new StatePredAtom(PProp)));
+
+            var r1 = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2);
+            var r2 = SymbolicLtlCheck.CheckNDFS(s0, phi, maxDepth: 2);
+            var r3 = SymbolicLtlCheck.Check(
+                s0, phi, maxDepth: 2, fairness: Fairness.WeakAll);
+
+            Assert.That(r1.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
+            Assert.That(r2.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
+            Assert.That(r3.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
+        }
+
+        [Test]
+        public void FiniteInvariantViolationBeforeCheckerFrontier_RemainsDefinitive()
+        {
+            var s0 = BuildChain();
+            var phi = Ltl<IStatePredicate>.Globally(
+                Ltl<IStatePredicate>.Atom(new StatePredAtom(PProp)));
+
+            var r1 = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2);
+            var r2 = SymbolicLtlCheck.CheckNDFS(s0, phi, maxDepth: 2);
+
+            Assert.That(r1.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(r2.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(r1.Trace, Has.Count.EqualTo(1));
+        }
+
+        [Test]
         public void ConstructionDepthFrontier_IsMarkedForEagerAndLazyGraphs()
         {
             StateGraphNode Build(bool lazy) => StateGraph.ExploreStateGraph(
@@ -168,6 +200,37 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         }
 
         [Test]
+        public void ConstructionDepthFrontier_ExplicitBackendObservesBoundaryState()
+        {
+            var root = StateGraph.ExploreStateGraph(
+                new IStepFunction[] { new AdvanceStep() },
+                new TestState("s0", 0),
+                maxDepth: 2);
+            var phi = LtlFormula.Eventually(
+                LtlFormula.Prop(s => ((TestState)s).Value == 1, "p"));
+
+            var result = LtlCheck.Check(root, phi);
+
+            Assert.That(result.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
+        }
+
+        [Test]
+        public void ConstructionDepthFrontier_UserFacingInvariantViolationIsDefinitive()
+        {
+            var root = StateGraph.ExploreStateGraph(
+                new IStepFunction[] { new AdvanceStep() },
+                new TestState("s0", 0),
+                maxDepth: 2);
+            var f = Formula.For<TestState>();
+            var positive = f.Observe(s => s.Value > 0, "positive");
+
+            var result = root.Check(f.Always(positive));
+
+            Assert.That(result.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(result.Trace, Has.Count.EqualTo(1));
+        }
+
+        [Test]
         public void RealCounterexampleCycleBeforeFrontier_RemainsDefinitive()
         {
             var s0 = MakeNode("s0", 0);
@@ -200,6 +263,23 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             Assert.That(r1.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
             Assert.That(r2.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
             Assert.That(r3.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
+        }
+
+        [Test]
+        public void ActualTerminalInvariantViolation_RemainsDefinitive()
+        {
+            var terminal = MakeNode("terminal", 0);
+            var phi = Ltl<IStatePredicate>.Globally(
+                Ltl<IStatePredicate>.Atom(new StatePredAtom(PProp)));
+
+            var r1 = SymbolicLtlCheck.Check(terminal, phi, maxDepth: 1);
+            var r2 = SymbolicLtlCheck.CheckNDFS(terminal, phi, maxDepth: 1);
+            var r3 = SymbolicLtlCheck.Check(
+                terminal, phi, maxDepth: 1, fairness: Fairness.WeakAll);
+
+            Assert.That(r1.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(r2.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(r3.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
         }
     }
 }

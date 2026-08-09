@@ -105,7 +105,18 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
                 if (atFrontier)
                 {
-                    reachedDepthFrontier = true;
+                    if (anyTransitionAware)
+                    {
+                        reachedDepthFrontier = true;
+                        yield break;
+                    }
+
+                    var frontierSuccessors = EvaluateNbwTransitions(
+                        nbwTrans,
+                        TransitionContext.Source(state),
+                        registry,
+                        nbwCmp);
+                    reachedDepthFrontier |= frontierSuccessors.Count > 0;
                     yield break;
                 }
 

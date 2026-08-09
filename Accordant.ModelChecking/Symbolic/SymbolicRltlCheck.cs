@@ -180,9 +180,16 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             // 4. Pick the emptiness check based on fairness.
             var bpComparer = BreakpointState<Rltl<IStatePredicate>>.GetEqualityComparer();
             bool useSCC = fairness != null && !ReferenceEquals(fairness, Fairness.None);
-            return useSCC
+            var result = useSCC
                 ? SccProductCheck.Check(root, nbw, maxDepth, bpComparer, fairness)
                 : NestedDfsCheck.Check(root, nbw, maxDepth, bpComparer);
+
+            if (!useSCC && result.Status == PropertyCheckingStatus.InconclusiveBound)
+            {
+                return FiniteInvariantCheck.FindViolation(root, property, maxDepth) ?? result;
+            }
+
+            return result;
         }
     }
 }

@@ -582,7 +582,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         }
 
         [Test]
-        public void BoundedDepth_DeeperBound_RemainsInconclusiveAtFrontier()
+        public void BoundedDepth_DeeperBound_FindsFiniteInvariantViolation()
         {
             var initial = new CounterState { Count = 2 };
             var steps = new IStepFunction[] { new BuggyDecrementOp() };
@@ -592,9 +592,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
 
             var nonNeg = Prop("nonNeg", s => ((CounterState)s).Count >= 0);
             var result = SymbolicLtlCheck.Check(root, G(Atom(nonNeg)));
-            Assert.That(
-                result.Status,
-                Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
+            Assert.That(result.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
         }
 
         #endregion

@@ -66,7 +66,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 return SccProductCheck.Check(root, nbw, maxDepth, bpComparer, fairness);
             }
 
-            return ExploreProduct(root, nbw, registry, maxDepth);
+            var result = ExploreProduct(root, nbw, registry, maxDepth);
+            return ResolveFiniteInvariantViolation(root, property, maxDepth, result);
         }
 
         /// <summary>
@@ -101,7 +102,22 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             var nbw = incAE.ToNBW();
 
             var bpComparer = BreakpointState<Ltl<IStatePredicate>>.GetEqualityComparer();
-            return NestedDfsCheck.Check(root, nbw, maxDepth, bpComparer);
+            var result = NestedDfsCheck.Check(root, nbw, maxDepth, bpComparer);
+            return ResolveFiniteInvariantViolation(root, property, maxDepth, result);
+        }
+
+        private static PropertyCheckingResult ResolveFiniteInvariantViolation(
+            StateGraphNode root,
+            Ltl<IStatePredicate> property,
+            int maxDepth,
+            PropertyCheckingResult result)
+        {
+            if (result.Status != PropertyCheckingStatus.InconclusiveBound)
+            {
+                return result;
+            }
+
+            return FiniteInvariantCheck.FindViolation(root, property, maxDepth) ?? result;
         }
 
         /// <summary>
@@ -141,6 +157,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 var current = worklist.Dequeue();
                 var sysNode = current.SystemNode;
                 var sysEdges = sysNode.Edges;
+                var nbwState = current.NbwState;
+                var nbwTransitions = nbw.GetTransition(nbwState);
+                var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
                 var terminal =
                     (sysEdges == null || sysEdges.Count == 0) &&
                     !sysNode.IsDepthFrontier;
@@ -150,17 +169,19 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
                 if (atFrontier)
                 {
-                    reachedDepthFrontier = true;
+                    if (anyTransitionAware)
+                    {
+                        reachedDepthFrontier = true;
+                        continue;
+                    }
+
+                    var frontierSuccessors = EvaluateNbwTransitions(
+                        nbwTransitions,
+                        TransitionContext.Source(sysNode.State),
+                        registry);
+                    reachedDepthFrontier |= frontierSuccessors.Count > 0;
                     continue;
                 }
-
-                var nbwState = current.NbwState;
-
-                // Get NBW transitions for current NBW state
-                var nbwTransitions = nbw.GetTransition(nbwState);
-
-                // GetTransition has registered this node's guard predicates.
-                var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
 
                 // If system node is terminal (no outgoing edges): stutter self-loop
                 if (terminal)

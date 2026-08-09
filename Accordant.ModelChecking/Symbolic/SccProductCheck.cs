@@ -86,6 +86,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 var current = worklist.Dequeue();
                 var sysNode = current.SystemNode;
                 var sysEdges = sysNode.Edges;
+                var nbwTrans = nbw.GetTransition(current.NbwState);
+                var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
                 var terminal =
                     (sysEdges == null || sysEdges.Count == 0) &&
                     !sysNode.IsDepthFrontier;
@@ -95,14 +97,20 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
                 if (atFrontier)
                 {
-                    reachedDepthFrontier = true;
+                    if (anyTransitionAware)
+                    {
+                        reachedDepthFrontier = true;
+                        continue;
+                    }
+
+                    var frontierSuccessors = EvaluateNbwTransitions(
+                        nbwTrans,
+                        TransitionContext.Source(sysNode.State),
+                        registry,
+                        nbwStateComparer);
+                    reachedDepthFrontier |= frontierSuccessors.Count > 0;
                     continue;
                 }
-
-                var nbwTrans = nbw.GetTransition(current.NbwState);
-
-                // GetTransition has registered this node's guard predicates.
-                var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
 
                 if (terminal)
                 {
