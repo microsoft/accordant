@@ -73,13 +73,27 @@ public class FunctionalRefinementTests
 
     private sealed class AdvanceConcreteStep : IStepFunction
     {
+        private readonly int maxValue;
+
+        public AdvanceConcreteStep(int maxValue = int.MaxValue)
+        {
+            this.maxValue = maxValue;
+        }
+
         public string StepFunctionId => "advance-concrete";
+        public int ApplyCount { get; private set; }
 
         public IList<StepResult> Apply(
             IState state,
             IReadOnlyList<(IStepFunction, StateGraphNode)> path)
         {
+            ApplyCount++;
             var current = (ConcreteState)state;
+            if (current.Value >= maxValue)
+            {
+                return null;
+            }
+
             return new[]
             {
                 new StepResult
@@ -93,13 +107,27 @@ public class FunctionalRefinementTests
 
     private sealed class AdvanceAbstractStep : IStepFunction
     {
+        private readonly int maxValue;
+
+        public AdvanceAbstractStep(int maxValue = int.MaxValue)
+        {
+            this.maxValue = maxValue;
+        }
+
         public string StepFunctionId => "advance-abstract";
+        public int ApplyCount { get; private set; }
 
         public IList<StepResult> Apply(
             IState state,
             IReadOnlyList<(IStepFunction, StateGraphNode)> path)
         {
+            ApplyCount++;
             var current = (AbstractState)state;
+            if (current.Value >= maxValue)
+            {
+                return null;
+            }
+
             return new[]
             {
                 new StepResult
@@ -281,6 +309,34 @@ public class FunctionalRefinementTests
         AddEdge(a1, a0, "down");
 
         Assert.That(Check(c0, a0).Status, Is.EqualTo(RefinementCheckingStatus.Refines));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void CheckExploresConcreteAndAbstractGraphsInEagerAndLazyModes(bool lazy)
+    {
+        var concreteStep = new AdvanceConcreteStep(maxValue: 2);
+        var abstractStep = new AdvanceAbstractStep(maxValue: 2);
+        var concrete = StateGraph.ExploreStateGraph(
+            new IStepFunction[] { concreteStep },
+            new ConcreteState(0),
+            lazy: lazy);
+        var abstraction = StateGraph.ExploreStateGraph(
+            new IStepFunction[] { abstractStep },
+            new AbstractState(0),
+            lazy: lazy);
+
+        if (lazy)
+        {
+            Assert.That(concreteStep.ApplyCount, Is.Zero);
+            Assert.That(abstractStep.ApplyCount, Is.Zero);
+        }
+
+        var result = Check(concrete, abstraction);
+
+        Assert.That(result.Status, Is.EqualTo(RefinementCheckingStatus.Refines));
+        Assert.That(concreteStep.ApplyCount, Is.GreaterThan(0));
+        Assert.That(abstractStep.ApplyCount, Is.GreaterThan(0));
     }
 
     [TestCase(false)]
