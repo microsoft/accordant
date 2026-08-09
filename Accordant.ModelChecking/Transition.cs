@@ -8,8 +8,8 @@ namespace Microsoft.Accordant.ModelChecking
     /// <c>p(s, a, s')</c>. It exposes the <see cref="IStepFunction"/> that
     /// produced the transition together with any edge <see cref="Metadata"/>.
     ///
-    /// <para>For the stutter self-loop emitted at terminal and depth-frontier
-    /// nodes, <see cref="IsStutter"/> is <c>true</c> and <see cref="Action"/>
+    /// <para>For the stutter self-loop emitted at terminal nodes,
+    /// <see cref="IsStutter"/> is <c>true</c> and <see cref="Action"/>
     /// is the reserved <see cref="StutterAction"/> singleton.</para>
     /// </summary>
     public sealed class Transition

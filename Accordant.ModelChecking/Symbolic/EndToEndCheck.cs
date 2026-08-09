@@ -45,8 +45,13 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         {
             /// <summary>Mode that produced this report.</summary>
             public Mode Mode { get; internal set; }
-            /// <summary>True iff the property holds (no counterexample).</summary>
-            public bool Valid { get; internal set; }
+            /// <summary>Outcome of the property check.</summary>
+            public PropertyCheckingStatus Status { get; internal set; }
+            /// <summary>
+            /// True or false for conclusive checks; null when bounded
+            /// exploration is inconclusive.
+            /// </summary>
+            public bool? Valid { get; internal set; }
             /// <summary>Length of the counterexample lasso (prefix+cycle), or 0.</summary>
             public int CounterexampleLength { get; internal set; }
 
@@ -75,7 +80,10 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             /// <summary>Human-readable single-line summary.</summary>
             public string OneLine()
             {
-                var verdict = Valid ? "OK    " : "VIOL  ";
+                var verdict =
+                    Status == PropertyCheckingStatus.Holds ? "OK    " :
+                    Status == PropertyCheckingStatus.Violated ? "VIOL  " :
+                    "BOUND ";
                 var lazyTag = NbwStatesReachableTotal.HasValue
                     ? string.Format(
                         "{0,5}/{1,-5}",
@@ -160,6 +168,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             report.Elapsed = sw.Elapsed;
             report.NbwStatesDiscovered = nbw.States.Count;
             report.NbwTransitionsCached = nbw.CachedTransitions.Count;
+            report.Status = result.Status;
             report.Valid = result.Valid;
             report.CounterexampleLength = result.Trace == null
                 ? 0
@@ -239,7 +248,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     "{0,-37} {1,-6} {2,-8} {3,8} {4,15} {5,9} {6,9:0.0}\n",
                     Truncate(label, 37),
                     r.Mode,
-                    r.Valid ? "VALID" : "VIOL",
+                    r.Status == PropertyCheckingStatus.Holds ? "VALID" :
+                    r.Status == PropertyCheckingStatus.Violated ? "VIOL" :
+                    "BOUND",
                     r.ModelStates,
                     nbwCol,
                     r.NbwTransitionsCached,

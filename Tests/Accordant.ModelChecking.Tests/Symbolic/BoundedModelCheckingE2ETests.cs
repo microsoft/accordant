@@ -564,7 +564,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         #region Model 6: Bounded Depth Effects
 
         [Test]
-        public void BoundedDepth_ShallowBound_MaySatisfyProperty()
+        public void BoundedDepth_ShallowBound_IsInconclusive()
         {
             // With shallow depth bound, a property might appear to hold
             // that would be violated with deeper exploration
@@ -575,16 +575,14 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             var root = StateGraph.ExploreStateGraph(steps, initial, maxDepth: 4);
 
             var nonNeg = Prop("nonNeg", s => ((CounterState)s).Count >= 0);
-            // With bounded checking at this depth, the stutter loop
-            // keeps it at count=1 forever — property holds
             var result = SymbolicLtlCheck.Check(root, G(Atom(nonNeg)), maxDepth: 4);
-            // Note: depending on stutter semantics, this may pass at shallow depth
-            // The key point is bounded checking doesn't crash
-            Assert.That(result, Is.Not.Null);
+            Assert.That(
+                result.Status,
+                Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
         }
 
         [Test]
-        public void BoundedDepth_DeeperBound_FindsViolation()
+        public void BoundedDepth_DeeperBound_RemainsInconclusiveAtFrontier()
         {
             var initial = new CounterState { Count = 2 };
             var steps = new IStepFunction[] { new BuggyDecrementOp() };
@@ -594,8 +592,9 @@ namespace Accordant.ModelChecking.Tests.Symbolic
 
             var nonNeg = Prop("nonNeg", s => ((CounterState)s).Count >= 0);
             var result = SymbolicLtlCheck.Check(root, G(Atom(nonNeg)));
-            Assert.That(result.Valid, Is.False,
-                "Deeper exploration should find the negativity violation");
+            Assert.That(
+                result.Status,
+                Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
         }
 
         #endregion

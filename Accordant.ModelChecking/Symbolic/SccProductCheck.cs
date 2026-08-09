@@ -51,6 +51,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 Dictionary<TNbwState, ProductNode<TNbwState>>>();
             var allNodes = new List<ProductNode<TNbwState>>();
             var worklist = new Queue<ProductNode<TNbwState>>();
+            var reachedDepthFrontier = false;
 
             ProductNode<TNbwState> GetOrCreate(
                 StateGraphNode sysNode,
@@ -83,39 +84,27 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             while (worklist.Count > 0)
             {
                 var current = worklist.Dequeue();
+                var sysNode = current.SystemNode;
+                var sysEdges = sysNode.Edges;
+                var terminal =
+                    (sysEdges == null || sysEdges.Count == 0) &&
+                    !sysNode.IsDepthFrontier;
+                var atFrontier =
+                    sysNode.IsDepthFrontier ||
+                    (maxDepth > 0 && current.Depth >= maxDepth && !terminal);
 
-                if (maxDepth > 0 && current.Depth >= maxDepth)
+                if (atFrontier)
                 {
-                    // At the depth frontier we cannot explore further system
-                    // edges, so the only continuation we admit is a system
-                    // stutter (sys stays the same). The NBW, however, must
-                    // make a real transition on the current state's label —
-                    // pretending it can self-loop unconditionally would
-                    // fabricate accepting cycles for properties the NBW
-                    // cannot actually satisfy here. Aligns with the
-                    // <see cref="NestedDfsCheck"/> frontier handling.
-                    var frontierNbw = nbw.GetTransition(current.NbwState);
-                    var frontierSuccs = EvaluateNbwTransitions(
-                        frontierNbw, TransitionContext.Stutter(current.SystemNode.State),
-                        registry, nbwStateComparer);
-                    foreach (var succNbw in frontierSuccs)
-                    {
-                        var succ = GetOrCreate(
-                            current.SystemNode, succNbw, current.Depth + 1, null, current);
-                        current.Successors.Add(
-                            new ProductEdge<TNbwState>(null, null, succ));
-                    }
+                    reachedDepthFrontier = true;
                     continue;
                 }
 
                 var nbwTrans = nbw.GetTransition(current.NbwState);
-                var sysNode = current.SystemNode;
-                var sysEdges = sysNode.Edges;
 
                 // GetTransition has registered this node's guard predicates.
                 var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
 
-                if (sysEdges == null || sysEdges.Count == 0)
+                if (terminal)
                 {
                     var stutterSuccs = EvaluateNbwTransitions(
                         nbwTrans, TransitionContext.Stutter(sysNode.State),
@@ -190,7 +179,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 return PropertyCheckingResult.Failure(trace, badCycle);
             }
 
-            return PropertyCheckingResult.Success();
+            return reachedDepthFrontier
+                ? PropertyCheckingResult.InconclusiveBound()
+                : PropertyCheckingResult.Success();
         }
 
         #region Transition evaluation

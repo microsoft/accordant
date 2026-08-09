@@ -94,7 +94,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         ///   representative; obligation membership is forwarded onto the
         ///   representative. Per-macrostate cost is O(|S|) with ADD-node
         ///   reference equality. Off by default.</param>
-        /// <returns>Result with counterexample if the property is violated.</returns>
+        /// <returns>A conclusive result with a counterexample on violation, or
+        /// a bounded-inconclusive result when an unexplored frontier can affect
+        /// the verdict.</returns>
         public static PropertyCheckingResult Check(
             StateGraphNode root,
             Rltl<IStatePredicate> property,

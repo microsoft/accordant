@@ -15,7 +15,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
     ///
     /// <para>State-only propositions <c>p(s)</c> simply read <see cref="From"/>
     /// and ignore the rest, so they behave identically to before. A stutter
-    /// self-loop (used at terminal and depth-frontier nodes) is represented by
+    /// self-loop (used at terminal nodes) is represented by
     /// <see cref="Stutter"/>, where <see cref="From"/> == <see cref="To"/> and
     /// <see cref="Action"/> is the reserved <see cref="StutterAction"/>.</para>
     /// </summary>
@@ -57,8 +57,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
         /// <summary>
         /// A stutter self-loop letter at <paramref name="state"/>:
-        /// <c>state --(stutter)--&gt; state</c>. Used at terminal and
-        /// depth-frontier nodes.
+        /// <c>state --(stutter)--&gt; state</c>. Used at terminal nodes.
         /// </summary>
         public static TransitionContext Stutter(IState state)
             => new TransitionContext(state, StutterAction.Instance, null, state);

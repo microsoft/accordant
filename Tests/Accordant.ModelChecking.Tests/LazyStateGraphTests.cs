@@ -305,8 +305,7 @@ namespace Accordant.ModelChecking.Tests
             // Unbounded grow chain, truncated by construction maxDepth. Region-1
             // is never reachable via ToBad within a too-shallow bound because the
             // only violation requires stepping to region 1 (depth 2). With
-            // maxDepth = 1, only the root exists, so the safety property holds
-            // on the truncated graph.
+            // maxDepth = 1, only the root exists and its continuation is unknown.
             var steps = new IStepFunction[] { new ToBadStep(), new GrowStep(int.MaxValue) };
 
             var shallow = StateGraph.ExploreStateGraph(
@@ -318,9 +317,10 @@ namespace Accordant.ModelChecking.Tests
             var p = Formula.For<RegionState>();
             var safety = p.Always(p.Observe(s => s.Region == 0, "InRegion0"));
 
-            // Depth 1: root only, no edge to region 1 -> property holds.
-            Assert.That(shallow.Check(safety).Valid, Is.True,
-                "truncated graph has no region-1 state");
+            // Depth 1: root only, with unknown successors beyond the bound.
+            Assert.That(
+                shallow.Check(safety).Status,
+                Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
 
             // Depth 5: region 1 reachable at depth 2 -> violation is present.
             Assert.That(deeper.Check(safety).Valid, Is.False);

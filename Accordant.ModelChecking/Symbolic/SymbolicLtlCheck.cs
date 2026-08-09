@@ -31,7 +31,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         ///   (non-<c>null</c> and not <see cref="Fairness.None"/>), emptiness
         ///   is checked with <see cref="SccProductCheck"/> so only fair
         ///   accepting cycles count as counterexamples.</param>
-        /// <returns>Result with counterexample if property is violated.</returns>
+        /// <returns>A conclusive result with a counterexample on violation, or
+        /// a bounded-inconclusive result when an unexplored frontier can affect
+        /// the verdict.</returns>
         public static PropertyCheckingResult Check(
             StateGraphNode root,
             Ltl<IStatePredicate> property,
@@ -119,6 +121,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             // Product node tracking
             var productNodes = new Dictionary<string, ProductNodeInfo>();
             var worklist = new Queue<ProductNodeInfo>();
+            var reachedDepthFrontier = false;
 
             // Initialize: system root × each NBW initial state
             foreach (var nbwInit in nbw.InitialStates)
@@ -136,40 +139,21 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             while (worklist.Count > 0)
             {
                 var current = worklist.Dequeue();
+                var sysNode = current.SystemNode;
+                var sysEdges = sysNode.Edges;
+                var terminal =
+                    (sysEdges == null || sysEdges.Count == 0) &&
+                    !sysNode.IsDepthFrontier;
+                var atFrontier =
+                    sysNode.IsDepthFrontier ||
+                    (maxDepth > 0 && current.Depth >= maxDepth && !terminal);
 
-                if (maxDepth > 0 && current.Depth >= maxDepth)
+                if (atFrontier)
                 {
-                    // At the depth frontier we admit only a system stutter
-                    // (sys stays put); the NBW must make a real transition
-                    // on the current state's label rather than a fake
-                    // unconditional self-loop. The previous unconditional
-                    // self-loop fabricated accepting cycles for properties
-                    // the NBW could not actually satisfy at the frontier
-                    // state (e.g. <c>F p</c> when <c>p</c> is true at the
-                    // frontier and the NBW for <c>G ¬p</c> has no
-                    // outgoing transition there). Now consistent with the
-                    // <see cref="NestedDfsCheck"/> frontier handling.
-                    var nbwTransitionsFr = nbw.GetTransition(current.NbwState);
-                    var frontierSuccs = EvaluateNbwTransitions(
-                        nbwTransitionsFr, TransitionContext.Stutter(current.SystemNode.State),
-                        registry);
-                    foreach (var succNbwState in frontierSuccs)
-                    {
-                        var succKey = MakeProductKey(current.SystemNode, succNbwState);
-                        if (!productNodes.TryGetValue(succKey, out var succInfo))
-                        {
-                            succInfo = new ProductNodeInfo(
-                                current.SystemNode, succNbwState, succKey,
-                                current.Depth + 1, null, current);
-                            productNodes[succKey] = succInfo;
-                            worklist.Enqueue(succInfo);
-                        }
-                        current.Successors.Add(succInfo);
-                    }
+                    reachedDepthFrontier = true;
                     continue;
                 }
 
-                var sysNode = current.SystemNode;
                 var nbwState = current.NbwState;
 
                 // Get NBW transitions for current NBW state
@@ -179,8 +163,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
 
                 // If system node is terminal (no outgoing edges): stutter self-loop
-                var sysEdges = sysNode.Edges;
-                if (sysEdges == null || sysEdges.Count == 0)
+                if (terminal)
                 {
                     // Stutter: stay in same system state, advance NBW
                     var successorNbwStates = EvaluateNbwTransitions(
@@ -276,7 +259,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 return PropertyCheckingResult.Failure(trace);
             }
 
-            return PropertyCheckingResult.Success();
+            return reachedDepthFrontier
+                ? PropertyCheckingResult.InconclusiveBound()
+                : PropertyCheckingResult.Success();
         }
 
         /// <summary>

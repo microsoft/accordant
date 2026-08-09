@@ -308,9 +308,11 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             AddEdge(nodes[^1], nodes[^1]);
 
             var p = Prop("val>0", s => ((TestState)s).Value > 0);
-            // With maxDepth=3, violation at s5 is unreachable; stutter at s3 (val=1) is OK.
+            // With maxDepth=3, the continuation toward s5 is unknown.
             var result = SymbolicLtlCheck.CheckNDFS(nodes[0], G(Atom(p)), maxDepth: 3);
-            Assert.That(result.Valid, Is.True);
+            Assert.That(
+                result.Status,
+                Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
         }
 
         #endregion

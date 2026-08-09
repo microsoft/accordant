@@ -21,8 +21,9 @@ namespace Microsoft.Accordant.ModelChecking
         /// <param name="fairness">Optional fairness constraint. Defaults to
         ///   <see cref="Fairness.None"/>. Use <see cref="Fairness.WeakAll"/>
         ///   for liveness properties that require weak fairness.</param>
-        /// <returns>A result indicating validity, with a counterexample trace
-        /// on failure.</returns>
+        /// <returns>A result indicating that the property holds, is violated,
+        /// or is inconclusive because exploration reached a depth frontier.
+        /// Violations include a counterexample trace.</returns>
         public static PropertyCheckingResult Check(
             this StateGraphNode root,
             TemporalFormula formula,

@@ -5,9 +5,10 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
     /// <summary>
     /// The reserved "stutter" action. A stutter self-loop leaves the system
-    /// state unchanged; it is emitted at terminal and depth-frontier nodes so
-    /// that every run of the product automaton is infinite (a requirement for
-    /// ω-acceptance).
+    /// state unchanged; it is emitted at terminal nodes so that every complete
+    /// run of the product automaton is infinite (a requirement for
+    /// ω-acceptance). Depth frontiers are not stuttered because their
+    /// continuation is unknown.
     ///
     /// <para>Before propositions over transitions were supported, stutter
     /// self-loops carried a <c>null</c> step function. With

@@ -156,6 +156,7 @@ internal sealed class StateGraphExpander
 
             if (!withinDepth)
             {
+                node.IsDepthFrontier = true;
                 continue;
             }
 

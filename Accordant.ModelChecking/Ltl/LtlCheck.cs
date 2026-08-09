@@ -114,7 +114,9 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
         /// <param name="root">The root of the system state graph.</param>
         /// <param name="formula">The LTL formula to check.</param>
         /// <param name="fairness">Fairness constraints (default: none).</param>
-        /// <returns>Result indicating success or failure with counterexample.</returns>
+        /// <returns>A conclusive result with a counterexample on violation, or
+        /// a bounded-inconclusive result when the state graph contains an
+        /// unexplored construction-time frontier.</returns>
         public static PropertyCheckingResult Check(
             StateGraphNode root,
             LtlFormula formula,
@@ -123,7 +125,8 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
             fairness ??= Fairness.None;
 
             // Build the product graph on-the-fly
-            var (productRoot, allNodes) = BuildProductGraph(root, formula);
+            var (productRoot, allNodes, reachedDepthFrontier) =
+                BuildProductGraph(root, formula);
 
             // If the initial formula is already false, fail immediately
             if (formula.IsFalse)
@@ -162,18 +165,24 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
                 }
             }
 
-            return PropertyCheckingResult.Success();
+            return reachedDepthFrontier
+                ? PropertyCheckingResult.InconclusiveBound()
+                : PropertyCheckingResult.Success();
         }
 
         /// <summary>
         /// Builds the product graph (System × Formula) on-the-fly using derivatives.
         /// </summary>
-        private static (ProductNode root, Dictionary<string, ProductNode> allNodes) BuildProductGraph(
+        private static (
+            ProductNode root,
+            Dictionary<string, ProductNode> allNodes,
+            bool reachedDepthFrontier) BuildProductGraph(
             StateGraphNode systemRoot,
             LtlFormula initialFormula)
         {
             var allNodes = new Dictionary<string, ProductNode>();
             var queue = new Queue<ProductNode>();
+            var reachedDepthFrontier = false;
 
             var root = new ProductNode(systemRoot, initialFormula);
             allNodes[root.GetFingerprint()] = root;
@@ -182,6 +191,12 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
+
+                if (current.SystemNode.IsDepthFrontier)
+                {
+                    reachedDepthFrontier = true;
+                    continue;
+                }
 
                 // Standard LTL convention: paths are infinite. If the system
                 // node has no outgoing edges, inject an implicit stutter
@@ -256,7 +271,7 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
                 }
             }
 
-            return (root, allNodes);
+            return (root, allNodes, reachedDepthFrontier);
         }
 
         /// <summary>

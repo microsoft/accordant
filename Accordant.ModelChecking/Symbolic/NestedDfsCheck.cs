@@ -49,10 +49,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         /// <param name="root">Root system node.</param>
         /// <param name="nbw">Symbolic NBW over <see cref="IStatePredicate"/> /
         ///   <see cref="State"/>.</param>
-        /// <param name="maxDepth">If positive: any product node first reached
-        ///   at depth ≥ <paramref name="maxDepth"/> is treated as a frontier
-        ///   node with only a stutter self-loop, matching the bounded-depth
-        ///   semantics of <see cref="SymbolicLtlCheck.Check"/>.</param>
+        /// <param name="maxDepth">If positive, product exploration stops at
+        ///   this depth. If no definitive counterexample is found before that
+        ///   frontier, the result is bounded-inconclusive.</param>
         /// <param name="nbwStateComparer">Equality comparer for NBW states.
         ///   Defaults to <see cref="EqualityComparer{T}.Default"/>.</param>
         public static PropertyCheckingResult Check<TNbwState>(
@@ -66,6 +65,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
             var nbwCmp = nbwStateComparer ?? EqualityComparer<TNbwState>.Default;
             var registry = nbw.Registry;
+            var reachedDepthFrontier = false;
 
             // Per-node info (parent pointers for counterexample reconstruction,
             // visited flags). Indexed by composite key (system fingerprint +
@@ -96,10 +96,20 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 var anyTransitionAware = AnyTransitionAware(registry);
 
                 var edges = p.SystemNode.Edges;
-                var atFrontier = (maxDepth > 0 && p.Depth >= maxDepth);
-                var terminal = edges == null || edges.Count == 0;
+                var terminal =
+                    (edges == null || edges.Count == 0) &&
+                    !p.SystemNode.IsDepthFrontier;
+                var atFrontier =
+                    p.SystemNode.IsDepthFrontier ||
+                    (maxDepth > 0 && p.Depth >= maxDepth && !terminal);
 
-                if (terminal || atFrontier)
+                if (atFrontier)
+                {
+                    reachedDepthFrontier = true;
+                    yield break;
+                }
+
+                if (terminal)
                 {
                     // Stutter self-loop letter: state --(stutter)--> state.
                     var stutterSuccs = EvaluateNbwTransitions(
@@ -189,7 +199,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 }
             }
 
-            return PropertyCheckingResult.Success();
+            return reachedDepthFrontier
+                ? PropertyCheckingResult.InconclusiveBound()
+                : PropertyCheckingResult.Success();
         }
 
         /// <summary>

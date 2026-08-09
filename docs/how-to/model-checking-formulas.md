@@ -23,6 +23,25 @@ StutterSafeFormula property = f
 var result = root.Check(property);
 ```
 
+Inspect `result.Status` for the three possible outcomes:
+
+```csharp
+switch (result.Status)
+{
+    case PropertyCheckingStatus.Holds:
+        break;
+    case PropertyCheckingStatus.Violated:
+        Console.WriteLine(result.GetTraceString());
+        break;
+    case PropertyCheckingStatus.InconclusiveBound:
+        Console.WriteLine("Increase the exploration depth.");
+        break;
+}
+```
+
+`result.Valid` is `true` or `false` for conclusive checks and `null` for a
+bounded-inconclusive check.
+
 The default builder exposes only constructs that guarantee invariance under
 finite repetitions of an indistinguishable state. It includes state
 observations, Boolean operators, `Always`, `Eventually`, `Until`, `Release`,
@@ -91,8 +110,9 @@ var changedNext = exact.Next(changed);
 
 The sensitive builder interprets transition observations literally at every
 physical edge position. That includes named unchanged model edges and the
-synthetic self-loop used at terminal and bounded-depth frontier nodes. It also
-exposes `Next`.
+synthetic self-loop used at terminal nodes. A bounded-depth frontier has an
+unknown continuation and is not converted into a stutter loop. It also exposes
+`Next`.
 
 `AllowStutterSensitiveFormulas()` does not claim every resulting formula is
 stutter-sensitive. It means Accordant's type system no longer guarantees

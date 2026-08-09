@@ -20,6 +20,8 @@ namespace Microsoft.Accordant.ModelChecking.Rltl
         /// <param name="fairness">Optional fairness constraint. Defaults to
         ///   <see cref="Fairness.None"/>. Use <see cref="Fairness.WeakAll"/>
         ///   for parity with the legacy <c>LtlCheck</c> default semantics.</param>
+        /// <returns>A result indicating that the property holds, is violated,
+        /// or is inconclusive because exploration reached a depth frontier.</returns>
         public static PropertyCheckingResult Check(
             StateGraphNode root,
             RltlFormula formula,
