@@ -21,6 +21,7 @@
     <Project Path="Samples/RelationalRefinement/RelationalRefinement.csproj" />
     <Project Path="Samples/Paxos/Paxos.csproj" />
     <Project Path="Samples/TerminationDetection/TerminationDetection.csproj" />
+    <Project Path="Samples/TemporalRefinement/TemporalRefinement.csproj" />
     <Project Path="Samples/AlternatingBit/AlternatingBit.csproj" />
   </Folder>
   <Project Path="Accordant.Choose/Accordant.Choose.csproj" />

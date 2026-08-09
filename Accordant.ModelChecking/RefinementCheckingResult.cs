@@ -12,7 +12,10 @@ public enum RefinementCheckingStatus
     /// <summary>Every explored concrete behavior is simulated abstractly.</summary>
     Refines,
 
-    /// <summary>A finite concrete behavior cannot be simulated abstractly.</summary>
+    /// <summary>
+    /// A concrete behavior cannot be simulated by the required abstract
+    /// behavior.
+    /// </summary>
     DoesNotRefine,
 
     /// <summary>
@@ -23,7 +26,7 @@ public enum RefinementCheckingStatus
 }
 
 /// <summary>
-/// Kind of finite safety-refinement failure.
+/// Kind of refinement failure.
 /// </summary>
 public enum RefinementFailureKind
 {
@@ -31,7 +34,12 @@ public enum RefinementFailureKind
     InitialStateMismatch,
 
     /// <summary>A concrete transition has no coherent abstract match.</summary>
-    TransitionMismatch
+    TransitionMismatch,
+
+    /// <summary>
+    /// A fair concrete behavior has no fair aligned abstract behavior.
+    /// </summary>
+    TemporalFairnessMismatch
 }
 
 /// <summary>
@@ -44,13 +52,15 @@ public sealed class RefinementTraceItem
         IStepFunction concreteStepFunction,
         object concreteEdgeMetadata,
         IState mappedAbstractState,
-        IReadOnlyList<StateGraphNode> abstractCandidates)
+        IReadOnlyList<StateGraphNode> abstractCandidates,
+        bool isInCycle = false)
     {
         ConcreteNode = concreteNode;
         ConcreteStepFunction = concreteStepFunction;
         ConcreteEdgeMetadata = concreteEdgeMetadata;
         MappedAbstractState = mappedAbstractState;
         AbstractCandidates = abstractCandidates;
+        IsInCycle = isInCycle;
     }
 
     /// <summary>The concrete graph node at this trace position.</summary>
@@ -73,6 +83,12 @@ public sealed class RefinementTraceItem
     /// Empty at the position where matching failed.
     /// </summary>
     public IReadOnlyList<StateGraphNode> AbstractCandidates { get; }
+
+    /// <summary>
+    /// Whether this position belongs to the repeating part of a temporal
+    /// counterexample.
+    /// </summary>
+    public bool IsInCycle { get; }
 }
 
 /// <summary>
@@ -148,9 +164,12 @@ public sealed class RefinementCheckingResult
         }
         else
         {
-            sb.AppendLine(FailureKind == RefinementFailureKind.InitialStateMismatch
-                ? "Refinement failed: the concrete and abstract initial states do not correspond."
-                : "Refinement failed: a concrete transition has no coherent abstract match.");
+            sb.AppendLine(
+                FailureKind == RefinementFailureKind.InitialStateMismatch
+                    ? "Refinement failed: the concrete and abstract initial states do not correspond."
+                    : FailureKind == RefinementFailureKind.TemporalFairnessMismatch
+                        ? "Refinement failed: a fair concrete behavior has no fair aligned abstract behavior."
+                        : "Refinement failed: a concrete transition has no coherent abstract match.");
         }
 
         if (Trace == null)
@@ -165,7 +184,9 @@ public sealed class RefinementCheckingResult
                 : PropertyCheckingResult.FormatStep(item.ConcreteStepFunction);
             sb.Append("  --")
                 .Append(step)
-                .Append("--> concrete ")
+                .Append("--> ")
+                .Append(item.IsInCycle ? "[cycle] " : string.Empty)
+                .Append("concrete ")
                 .Append(item.ConcreteNode.State);
             if (item.MappedAbstractState != null)
             {

@@ -138,4 +138,19 @@ public sealed class FunctionalRefinementCheck<TConcrete, TAbstract>
             concreteRoot,
             abstractRoot,
             mapping);
+
+    /// <summary>
+    /// Checks strict step-aligned temporal refinement over infinite fair
+    /// behaviors. The current exact mode requires each concrete transition
+    /// to have at most one known abstract response.
+    /// </summary>
+    public RefinementCheckingResult CheckTemporal(
+        Fairness concreteFairness = null,
+        Fairness abstractFairness = null)
+        => FunctionalTemporalRefinement.Check(
+            concreteRoot,
+            abstractRoot,
+            mapping,
+            concreteFairness,
+            abstractFairness);
 }

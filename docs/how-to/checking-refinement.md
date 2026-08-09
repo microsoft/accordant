@@ -156,6 +156,54 @@ step-aligned engine. Functional mapping is preferable when one abstract state
 is already determined because it is simpler and generally retains fewer
 candidates.
 
+## Check temporal refinement
+
+Functional temporal refinement additionally checks infinite behaviors under
+concrete and abstract fairness:
+
+```csharp
+var result = Refinement
+    .Between<WorkerState, JobState>(concreteRoot, abstractRoot)
+    .Map(MapWorkerToJob)
+    .CheckTemporal(
+        concreteFairness: Fairness.Weak<CompleteWork>(),
+        abstractFairness: Fairness.Weak<CompleteJob>());
+```
+
+The condition is:
+
+```text
+every fair concrete behavior has a fair aligned abstract behavior
+```
+
+The
+[`Samples/TemporalRefinement`](../../Samples/TemporalRefinement/)
+sample makes the distinction visible. A worker may alternate forever between
+two internal polling states, both mapped to one abstract `Pending` state:
+
+```text
+concrete: Idle -> Queued -> ProcessingA -> ProcessingB -> ProcessingA -> ...
+abstract: Idle -> Pending -> Pending     -> Pending     -> Pending     -> ...
+```
+
+Without concrete fairness, polling forever is a valid concrete behavior but
+violates the abstract model's weak fairness for `CompleteJob`. With weak
+fairness for `CompleteWork`, that concrete behavior is excluded: completion is
+continuously enabled while processing, so it must eventually occur, and the
+mapped behavior takes the abstract completion step.
+
+Temporal counterexamples are lassos. `RefinementTraceItem.IsInCycle` marks the
+repeating part, and `TemporalFairnessMismatch` distinguishes a fairness
+failure from a finite transition mismatch.
+
+The first temporal mode is exact for **deterministic alignment**: every
+concrete transition must have at most one known abstract response (one
+abstract edge or abstract stutter). If stutter and an equal-state abstract edge,
+parallel abstract edges, or several equal-state configurations provide
+multiple responses, `AmbiguousTemporalRefinementException` reports that the
+general omega-language inclusion engine is required. The checker never
+silently chooses one response and risks a wrong verdict.
+
 ## Bounded graphs
 
 A genuine terminal state is complete and does not make safety refinement
@@ -171,6 +219,6 @@ inconclusive. A construction-time depth frontier has unknown successors.
 
 ## Current scope
 
-This first refinement mode checks strict step-aligned safety only. It does not
-yet compare actions or edge metadata, apply fairness, check temporal
-properties, or search finite abstract paths per concrete step.
+Refinement remains strict and step-aligned. It does not compare actions or
+edge metadata, search finite abstract paths per concrete step, or perform
+general nondeterministic relational temporal inclusion.
