@@ -13,20 +13,22 @@ public class FunctionalRefinementTests
     private sealed class ConcreteState : State
     {
         public int Value { get; }
+        public int Phase { get; }
 
-        public ConcreteState(int value)
+        public ConcreteState(int value, int phase = 0)
         {
             Value = value;
+            Phase = phase;
         }
 
         protected override void CloneInternal(Dictionary<object, object> map)
-            => map[this] = new ConcreteState(Value);
+            => map[this] = new ConcreteState(Value, Phase);
 
         protected override string StringRepresentationInternal(
             Dictionary<object, string> paths,
             string path,
             bool forceRecompute)
-            => $"Concrete({Value})";
+            => $"Concrete(Value={Value},Phase={Phase})";
 
         protected override void FreezeComponents(HashSet<object> visited)
         {
@@ -133,6 +135,45 @@ public class FunctionalRefinementTests
                 new StepResult
                 {
                     State = new AbstractState(current.Value + 1),
+                    StepFunctions = new IStepFunction[] { this }
+                }
+            };
+        }
+    }
+
+    private sealed class TwoPhaseConcreteStep : IStepFunction
+    {
+        private readonly int maxValue;
+        private readonly int visibleIncrement;
+
+        public TwoPhaseConcreteStep(int maxValue, int visibleIncrement = 1)
+        {
+            this.maxValue = maxValue;
+            this.visibleIncrement = visibleIncrement;
+        }
+
+        public string StepFunctionId => "two-phase-concrete";
+        public int ApplyCount { get; private set; }
+
+        public IList<StepResult> Apply(
+            IState state,
+            IReadOnlyList<(IStepFunction, StateGraphNode)> path)
+        {
+            ApplyCount++;
+            var current = (ConcreteState)state;
+            if (current.Value >= maxValue && current.Phase == 0)
+            {
+                return null;
+            }
+
+            var next = current.Phase == 0
+                ? new ConcreteState(current.Value, phase: 1)
+                : new ConcreteState(current.Value + visibleIncrement, phase: 0);
+            return new[]
+            {
+                new StepResult
+                {
+                    State = next,
                     StepFunctions = new IStepFunction[] { this }
                 }
             };
@@ -337,6 +378,58 @@ public class FunctionalRefinementTests
         Assert.That(result.Status, Is.EqualTo(RefinementCheckingStatus.Refines));
         Assert.That(concreteStep.ApplyCount, Is.GreaterThan(0));
         Assert.That(abstractStep.ApplyCount, Is.GreaterThan(0));
+    }
+
+    [Test]
+    public void LazyExecutableModels_TwoConcretePhasesImplementOneAbstractStep()
+    {
+        var concreteStep = new TwoPhaseConcreteStep(maxValue: 2);
+        var abstractStep = new AdvanceAbstractStep(maxValue: 2);
+        var concrete = StateGraph.ExploreStateGraph(
+            new IStepFunction[] { concreteStep },
+            new ConcreteState(0),
+            lazy: true);
+        var abstraction = StateGraph.ExploreStateGraph(
+            new IStepFunction[] { abstractStep },
+            new AbstractState(0),
+            lazy: true);
+
+        var result = Check(concrete, abstraction);
+
+        Assert.That(result.Status, Is.EqualTo(RefinementCheckingStatus.Refines));
+        Assert.That(concreteStep.ApplyCount, Is.EqualTo(5));
+        Assert.That(
+            abstractStep.ApplyCount,
+            Is.EqualTo(2),
+            "the final abstract node need not be expanded after the concrete model terminates");
+    }
+
+    [Test]
+    public void LazyExecutableModels_VisibleJumpProducesFiniteCounterexample()
+    {
+        var concrete = StateGraph.ExploreStateGraph(
+            new IStepFunction[]
+            {
+                new TwoPhaseConcreteStep(maxValue: 2, visibleIncrement: 2)
+            },
+            new ConcreteState(0),
+            lazy: true);
+        var abstraction = StateGraph.ExploreStateGraph(
+            new IStepFunction[] { new AdvanceAbstractStep(maxValue: 2) },
+            new AbstractState(0),
+            lazy: true);
+
+        var result = Check(concrete, abstraction);
+
+        Assert.That(result.Status, Is.EqualTo(RefinementCheckingStatus.DoesNotRefine));
+        Assert.That(result.FailureKind, Is.EqualTo(RefinementFailureKind.TransitionMismatch));
+        Assert.That(result.Trace, Has.Count.EqualTo(3));
+        Assert.That(
+            result.Trace.Select(item => ((ConcreteState)item.ConcreteNode.State).Value),
+            Is.EqualTo(new[] { 0, 0, 2 }));
+        Assert.That(
+            result.Trace.Select(item => ((ConcreteState)item.ConcreteNode.State).Phase),
+            Is.EqualTo(new[] { 0, 1, 0 }));
     }
 
     [TestCase(false)]
