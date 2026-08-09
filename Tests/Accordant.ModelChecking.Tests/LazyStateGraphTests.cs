@@ -144,7 +144,7 @@ namespace Accordant.ModelChecking.Tests
                 (p.Always(inRange), null, "safety-holds"),
                 (p.Always(!atTwo), null, "safety-fails"),
                 (p.Eventually(atTwo), null, "reachability"),
-                (p.InfinitelyOften(atZero), Fairness.WeakFairAll, "liveness-fairness"),
+                (p.InfinitelyOften(atZero), Fairness.WeakAll, "liveness-fairness"),
             };
 
             foreach (var (formula, fairness, name) in cases)
@@ -183,7 +183,7 @@ namespace Accordant.ModelChecking.Tests
                     (p.Always(atTarget), null, "always"),
                     (p.Always(!atTarget), null, "always-not"),
                     (p.Eventually(atTarget), null, "eventually"),
-                    (p.InfinitelyOften(atZero), Fairness.WeakFairAll, "inf-often-fair"),
+                    (p.InfinitelyOften(atZero), Fairness.WeakAll, "inf-often-fair"),
                 };
 
                 foreach (var (formula, fairness, name) in cases)

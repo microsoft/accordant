@@ -15,7 +15,7 @@ namespace AlternatingBit
     {
         private StateGraphNode _root;
 
-        private static readonly Fairness ChannelFairness = Fairness.StrongFair(sf =>
+        private static readonly Fairness ChannelFairness = Fairness.Strong(sf =>
             sf is AltBit.SendStep || sf is AltBit.ReceiveStep || sf is AltBit.ReceiveAckStep);
 
         [SetUp]

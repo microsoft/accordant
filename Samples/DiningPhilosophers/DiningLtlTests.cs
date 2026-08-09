@@ -23,7 +23,7 @@ namespace DiningPhilosophers
         /// enabled step, and being "fair" to it would defeat the point of
         /// detecting starvation there.
         /// </summary>
-        private static readonly Fairness PhilFairness = Fairness.StrongFair(sf => sf is Dining.PhilStep);
+        private static readonly Fairness PhilFairness = Fairness.Strong(sf => sf is Dining.PhilStep);
 
         [SetUp]
         public void Setup()

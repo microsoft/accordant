@@ -23,7 +23,7 @@ namespace AlternatingBit
         /// and none on the <see cref="AltBit.StutterStep"/> absorbing
         /// self-loop.
         /// </summary>
-        private static readonly Fairness ChannelFairness = Fairness.StrongFair(sf =>
+        private static readonly Fairness ChannelFairness = Fairness.Strong(sf =>
             sf is AltBit.SendStep || sf is AltBit.ReceiveStep || sf is AltBit.ReceiveAckStep);
 
         [SetUp]

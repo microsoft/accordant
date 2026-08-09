@@ -16,18 +16,11 @@ namespace Microsoft.Accordant.ModelChecking
         /// <summary>Weak fairness for every step function.</summary>
         public static Fairness WeakAll { get; } = Weak(_ => true);
 
-        /// <summary>Compatibility name for <see cref="WeakAll"/>.</summary>
-        public static Fairness WeakFairAll => WeakAll;
+        internal Func<IStepFunction, bool> WeakStepPredicate { get; private set; }
+            = _ => false;
 
-        /// <summary>
-        /// Selects step functions subject to weak fairness.
-        /// </summary>
-        public Func<IStepFunction, bool> WeakFairPredicate { get; private set; } = _ => false;
-
-        /// <summary>
-        /// Selects step functions subject to strong fairness.
-        /// </summary>
-        public Func<IStepFunction, bool> StrongFairPredicate { get; private set; } = _ => false;
+        internal Func<IStepFunction, bool> StrongStepPredicate { get; private set; }
+            = _ => false;
 
         internal IReadOnlyList<EdgeConstraint> EdgeConstraints { get; private set; }
             = Array.Empty<EdgeConstraint>();
@@ -110,22 +103,6 @@ namespace Microsoft.Accordant.ModelChecking
             return ForEdge(true, edge => observation.PredicateCore.Eval(edge.Context));
         }
 
-        /// <summary>Compatibility name for weak step-function fairness.</summary>
-        public static Fairness WeakFair(Func<IStepFunction, bool> predicate)
-            => Weak(predicate);
-
-        /// <summary>Compatibility name for weak fairness by step type.</summary>
-        public static Fairness WeakFair<TStep>() where TStep : IStepFunction
-            => Weak<TStep>();
-
-        /// <summary>Compatibility name for strong step-function fairness.</summary>
-        public static Fairness StrongFair(Func<IStepFunction, bool> predicate)
-            => Strong(predicate);
-
-        /// <summary>Compatibility name for strong fairness by step type.</summary>
-        public static Fairness StrongFair<TStep>() where TStep : IStepFunction
-            => Strong<TStep>();
-
         /// <summary>Combines two sets of fairness constraints.</summary>
         public static Fairness operator +(Fairness left, Fairness right)
         {
@@ -134,10 +111,10 @@ namespace Microsoft.Accordant.ModelChecking
 
             return new Fairness
             {
-                WeakFairPredicate =
-                    step => left.WeakFairPredicate(step) || right.WeakFairPredicate(step),
-                StrongFairPredicate =
-                    step => left.StrongFairPredicate(step) || right.StrongFairPredicate(step),
+                WeakStepPredicate =
+                    step => left.WeakStepPredicate(step) || right.WeakStepPredicate(step),
+                StrongStepPredicate =
+                    step => left.StrongStepPredicate(step) || right.StrongStepPredicate(step),
                 EdgeConstraints = left.EdgeConstraints.Concat(right.EdgeConstraints).ToArray()
             };
         }
@@ -179,8 +156,8 @@ namespace Microsoft.Accordant.ModelChecking
         {
             if (selector == null) throw new ArgumentNullException(nameof(selector));
             return isStrong
-                ? new Fairness { StrongFairPredicate = selector }
-                : new Fairness { WeakFairPredicate = selector };
+                ? new Fairness { StrongStepPredicate = selector }
+                : new Fairness { WeakStepPredicate = selector };
         }
 
         internal sealed class EdgeConstraint

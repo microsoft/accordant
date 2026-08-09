@@ -123,12 +123,12 @@ namespace Microsoft.Accordant.ModelChecking
                 if (!analysis.StepById.TryGetValue(id, out var step))
                     continue;
 
-                if (fairness.WeakFairPredicate(step)
+                if (fairness.WeakStepPredicate(step)
                     && analysis.ContinuouslyEnabled.Contains(id)
                     && !analysis.Taken.Contains(id))
                     return false;
 
-                if (fairness.StrongFairPredicate(step)
+                if (fairness.StrongStepPredicate(step)
                     && !analysis.Taken.Contains(id))
                     return false;
             }

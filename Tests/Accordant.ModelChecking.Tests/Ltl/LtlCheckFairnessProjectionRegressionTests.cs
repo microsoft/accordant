@@ -30,7 +30,7 @@ namespace Accordant.ModelChecking.Tests.Ltl
     /// The synthetic scenario constructed here exhibits exactly this
     /// pattern: one system state with two enabled self-loops α and τ,
     /// and a single product node whose only in-SCC outgoing edge is τ;
-    /// the α-edge leaves the SCC. Under <see cref="Fairness.WeakFairAll"/>
+    /// the α-edge leaves the SCC. Under <see cref="Fairness.WeakAll"/>
     /// α is continuously enabled but never taken by the projected cycle,
     /// so the cycle must be classified as <b>unfair</b>.
     /// </para>
@@ -100,7 +100,7 @@ namespace Accordant.ModelChecking.Tests.Ltl
                 .GetProperty(nameof(StronglyConnectedComponent.HasCycle))
                 .SetValue(systemOnlySCC, true);
             Assert.That(
-                Fairness.WeakFairAll.IsFairCycle(systemOnlySCC), Is.True,
+                Fairness.WeakAll.IsFairCycle(systemOnlySCC), Is.True,
                 "Sanity: system-only projection is fair (pre-fix would accept).");
 
             // Fairness ignores unchanged edges, including named model actions.
@@ -135,8 +135,8 @@ namespace Accordant.ModelChecking.Tests.Ltl
             // HasCycle is internal-set; not needed by IsFairCycle
 
             Assert.That(
-                LtlCheck.IsFairCycle(scc, Fairness.WeakFairAll), Is.True,
-                "Both α and τ taken in product SCC; cycle is fair under WeakFairAll.");
+                LtlCheck.IsFairCycle(scc, Fairness.WeakAll), Is.True,
+                "Both α and τ taken in product SCC; cycle is fair under WeakAll.");
         }
 
         [Test]

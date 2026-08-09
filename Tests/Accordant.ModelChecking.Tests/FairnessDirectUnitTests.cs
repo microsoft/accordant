@@ -2,6 +2,7 @@ namespace Accordant.ModelChecking.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Microsoft.Accordant;
     using Microsoft.Accordant.ModelChecking;
     using NUnit.Framework;
@@ -73,6 +74,29 @@ namespace Accordant.ModelChecking.Tests
             return scc;
         }
 
+        [Test]
+        public void PublicApi_ExposesOnlyCompactFairnessNames()
+        {
+            var publicStaticNames = typeof(Fairness)
+                .GetMethods()
+                .Where(method => method.IsStatic)
+                .Select(method => method.Name)
+                .ToHashSet();
+            var publicPropertyNames = typeof(Fairness)
+                .GetProperties()
+                .Select(property => property.Name)
+                .ToHashSet();
+
+            Assert.That(publicStaticNames, Does.Contain("Weak"));
+            Assert.That(publicStaticNames, Does.Contain("Strong"));
+            Assert.That(publicStaticNames, Does.Not.Contain("WeakFair"));
+            Assert.That(publicStaticNames, Does.Not.Contain("StrongFair"));
+            Assert.That(publicPropertyNames, Does.Contain("WeakAll"));
+            Assert.That(publicPropertyNames, Does.Not.Contain("WeakFairAll"));
+            Assert.That(publicPropertyNames, Does.Not.Contain("WeakStepPredicate"));
+            Assert.That(publicPropertyNames, Does.Not.Contain("StrongStepPredicate"));
+        }
+
         // ---------------- single-node SCCs ----------------
 
         /// <summary>
@@ -87,11 +111,11 @@ namespace Accordant.ModelChecking.Tests
             var scc = Scc(v);
 
             Assert.That(Fairness.None.IsFairCycle(scc), Is.True);
-            Assert.That(Fairness.WeakFairAll.IsFairCycle(scc), Is.True);
-            Assert.That(Fairness.WeakFair(_ => true).IsFairCycle(scc), Is.True);
-            Assert.That(Fairness.StrongFair(_ => true).IsFairCycle(scc), Is.True);
+            Assert.That(Fairness.WeakAll.IsFairCycle(scc), Is.True);
+            Assert.That(Fairness.Weak(_ => true).IsFairCycle(scc), Is.True);
+            Assert.That(Fairness.Strong(_ => true).IsFairCycle(scc), Is.True);
             Assert.That(
-                (Fairness.WeakFair(_ => true) + Fairness.StrongFair(_ => true))
+                (Fairness.Weak(_ => true) + Fairness.Strong(_ => true))
                     .IsFairCycle(scc), Is.True);
         }
 
@@ -119,14 +143,14 @@ namespace Accordant.ModelChecking.Tests
             var scc = Scc(v);      // single-node SCC = {v}
 
             Assert.That(Fairness.None.IsFairCycle(scc), Is.True);
-            Assert.That(Fairness.WeakFair(sf => sf.StepFunctionId == "beta").IsFairCycle(scc),
+            Assert.That(Fairness.Weak(sf => sf.StepFunctionId == "beta").IsFairCycle(scc),
                 Is.False, "β continuously enabled at v, not taken in SCC");
-            Assert.That(Fairness.StrongFair(sf => sf.StepFunctionId == "beta").IsFairCycle(scc),
+            Assert.That(Fairness.Strong(sf => sf.StepFunctionId == "beta").IsFairCycle(scc),
                 Is.False, "β enabled, not taken — strong fairness rejects");
-            Assert.That(Fairness.WeakFair(sf => sf.StepFunctionId == "alpha").IsFairCycle(scc),
+            Assert.That(Fairness.Weak(sf => sf.StepFunctionId == "alpha").IsFairCycle(scc),
                 Is.True, "α taken — weak fairness satisfied");
-            Assert.That(Fairness.WeakFairAll.IsFairCycle(scc), Is.False,
-                "WeakFairAll covers β, which is continuously enabled and not taken");
+            Assert.That(Fairness.WeakAll.IsFairCycle(scc), Is.False,
+                "WeakAll covers β, which is continuously enabled and not taken");
         }
 
         // ---------------- two-node SCCs ----------------
@@ -147,8 +171,8 @@ namespace Accordant.ModelChecking.Tests
             AddEdge(w, v, beta);
             var scc = Scc(v, w);
 
-            Assert.That(Fairness.WeakFairAll.IsFairCycle(scc), Is.True);
-            Assert.That(Fairness.StrongFair(_ => true).IsFairCycle(scc), Is.True);
+            Assert.That(Fairness.WeakAll.IsFairCycle(scc), Is.True);
+            Assert.That(Fairness.Strong(_ => true).IsFairCycle(scc), Is.True);
         }
 
         /// <summary>
@@ -174,9 +198,9 @@ namespace Accordant.ModelChecking.Tests
             AddEdge(v, outside, gamma);  // γ leaves SCC
             var scc = Scc(v, w);
 
-            Assert.That(Fairness.WeakFair(sf => sf.StepFunctionId == "gamma").IsFairCycle(scc),
+            Assert.That(Fairness.Weak(sf => sf.StepFunctionId == "gamma").IsFairCycle(scc),
                 Is.True, "γ enabled only at v, not continuously enabled in {v,w}");
-            Assert.That(Fairness.StrongFair(sf => sf.StepFunctionId == "gamma").IsFairCycle(scc),
+            Assert.That(Fairness.Strong(sf => sf.StepFunctionId == "gamma").IsFairCycle(scc),
                 Is.False, "γ enabled at v (inf. often) but never taken");
         }
 
@@ -199,9 +223,9 @@ namespace Accordant.ModelChecking.Tests
             AddEdge(w, outside, delta);
             var scc = Scc(v, w);
 
-            Assert.That(Fairness.WeakFair(sf => sf.StepFunctionId == "delta").IsFairCycle(scc),
+            Assert.That(Fairness.Weak(sf => sf.StepFunctionId == "delta").IsFairCycle(scc),
                 Is.False, "δ continuously enabled, never taken");
-            Assert.That(Fairness.StrongFair(sf => sf.StepFunctionId == "delta").IsFairCycle(scc),
+            Assert.That(Fairness.Strong(sf => sf.StepFunctionId == "delta").IsFairCycle(scc),
                 Is.False, "δ enabled inf. often, never taken");
         }
 
@@ -293,9 +317,9 @@ namespace Accordant.ModelChecking.Tests
             AddEdge(v, v, alpha);
             var scc = Scc(v);
 
-            Assert.That(Fairness.WeakFair(sf => sf.StepFunctionId == "absent").IsFairCycle(scc),
+            Assert.That(Fairness.Weak(sf => sf.StepFunctionId == "absent").IsFairCycle(scc),
                 Is.True);
-            Assert.That(Fairness.StrongFair(sf => sf.StepFunctionId == "absent").IsFairCycle(scc),
+            Assert.That(Fairness.Strong(sf => sf.StepFunctionId == "absent").IsFairCycle(scc),
                 Is.True);
         }
 
@@ -314,8 +338,8 @@ namespace Accordant.ModelChecking.Tests
             AddEdge(v, w, beta);   // β leaves SCC
             var scc = Scc(v);
 
-            var fair = Fairness.WeakFair(sf => sf.StepFunctionId == "alpha")
-                       + Fairness.StrongFair(sf => sf.StepFunctionId == "beta");
+            var fair = Fairness.Weak(sf => sf.StepFunctionId == "alpha")
+                       + Fairness.Strong(sf => sf.StepFunctionId == "beta");
 
             // α: WF, continuously enabled and taken → ok.
             // β: SF, enabled inf. often, not taken → rejected.
@@ -332,8 +356,8 @@ namespace Accordant.ModelChecking.Tests
         public void EmptySCC_IsVacuouslyFair()
         {
             var scc = new StronglyConnectedComponent();
-            Assert.That(Fairness.WeakFairAll.IsFairCycle(scc), Is.True);
-            Assert.That(Fairness.StrongFair(_ => true).IsFairCycle(scc), Is.True);
+            Assert.That(Fairness.WeakAll.IsFairCycle(scc), Is.True);
+            Assert.That(Fairness.Strong(_ => true).IsFairCycle(scc), Is.True);
         }
 
         /// <summary>
@@ -345,8 +369,8 @@ namespace Accordant.ModelChecking.Tests
         {
             var v = Node("v");
             var scc = Scc(v);
-            Assert.That(Fairness.WeakFairAll.IsFairCycle(scc), Is.True);
-            Assert.That(Fairness.StrongFair(_ => true).IsFairCycle(scc), Is.True);
+            Assert.That(Fairness.WeakAll.IsFairCycle(scc), Is.True);
+            Assert.That(Fairness.Strong(_ => true).IsFairCycle(scc), Is.True);
         }
 
         // ---------------- WeakFair vs StrongFair semantics distinction --------
@@ -374,9 +398,9 @@ namespace Accordant.ModelChecking.Tests
             AddEdge(v, outside, sigma);        // σ leaves SCC
             var scc = Scc(v, w);
 
-            Assert.That(Fairness.WeakFair(sf => sf.StepFunctionId == "sigma").IsFairCycle(scc),
+            Assert.That(Fairness.Weak(sf => sf.StepFunctionId == "sigma").IsFairCycle(scc),
                 Is.True, "WF: σ not continuously enabled in {v,w} → vacuously satisfied");
-            Assert.That(Fairness.StrongFair(sf => sf.StepFunctionId == "sigma").IsFairCycle(scc),
+            Assert.That(Fairness.Strong(sf => sf.StepFunctionId == "sigma").IsFairCycle(scc),
                 Is.False, "SF: σ enabled inf. often at v but never taken → unfair");
         }
     }

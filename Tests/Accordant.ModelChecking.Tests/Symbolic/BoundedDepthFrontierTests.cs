@@ -171,7 +171,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
                 Ltl<IStatePredicate>.Atom(new StatePredAtom(PProp)));
 
             var result = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2,
-                fairness: Fairness.WeakFairAll);
+                fairness: Fairness.WeakAll);
             Assert.That(result.Valid, Is.True);
         }
 
@@ -192,7 +192,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             var r1 = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2);
             var r2 = SymbolicLtlCheck.CheckNDFS(s0, phi, maxDepth: 2);
             var r3 = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2,
-                fairness: Fairness.WeakFairAll);
+                fairness: Fairness.WeakAll);
 
             Assert.That(r1.Valid, Is.False, "ExploreProduct: G p must fail (p false at s0).");
             Assert.That(r2.Valid, Is.False, "NDFS: G p must fail (p false at s0).");

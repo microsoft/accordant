@@ -17,7 +17,7 @@ namespace AlternatingBit
     {
         private StateGraphNode _root;
 
-        private static readonly Fairness ChannelFairness = Fairness.StrongFair(sf =>
+        private static readonly Fairness ChannelFairness = Fairness.Strong(sf =>
             sf is AltBit.SendStep || sf is AltBit.ReceiveStep || sf is AltBit.ReceiveAckStep);
 
         [SetUp]
@@ -37,10 +37,10 @@ namespace AlternatingBit
         }
 
         [Test]
-        public void Oracle_Safety_InOrderDelivery_WeakFairAll()
+        public void Oracle_Safety_InOrderDelivery_WeakAll()
         {
             var phi = LtlFormula.Always(InOrder);
-            var r = LtlMultiBackendCrossCheck.Run(_root, phi, Fairness.WeakFairAll, nameof(Oracle_Safety_InOrderDelivery_WeakFairAll));
+            var r = LtlMultiBackendCrossCheck.Run(_root, phi, Fairness.WeakAll, nameof(Oracle_Safety_InOrderDelivery_WeakAll));
             r.ThrowIfDisagree();
             Assert.That(r.Verdicts[0].Result.Valid, Is.True);
         }

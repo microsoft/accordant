@@ -19,7 +19,7 @@ namespace Microsoft.Accordant.ModelChecking
         /// <param name="formula">The temporal property that should hold.</param>
         /// <param name="maxDepth">Maximum exploration depth (0 = unlimited).</param>
         /// <param name="fairness">Optional fairness constraint. Defaults to
-        ///   <see cref="Fairness.None"/>. Use <see cref="Fairness.WeakFairAll"/>
+        ///   <see cref="Fairness.None"/>. Use <see cref="Fairness.WeakAll"/>
         ///   for liveness properties that require weak fairness.</param>
         /// <returns>A result indicating validity, with a counterexample trace
         /// on failure.</returns>

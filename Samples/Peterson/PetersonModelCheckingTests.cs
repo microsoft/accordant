@@ -73,7 +73,7 @@ namespace Peterson
         public void Liveness_StarvationFreedom_Process0()
         {
             var phi = _p.LeadsTo(_want0, _crit0);
-            var result = _root.Check(phi, fairness: Fairness.WeakFairAll);
+            var result = _root.Check(phi, fairness: Fairness.WeakAll);
             Assert.IsTrue(result.Valid, result.GetTraceString());
         }
 
@@ -84,7 +84,7 @@ namespace Peterson
         public void Liveness_StarvationFreedom_Process1()
         {
             var phi = _p.LeadsTo(_want1, _crit1);
-            var result = _root.Check(phi, fairness: Fairness.WeakFairAll);
+            var result = _root.Check(phi, fairness: Fairness.WeakAll);
             Assert.IsTrue(result.Valid, result.GetTraceString());
         }
 
@@ -107,7 +107,7 @@ namespace Peterson
         public void Liveness_BothProcessesEnterCSInfinitelyOften()
         {
             var phi = _p.InfinitelyOften(_crit0) & _p.InfinitelyOften(_crit1);
-            var result = _root.Check(phi, fairness: Fairness.WeakFairAll);
+            var result = _root.Check(phi, fairness: Fairness.WeakAll);
             Assert.IsTrue(result.Valid, result.GetTraceString());
         }
 

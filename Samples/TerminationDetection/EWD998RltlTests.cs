@@ -98,7 +98,7 @@ namespace TerminationDetection
             var liveness = RltlFormula.LeadsTo(terminated, detected);
 
             var result = RltlCheck.Check(_rootNode, liveness, maxDepth: 0,
-                fairness: Fairness.WeakFairAll);
+                fairness: Fairness.WeakAll);
             Assert.That(result.Valid, Is.True, result.GetTraceString());
         }
 
@@ -116,7 +116,7 @@ namespace TerminationDetection
 
             var combined = safety & liveness;
             var result = RltlCheck.Check(_rootNode, combined, maxDepth: 0,
-                fairness: Fairness.WeakFairAll);
+                fairness: Fairness.WeakAll);
             Assert.That(result.Valid, Is.True, result.GetTraceString());
         }
 
@@ -208,7 +208,7 @@ namespace TerminationDetection
 
             var formula = RltlFormula.InfinitelyOften(tokenAtLeader);
 
-            var fairness = Fairness.StrongFair(sf =>
+            var fairness = Fairness.Strong(sf =>
                 sf is EWD998.DeactivateStep ||
                 sf is EWD998.PassTokenStep ||
                 sf is EWD998.InitiateProbeStep);

@@ -105,7 +105,7 @@ namespace Microsoft.Accordant.ModelChecking
                     {
                         sb.AppendLine($"  - {sfId}");
                     }
-                    sb.AppendLine("Consider adding fairness constraints: fair: Fairness.WeakFair(...)");
+                    sb.AppendLine("Consider adding fairness constraints: fair: Fairness.Weak(...)");
                 }
             }
 

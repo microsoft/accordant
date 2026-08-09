@@ -18,7 +18,7 @@ namespace Microsoft.Accordant.ModelChecking.Rltl
         /// <param name="formula">The RLTL property that should hold.</param>
         /// <param name="maxDepth">Maximum exploration depth (0 = unlimited).</param>
         /// <param name="fairness">Optional fairness constraint. Defaults to
-        ///   <see cref="Fairness.None"/>. Use <see cref="Fairness.WeakFairAll"/>
+        ///   <see cref="Fairness.None"/>. Use <see cref="Fairness.WeakAll"/>
         ///   for parity with the legacy <c>LtlCheck</c> default semantics.</param>
         public static PropertyCheckingResult Check(
             StateGraphNode root,
