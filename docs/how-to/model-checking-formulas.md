@@ -118,6 +118,48 @@ unknown continuation and is not converted into a stutter loop. It also exposes
 stutter-sensitive. It means Accordant's type system no longer guarantees
 stutter invariance.
 
+## Ask what a node enables
+
+The sensitive builder also exposes `Enabled`, the node-level proposition
+"some action of this kind is available here":
+
+```csharp
+var exact = f.AllowStutterSensitiveFormulas();
+
+var canSend = exact.Enabled<SendStep>();
+
+var property = exact.Always(exact.Implies(queued, canSend));
+```
+
+`Enabled(A)` holds at a graph node when at least one *changing* outgoing model
+edge of that node carries an action satisfying `A`. It uses the same
+enabledness Accordant already uses for fairness:
+
+- A state-neutral edge never counts, so an action that leaves the state
+  unchanged is neither enabled nor taken.
+- A terminal node enables nothing.
+
+`Enabled` accepts the same action shapes as `Fairness`:
+
+```csharp
+exact.Enabled<SendStep>();
+exact.Enabled(action => action.StepFunctionId == "Send");
+exact.Enabled((state, next) => next.Status == Status.Sent);
+exact.Enabled((state, action, next) => action.StepFunctionId == "Send" && next.Sent);
+exact.Enabled(f.ObserveTransition((state, next) => next.Sent));
+```
+
+`Enabled` is stutter-sensitive, and so lives only on the sensitive builder,
+because a graph node is a (state, active step-function set) pair: two nodes
+carrying equal states can enable different actions, and an inserted stutter
+step changes which node a position refers to.
+
+Enabledness is a property of a node's complete outgoing edge set, which a
+depth-truncated or not-yet-expanded frontier does not have. A check whose
+verdict depends on such a frontier reports
+`PropertyCheckingStatus.InconclusiveBound` rather than reading "no edges yet"
+as "nothing enabled". Increase the exploration depth to make it conclusive.
+
 ## Type propagation
 
 Safe operators over safe inputs return `StutterSafeFormula`:
@@ -157,3 +199,13 @@ Weak fairness requires a continuously enabled changing action to occur.
 Strong fairness requires a changing action enabled infinitely often to occur
 infinitely often. Constraints can be combined with `+`; use
 `Fairness.WeakAll` to apply weak fairness to every changing step.
+
+The `Enabled` proposition reports the same enabledness these constraints use,
+so it can express the fairness antecedents directly: `Stabilizes(Enabled(A))`
+is "A is continuously enabled from some point on" (the weak-fairness premise)
+and `InfinitelyOften(Enabled(A))` is the strong-fairness premise.
+
+`Enabled(A)` considers changing edges only. A raw stutter-sensitive
+`ObserveTransition(...)` may also hold on a state-neutral edge, so
+`A => Enabled(A)` is valid only when `A` denotes the corresponding changing
+action occurrence.

@@ -177,7 +177,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
                     var frontierSuccessors = EvaluateNbwTransitions(
                         nbwTransitions,
-                        TransitionContext.Source(sysNode.State),
+                        TransitionContext.Source(sysNode.State, sysNode),
                         registry);
                     reachedDepthFrontier |= frontierSuccessors.Count > 0;
                     continue;
@@ -188,7 +188,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 {
                     // Stutter: stay in same system state, advance NBW
                     var successorNbwStates = EvaluateNbwTransitions(
-                        nbwTransitions, TransitionContext.Stutter(sysNode.State), registry);
+                        nbwTransitions, TransitionContext.Stutter(sysNode.State, sysNode), registry);
 
                     foreach (var succNbwState in successorNbwStates)
                     {
@@ -212,7 +212,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     // system state (the label is consumed at the source), so
                     // evaluate once and reuse for every outgoing edge.
                     var successorNbwStates = EvaluateNbwTransitions(
-                        nbwTransitions, TransitionContext.Source(sysNode.State), registry);
+                        nbwTransitions, TransitionContext.Source(sysNode.State, sysNode), registry);
 
                     foreach (var edge in sysEdges)
                     {
@@ -241,7 +241,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     var nextSysNode = edge.Target;
 
                     var ctx = TransitionContext.Edge(
-                        sysNode.State, edge.StepFunction, edge.Metadata, nextSysNode.State);
+                        sysNode.State, edge.StepFunction, edge.Metadata, nextSysNode.State,
+                        sysNode);
                     var successorNbwStates = EvaluateNbwTransitions(
                         nbwTransitions, ctx, registry);
 

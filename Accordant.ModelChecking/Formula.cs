@@ -329,6 +329,96 @@ public sealed class StutterSensitiveFormulaBuilder<TState> : FormulaBuilder<TSta
 
     #endregion
 
+    #region Node-level enabledness
+
+    /// <summary>
+    /// <c>ENABLED A</c> — holds at a state-graph node iff at least one
+    /// <em>changing</em> outgoing model edge of that node is produced by an
+    /// action satisfying <paramref name="selector"/>.
+    ///
+    /// <para>State-neutral edges do not count, matching Accordant's fairness
+    /// enabledness: an action that leaves the state unchanged is neither
+    /// enabled nor taken. A terminal node therefore enables nothing.</para>
+    ///
+    /// <para>Enabledness is read from the node, not from the state alone: a
+    /// node is a (state, active step-function set) pair, so two nodes with
+    /// equal states can enable different actions. That is exactly why
+    /// <c>Enabled</c> is stutter-sensitive and lives on this builder.</para>
+    ///
+    /// <para>At an unexpanded or depth-truncated frontier the node's outgoing
+    /// edges are unknown, so a check whose verdict depends on one is reported
+    /// as <see cref="PropertyCheckingStatus.InconclusiveBound"/> rather than
+    /// silently reading "no edges" as "nothing enabled".</para>
+    /// </summary>
+    public TemporalFormula Enabled(
+        Func<IStepFunction, bool> selector,
+        string name = null,
+        [CallerArgumentExpression("selector")] string expression = null)
+        => EnabledFormula(
+            ActionPredicate.ForStep(selector),
+            ResolveEnabledName(name, expression));
+
+    /// <summary>
+    /// <c>ENABLED A</c> for every action of step-function type
+    /// <typeparamref name="TStep"/>. See
+    /// <see cref="Enabled(Func{IStepFunction, bool}, string, string)"/>.
+    /// </summary>
+    public TemporalFormula Enabled<TStep>(string name = null)
+        where TStep : IStepFunction
+        => EnabledFormula(
+            ActionPredicate.ForStepType<TStep>(),
+            ResolveEnabledName(name, typeof(TStep).Name));
+
+    /// <summary>
+    /// <c>ENABLED A</c> for the changing edges whose source and target states
+    /// satisfy <paramref name="relation"/>. See
+    /// <see cref="Enabled(Func{IStepFunction, bool}, string, string)"/>.
+    /// </summary>
+    public TemporalFormula Enabled(
+        Func<TState, TState, bool> relation,
+        string name = null,
+        [CallerArgumentExpression("relation")] string expression = null)
+        => EnabledFormula(
+            ActionPredicate.ForRelation<TState>(relation),
+            ResolveEnabledName(name, expression));
+
+    /// <summary>
+    /// <c>ENABLED A</c> for the changing edges satisfying the full edge
+    /// predicate <paramref name="predicate"/>. See
+    /// <see cref="Enabled(Func{IStepFunction, bool}, string, string)"/>.
+    /// </summary>
+    public TemporalFormula Enabled(
+        Func<TState, IStepFunction, TState, bool> predicate,
+        string name = null,
+        [CallerArgumentExpression("predicate")] string expression = null)
+        => EnabledFormula(
+            ActionPredicate.ForEdge<TState>(predicate),
+            ResolveEnabledName(name, expression));
+
+    /// <summary>
+    /// <c>ENABLED A</c> for the changing edges satisfying
+    /// <paramref name="observation"/> — the same transition observation
+    /// accepted by <see cref="Fairness.Weak(TransitionObservation)"/>. See
+    /// <see cref="Enabled(Func{IStepFunction, bool}, string, string)"/>.
+    /// </summary>
+    public TemporalFormula Enabled(
+        TransitionObservation observation,
+        string name = null)
+        => EnabledFormula(
+            ActionPredicate.ForObservation(observation),
+            ResolveEnabledName(name, observation?.ToString()));
+
+    private static TemporalFormula EnabledFormula(
+        Func<TransitionContext, bool> action, string name)
+        => new TemporalFormula(
+            Rltl<IStatePredicate>.Atom(
+                new StatePredAtom(StateProp.Enabled(name, action))));
+
+    private static string ResolveEnabledName(string name, string expression)
+        => name ?? $"Enabled({ResolveObservationName(null, expression)})";
+
+    #endregion
+
     #region Regex-prefix operators (RLTL)
 
     /// <summary>

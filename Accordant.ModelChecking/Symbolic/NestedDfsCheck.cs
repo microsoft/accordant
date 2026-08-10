@@ -113,7 +113,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
                     var frontierSuccessors = EvaluateNbwTransitions(
                         nbwTrans,
-                        TransitionContext.Source(state),
+                        TransitionContext.Source(state, p.SystemNode),
                         registry,
                         nbwCmp);
                     reachedDepthFrontier |= frontierSuccessors.Count > 0;
@@ -124,7 +124,10 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 {
                     // Stutter self-loop letter: state --(stutter)--> state.
                     var stutterSuccs = EvaluateNbwTransitions(
-                        nbwTrans, TransitionContext.Stutter(state), registry, nbwCmp);
+                        nbwTrans,
+                        TransitionContext.Stutter(state, p.SystemNode),
+                        registry,
+                        nbwCmp);
                     foreach (var q in stutterSuccs)
                         yield return new Successor<TNbwState>(p.SystemNode, q, null);
                     yield break;
@@ -136,7 +139,10 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     // so the NBW successors depend only on the source state.
                     // Evaluate once and reuse for every outgoing edge.
                     var nbwSuccs = EvaluateNbwTransitions(
-                        nbwTrans, TransitionContext.Source(state), registry, nbwCmp);
+                        nbwTrans,
+                        TransitionContext.Source(state, p.SystemNode),
+                        registry,
+                        nbwCmp);
                     foreach (var edge in edges)
                         foreach (var q in nbwSuccs)
                             yield return new Successor<TNbwState>(edge.Target, q, edge.StepFunction);
@@ -148,7 +154,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 foreach (var edge in edges)
                 {
                     var ctx = TransitionContext.Edge(
-                        state, edge.StepFunction, edge.Metadata, edge.Target.State);
+                        state, edge.StepFunction, edge.Metadata, edge.Target.State,
+                        p.SystemNode);
                     var nbwSuccs = EvaluateNbwTransitions(nbwTrans, ctx, registry, nbwCmp);
                     foreach (var q in nbwSuccs)
                         yield return new Successor<TNbwState>(edge.Target, q, edge.StepFunction);

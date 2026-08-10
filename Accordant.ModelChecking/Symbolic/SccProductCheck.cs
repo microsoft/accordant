@@ -105,7 +105,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
                     var frontierSuccessors = EvaluateNbwTransitions(
                         nbwTrans,
-                        TransitionContext.Source(sysNode.State),
+                        TransitionContext.Source(sysNode.State, sysNode),
                         registry,
                         nbwStateComparer);
                     reachedDepthFrontier |= frontierSuccessors.Count > 0;
@@ -115,7 +115,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 if (terminal)
                 {
                     var stutterSuccs = EvaluateNbwTransitions(
-                        nbwTrans, TransitionContext.Stutter(sysNode.State),
+                        nbwTrans, TransitionContext.Stutter(sysNode.State, sysNode),
                         registry, nbwStateComparer);
                     foreach (var succNbw in stutterSuccs)
                     {
@@ -131,7 +131,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     // Fast path: NBW successors depend only on the source
                     // system state, so evaluate once and reuse for all edges.
                     var nbwSuccsAll = EvaluateNbwTransitions(
-                        nbwTrans, TransitionContext.Source(sysNode.State),
+                        nbwTrans, TransitionContext.Source(sysNode.State, sysNode),
                         registry, nbwStateComparer);
 
                     foreach (var edge in sysEdges)
@@ -153,7 +153,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 foreach (var edge in sysEdges)
                 {
                     var ctx = TransitionContext.Edge(
-                        sysNode.State, edge.StepFunction, edge.Metadata, edge.Target.State);
+                        sysNode.State, edge.StepFunction, edge.Metadata, edge.Target.State,
+                        sysNode);
                     var nbwSuccs = EvaluateNbwTransitions(
                         nbwTrans, ctx, registry, nbwStateComparer);
                     foreach (var succNbw in nbwSuccs)

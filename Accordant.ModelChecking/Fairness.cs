@@ -44,64 +44,32 @@ namespace Microsoft.Accordant.ModelChecking
         /// <summary>Creates weak fairness for a state-pair relation.</summary>
         public static Fairness Weak<TState>(Func<TState, TState, bool> relation)
             where TState : State
-        {
-            if (relation == null) throw new ArgumentNullException(nameof(relation));
-            return ForEdge(
-                false,
-                edge => relation((TState)edge.Source.State, (TState)edge.Target.State));
-        }
+            => ForAction(false, ActionPredicate.ForRelation<TState>(relation));
 
         /// <summary>Creates strong fairness for a state-pair relation.</summary>
         public static Fairness Strong<TState>(Func<TState, TState, bool> relation)
             where TState : State
-        {
-            if (relation == null) throw new ArgumentNullException(nameof(relation));
-            return ForEdge(
-                true,
-                edge => relation((TState)edge.Source.State, (TState)edge.Target.State));
-        }
+            => ForAction(true, ActionPredicate.ForRelation<TState>(relation));
 
         /// <summary>Creates weak fairness for a full edge predicate.</summary>
         public static Fairness Weak<TState>(
             Func<TState, IStepFunction, TState, bool> predicate)
             where TState : State
-        {
-            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
-            return ForEdge(
-                false,
-                edge => predicate(
-                    (TState)edge.Source.State,
-                    edge.StepFunction,
-                    (TState)edge.Target.State));
-        }
+            => ForAction(false, ActionPredicate.ForEdge<TState>(predicate));
 
         /// <summary>Creates strong fairness for a full edge predicate.</summary>
         public static Fairness Strong<TState>(
             Func<TState, IStepFunction, TState, bool> predicate)
             where TState : State
-        {
-            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
-            return ForEdge(
-                true,
-                edge => predicate(
-                    (TState)edge.Source.State,
-                    edge.StepFunction,
-                    (TState)edge.Target.State));
-        }
+            => ForAction(true, ActionPredicate.ForEdge<TState>(predicate));
 
         /// <summary>Creates weak fairness for an observed transition relation.</summary>
         public static Fairness Weak(TransitionObservation observation)
-        {
-            if (observation == null) throw new ArgumentNullException(nameof(observation));
-            return ForEdge(false, edge => observation.PredicateCore.Eval(edge.Context));
-        }
+            => ForAction(false, ActionPredicate.ForObservation(observation));
 
         /// <summary>Creates strong fairness for an observed transition relation.</summary>
         public static Fairness Strong(TransitionObservation observation)
-        {
-            if (observation == null) throw new ArgumentNullException(nameof(observation));
-            return ForEdge(true, edge => observation.PredicateCore.Eval(edge.Context));
-        }
+            => ForAction(true, ActionPredicate.ForObservation(observation));
 
         /// <summary>Combines two sets of fairness constraints.</summary>
         public static Fairness operator +(Fairness left, Fairness right)
@@ -149,6 +117,15 @@ namespace Microsoft.Accordant.ModelChecking
             {
                 EdgeConstraints = new[] { new EdgeConstraint(isStrong, matches) }
             };
+
+        /// <summary>
+        /// Builds an edge-level constraint from the shared action-matching
+        /// abstraction also used by the <c>ENABLED</c> proposition, so the two
+        /// agree on which changing edges an action predicate selects.
+        /// </summary>
+        private static Fairness ForAction(
+            bool isStrong, Func<TransitionContext, bool> action)
+            => ForEdge(isStrong, ActionPredicate.ToEdgePredicate(action));
 
         private static Fairness ForStep(
             bool isStrong,

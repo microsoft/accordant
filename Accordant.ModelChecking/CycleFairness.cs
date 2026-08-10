@@ -15,7 +15,7 @@ namespace Microsoft.Accordant.ModelChecking
         public bool ChangesState => !StateSemantics.Equal(Source.State, Target.State);
 
         public TransitionContext Context => TransitionContext.Edge(
-            Source.State, StepFunction, Metadata, Target.State);
+            Source.State, StepFunction, Metadata, Target.State, Source);
 
         public FairnessEdge(
             StateGraphNode source,

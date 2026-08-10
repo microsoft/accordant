@@ -43,7 +43,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             var result = new List<TraceItem>(trace.Count);
             foreach (var item in trace)
             {
-                var state = item.StateGraphNode?.State;
+                var node = item.StateGraphNode;
+                var state = node?.State;
                 IReadOnlyDictionary<IStatePredicate, bool> valuation;
                 if (state == null)
                 {
@@ -51,13 +52,20 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 }
                 else
                 {
+                    // Evaluate against the stutter self-loop letter at the
+                    // trace item's node. For state-only and transition-aware
+                    // propositions this is exactly the state-only view they
+                    // already had; carrying the node additionally lets
+                    // node-level propositions (ENABLED) report a valuation
+                    // instead of defaulting to false.
+                    var letter = TransitionContext.Stutter(state, node);
                     var map = new Dictionary<IStatePredicate, bool>(preds.Count);
                     foreach (var p in preds)
                     {
                         // Skip the trivial constants; they don't carry useful
                         // information for a counterexample reader.
                         if (p is StatePredTrue || p is StatePredFalse) continue;
-                        map[p] = p.Eval(state);
+                        map[p] = p.Eval(in letter);
                     }
                     valuation = map;
                 }

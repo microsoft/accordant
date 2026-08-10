@@ -18,6 +18,14 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
     /// self-loop (used at terminal nodes) is represented by
     /// <see cref="Stutter"/>, where <see cref="From"/> == <see cref="To"/> and
     /// <see cref="Action"/> is the reserved <see cref="StutterAction"/>.</para>
+    ///
+    /// <para>Node-level propositions — currently only <c>ENABLED A</c>, built
+    /// by <see cref="StateProp.Enabled"/> — additionally need the state-graph
+    /// <em>node</em> the letter was read at, because a node carries the active
+    /// step-function set and two nodes with equal states can therefore enable
+    /// different actions. <see cref="SourceNode"/> carries that node; it is
+    /// supplied by every product evaluator and is <c>null</c> only in contexts
+    /// built without a graph (e.g. a hand-made letter in a unit test).</para>
     /// </summary>
     public readonly struct TransitionContext
     {
@@ -40,27 +48,50 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         /// <summary>The target state <c>s'</c> of the transition.</summary>
         public IState To { get; }
 
-        public TransitionContext(IState from, IStepFunction action, object metadata, IState to)
+        /// <summary>
+        /// The state-graph node the letter was read at — the node whose
+        /// <see cref="StateGraphNode.State"/> is <see cref="From"/> and whose
+        /// outgoing edges are the actions available there. Node-level
+        /// propositions (<see cref="StateProp.Enabled"/>) read it; every other
+        /// proposition ignores it. <c>null</c> when the letter was built
+        /// without a graph.
+        /// </summary>
+        public StateGraphNode SourceNode { get; }
+
+        public TransitionContext(
+            IState from,
+            IStepFunction action,
+            object metadata,
+            IState to,
+            StateGraphNode sourceNode = null)
         {
             From = from;
             Action = action;
             Metadata = metadata;
             To = to;
+            SourceNode = sourceNode;
         }
 
         /// <summary>
         /// A full transition letter for a concrete edge
         /// <c>from --(action)--&gt; to</c>.
         /// </summary>
-        public static TransitionContext Edge(IState from, IStepFunction action, object metadata, IState to)
-            => new TransitionContext(from, action, metadata, to);
+        public static TransitionContext Edge(
+            IState from,
+            IStepFunction action,
+            object metadata,
+            IState to,
+            StateGraphNode sourceNode = null)
+            => new TransitionContext(from, action, metadata, to, sourceNode);
 
         /// <summary>
         /// A stutter self-loop letter at <paramref name="state"/>:
         /// <c>state --(stutter)--&gt; state</c>. Used at terminal nodes.
         /// </summary>
-        public static TransitionContext Stutter(IState state)
-            => new TransitionContext(state, StutterAction.Instance, null, state);
+        public static TransitionContext Stutter(
+            IState state, StateGraphNode sourceNode = null)
+            => new TransitionContext(
+                state, StutterAction.Instance, null, state, sourceNode);
 
         /// <summary>
         /// A source-anchored letter used by the fast path when no proposition
@@ -71,7 +102,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         /// historical single-state evaluation while avoiding fabricating an
         /// action or target.
         /// </summary>
-        public static TransitionContext Source(IState state)
-            => new TransitionContext(state, null, null, state);
+        public static TransitionContext Source(
+            IState state, StateGraphNode sourceNode = null)
+            => new TransitionContext(state, null, null, state, sourceNode);
     }
 }
