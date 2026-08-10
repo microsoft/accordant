@@ -359,6 +359,15 @@ A resolving value must be observable from the concrete transition — its
 source, step function, edge metadata, or target state — because that is all
 the lifecycle callback receives.
 
+This is a trust boundary. Accordant validates that a resolving value belongs
+to the introduced domain, that an identity is not resolved or cancelled twice,
+and that no checker-local value is mutated. It cannot validate that the value
+is the one the transition actually reveals: resolving with a guess silently
+prunes the sibling copies and can prove a specification the implementation
+does not refine. When a transition reveals nothing, keep the prediction with
+`WitnessChanges.None`, or drop it with `WitnessChanges.Cancel(...)` if the
+abstract commitment no longer matters.
+
 ### Fairness with witnesses
 
 Concrete enabledness is always evaluated on the **original** concrete graph,
@@ -436,6 +445,26 @@ not in the past. `.WithWitness(...)` makes the future choice explicit so the
 final mapping stays functional and can participate in both safety and
 temporal refinement.
 
+### A case study combining both under fairness
+
+The
+[`Samples/WorkQueueRefinement`](../../Samples/WorkQueueRefinement/)
+sample is a leased work queue with competing workers, retries, expiring
+leases, cancellation and purging, checked against the ledger a client sees.
+The ledger commits at assignment time to the worker that *first* accepted an
+entry — recovered with `.Augment(...)` because retries move the lease — and to
+the entry's final result — predicted with `.WithWitness(...)`. It exercises
+the whole lifecycle: two predictions pending at once, a prediction that
+survives a failed attempt, resolution by the transition that reveals the
+result, and `Cancel` when a purge erases the commitment so the copies merge.
+
+It also makes the fairness distinction concrete. Settling an entry is enabled
+only while a worker holds the lease, so weak fairness cannot force it and
+strong fairness is required; sweeping a cancelled unleased entry stays
+enabled, so weak fairness is both necessary and sufficient. A strong
+obligation on an action the implementation has disabled is vacuous, and
+liveness then has to come from the concrete alternative.
+
 ## Bounded graphs
 
 A genuine terminal state is complete and does not make safety refinement
@@ -457,3 +486,15 @@ future-validated witnesses. It does not compare actions or edge metadata,
 search finite abstract paths per concrete step, or perform general
 nondeterministic relational temporal inclusion. Witness domains are finite and
 enumerated by the model; there is no symbolic or unbounded witness domain.
+
+The action-comparison gap is visible in
+[`Samples/WorkQueueRefinement`](../../Samples/WorkQueueRefinement/). Two
+reasonable specifications cannot be aligned temporally today: one where two
+abstract actions perform the same abstract state change, and one where an
+abstract action has no state footprint at all. Both report
+`AmbiguousTemporalRefinementException`; adding fairness for the state-neutral
+action cannot choose between that action and abstract stutter. Fairness is
+defined over changing edges, and alignment fails before fairness analysis.
+Both
+specifications still pass `Check()`, since safety refinement carries a set of
+coherent abstract configurations and never has to choose a response.

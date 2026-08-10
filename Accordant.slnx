@@ -24,6 +24,7 @@
     <Project Path="Samples/TemporalRefinement/TemporalRefinement.csproj" />
     <Project Path="Samples/AlternatingBit/AlternatingBit.csproj" />
     <Project Path="Samples/WitnessRefinement/WitnessRefinement.csproj" />
+    <Project Path="Samples/WorkQueueRefinement/WorkQueueRefinement.csproj" />
   </Folder>
   <Project Path="Accordant.Choose/Accordant.Choose.csproj" />
   <Project Path="Microsoft.Accordant.Cli/Microsoft.Accordant.Cli.csproj" />
