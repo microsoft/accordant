@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.Accordant;
@@ -16,7 +17,8 @@ public enum ModelCheckpointKind
 {
     Read,
     Choose,
-    Step
+    Step,
+    Loop
 }
 
 /// <summary>
@@ -25,12 +27,12 @@ public enum ModelCheckpointKind
 /// </summary>
 public sealed class ReplayEntry
 {
-    internal ReplayEntry(ModelCheckpointKind kind, string name, object value)
+    internal ReplayEntry(ModelCheckpointKind kind, string name, object value, string loopSite = null)
     {
         Kind = kind;
         Name = name;
         Value = value;
-        Identity = kind.ToString().ToLowerInvariant() + ":" + name;
+        Identity = CheckpointIdentity.Create(kind, name, loopSite);
     }
 
     /// <summary>The checkpoint kind.</summary>
@@ -39,7 +41,7 @@ public sealed class ReplayEntry
     /// <summary>The user-supplied stable checkpoint name.</summary>
     public string Name { get; }
 
-    /// <summary>The immutable scalar value recorded for Read or Choose.</summary>
+    /// <summary>The immutable scalar value recorded for a replay checkpoint.</summary>
     public object Value { get; }
 
     /// <summary>The stable checkpoint identity.</summary>
@@ -48,7 +50,9 @@ public sealed class ReplayEntry
 
 /// <summary>
 /// Immutable-prefix replay history for a coroutine. A tape is copied when a
-/// graph branch is created; entries are never mutated after recording.
+/// graph branch is created; entries are never mutated after recording. Ordinary
+/// checkpoints may repeat; <see cref="RebaseLoop"/> intentionally replaces a
+/// completed loop iteration with one canonical loop entry.
 /// </summary>
 public sealed class ReplayTape
 {
@@ -69,15 +73,38 @@ public sealed class ReplayTape
 
     internal ReplayTape Append(ModelCheckpointKind kind, string name, object value)
     {
-        var identity = kind.ToString().ToLowerInvariant() + ":" + name;
-        if (entries.Any(entry => entry.Identity == identity))
+        var copy = new List<ReplayEntry>(entries) { new ReplayEntry(kind, name, value) };
+        return new ReplayTape(copy);
+    }
+
+    internal ReplayTape RebaseLoop(string name, string loopSite, object persistentValue)
+    {
+        var identity = CheckpointIdentity.Create(ModelCheckpointKind.Loop, name, loopSite);
+        if (!entries.Any(entry => entry.Kind == ModelCheckpointKind.Loop) &&
+            entries.Count != 0)
         {
             throw new ModelDefinitionException(
-                $"Checkpoint '{identity}' was reached more than once. " +
-                "This experimental front-end supports finite workflows with unique stable checkpoint names.");
+                $"Loop '{name}' must be the first Accordant checkpoint in its workflow. " +
+                "Place one-time ordinary code before Loop and all Read, Choose, and Step " +
+                "checkpoints after the iteration boundary.");
         }
 
-        var copy = new List<ReplayEntry>(entries) { new ReplayEntry(kind, name, value) };
+        var otherLoop = entries.FirstOrDefault(entry =>
+            entry.Kind == ModelCheckpointKind.Loop &&
+            entry.Identity != identity);
+        if (otherLoop != null)
+        {
+            throw new ModelDefinitionException(
+                $"Coroutine workflows currently support one Loop boundary. " +
+                $"Loop '{name}' at '{loopSite}' conflicts with '{otherLoop.Name}'.");
+        }
+
+        var existingLoop = entries
+            .Select((entry, index) => new { entry, index })
+            .FirstOrDefault(item => item.entry.Identity == identity);
+        var prefixCount = existingLoop == null ? entries.Count : existingLoop.index;
+        var copy = entries.Take(prefixCount).ToList();
+        copy.Add(new ReplayEntry(ModelCheckpointKind.Loop, name, persistentValue, loopSite));
         return new ReplayTape(copy);
     }
 
@@ -114,7 +141,7 @@ public interface ICoroutineCheckpointStep : IStepFunction
     IReadOnlyList<ReplayEntry> ReplayPrefix { get; }
 }
 
-/// <summary>Thrown when a coroutine cannot be compiled as a finite model workflow.</summary>
+/// <summary>Thrown when a coroutine cannot be compiled as a replayable model workflow.</summary>
 public sealed class ModelDefinitionException : InvalidOperationException
 {
     /// <summary>Creates a definition error.</summary>
@@ -135,7 +162,7 @@ public readonly struct ModelUnit
 /// <summary>
 /// The custom async return type for experimental model coroutines. It is not a
 /// general-purpose task: an incomplete await must be one of this package's
-/// Read, Choose, or Step awaitables.
+/// Read, Choose, Step, or Loop awaitables.
 /// </summary>
 [AsyncMethodBuilder(typeof(ModelTaskMethodBuilder))]
 public readonly struct ModelTask
@@ -255,7 +282,7 @@ public struct ModelTaskMethodBuilder
         if (!(awaiter is IModelAwaiter))
         {
             throw new ModelDefinitionException(
-                "ModelTask only supports incomplete awaits of ModelContext.Read, Choose, or Step. " +
+                "ModelTask only supports incomplete awaits of ModelContext.Read, Choose, Step, Loop, or LoopState. " +
                 "External asynchronous awaits are not replayable.");
         }
     }
@@ -325,11 +352,43 @@ public sealed class ModelContext<TState>
             action);
     }
 
+    /// <summary>
+    /// Records the canonical start of a replayable loop iteration. This is an
+    /// internal rebase checkpoint, not a graph edge. The supplied value must
+    /// include every live local that affects later iterations; replay returns
+    /// the recorded value when the workflow restarts. This prototype permits
+    /// one direct syntactic Loop boundary per workflow, and Loop must be the
+    /// first Accordant checkpoint reached.
+    /// </summary>
+    public ModelAwaitable<TValue> LoopState<TValue>(
+        string stableName,
+        TValue persistentValue,
+        [CallerMemberName] string callerMember = "",
+        [CallerLineNumber] int callerLine = 0,
+        [CallerFilePath] string callerFile = "")
+        => AtCheckpoint<TValue>(
+            ModelCheckpointKind.Loop,
+            stableName,
+            () => ScalarValues.Validate(persistentValue, stableName),
+            null,
+            CheckpointIdentity.LoopSite(callerMember, callerLine, callerFile));
+
+    /// <summary>
+    /// Records the workflow's loop iteration boundary with no persistent local state.
+    /// </summary>
+    public ModelAwaitable<ModelUnit> Loop(
+        string stableName,
+        [CallerLineNumber] int callerLine = 0,
+        [CallerMemberName] string callerMember = "",
+        [CallerFilePath] string callerFile = "")
+        => LoopState(stableName, new ModelUnit(), callerMember, callerLine, callerFile);
+
     private ModelAwaitable<TValue> AtCheckpoint<TValue>(
         ModelCheckpointKind kind,
         string stableName,
         Func<object> unknownValue,
-        Action<TState> action)
+        Action<TState> action,
+        string loopSite = null)
     {
         ValidateName(stableName);
         var execution = ModelRuntime.Current;
@@ -342,7 +401,7 @@ public sealed class ModelContext<TState>
         if (checkpointIndex < tape.Entries.Count)
         {
             var entry = tape.Entries[checkpointIndex++];
-            var expected = kind.ToString().ToLowerInvariant() + ":" + stableName;
+            var expected = CheckpointIdentity.Create(kind, stableName, loopSite);
             if (entry.Identity != expected)
             {
                 throw new ModelDefinitionException(
@@ -359,7 +418,7 @@ public sealed class ModelContext<TState>
         }
 
         var value = unknownValue();
-        execution.SetPending(new PendingCheckpoint(kind, stableName, value, action));
+        execution.SetPending(new PendingCheckpoint(kind, stableName, value, action, loopSite));
         return new ModelAwaitable<TValue>(false, default);
     }
 
@@ -392,7 +451,8 @@ public sealed class ModelContext<TState>
     {
         if (string.IsNullOrWhiteSpace(stableName))
         {
-            throw new ModelDefinitionException("Every Read, Choose, and Step requires a non-empty stable name.");
+            throw new ModelDefinitionException(
+                "Every Read, Choose, Step, and Loop requires a non-empty stable name.");
         }
     }
 }
@@ -443,22 +503,24 @@ public readonly struct ModelAwaiter<TValue> : ICriticalNotifyCompletion, IModelA
 }
 
 /// <summary>
-/// Compiles an experimental finite model coroutine to the ordinary state-graph
-/// API. Read checkpoints are internal deterministic discovery; Choose and Step
-/// become ordinary visible graph transitions.
+/// Compiles an experimental model coroutine to the ordinary state-graph API.
+/// Read and Loop checkpoints are internal deterministic discovery; Choose and
+/// Step become ordinary visible graph transitions.
 /// </summary>
 public static class CoroutineModel
 {
     /// <summary>
-    /// Explores one finite coroutine workflow. Hidden replay control is
-    /// deliberately part of graph identity even though it is separate from
-    /// <typeparamref name="TState"/>.
+    /// Explores one coroutine workflow. Hidden replay control is deliberately
+    /// part of graph identity even though it is separate from
+    /// <typeparamref name="TState"/>. Exploration defaults to depth 16 so a
+    /// missing Loop boundary cannot silently create an enormous replay tree.
+    /// Pass -1 explicitly only when unbounded exploration is intentional.
     /// </summary>
     public static StateGraphNode Explore<TState>(
         string workflowName,
         TState initialState,
         Func<ModelContext<TState>, ModelTask> process,
-        int maxDepth = -1,
+        int maxDepth = 16,
         bool lazy = false)
         where TState : State
     {
@@ -468,16 +530,23 @@ public static class CoroutineModel
         }
         if (initialState == null) throw new ArgumentNullException(nameof(initialState));
         if (process == null) throw new ArgumentNullException(nameof(process));
-
         initialState.Freeze();
         var initial = CoroutineRunner.Advance(process, initialState, new ReplayTape());
         var steps = new List<IStepFunction>();
         if (initial.Pending != null)
         {
-            steps.Add(new CoroutineStep<TState>(workflowName, process, initial.Tape, initial.Pending));
+            steps.Add(new CoroutineStep<TState>(
+                workflowName,
+                process,
+                initial.Tape,
+                initial.Pending));
         }
 
-        return StateGraph.ExploreStateGraph(steps, initialState, maxDepth: maxDepth, lazy: lazy);
+        return StateGraph.ExploreStateGraph(
+            steps,
+            initialState,
+            maxDepth: maxDepth,
+            lazy: lazy);
     }
 }
 
@@ -562,18 +631,25 @@ internal sealed class ModelExecution
 
 internal sealed class PendingCheckpoint
 {
-    internal PendingCheckpoint(ModelCheckpointKind kind, string name, object value, object action)
+    internal PendingCheckpoint(
+        ModelCheckpointKind kind,
+        string name,
+        object value,
+        object action,
+        string loopSite)
     {
         Kind = kind;
         Name = name;
         Value = value;
         Action = action;
+        LoopSite = loopSite;
     }
 
     internal ModelCheckpointKind Kind { get; }
     internal string Name { get; }
     internal object Value { get; }
     internal object Action { get; }
+    internal string LoopSite { get; }
 }
 
 internal sealed class CoroutineAdvance
@@ -596,13 +672,13 @@ internal static class CoroutineRunner
         ReplayTape tape)
         where TState : State
     {
-        for (var reads = 0; ; reads++)
+        for (var internalCheckpoints = 0; ; internalCheckpoints++)
         {
-            if (reads == 10000)
+            if (internalCheckpoints == 10000)
             {
                 throw new ModelDefinitionException(
-                    "Coroutine did not reach Choose, Step, or completion after 10,000 internal Read checkpoints. " +
-                    "Only finite workflows are supported.");
+                    "Coroutine did not reach Choose, Step, or completion after 10,000 internal Read or Loop checkpoints. " +
+                    "A synchronous infinite loop without a model checkpoint cannot be interrupted.");
             }
 
             ModelTask task;
@@ -639,10 +715,16 @@ internal static class CoroutineRunner
                     return new CoroutineAdvance(tape, null);
                 }
                 throw new ModelDefinitionException(
-                    "Coroutine suspended without a Read, Choose, or Step checkpoint.");
+                    "Coroutine suspended without a Read, Choose, Step, or Loop checkpoint.");
             }
 
             var pending = execution.Pending;
+            if (pending.Kind == ModelCheckpointKind.Loop)
+            {
+                tape = tape.RebaseLoop(pending.Name, pending.LoopSite, pending.Value);
+                continue;
+            }
+
             if (pending.Kind != ModelCheckpointKind.Read)
             {
                 return new CoroutineAdvance(tape, pending);
@@ -734,11 +816,16 @@ internal sealed class CoroutineStep<TState> : BaseStepFunction, ICoroutineCheckp
     private StepResult CreateResult(TState state, ReplayTape nextTape, CoroutineTransition transition)
     {
         var advance = CoroutineRunner.Advance(process, state, nextTape);
+
         var nextSteps = advance.Pending == null
             ? null
             : new IStepFunction[]
             {
-                new CoroutineStep<TState>(workflowName, process, advance.Tape, advance.Pending)
+                new CoroutineStep<TState>(
+                    workflowName,
+                    process,
+                    advance.Tape,
+                    advance.Pending)
             };
 
         return new StepResult
@@ -753,6 +840,18 @@ internal sealed class CoroutineStep<TState> : BaseStepFunction, ICoroutineCheckp
 internal static class ModelUnitValue
 {
     internal static readonly object Instance = new ModelUnit();
+}
+
+internal static class CheckpointIdentity
+{
+    internal static string Create(ModelCheckpointKind kind, string name, string loopSite)
+        => kind == ModelCheckpointKind.Loop
+            ? $"loop:{name}@{loopSite}"
+            : kind.ToString().ToLowerInvariant() + ":" + name;
+
+    internal static string LoopSite(string callerMember, int callerLine, string callerFile)
+        => Path.GetFileName(callerFile) + ":" + callerMember + ":" +
+            callerLine.ToString(CultureInfo.InvariantCulture);
 }
 
 internal static class ScalarValues

@@ -136,23 +136,193 @@ public class ExperimentalCoroutineTests
     }
 
     [Test]
-    public void DefinitionErrorsAreClearForRepeatedCheckpointsAndExternalAwaits()
+    public void RepeatedCheckpointNamesGrowTheNaiveTapeUntilTheGraphDepthBound()
     {
         async ModelTask Repeated(ModelContext<CounterState> context)
         {
-            await context.Read("same", _ => 1);
-            await context.Read("same", _ => 2);
+            while (true)
+            {
+                await context.Step("toggle", state => state.Count = 1 - state.Count);
+            }
         }
 
+        var root = CoroutineModel.Explore(
+            "repeated",
+            new CounterState(),
+            Repeated,
+            maxDepth: 3);
+        var nodes = Reachable(root).ToArray();
+        var activeTapes = nodes
+            .Where(node => node.StepFunctions.Count != 0)
+            .Select(node => ((ICoroutineCheckpointStep)node.StepFunctions.Single()).ReplayPrefix.Count)
+            .ToArray();
+        var formula = Formula.For<CounterState>();
+        var neverReached = formula.Observe(state => state.Count == 99, "never-reached");
+
+        Assert.That(nodes, Has.Length.EqualTo(3));
+        Assert.That(root.GetNodeFingerprint(), Is.Not.EqualTo(nodes[2].GetNodeFingerprint()),
+            "the domain state and Step location repeat, but the full replay tape changes identity");
+        Assert.That(activeTapes, Is.EquivalentTo(new[] { 0, 1, 2 }));
+        Assert.That(nodes.Last().IsDepthFrontier, Is.True);
+        Assert.That(
+            root.Check(formula.Eventually(neverReached)).Status,
+            Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
+    }
+
+    [Test]
+    public void LoopRebasesTheTapeAndCreatesAnOrdinaryGraphCycle()
+    {
+        var root = CoroutineModel.Explore("loop", new CounterState(), LoopingWorkflow);
+        var nodes = Reachable(root).ToArray();
+        var formula = Formula.For<CounterState>().AllowStutterSensitiveFormulas();
+        var toggleEnabled = formula.Enabled(step =>
+            step is ICoroutineCheckpointStep checkpoint &&
+            checkpoint.CheckpointKind == ModelCheckpointKind.Step &&
+            checkpoint.CheckpointName == "toggle");
+
+        Assert.That(nodes, Has.Length.EqualTo(2));
+        Assert.That(nodes.All(node => node.Edges.Single().Target != null), Is.True);
+        Assert.That(nodes.SelectMany(node => node.Edges).Select(edge =>
+            ((CoroutineTransition)edge.Metadata).Kind), Is.All.EqualTo(ModelCheckpointKind.Step));
+        Assert.That(
+            nodes.SelectMany(node => node.Edges)
+                .Select(edge => ((CoroutineTransition)edge.Metadata).CheckpointName),
+            Is.All.EqualTo("toggle"));
+        Assert.That(
+            root.Check(formula.Always(toggleEnabled), fairness: Fairness.Weak(
+                step => step is ICoroutineCheckpointStep)).Status,
+            Is.EqualTo(PropertyCheckingStatus.Holds));
+        Assert.That(
+            root.Check(formula.Always(toggleEnabled), fairness: Fairness.Strong(
+                step => step is ICoroutineCheckpointStep)).Status,
+            Is.EqualTo(PropertyCheckingStatus.Holds));
+    }
+
+    [Test]
+    public void LoopPersistentValuePreventsAMergeUntilTheValueRepeats()
+    {
+        var root = CoroutineModel.Explore("persistent-loop", new CounterState(), PersistentLoopWorkflow);
+        var first = root;
+        var second = first.Edges.Single().Target;
+        var third = second.Edges.Single().Target;
+
+        Assert.That(second, Is.Not.SameAs(first));
+        Assert.That(third, Is.Not.SameAs(first));
+        Assert.That(third.Edges.Single().Target, Is.SameAs(first));
+        Assert.That(
+            new[] { first, second, third }
+                .Select(node => ((ICoroutineCheckpointStep)node.StepFunctions.Single())
+                .ReplayPrefix.Single(entry => entry.Kind == ModelCheckpointKind.Loop)
+                .Value),
+            Is.EqualTo(new object[] { 0, 1, 2 }));
+    }
+
+    [Test]
+    public void LoopPersistentValuesUseTheSameImmutableScalarRules()
+    {
+        async ModelTask MutablePersistentValue(ModelContext<CounterState> context)
+        {
+            await context.LoopState("iteration", new List<int> { 1 });
+        }
+
+        var error = Assert.Throws<ModelDefinitionException>(() =>
+            CoroutineModel.Explore(
+                "mutable-loop-value",
+                new CounterState(),
+                MutablePersistentValue));
+
+        Assert.That(error.Message, Does.Contain("unsupported value type"));
+    }
+
+    [Test]
+    public void MultipleLoopBoundariesAreRejected()
+    {
+        async ModelTask Ambiguous(ModelContext<CounterState> context)
+        {
+            await context.Loop("iteration");
+            await context.Step("tick", _ => { });
+            await context.Loop("iteration");
+        }
+
+        var error = Assert.Throws<StepFunctionApplicationException>(() =>
+            CoroutineModel.Explore("ambiguous-loop", new CounterState(), Ambiguous));
+
+        Assert.That(error.InnerException, Is.TypeOf<ModelDefinitionException>());
+        Assert.That(error.InnerException.Message, Does.Contain("support one Loop boundary"));
+    }
+
+    [Test]
+    public void LoopMustBeTheFirstAccordantCheckpoint()
+    {
+        async ModelTask Misplaced(ModelContext<CounterState> context)
+        {
+            await context.Read("count", state => state.Count);
+            await context.Loop("iteration");
+            await context.Step("tick", _ => { });
+        }
+
+        var error = Assert.Throws<ModelDefinitionException>(() =>
+            CoroutineModel.Explore("misplaced-loop", new CounterState(), Misplaced));
+
+        Assert.That(error.Message, Does.Contain("first Accordant checkpoint"));
+    }
+
+    [Test]
+    public void LoopSupportsStringPersistentValues()
+    {
+        async ModelTask StringPhase(ModelContext<CounterState> context)
+        {
+            var phase = "zero";
+            while (true)
+            {
+                phase = await context.LoopState("iteration", phase);
+                await context.Step("tick", _ => { });
+                phase = phase == "zero" ? "one" : "zero";
+            }
+        }
+
+        var root = CoroutineModel.Explore("string-loop", new CounterState(), StringPhase);
+        var first = (ICoroutineCheckpointStep)root.StepFunctions.Single();
+        var second = (ICoroutineCheckpointStep)root.Edges.Single().Target.StepFunctions.Single();
+
+        Assert.That(first.ReplayPrefix.Single().Value, Is.EqualTo("zero"));
+        Assert.That(second.ReplayPrefix.Single().Value, Is.EqualTo("one"));
+    }
+
+    [Test]
+    public void LoopIsInternalAndStepTransitionsRefineAnOrdinaryToggleGraph()
+    {
+        var concrete = CoroutineModel.Explore("loop-refinement", new CounterState(), LoopingWorkflow);
+        var abstraction = StateGraph.ExploreStateGraph(
+            new IStepFunction[] { new ToggleStep() },
+            new CounterState());
+
+        var result = Microsoft.Accordant.ModelChecking.Refinement
+            .Between<CounterState, CounterState>(concrete, abstraction)
+            .Map(state => new CounterState { Count = state.Count })
+            .MapTransition(transition =>
+            {
+                var checkpoint = (CoroutineTransition)transition.Metadata;
+                return checkpoint.Kind == ModelCheckpointKind.Step &&
+                    checkpoint.CheckpointName == "toggle"
+                    ? AbstractResponse.Step(step => step.StepFunctionId == "toggle")
+                    : throw new AssertionException("Loop must not create a visible transition.");
+            })
+            .CheckTemporal(
+                concreteFairness: Fairness.Weak(step => step is ICoroutineCheckpointStep),
+                abstractFairness: Fairness.Weak(step => step.StepFunctionId == "toggle"));
+
+        Assert.That(result.Status, Is.EqualTo(RefinementCheckingStatus.Refines));
+    }
+
+    [Test]
+    public void DefinitionErrorsAreClearForExternalAwaits()
+    {
         async ModelTask ExternalAwait(ModelContext<CounterState> context)
         {
             await Task.Yield();
             await context.Step("unreachable", _ => { });
         }
-
-        var repeated = Assert.Throws<ModelDefinitionException>(
-            () => CoroutineModel.Explore("repeated", new CounterState(), Repeated));
-        Assert.That(repeated.Message, Does.Contain("reached more than once"));
 
         var external = Assert.Throws<ModelDefinitionException>(
             () => CoroutineModel.Explore("external", new CounterState(), ExternalAwait));
@@ -232,6 +402,47 @@ public class ExperimentalCoroutineTests
         await context.Step("apply-delta", state => state.Count = count + delta);
     }
 
+    private static async ModelTask LoopingWorkflow(ModelContext<CounterState> context)
+    {
+        while (true)
+        {
+            await context.Loop("iteration");
+            await context.Step("toggle", state => state.Count = 1 - state.Count);
+        }
+    }
+
+    private static async ModelTask PersistentLoopWorkflow(ModelContext<CounterState> context)
+    {
+        var phase = 0;
+        while (true)
+        {
+            phase = await context.LoopState("iteration", phase);
+            await context.Step("tick", _ => { });
+            phase = (phase + 1) % 3;
+        }
+    }
+
+    private static IEnumerable<StateGraphNode> Reachable(StateGraphNode root)
+    {
+        var seen = new HashSet<string>();
+        var pending = new Stack<StateGraphNode>();
+        pending.Push(root);
+        while (pending.Count != 0)
+        {
+            var node = pending.Pop();
+            if (!seen.Add(node.GetNodeFingerprint()))
+            {
+                continue;
+            }
+
+            yield return node;
+            foreach (var edge in node.Edges)
+            {
+                pending.Push(edge.Target);
+            }
+        }
+    }
+
     private sealed class CounterState : State
     {
         public int Count { get; set; }
@@ -279,5 +490,24 @@ public class ExperimentalCoroutineTests
                     StepFunctions = new IStepFunction[] { this }
                 }
             };
+    }
+
+    private sealed class ToggleStep : BaseStepFunction
+    {
+        public override string StepFunctionId => "toggle";
+
+        protected override IList<StepResult> ApplyInternal(IState state)
+        {
+            var next = (CounterState)state.Clone();
+            next.Count = 1 - next.Count;
+            return new[]
+            {
+                new StepResult
+                {
+                    State = next,
+                    StepFunctions = new IStepFunction[] { this }
+                }
+            };
+        }
     }
 }

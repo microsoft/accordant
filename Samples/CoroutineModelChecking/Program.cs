@@ -19,5 +19,18 @@ internal static class Program
         Console.WriteLine(
             $"projected changing transitions: " +
             $"{WorkerCompetitionCaseStudy.CoroutineChangingTransitionsHidingChoose(coroutine).Count}");
+
+        var naive = LoopReplayCaseStudy.MeasureNaive();
+        var rebased = LoopReplayCaseStudy.MeasureRebased();
+        Console.WriteLine(
+            $"naive loop (bound 4): {naive.Nodes} nodes, {naive.Edges} edges, " +
+            $"{naive.DistinctContinuationIdentities} continuation identities, " +
+            $"tape length {naive.LongestVisibleReplayTape}, frontier={naive.HasDepthFrontier}, " +
+            $"cycle={naive.HasGraphCycle}");
+        Console.WriteLine(
+            $"Loop-rebased loop: {rebased.Nodes} nodes, {rebased.Edges} edges, " +
+            $"{rebased.DistinctContinuationIdentities} continuation identities, " +
+            $"tape length {rebased.LongestVisibleReplayTape}, frontier={rebased.HasDepthFrontier}, " +
+            $"cycle={rebased.HasGraphCycle}");
     }
 }
