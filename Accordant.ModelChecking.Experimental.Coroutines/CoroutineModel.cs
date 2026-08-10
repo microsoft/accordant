@@ -5,6 +5,7 @@ namespace Microsoft.Accordant.ModelChecking.Experimental.Coroutines;
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -51,7 +52,7 @@ public sealed class ReplayEntry
 /// </summary>
 public sealed class ReplayTape
 {
-    private readonly List<ReplayEntry> entries;
+    private readonly ReadOnlyCollection<ReplayEntry> entries;
 
     /// <summary>Creates an empty replay tape.</summary>
     public ReplayTape() : this(new List<ReplayEntry>())
@@ -60,7 +61,7 @@ public sealed class ReplayTape
 
     private ReplayTape(List<ReplayEntry> entries)
     {
-        this.entries = entries;
+        this.entries = new ReadOnlyCollection<ReplayEntry>(entries);
     }
 
     /// <summary>The completed checkpoints in execution order.</summary>
@@ -89,6 +90,28 @@ public sealed class ReplayTape
 
     private static string Encode(string value)
         => value.Length.ToString(CultureInfo.InvariantCulture) + ":" + value;
+}
+
+/// <summary>
+/// A visible checkpoint action in a compiled coroutine graph. This typed view
+/// avoids requiring consumers to interpret the stable step-function identity
+/// when examining the full compiled graph.
+/// </summary>
+public interface ICoroutineCheckpointStep : IStepFunction
+{
+    /// <summary>The stable workflow name.</summary>
+    string WorkflowName { get; }
+
+    /// <summary>The kind of the checkpoint this action exposes.</summary>
+    ModelCheckpointKind CheckpointKind { get; }
+
+    /// <summary>The user-supplied stable checkpoint name.</summary>
+    string CheckpointName { get; }
+
+    /// <summary>
+    /// The completed replay prefix before this checkpoint is taken.
+    /// </summary>
+    IReadOnlyList<ReplayEntry> ReplayPrefix { get; }
 }
 
 /// <summary>Thrown when a coroutine cannot be compiled as a finite model workflow.</summary>
@@ -461,12 +484,18 @@ public static class CoroutineModel
 /// <summary>Metadata for a visible coroutine graph edge.</summary>
 public sealed class CoroutineTransition
 {
-    internal CoroutineTransition(string workflowName, ModelCheckpointKind kind, string checkpointName, object value)
+    internal CoroutineTransition(
+        string workflowName,
+        ModelCheckpointKind kind,
+        string checkpointName,
+        object value,
+        IReadOnlyList<ReplayEntry> replayPrefix)
     {
         WorkflowName = workflowName;
         Kind = kind;
         CheckpointName = checkpointName;
         Value = value;
+        ReplayPrefix = replayPrefix;
     }
 
     /// <summary>The stable workflow name.</summary>
@@ -477,6 +506,11 @@ public sealed class CoroutineTransition
     public string CheckpointName { get; }
     /// <summary>The scalar Choose value, or null for Step.</summary>
     public object Value { get; }
+    /// <summary>
+    /// The completed replay prefix before this edge was taken. This is the
+    /// typed source for locals selected by earlier Choose checkpoints.
+    /// </summary>
+    public IReadOnlyList<ReplayEntry> ReplayPrefix { get; }
 
     /// <inheritdoc/>
     public override string ToString()
@@ -619,7 +653,7 @@ internal static class CoroutineRunner
     }
 }
 
-internal sealed class CoroutineStep<TState> : BaseStepFunction
+internal sealed class CoroutineStep<TState> : BaseStepFunction, ICoroutineCheckpointStep
     where TState : State
 {
     private readonly string workflowName;
@@ -644,6 +678,14 @@ internal sealed class CoroutineStep<TState> : BaseStepFunction
 
     public override string StepFunctionId => id;
 
+    public string WorkflowName => workflowName;
+
+    public ModelCheckpointKind CheckpointKind => pending.Kind;
+
+    public string CheckpointName => pending.Name;
+
+    public IReadOnlyList<ReplayEntry> ReplayPrefix => tape.Entries;
+
     protected override IList<StepResult> ApplyInternal(IState source)
     {
         var state = (TState)source;
@@ -656,7 +698,12 @@ internal sealed class CoroutineStep<TState> : BaseStepFunction
                 results.Add(CreateResult(
                     state,
                     nextTape,
-                    new CoroutineTransition(workflowName, pending.Kind, pending.Name, choice)));
+                    new CoroutineTransition(
+                        workflowName,
+                        pending.Kind,
+                        pending.Name,
+                        choice,
+                        tape.Entries)));
             }
             return results;
         }
@@ -672,7 +719,12 @@ internal sealed class CoroutineStep<TState> : BaseStepFunction
                 CreateResult(
                     next,
                     nextTape,
-                    new CoroutineTransition(workflowName, pending.Kind, pending.Name, null))
+                    new CoroutineTransition(
+                        workflowName,
+                        pending.Kind,
+                        pending.Name,
+                        null,
+                        tape.Entries))
             };
         }
 

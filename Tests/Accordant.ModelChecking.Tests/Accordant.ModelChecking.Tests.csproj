@@ -20,6 +20,7 @@
 		<ProjectReference Include="..\..\Accordant.ModelChecking\Accordant.ModelChecking.csproj" />
 		<ProjectReference Include="..\..\Accordant.ModelChecking.Bdd\Accordant.ModelChecking.Bdd.csproj" />
 		<ProjectReference Include="..\..\Accordant.ModelChecking.Experimental.Coroutines\Accordant.ModelChecking.Experimental.Coroutines.csproj" />
+		<ProjectReference Include="..\..\Samples\CoroutineModelChecking\CoroutineModelChecking.csproj" />
 	</ItemGroup>
 
 </Project>

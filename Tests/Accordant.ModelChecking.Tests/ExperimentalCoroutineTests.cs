@@ -65,6 +65,29 @@ public class ExperimentalCoroutineTests
     }
 
     [Test]
+    public void VisibleCheckpointMetadataAndActionsExposeTypedReplayPrefixes()
+    {
+        var root = CoroutineModel.Explore("branch", new CounterState(), BranchingWorkflow);
+        var choose = (CoroutineTransition)root.Edges.First().Metadata;
+        var afterChoose = root.Edges.First().Target;
+        var claimAction = (ICoroutineCheckpointStep)afterChoose.StepFunctions.Single();
+        var step = (CoroutineTransition)afterChoose.Edges.Single().Metadata;
+
+        Assert.That(
+            choose.ReplayPrefix.Select(entry => (entry.Kind, entry.Name, entry.Value)),
+            Is.EqualTo(new[] { (ModelCheckpointKind.Read, "count", (object)0) }));
+        Assert.That(choose.Kind, Is.EqualTo(ModelCheckpointKind.Choose));
+        Assert.That(claimAction.CheckpointKind, Is.EqualTo(ModelCheckpointKind.Step));
+        Assert.That(claimAction.CheckpointName, Is.EqualTo("apply-delta"));
+        Assert.That(
+            claimAction.ReplayPrefix.Select(entry => (entry.Kind, entry.Name, entry.Value)),
+            Is.EqualTo(new[] { (ModelCheckpointKind.Read, "count", (object)0), (ModelCheckpointKind.Choose, "delta", (object)1) }));
+        Assert.That(
+            step.ReplayPrefix.Select(entry => (entry.Kind, entry.Name, entry.Value)),
+            Is.EqualTo(claimAction.ReplayPrefix.Select(entry => (entry.Kind, entry.Name, entry.Value))));
+    }
+
+    [Test]
     public void ContextDoesNotExposeStateAndMutableReplayValuesAreRejected()
     {
         Assert.That(typeof(ModelContext<CounterState>).GetProperty("State"), Is.Null);

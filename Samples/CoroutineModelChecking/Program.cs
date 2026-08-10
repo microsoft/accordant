@@ -1,5 +1,5 @@
-using Microsoft.Accordant;
-using Microsoft.Accordant.ModelChecking.Experimental.Coroutines;
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
 namespace CoroutineModelChecking;
 
@@ -7,34 +7,17 @@ internal static class Program
 {
     private static void Main()
     {
-        var graph = CoroutineModel.Explore("counter-workflow", new CounterState(), Workflow);
-        Console.WriteLine(graph.GenerateDotFileContent());
-    }
+        var manual = WorkerCompetitionCaseStudy.BuildManualGraph();
+        var coroutine = WorkerCompetitionCaseStudy.BuildCoroutineGraph();
+        var manualSize = WorkerCompetitionCaseStudy.GetRawGraphSize(manual);
+        var coroutineSize = WorkerCompetitionCaseStudy.GetRawGraphSize(coroutine);
 
-    private static async ModelTask Workflow(ModelContext<CounterState> context)
-    {
-        var initial = await context.Read("initial", state => state.Count);
-        var delta = await context.Choose("delta", new[] { 1, 2 });
-        await context.Step("apply-delta", state => state.Count = initial + delta);
-        await context.Step("mark-complete", state => state.Completed = true);
-    }
-}
-
-sealed class CounterState : State
-{
-    public int Count { get; set; }
-    public bool Completed { get; set; }
-
-    protected override void CloneInternal(Dictionary<object, object> clonedMap)
-        => clonedMap[this] = new CounterState { Count = Count, Completed = Completed };
-
-    protected override string StringRepresentationInternal(
-        Dictionary<object, string> objectPaths,
-        string path,
-        bool forceRecompute)
-        => $"Count={Count},Completed={Completed}";
-
-    protected override void FreezeComponents(HashSet<object> visited)
-    {
+        Console.WriteLine($"manual: {manualSize.Nodes} nodes, {manualSize.Edges} edges");
+        Console.WriteLine($"coroutine: {coroutineSize.Nodes} nodes, {coroutineSize.Edges} edges");
+        Console.WriteLine(
+            $"projected states: {WorkerCompetitionCaseStudy.ProjectedDomainStates(coroutine).Count}");
+        Console.WriteLine(
+            $"projected changing transitions: " +
+            $"{WorkerCompetitionCaseStudy.CoroutineChangingTransitionsHidingChoose(coroutine).Count}");
     }
 }
