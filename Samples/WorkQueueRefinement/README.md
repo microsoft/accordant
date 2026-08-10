@@ -12,6 +12,7 @@ refinement mechanisms at once.
 |---|---|---|
 | which worker *first* accepted the entry | the concrete past — retries move the lease, expiry erases it | `.Augment(...)` |
 | the result committed at assignment time | the concrete future | `.WithWitness(...)` |
+| which ledger action a queue transition is | neither model's state | `.MapTransition(...)` |
 | everything else | the concrete present | `.Map(...)` |
 
 ```csharp
@@ -105,7 +106,7 @@ assignment outcomes.
 ## Why an explicit action mapping is the next step
 
 Two ledgers in `LedgerOptions` are perfectly reasonable specifications that a
-state-valued mapping cannot align:
+state-valued mapping cannot align on its own:
 
 * `IncludeCloseCancelled` adds `ledger-close-cancelled-t{t}`, which performs
   the same state change as `ledger-settle-t{t}`. The intended correspondence is
@@ -122,8 +123,59 @@ state-valued mapping cannot align:
 
 Both ledgers still pass `Check()`: safety refinement carries a *set* of
 coherent abstract configurations and never has to choose. The gap is specific
-to deterministic temporal alignment, and it is exactly what an explicit
-transition-level correspondence would close.
+to deterministic temporal alignment.
+
+## Declaring the ledger action
+
+`WorkQueueRefinementCheck.LedgerActions(options)` is the transition mapping.
+It names one ledger action per queue transition and leaves everything else
+`Unconstrained`:
+
+```csharp
+Refinement
+    .Between<QueueState, LedgerState>(...)
+    .Augment(...).WithWitness(...).Map(MapToLedger)
+    .MapTransition(WorkQueueRefinementCheck.LedgerActions(ledgerOptions))
+    .CheckTemporal(
+        concreteFairness: WorkQueueFairness.Implementation,
+        abstractFairness: WorkQueueFairness.LedgerLiveness);
+```
+
+| Queue transition | Ledger response |
+|---|---|
+| first `lease-w{w}-t{t}` | `ledger-accept-t{t}` — the assignment the ledger commits at |
+| retry `lease`, `expire`, `request-cancel` | stutter |
+| `fail` inside the retry budget | `ledger-record-attempt-t{t}`, or stutter when the ledger has no such action |
+| `fail` that exhausts the budget, `complete`, `observe-cancel` | `ledger-settle-t{t}` |
+| `cancel-ready-t{t}`, entry never assigned | `ledger-cancel-unassigned-t{t}` |
+| `cancel-ready-t{t}`, entry already assigned | `ledger-close-cancelled-t{t}`, or `ledger-settle-t{t}` |
+| `purge-t{t}` | `ledger-purge-t{t}` |
+
+**Two rows need the claim history, not just the transition.** A queue entry is
+`Ready` both before its first lease and between retries. The concrete step
+alone therefore cannot say whether the ledger entry is already assigned, which
+is exactly what decides whether a lease is the assignment or a retry, and
+whether closing an unleased entry is `ledger-cancel-unassigned` or
+`ledger-close-cancelled`. `.MapTransition(...)` mirrors the arity of the
+`.Map(...)` it follows, so the declaration reads `ClaimHistory` — the same
+augmentation the state mapping reads, taken at the position the transition
+departs from.
+
+The declaration only narrows the responses the state mapping already made
+state-consistent, so:
+
+* the same declarations applied to the **default** ledger change nothing — it
+  had no ambiguity to resolve;
+* `AlwaysStutter` is a `TransitionMismatch`, not a pass, because stutter is
+  not state-consistent for a transition that moves the ledger;
+* `SettleCancelledAsUnassigned` makes an action-level error visible to
+  `Check()`, which state-only safety refinement accepted in silence.
+
+`ledger-record-attempt-t{t}` remains **state-neutral after it is aligned**.
+Accordant fairness is defined over changing edges by design, so weak or strong
+fairness for that action adds no obligation: it can be neither starved nor
+discharged. What the declaration buys there is the abstract *configuration*
+the run continues from, not fairness accounting.
 
 ## Measured sizes
 
@@ -161,7 +213,7 @@ dotnet test
 |---|---|
 | `WorkQueueModels.cs` | `QueueState` and the eight implementation actions |
 | `LedgerModels.cs` | `LedgerState`, the ledger actions, and `LedgerOptions` |
-| `WorkQueueRefinementCheck.cs` | `ClaimHistory`, `OutcomeWitness`, the lifecycle, the mapping, the fairness bundles, and the deliberately broken variants |
+| `WorkQueueRefinementCheck.cs` | `ClaimHistory`, `OutcomeWitness`, the lifecycle, the mapping, the ledger-action declarations, the fairness bundles, and the deliberately broken variants |
 | `WorkQueueRefinementTests.cs` | safety refinement, diagnostics, prediction lifecycle, measurements |
 | `WorkQueueTemporalFairnessTests.cs` | the weak/strong fairness ladder |
-| `WorkQueueActionAmbiguityTests.cs` | the two ledgers that motivate an action mapping |
+| `WorkQueueActionAmbiguityTests.cs` | the two ledgers that motivate an action mapping, and the declarations that resolve them |

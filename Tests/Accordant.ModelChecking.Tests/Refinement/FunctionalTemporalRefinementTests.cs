@@ -342,18 +342,15 @@ public class FunctionalTemporalRefinementTests
     }
 
     [Test]
-    public void EqualStateAbstractEdgeAndStutterAreReportedAsAmbiguous()
+    public void TerminalConcreteStutterDoesNotTakeEqualStateAbstractEdge()
     {
         var concrete = ConcreteNode(0);
         var a0 = AbstractNode(0, "a0");
         AddEdge(a0, AbstractNode(0, "a0-next"), "change-configuration");
 
         Assert.That(
-            () => Check(concrete, a0),
-            Throws.TypeOf<AmbiguousTemporalRefinementException>()
-                .With.Property(nameof(
-                    AmbiguousTemporalRefinementException.MatchCount))
-                .EqualTo(2));
+            Check(concrete, a0).Status,
+            Is.EqualTo(RefinementCheckingStatus.Refines));
     }
 
     [Test]

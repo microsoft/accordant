@@ -8,7 +8,8 @@ internal static class FunctionalSafetyRefinement
     internal static RefinementCheckingResult Check<TConcrete, TAbstract>(
         StateGraphNode concreteRoot,
         StateGraphNode abstractRoot,
-        Func<TConcrete, TAbstract> mapping)
+        Func<TConcrete, TAbstract> mapping,
+        TransitionMapping transitionMapping = null)
         where TConcrete : IState
         where TAbstract : IState
     {
@@ -43,7 +44,8 @@ internal static class FunctionalSafetyRefinement
             abstractRoot,
             (concrete, abstractNode) =>
                 StateSemantics.Equal(Map(concrete), abstractNode.State),
-            concrete => Map(concrete));
+            concrete => Map(concrete),
+            transitionMapping);
     }
 
     /// <summary>
@@ -56,7 +58,8 @@ internal static class FunctionalSafetyRefinement
         StateGraphNode concreteRoot,
         StateGraphNode abstractRoot,
         RefinementProofRuntime<TConcrete> runtime,
-        Func<TConcrete, RefinementProofState, TAbstract> mapping)
+        Func<TConcrete, RefinementProofState, TAbstract> mapping,
+        TransitionMapping transitionMapping = null)
         where TConcrete : IState
         where TAbstract : IState
     {
@@ -70,7 +73,8 @@ internal static class FunctionalSafetyRefinement
                 StateSemantics.Equal(
                     map(concrete, proofState),
                     abstraction.State),
-            (concrete, proofState) => map(concrete, proofState));
+            (concrete, proofState) => map(concrete, proofState),
+            transitionMapping);
     }
 }
 

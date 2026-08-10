@@ -10,7 +10,7 @@ Complete working examples demonstrating Accordant features.
 | [TodoList-FaultInjection](https://github.com/microsoft/accordant/tree/main/Samples/TodoList-FaultInjection) | Demonstrates indefinite failure handling with server-side and client-side fault injection. See [Indefinite Failures](how-to/indefinite-failures.md). |
 | [Booking](https://github.com/microsoft/accordant/tree/main/Samples/Booking) | Demonstrates concurrency testing — the "double-booking" scenario where two customers try to book the same slot. |
 | [JobQueue](https://github.com/microsoft/accordant/tree/main/Samples/JobQueue) | Demonstrates async operations with step functions, polling for completion, and server-generated result paths. |
-| [WorkQueueRefinement](https://github.com/microsoft/accordant/tree/main/Samples/WorkQueueRefinement) | A leased work queue with competing workers, retries, cancellation and purging, refined against a client ledger. Combines `.Augment(...)`, `.WithWitness(...)` and `.Map(...)`, and contrasts weak and strong fairness. See [Checking Refinement](how-to/checking-refinement.md). |
+| [WorkQueueRefinement](https://github.com/microsoft/accordant/tree/main/Samples/WorkQueueRefinement) | A leased work queue with competing workers, retries, cancellation and purging, refined against a client ledger. Combines `.Augment(...)`, `.WithWitness(...)`, `.Map(...)` and `.MapTransition(...)`, and contrasts weak and strong fairness. See [Checking Refinement](how-to/checking-refinement.md). |
 
 ## Running a Sample
 

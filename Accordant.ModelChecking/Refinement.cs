@@ -196,19 +196,54 @@ public sealed class AugmentedFunctionalRefinementCheck<
         RefinementTransition<TConcrete>,
         TAuxiliary> next;
     private readonly Func<TConcrete, TAuxiliary, TAbstract> mapping;
+    private readonly Func<
+        RefinementTransition<TConcrete>,
+        TAuxiliary,
+        AbstractResponse> transitionMapping;
 
     internal AugmentedFunctionalRefinementCheck(
         StateGraphNode concreteRoot,
         StateGraphNode abstractRoot,
         Func<TConcrete, TAuxiliary> initial,
         Func<TAuxiliary, RefinementTransition<TConcrete>, TAuxiliary> next,
-        Func<TConcrete, TAuxiliary, TAbstract> mapping)
+        Func<TConcrete, TAuxiliary, TAbstract> mapping,
+        Func<
+            RefinementTransition<TConcrete>,
+            TAuxiliary,
+            AbstractResponse> transitionMapping = null)
     {
         this.concreteRoot = concreteRoot;
         this.abstractRoot = abstractRoot;
         this.initial = initial;
         this.next = next;
         this.mapping = mapping;
+        this.transitionMapping = transitionMapping;
+    }
+
+    /// <summary>
+    /// Declares which abstract response a concrete transition represents. The
+    /// declaration reads the concrete transition and the augmentation state
+    /// the transition departs from. It narrows the state-consistent abstract
+    /// responses; it never admits a response the mapping already excluded.
+    /// </summary>
+    public AugmentedFunctionalRefinementCheck<TConcrete, TAbstract, TAuxiliary>
+        MapTransition(
+            Func<
+                RefinementTransition<TConcrete>,
+                TAuxiliary,
+                AbstractResponse> response)
+    {
+        RefinementTransitionMapping.EnsureNotDeclared(transitionMapping);
+        return new AugmentedFunctionalRefinementCheck<
+            TConcrete,
+            TAbstract,
+            TAuxiliary>(
+                concreteRoot,
+                abstractRoot,
+                initial,
+                next,
+                mapping,
+                response ?? throw new ArgumentNullException(nameof(response)));
     }
 
     /// <summary>Checks augmented functional safety refinement.</summary>
@@ -220,7 +255,8 @@ public sealed class AugmentedFunctionalRefinementCheck<
                 concreteRoot,
                 abstractRoot,
                 runtime,
-                map);
+                map,
+                BuildTransitionMapping(runtime));
     }
 
     /// <summary>
@@ -239,7 +275,21 @@ public sealed class AugmentedFunctionalRefinementCheck<
                 runtime,
                 map,
                 concreteFairness,
-                abstractFairness);
+                abstractFairness,
+                BuildTransitionMapping(runtime));
+    }
+
+    private TransitionMapping BuildTransitionMapping(
+        RefinementProofRuntime<TConcrete> runtime)
+    {
+        var local = transitionMapping;
+        return local == null
+            ? null
+            : RefinementTransitionMapping.Create<TConcrete>(
+                (transition, proofState) => local(
+                    transition,
+                    (TAuxiliary)proofState.Auxiliary),
+                runtime.Validate);
     }
 
     private RefinementProofRuntime<TConcrete> BuildRuntime(
@@ -315,19 +365,50 @@ public sealed class WitnessFunctionalRefinementCheck<TConcrete, TAbstract>
         RefinementTransition<TConcrete>,
         WitnessChanges> next;
     private readonly Func<TConcrete, WitnessCollection, TAbstract> mapping;
+    private readonly Func<
+        RefinementTransition<TConcrete>,
+        WitnessCollection,
+        AbstractResponse> transitionMapping;
 
     internal WitnessFunctionalRefinementCheck(
         StateGraphNode concreteRoot,
         StateGraphNode abstractRoot,
         Func<TConcrete, WitnessChanges> initial,
         Func<PendingWitnesses, RefinementTransition<TConcrete>, WitnessChanges> next,
-        Func<TConcrete, WitnessCollection, TAbstract> mapping)
+        Func<TConcrete, WitnessCollection, TAbstract> mapping,
+        Func<
+            RefinementTransition<TConcrete>,
+            WitnessCollection,
+            AbstractResponse> transitionMapping = null)
     {
         this.concreteRoot = concreteRoot;
         this.abstractRoot = abstractRoot;
         this.initial = initial;
         this.next = next;
         this.mapping = mapping;
+        this.transitionMapping = transitionMapping;
+    }
+
+    /// <summary>
+    /// Declares which abstract response a concrete transition represents. The
+    /// declaration reads the concrete transition and the witness collection
+    /// the transition departs from, so a prediction the transition is about to
+    /// resolve is still visible.
+    /// </summary>
+    public WitnessFunctionalRefinementCheck<TConcrete, TAbstract> MapTransition(
+        Func<
+            RefinementTransition<TConcrete>,
+            WitnessCollection,
+            AbstractResponse> response)
+    {
+        RefinementTransitionMapping.EnsureNotDeclared(transitionMapping);
+        return new WitnessFunctionalRefinementCheck<TConcrete, TAbstract>(
+            concreteRoot,
+            abstractRoot,
+            initial,
+            next,
+            mapping,
+            response ?? throw new ArgumentNullException(nameof(response)));
     }
 
     /// <summary>
@@ -342,7 +423,8 @@ public sealed class WitnessFunctionalRefinementCheck<TConcrete, TAbstract>
                 concreteRoot,
                 abstractRoot,
                 runtime,
-                map);
+                map,
+                BuildTransitionMapping(runtime));
     }
 
     /// <summary>
@@ -361,7 +443,21 @@ public sealed class WitnessFunctionalRefinementCheck<TConcrete, TAbstract>
                 runtime,
                 map,
                 concreteFairness,
-                abstractFairness);
+                abstractFairness,
+                BuildTransitionMapping(runtime));
+    }
+
+    private TransitionMapping BuildTransitionMapping(
+        RefinementProofRuntime<TConcrete> runtime)
+    {
+        var local = transitionMapping;
+        return local == null
+            ? null
+            : RefinementTransitionMapping.Create<TConcrete>(
+                (transition, proofState) => local(
+                    transition,
+                    proofState.Witnesses),
+                runtime.Validate);
     }
 
     private RefinementProofRuntime<TConcrete> BuildRuntime(
@@ -472,6 +568,11 @@ public sealed class AugmentedWitnessFunctionalRefinementCheck<
         TAuxiliary,
         WitnessCollection,
         TAbstract> mapping;
+    private readonly Func<
+        RefinementTransition<TConcrete>,
+        TAuxiliary,
+        WitnessCollection,
+        AbstractResponse> transitionMapping;
 
     internal AugmentedWitnessFunctionalRefinementCheck(
         StateGraphNode concreteRoot,
@@ -480,7 +581,12 @@ public sealed class AugmentedWitnessFunctionalRefinementCheck<
         Func<TAuxiliary, RefinementTransition<TConcrete>, TAuxiliary> augmentNext,
         Func<TConcrete, WitnessChanges> witnessInitial,
         Func<PendingWitnesses, RefinementTransition<TConcrete>, WitnessChanges> witnessNext,
-        Func<TConcrete, TAuxiliary, WitnessCollection, TAbstract> mapping)
+        Func<TConcrete, TAuxiliary, WitnessCollection, TAbstract> mapping,
+        Func<
+            RefinementTransition<TConcrete>,
+            TAuxiliary,
+            WitnessCollection,
+            AbstractResponse> transitionMapping = null)
     {
         this.concreteRoot = concreteRoot;
         this.abstractRoot = abstractRoot;
@@ -489,6 +595,38 @@ public sealed class AugmentedWitnessFunctionalRefinementCheck<
         this.witnessInitial = witnessInitial;
         this.witnessNext = witnessNext;
         this.mapping = mapping;
+        this.transitionMapping = transitionMapping;
+    }
+
+    /// <summary>
+    /// Declares which abstract response a concrete transition represents. The
+    /// declaration reads the concrete transition together with the
+    /// augmentation state and the witness collection the transition departs
+    /// from.
+    /// </summary>
+    public AugmentedWitnessFunctionalRefinementCheck<
+        TConcrete,
+        TAbstract,
+        TAuxiliary> MapTransition(
+            Func<
+                RefinementTransition<TConcrete>,
+                TAuxiliary,
+                WitnessCollection,
+                AbstractResponse> response)
+    {
+        RefinementTransitionMapping.EnsureNotDeclared(transitionMapping);
+        return new AugmentedWitnessFunctionalRefinementCheck<
+            TConcrete,
+            TAbstract,
+            TAuxiliary>(
+                concreteRoot,
+                abstractRoot,
+                augmentInitial,
+                augmentNext,
+                witnessInitial,
+                witnessNext,
+                mapping,
+                response ?? throw new ArgumentNullException(nameof(response)));
     }
 
     /// <summary>Checks augmented, witness-extended safety refinement.</summary>
@@ -500,7 +638,8 @@ public sealed class AugmentedWitnessFunctionalRefinementCheck<
                 concreteRoot,
                 abstractRoot,
                 runtime,
-                map);
+                map,
+                BuildTransitionMapping(runtime));
     }
 
     /// <summary>
@@ -519,7 +658,22 @@ public sealed class AugmentedWitnessFunctionalRefinementCheck<
                 runtime,
                 map,
                 concreteFairness,
-                abstractFairness);
+                abstractFairness,
+                BuildTransitionMapping(runtime));
+    }
+
+    private TransitionMapping BuildTransitionMapping(
+        RefinementProofRuntime<TConcrete> runtime)
+    {
+        var local = transitionMapping;
+        return local == null
+            ? null
+            : RefinementTransitionMapping.Create<TConcrete>(
+                (transition, proofState) => local(
+                    transition,
+                    (TAuxiliary)proofState.Auxiliary,
+                    proofState.Witnesses),
+                runtime.Validate);
     }
 
     private RefinementProofRuntime<TConcrete> BuildRuntime(
@@ -543,6 +697,54 @@ public sealed class AugmentedWitnessFunctionalRefinementCheck<
 }
 
 /// <summary>
+/// Adapts the typed <c>MapTransition</c> declarations onto the internal
+/// selector the refinement cores use.
+/// </summary>
+internal static class RefinementTransitionMapping
+{
+    internal static void EnsureNotDeclared(object existing)
+    {
+        if (existing != null)
+        {
+            throw new InvalidOperationException(
+                "A refinement check declares its transition mapping once. " +
+                "Combine the cases in one MapTransition callback.");
+        }
+    }
+
+    internal static TransitionMapping Create<TConcrete>(
+        Func<
+            RefinementTransition<TConcrete>,
+            RefinementProofState,
+            AbstractResponse> response,
+        Action<RefinementProofState> validate = null)
+        where TConcrete : IState
+        => new TransitionMapping(
+            (concreteSource, proofState, concreteEdge) =>
+                response(
+                    new RefinementTransition<TConcrete>(
+                        GetConcrete<TConcrete>(concreteSource),
+                        concreteEdge.StepFunction,
+                        concreteEdge.Metadata,
+                        GetConcrete<TConcrete>(concreteEdge.Target)),
+                    proofState),
+            validate);
+
+    private static TConcrete GetConcrete<TConcrete>(StateGraphNode node)
+        where TConcrete : IState
+    {
+        if (node.State is TConcrete concrete)
+        {
+            return concrete;
+        }
+
+        throw new InvalidOperationException(
+            $"Concrete graph node state '{node.State?.GetType().FullName}' " +
+            $"is not a {typeof(TConcrete).FullName}.");
+    }
+}
+
+/// <summary>
 /// A configured functional safety-refinement check.
 /// </summary>
 public sealed class FunctionalRefinementCheck<TConcrete, TAbstract>
@@ -552,15 +754,40 @@ public sealed class FunctionalRefinementCheck<TConcrete, TAbstract>
     private readonly StateGraphNode concreteRoot;
     private readonly StateGraphNode abstractRoot;
     private readonly Func<TConcrete, TAbstract> mapping;
+    private readonly Func<
+        RefinementTransition<TConcrete>,
+        AbstractResponse> transitionMapping;
 
     internal FunctionalRefinementCheck(
         StateGraphNode concreteRoot,
         StateGraphNode abstractRoot,
-        Func<TConcrete, TAbstract> mapping)
+        Func<TConcrete, TAbstract> mapping,
+        Func<
+            RefinementTransition<TConcrete>,
+            AbstractResponse> transitionMapping = null)
     {
         this.concreteRoot = concreteRoot;
         this.abstractRoot = abstractRoot;
         this.mapping = mapping;
+        this.transitionMapping = transitionMapping;
+    }
+
+    /// <summary>
+    /// Declares which abstract response a concrete transition represents,
+    /// resolving cases where one mapped abstract state is reachable by
+    /// abstract stutter and by an abstract edge, or by several abstract edges.
+    /// The declaration narrows the state-consistent abstract responses; it
+    /// never admits a response the state mapping already excluded.
+    /// </summary>
+    public FunctionalRefinementCheck<TConcrete, TAbstract> MapTransition(
+        Func<RefinementTransition<TConcrete>, AbstractResponse> response)
+    {
+        RefinementTransitionMapping.EnsureNotDeclared(transitionMapping);
+        return new FunctionalRefinementCheck<TConcrete, TAbstract>(
+            concreteRoot,
+            abstractRoot,
+            mapping,
+            response ?? throw new ArgumentNullException(nameof(response)));
     }
 
     /// <summary>
@@ -571,7 +798,8 @@ public sealed class FunctionalRefinementCheck<TConcrete, TAbstract>
         => FunctionalSafetyRefinement.Check(
             concreteRoot,
             abstractRoot,
-            mapping);
+            mapping,
+            BuildTransitionMapping());
 
     /// <summary>
     /// Checks strict step-aligned temporal refinement over infinite fair
@@ -586,5 +814,15 @@ public sealed class FunctionalRefinementCheck<TConcrete, TAbstract>
             abstractRoot,
             mapping,
             concreteFairness,
-            abstractFairness);
+            abstractFairness,
+            BuildTransitionMapping());
+
+    private TransitionMapping BuildTransitionMapping()
+    {
+        var local = transitionMapping;
+        return local == null
+            ? null
+            : RefinementTransitionMapping.Create<TConcrete>(
+                (transition, _) => local(transition));
+    }
 }

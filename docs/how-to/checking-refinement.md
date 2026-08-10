@@ -127,11 +127,212 @@ failure from a finite transition mismatch.
 
 The first temporal mode is exact for **deterministic alignment**: every
 concrete transition must have at most one known abstract response (one
-abstract edge or abstract stutter). If stutter and an equal-state abstract edge,
-parallel abstract edges, or several equal-state configurations provide
+abstract edge or abstract stutter). If stutter and a state-neutral abstract
+edge, parallel abstract edges, or several equal-state configurations provide
 multiple responses, `AmbiguousTemporalRefinementException` reports the
-ambiguity. The checker never silently chooses one response and risks a wrong
-verdict.
+ambiguity and lists the responses. The checker never silently chooses one
+response and risks a wrong verdict. Declare the intended response with
+[`.MapTransition(...)`](#declare-the-abstract-action).
+
+## Declare the abstract action
+
+A state-valued mapping decides *which abstract state* a concrete transition
+arrives at. It cannot decide *which abstract action* the transition
+represents, and two abstract actions can perform the same state change:
+
+```csharp
+var result = Refinement
+    .Between<QueueState, LedgerState>(concreteRoot, abstractRoot)
+    .Map(MapToLedger)
+    .MapTransition(transition => transition.StepFunction switch
+    {
+        ObserveCancelStep => AbstractResponse.Step<LedgerSettleStep>(),
+        ExpireLeaseStep => AbstractResponse.Stutter,
+        _ => AbstractResponse.Unconstrained
+    })
+    .CheckTemporal(concreteFairness, abstractFairness);
+```
+
+### Exact semantics
+
+For one concrete edge leaving one abstract configuration:
+
+```text
+responses      = { abstract stutter } + { the abstract configuration's edges }
+stateConsistent = responses whose target state equals the mapped abstract state
+admitted        = stateConsistent responses the declared response admits
+```
+
+- safety refinement keeps every admitted response as a coherent abstract
+  candidate;
+- temporal refinement requires exactly one admitted response, exactly as it
+  requires exactly one state-consistent response today.
+
+The declaration only ever **narrows**. It is applied after state matching, so
+it can never admit a response the mapping already excluded. Two consequences
+are worth stating outright:
+
+- Refinement proved with a declaration implies refinement without it.
+  Declaring actions strengthens the property, it never weakens it.
+- For temporal refinement, the aligned response changes to a *different*
+  response only where the check previously reported
+  `AmbiguousTemporalRefinementException` and produced no verdict at all.
+  Everywhere else a declaration can only turn `Refines` into a mismatch, never
+  a mismatch into `Refines`.
+
+Declaring a response that is not state-consistent is therefore a
+`TransitionMismatch`, not a pass. Declaring `AbstractResponse.Stutter` for a
+transition that moves the abstract state is the common first mistake;
+`AbstractResponse.Unconstrained` is the right default for every transition the
+model does not need to name.
+
+### Responses
+
+| Response | Admits |
+|---|---|
+| `AbstractResponse.Unconstrained` | every response — reproduces state-only matching exactly |
+| `AbstractResponse.Stutter` | abstract stutter only, never a state-neutral edge |
+| `AbstractResponse.Step<TStep>()` | an abstract edge with that step function, never stutter |
+| `AbstractResponse.Step(step => ...)` | an abstract edge whose step matches, never stutter |
+| `AbstractResponse.Matching<TAbstract>((source, step, target) => ...)` | a typed source, step and target predicate, never stutter |
+| `AbstractResponse.Matching(response => ...)` | the full `AbstractTransition` view, including stutter |
+
+`AbstractTransition` is the typed view of one response:
+
+```csharp
+response.Source          // abstract state departed from
+response.StepFunction    // null for abstract stutter
+response.Metadata        // null for abstract stutter
+response.Target          // abstract state arrived at
+response.IsStutter       // the abstract model did not move
+response.ChangesState    // the abstract state is different
+```
+
+The view carries states, a step function and edge metadata — never graph
+nodes. A declaration therefore cannot inspect or expand either graph, and it
+triggers no additional lazy exploration: it filters responses that state
+matching has already enumerated.
+
+If two responses have the same step function, the same metadata and equal
+source and target states, no declaration can separate them. They differ only
+in abstract configuration, and `AmbiguousTemporalRefinementException` is still
+the answer.
+
+### State-neutral abstract edges
+
+An abstract edge whose source and target states are equal is *state-neutral*.
+It is a real abstract action that moves to another abstract configuration —
+possibly one with different enabled abstract steps — without changing the
+abstract state. It is not abstract stutter:
+
+```text
+abstract stutter          IsStutter = true    ChangesState = false
+state-neutral edge        IsStutter = false   ChangesState = false
+ordinary abstract edge    IsStutter = false   ChangesState = true
+```
+
+A state-neutral edge may be aligned explicitly, and doing so is often the
+point: it selects the abstract configuration the rest of the run continues
+from. It nevertheless stays **outside changing-edge fairness, by design**.
+Accordant fairness — for refinement and for property checking alike — is
+defined over transitions that change the state, so a state-neutral abstract
+edge:
+
+- never contributes to abstract enabledness, so it cannot raise a weak or
+  strong obligation;
+- never counts as taken, so it cannot discharge one.
+
+Declaring a state-neutral edge instead of stutter therefore changes which
+abstract configuration the alignment continues from, and nothing about
+fairness accounting. Requesting fairness for a state-neutral abstract action
+adds no obligation; if that action needs to be forced, give the abstract model
+a state footprint that makes the difference observable.
+
+The infinite completion Accordant adds for a genuinely terminal concrete
+state is a checker artifact, not a concrete action. It always aligns with
+abstract stutter, never with a real state-neutral abstract edge, and does not
+invoke `.MapTransition(...)`.
+
+### Reading proof state
+
+`.MapTransition(...)` mirrors the arity of the `.Map(...)` it follows, so a
+declaration reads the same information the state mapping reads:
+
+```csharp
+.Map(concrete => ...)
+    .MapTransition(transition => ...)
+
+.Augment(...).Map((concrete, auxiliary) => ...)
+    .MapTransition((transition, auxiliary) => ...)
+
+.WithWitness(...).Map((concrete, witnesses) => ...)
+    .MapTransition((transition, witnesses) => ...)
+
+.Augment(...).WithWitness(...).Map((concrete, auxiliary, witnesses) => ...)
+    .MapTransition((transition, auxiliary, witnesses) => ...)
+```
+
+This is necessary, not decorative. The concrete transition alone is often
+unable to name the abstract action:
+
+- a queue entry is `Ready` both before its first lease and between retries, so
+  only the recovered claim history says whether the entry is already assigned
+  and therefore which ledger action a cancellation is;
+- a transition that *resolves* a prediction cannot read that prediction from
+  the concrete state, because the concrete state is exactly what was missing.
+
+The proof state passed to a declaration is the one the transition **departs
+from**. The augmentation value is the one derived from the concrete prefix
+before the transition, and the witness collection still contains a prediction
+this transition is about to resolve. The proof state a transition arrives at
+is a *set* — a witness introduction branches it — so only the departing side
+is a single, well-defined value.
+
+Because a declaration may read the proof state, sibling witness copies can
+declare different abstract actions for the same concrete edge. That is sound:
+every copy is checked, and all of them must succeed.
+
+### Diagnostics
+
+Each trace position reports the declaration for the concrete step that entered
+it, and temporal traces also report the response that was aligned:
+
+```text
+--observe-cancel-w0-t0--> concrete Queue(...); mapped abstract Ledger(...);
+    declared step LedgerCancelUnassignedStep; candidates 0
+      state-consistent abstract responses: step ledger-settle-t0
+```
+
+- `RefinementTraceItem.DeclaredAbstractResponse` — what the model asked for;
+- `RefinementTraceItem.AlignedAbstractTransition` — the response temporal
+  refinement chose;
+- `RefinementTraceItem.StateConsistentAbstractTransitions` — the responses the
+  declaration rejected, reported where a declaration admitted none of them;
+- `AmbiguousTemporalRefinementException.Responses` and `.DeclaredResponse` —
+  the responses that remain ambiguous and the declaration that failed to
+  separate them.
+
+Declaring the transition mapping twice is an error: combine the cases in one
+callback. Returning null from a declaration is an error too — return
+`AbstractResponse.Unconstrained` instead.
+
+### Bounds
+
+A declaration never converts uncertainty into a verdict. The depth-frontier
+flags are computed before the declaration filters anything, so a declaration
+that no *known* response satisfies at an abstract frontier yields
+`InconclusiveBound`, not `DoesNotRefine`.
+
+### It is not a correspondence relation
+
+`.MapTransition(...)` is a filter on step-aligned responses. It does not
+introduce a relation between concrete and abstract states, it does not search
+finite abstract paths per concrete step, and it does not perform fair
+simulation or ω-language inclusion. Safety refinement still carries a *set* of
+coherent abstract candidates, and the declaration prunes that set under an
+existential: a `Refines` verdict means every concrete behavior has *some*
+abstract behavior that matches the state mapping *and* takes exactly the
+declared actions.
 
 ## Add deterministic checker-local state
 
@@ -465,6 +666,15 @@ enabled, so weak fairness is both necessary and sufficient. A strong
 obligation on an action the implementation has disabled is vacuous, and
 liveness then has to come from the concrete alternative.
 
+Two of its ledger variants need
+[`.MapTransition(...)`](#declare-the-abstract-action): one adds a second
+ledger action that performs the same state change as settling, and one adds a
+ledger action with no state footprint at all. Both report
+`AmbiguousTemporalRefinementException` until the model declares which ledger
+action each queue transition is, and both declarations have to read the
+recovered claim history, because the concrete step alone cannot say whether
+the entry was ever assigned.
+
 ## Bounded graphs
 
 A genuine terminal state is complete and does not make safety refinement
@@ -481,20 +691,17 @@ inconclusive. A construction-time depth frontier has unknown successors.
 ## Current scope
 
 Refinement remains strict and step-aligned. It uses one methodology: a
-functional mapping made expressive with past-derived augmentation and
-future-validated witnesses. It does not compare actions or edge metadata,
-search finite abstract paths per concrete step, or perform general
-nondeterministic relational temporal inclusion. Witness domains are finite and
-enumerated by the model; there is no symbolic or unbounded witness domain.
+functional mapping made expressive with past-derived augmentation,
+future-validated witnesses, and explicitly declared abstract actions. Actions
+and edge metadata are compared only where the model names them with
+`.MapTransition(...)`; the checker never infers an action correspondence, and
+a declaration can only narrow the responses the state mapping already allows.
+It does not search finite abstract paths per concrete step, and it does not
+perform general nondeterministic relational temporal inclusion. Witness
+domains are finite and enumerated by the model; there is no symbolic or
+unbounded witness domain.
 
-The action-comparison gap is visible in
-[`Samples/WorkQueueRefinement`](../../Samples/WorkQueueRefinement/). Two
-reasonable specifications cannot be aligned temporally today: one where two
-abstract actions perform the same abstract state change, and one where an
-abstract action has no state footprint at all. Both report
-`AmbiguousTemporalRefinementException`; adding fairness for the state-neutral
-action cannot choose between that action and abstract stutter. Fairness is
-defined over changing edges, and alignment fails before fairness analysis.
-Both
-specifications still pass `Check()`, since safety refinement carries a set of
-coherent abstract configurations and never has to choose a response.
+Abstract responses that share a step function, edge metadata and both states
+differ only in abstract configuration. No declaration can separate them, and
+temporal refinement still reports them as irreducibly ambiguous rather than
+choosing one.

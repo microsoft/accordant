@@ -11,7 +11,8 @@ internal static class FunctionalTemporalRefinement
         StateGraphNode abstractRoot,
         Func<TConcrete, TAbstract> mapping,
         Fairness concreteFairness,
-        Fairness abstractFairness)
+        Fairness abstractFairness,
+        TransitionMapping transitionMapping = null)
         where TConcrete : IState
         where TAbstract : IState
         => CheckWithProofState<TConcrete, TAbstract>(
@@ -22,7 +23,8 @@ internal static class FunctionalTemporalRefinement
                 witnesses: null),
             (concrete, _) => mapping(concrete),
             concreteFairness,
-            abstractFairness);
+            abstractFairness,
+            transitionMapping);
 
     internal static RefinementCheckingResult CheckWithProofState<
         TConcrete,
@@ -32,7 +34,8 @@ internal static class FunctionalTemporalRefinement
         RefinementProofRuntime<TConcrete> runtime,
         Func<TConcrete, RefinementProofState, TAbstract> mapping,
         Fairness concreteFairness,
-        Fairness abstractFairness)
+        Fairness abstractFairness,
+        TransitionMapping transitionMapping = null)
         where TConcrete : IState
         where TAbstract : IState
     {
@@ -47,7 +50,8 @@ internal static class FunctionalTemporalRefinement
             abstractRoot,
             runtime.InitialStates,
             runtime.Advance,
-            map);
+            map,
+            transitionMapping);
 
         var mismatchCycle = FindConcreteFairCycle(
             graph.Nodes.Where(node =>
@@ -130,7 +134,8 @@ internal static class FunctionalTemporalRefinement
             StateGraphNode,
             StateGraphEdge,
             IReadOnlyList<RefinementProofState>> advance,
-        Func<StateGraphNode, RefinementProofState, TAbstract> map)
+        Func<StateGraphNode, RefinementProofState, TAbstract> map,
+        TransitionMapping transitionMapping)
         where TConcrete : IState
         where TAbstract : IState
     {
@@ -212,18 +217,31 @@ internal static class FunctionalTemporalRefinement
                 materializedConcreteEdges);
             foreach (var concreteEdge in concreteEdges)
             {
-                var nextProofStates =
-                    concreteEdge.StepFunction == RefinementStutterStep.Instance
-                        ? new[] { current.ProofState }
-                        : advance(
-                            current.ProofState,
-                            current.ConcreteNode,
-                            concreteEdge);
+                // The synthetic terminal stutter edge is a checker artifact,
+                // not a concrete model transition, so a transition mapping is
+                // never consulted for it.
+                var isSyntheticStutter =
+                    concreteEdge.StepFunction == RefinementStutterStep.Instance;
+                var nextProofStates = isSyntheticStutter
+                    ? new[] { current.ProofState }
+                    : advance(
+                        current.ProofState,
+                        current.ConcreteNode,
+                        concreteEdge);
+                var declared = isSyntheticStutter ||
+                    current.AbstractNode == null
+                    ? null
+                    : transitionMapping?.Declared(
+                        current.ConcreteNode,
+                        current.ProofState,
+                        concreteEdge);
 
                 foreach (var nextProofState in nextProofStates)
                 {
                     ProductNode target;
                     StateGraphEdge abstractEdge = null;
+                    AbstractTransition alignedResponse = null;
+                    IReadOnlyList<AbstractTransition> stateConsistentResponses = null;
                     var mappedTarget = map(
                         concreteEdge.Target,
                         nextProofState);
@@ -245,6 +263,17 @@ internal static class FunctionalTemporalRefinement
                         var matches = FindAbstractMatches(
                             current.AbstractNode,
                             mappedTarget);
+                        if (isSyntheticStutter)
+                        {
+                            // Infinite completion of a genuinely terminal
+                            // concrete behavior is checker stutter, not a
+                            // model action. Abstract matching still runs first
+                            // so lazy expansion and frontier detection retain
+                            // their ordinary semantics.
+                            matches = matches
+                                .Where(edge => edge == null)
+                                .ToList();
+                        }
                         var unknown = current.HasUnknownAbstractAlternative ||
                             current.AbstractNode.IsDepthFrontier;
 
@@ -254,13 +283,42 @@ internal static class FunctionalTemporalRefinement
                             firstFrontier ??= current;
                         }
 
+                        if (declared != null)
+                        {
+                            // Narrowing only: a declared response filters the
+                            // state-consistent responses and can never admit
+                            // a response the state mapping excluded.
+                            var admitted = matches
+                                .Where(edge => declared.Admits(
+                                    TransitionMapping.View(
+                                        current.AbstractNode,
+                                        edge)))
+                                .ToList();
+                            if (admitted.Count != matches.Count)
+                            {
+                                stateConsistentResponses = matches
+                                    .Select(edge => TransitionMapping.View(
+                                        current.AbstractNode,
+                                        edge))
+                                    .ToArray();
+                            }
+                            matches = admitted;
+                            transitionMapping.Validate(current.ProofState);
+                        }
+
                         if (matches.Count > 1)
                         {
                             throw new AmbiguousTemporalRefinementException(
                                 current.ConcreteNode,
                                 current.AbstractNode,
                                 concreteEdge.StepFunction,
-                                matches.Count);
+                                matches.Count,
+                                matches
+                                    .Select(edge => TransitionMapping.View(
+                                        current.AbstractNode,
+                                        edge))
+                                    .ToArray(),
+                                declared);
                         }
 
                         if (matches.Count == 0)
@@ -284,6 +342,10 @@ internal static class FunctionalTemporalRefinement
                         else
                         {
                             abstractEdge = matches[0];
+                            alignedResponse = TransitionMapping.View(
+                                current.AbstractNode,
+                                abstractEdge);
+                            stateConsistentResponses = null;
                             var abstractTarget = abstractEdge?.Target ??
                                 current.AbstractNode;
                             target = GetOrCreate(
@@ -301,7 +363,10 @@ internal static class FunctionalTemporalRefinement
                         current,
                         target,
                         concreteEdge,
-                        abstractEdge);
+                        abstractEdge,
+                        declared,
+                        alignedResponse,
+                        stateConsistentResponses);
                     current.Edges.Add(productEdge);
                     if (target.IncomingEdge == null &&
                         !rootSet.Contains(target))
@@ -735,7 +800,10 @@ internal static class FunctionalTemporalRefinement
                 : new[] { node.AbstractNode },
             isInCycle,
             auxiliaryState: node.ProofState.AuxiliaryState,
-            witnesses: node.ProofState.Witnesses);
+            witnesses: node.ProofState.Witnesses,
+            declaredAbstractResponse: incoming?.DeclaredResponse,
+            alignedAbstractTransition: incoming?.AlignedResponse,
+            stateConsistentAbstractTransitions: incoming?.StateConsistentResponses);
 
     private static void ValidateAbstract<TAbstract>(StateGraphNode node)
         where TAbstract : IState
@@ -801,18 +869,27 @@ internal static class FunctionalTemporalRefinement
             ProductNode source,
             ProductNode target,
             StateGraphEdge concreteEdge,
-            StateGraphEdge abstractEdge)
+            StateGraphEdge abstractEdge,
+            AbstractResponse declaredResponse = null,
+            AbstractTransition alignedResponse = null,
+            IReadOnlyList<AbstractTransition> stateConsistentResponses = null)
         {
             Source = source;
             Target = target;
             ConcreteEdge = concreteEdge;
             AbstractEdge = abstractEdge;
+            DeclaredResponse = declaredResponse;
+            AlignedResponse = alignedResponse;
+            StateConsistentResponses = stateConsistentResponses;
         }
 
         public ProductNode Source { get; }
         public ProductNode Target { get; }
         public StateGraphEdge ConcreteEdge { get; }
         public StateGraphEdge AbstractEdge { get; }
+        public AbstractResponse DeclaredResponse { get; }
+        public AbstractTransition AlignedResponse { get; }
+        public IReadOnlyList<AbstractTransition> StateConsistentResponses { get; }
     }
 
     private sealed class TemporalFairnessObligation

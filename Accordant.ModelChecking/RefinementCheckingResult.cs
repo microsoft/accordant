@@ -55,7 +55,10 @@ public sealed class RefinementTraceItem
         IReadOnlyList<StateGraphNode> abstractCandidates,
         bool isInCycle = false,
         State auxiliaryState = null,
-        WitnessCollection witnesses = null)
+        WitnessCollection witnesses = null,
+        AbstractResponse declaredAbstractResponse = null,
+        AbstractTransition alignedAbstractTransition = null,
+        IReadOnlyList<AbstractTransition> stateConsistentAbstractTransitions = null)
     {
         ConcreteNode = concreteNode;
         ConcreteStepFunction = concreteStepFunction;
@@ -65,6 +68,9 @@ public sealed class RefinementTraceItem
         IsInCycle = isInCycle;
         AuxiliaryState = auxiliaryState;
         Witnesses = witnesses;
+        DeclaredAbstractResponse = declaredAbstractResponse;
+        AlignedAbstractTransition = alignedAbstractTransition;
+        StateConsistentAbstractTransitions = stateConsistentAbstractTransitions;
     }
 
     /// <summary>The concrete graph node at this trace position.</summary>
@@ -107,6 +113,29 @@ public sealed class RefinementTraceItem
     /// concrete past, witnesses are validated by the concrete future.
     /// </summary>
     public WitnessCollection Witnesses { get; }
+
+    /// <summary>
+    /// The abstract response an explicit transition mapping declared for the
+    /// concrete step that entered this position, or null when the check uses
+    /// no transition mapping, when the position is the root, or when the
+    /// transition was left unconstrained.
+    /// </summary>
+    public AbstractResponse DeclaredAbstractResponse { get; }
+
+    /// <summary>
+    /// The abstract response the temporal check aligned the incoming concrete
+    /// step with. Null at the root, on a mismatch, and for safety refinement,
+    /// which carries a set of coherent abstract configurations rather than one
+    /// aligned response.
+    /// </summary>
+    public AbstractTransition AlignedAbstractTransition { get; }
+
+    /// <summary>
+    /// The abstract responses the functional state mapping made
+    /// state-consistent at this position, reported where a declared response
+    /// admitted none of them or several of them. Null elsewhere.
+    /// </summary>
+    public IReadOnlyList<AbstractTransition> StateConsistentAbstractTransitions { get; }
 }
 
 /// <summary>
@@ -221,6 +250,16 @@ public sealed class RefinementCheckingResult
                 sb.Append("; witnesses ")
                     .Append(item.Witnesses);
             }
+            if (item.DeclaredAbstractResponse != null)
+            {
+                sb.Append("; declared ")
+                    .Append(item.DeclaredAbstractResponse.Description);
+            }
+            if (item.AlignedAbstractTransition != null)
+            {
+                sb.Append("; abstract ")
+                    .Append(item.AlignedAbstractTransition);
+            }
             sb.Append("; candidates ")
                 .Append(item.AbstractCandidates.Count);
 
@@ -235,6 +274,19 @@ public sealed class RefinementCheckingResult
             }
 
             sb.AppendLine();
+
+            if (item.StateConsistentAbstractTransitions != null)
+            {
+                sb.Append("      state-consistent abstract responses: ")
+                    .AppendLine(
+                        item.StateConsistentAbstractTransitions.Count == 0
+                            ? "none"
+                            : string.Join(
+                                ", ",
+                                item.StateConsistentAbstractTransitions
+                                    .Select(response => response.ToString())
+                                    .Distinct()));
+            }
         }
 
         return sb.ToString();

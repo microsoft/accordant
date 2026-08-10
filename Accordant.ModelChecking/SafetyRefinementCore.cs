@@ -10,7 +10,8 @@ internal static class SafetyRefinementCore
         StateGraphNode concreteRoot,
         StateGraphNode abstractRoot,
         Func<StateGraphNode, StateGraphNode, bool> matchesAbstract,
-        Func<StateGraphNode, IState> abstractView = null)
+        Func<StateGraphNode, IState> abstractView = null,
+        TransitionMapping transitionMapping = null)
         where TConcrete : IState
         where TAbstract : IState
         => Check<TConcrete, TAbstract>(
@@ -22,7 +23,8 @@ internal static class SafetyRefinementCore
                 matchesAbstract(concrete, abstraction),
             abstractView: abstractView == null
                 ? (Func<StateGraphNode, RefinementProofState, IState>)null
-                : (concrete, _) => abstractView(concrete));
+                : (concrete, _) => abstractView(concrete),
+            transitionMapping: transitionMapping);
 
     internal static RefinementCheckingResult Check<TConcrete, TAbstract>(
         StateGraphNode concreteRoot,
@@ -34,7 +36,8 @@ internal static class SafetyRefinementCore
             StateGraphEdge,
             IReadOnlyList<RefinementProofState>> advance,
         Func<StateGraphNode, RefinementProofState, StateGraphNode, bool> matchesAbstract,
-        Func<StateGraphNode, RefinementProofState, IState> abstractView)
+        Func<StateGraphNode, RefinementProofState, IState> abstractView,
+        TransitionMapping transitionMapping)
         where TConcrete : IState
         where TAbstract : IState
     {
@@ -124,6 +127,10 @@ internal static class SafetyRefinementCore
             foreach (var concreteEdge in concreteEdges)
             {
                 ValidateConcreteState<TConcrete>(concreteEdge.Target);
+                var declared = transitionMapping?.Declared(
+                    current.ConcreteNode,
+                    current.ProofState,
+                    concreteEdge);
                 var nextProofStates = advance(
                     current.ProofState,
                     current.ConcreteNode,
@@ -143,7 +150,11 @@ internal static class SafetyRefinementCore
                         if (MatchesAbstract(
                             concreteEdge.Target,
                             nextProofState,
-                            abstractCandidate))
+                            abstractCandidate) &&
+                            TransitionMapping.Admits(
+                                declared,
+                                abstractCandidate,
+                                abstractEdge: null))
                         {
                             nextCandidates[abstractCandidate.GetNodeFingerprint()] =
                                 abstractCandidate;
@@ -161,7 +172,11 @@ internal static class SafetyRefinementCore
                             if (MatchesAbstract(
                                 concreteEdge.Target,
                                 nextProofState,
-                                abstractEdge.Target))
+                                abstractEdge.Target) &&
+                                TransitionMapping.Admits(
+                                    declared,
+                                    abstractCandidate,
+                                    abstractEdge))
                             {
                                 nextCandidates[abstractEdge.Target.GetNodeFingerprint()] =
                                     abstractEdge.Target;
@@ -169,6 +184,7 @@ internal static class SafetyRefinementCore
                         }
                     }
 
+                    transitionMapping?.Validate(current.ProofState);
                     var orderedCandidates = nextCandidates.Values
                         .OrderBy(
                             candidate => candidate.GetNodeFingerprint(),
@@ -183,7 +199,8 @@ internal static class SafetyRefinementCore
                         concreteEdge,
                         abstractView?.Invoke(
                             concreteEdge.Target,
-                            nextProofState));
+                            nextProofState),
+                        declared);
 
                     if (orderedCandidates.Length == 0)
                     {
@@ -191,6 +208,15 @@ internal static class SafetyRefinementCore
                         {
                             RecordUncertainty(next);
                             continue;
+                        }
+
+                        if (declared != null)
+                        {
+                            next.StateConsistentResponses = StateConsistentResponses(
+                                current.AbstractCandidates,
+                                concreteEdge.Target,
+                                nextProofState,
+                                MatchesAbstract);
                         }
 
                         return RefinementCheckingResult.Failure(
@@ -243,6 +269,31 @@ internal static class SafetyRefinementCore
             $"{typeof(TAbstract).FullName}.");
     }
 
+    private static IReadOnlyList<AbstractTransition> StateConsistentResponses(
+        IReadOnlyList<StateGraphNode> abstractCandidates,
+        StateGraphNode concreteTarget,
+        RefinementProofState proofState,
+        Func<StateGraphNode, RefinementProofState, StateGraphNode, bool> matchesAbstract)
+    {
+        var responses = new List<AbstractTransition>();
+        foreach (var candidate in abstractCandidates)
+        {
+            if (matchesAbstract(concreteTarget, proofState, candidate))
+            {
+                responses.Add(TransitionMapping.View(candidate, abstractEdge: null));
+            }
+
+            foreach (var abstractEdge in candidate.Edges)
+            {
+                if (matchesAbstract(concreteTarget, proofState, abstractEdge.Target))
+                {
+                    responses.Add(TransitionMapping.View(candidate, abstractEdge));
+                }
+            }
+        }
+        return responses;
+    }
+
     private static string MakeSearchKey(
         StateGraphNode concreteNode,
         RefinementProofState proofState,
@@ -271,7 +322,9 @@ internal static class SafetyRefinementCore
                 node.MappedAbstractState,
                 node.AbstractCandidates,
                 auxiliaryState: node.ProofState.AuxiliaryState,
-                witnesses: node.ProofState.Witnesses));
+                witnesses: node.ProofState.Witnesses,
+                declaredAbstractResponse: node.DeclaredResponse,
+                stateConsistentAbstractTransitions: node.StateConsistentResponses));
         }
         reversed.Reverse();
         return reversed;
@@ -286,7 +339,8 @@ internal static class SafetyRefinementCore
             bool hasUnknownAbstractAlternative,
             SearchNode parent,
             StateGraphEdge incomingEdge,
-            IState mappedAbstractState)
+            IState mappedAbstractState,
+            AbstractResponse declaredResponse = null)
         {
             ConcreteNode = concreteNode;
             ProofState = proofState;
@@ -295,6 +349,7 @@ internal static class SafetyRefinementCore
             Parent = parent;
             IncomingEdge = incomingEdge;
             MappedAbstractState = mappedAbstractState;
+            DeclaredResponse = declaredResponse;
             Depth = parent == null ? 0 : parent.Depth + 1;
         }
 
@@ -305,6 +360,8 @@ internal static class SafetyRefinementCore
         public SearchNode Parent { get; }
         public StateGraphEdge IncomingEdge { get; }
         public IState MappedAbstractState { get; }
+        public AbstractResponse DeclaredResponse { get; }
+        public IReadOnlyList<AbstractTransition> StateConsistentResponses { get; set; }
         public int Depth { get; }
     }
 }

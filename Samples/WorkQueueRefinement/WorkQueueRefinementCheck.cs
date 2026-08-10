@@ -46,10 +46,15 @@ public static class WorkQueueRefinementCheck
             LedgerOptions ledgerOptions = null,
             Func<ClaimHistory, RefinementTransition<QueueState>, ClaimHistory> augment = null,
             Func<PendingWitnesses, RefinementTransition<QueueState>, WitnessChanges> lifecycle = null,
-            Func<QueueState, ClaimHistory, WitnessCollection, LedgerState> mapping = null)
+            Func<QueueState, ClaimHistory, WitnessCollection, LedgerState> mapping = null,
+            Func<
+                RefinementTransition<QueueState>,
+                ClaimHistory,
+                WitnessCollection,
+                AbstractResponse> transitionMapping = null)
     {
         config ??= WorkQueueConfig.Default;
-        return Refinement
+        var check = Refinement
             .Between<QueueState, LedgerState>(
                 WorkQueue.Explore(config),
                 Ledger.Explore(config, ledgerOptions))
@@ -60,6 +65,9 @@ public static class WorkQueueRefinementCheck
                 initial: _ => WitnessChanges.None,
                 next: lifecycle ?? TrackOutcomes)
             .Map(mapping ?? MapToLedger);
+        return transitionMapping == null
+            ? check
+            : check.MapTransition(transitionMapping);
     }
 
     /// <summary>
@@ -102,6 +110,106 @@ public static class WorkQueueRefinementCheck
             .Map((queue, witnesses) =>
                 MapOwnerFromCurrentHolder(queue, noHistory, witnesses));
     }
+
+    // ---------------------------------------------------------------
+    // The transition mapping: which ledger action a queue transition is.
+    //
+    // The state mapping decides the ledger *state*; this decides which of
+    // the state-consistent ledger responses the transition represents. It can
+    // only narrow that set, so it never lets a wrong ledger state through.
+    //
+    // Two branches read the claim history rather than the transition alone,
+    // because the concrete step cannot say whether the entry was ever
+    // assigned: a queue entry is Ready both before its first lease and
+    // between retries, and the ledger phase differs in the two cases.
+    // ---------------------------------------------------------------
+
+    /// <summary>
+    /// Declares the ledger action behind every queue transition that has more
+    /// than one state-consistent response.
+    /// </summary>
+    public static Func<
+        RefinementTransition<QueueState>,
+        ClaimHistory,
+        WitnessCollection,
+        AbstractResponse> LedgerActions(LedgerOptions options = null)
+    {
+        options ??= LedgerOptions.Default;
+        return (transition, history, _) => transition.StepFunction switch
+        {
+            // The first lease is the assignment the ledger commits at. A
+            // retry lease finds the entry already assigned and changes
+            // nothing the client can see.
+            LeaseStep lease => history.FirstOwner[lease.Task] == Ledger.NoOwner
+                ? AbstractResponse.Step<LedgerAcceptStep>()
+                : AbstractResponse.Stutter,
+
+            // An expiring lease and an arriving cancellation request are
+            // invisible to the ledger.
+            ExpireLeaseStep => AbstractResponse.Stutter,
+            RequestCancelStep => AbstractResponse.Stutter,
+
+            // A failure inside the retry budget spends an attempt without
+            // closing the entry; the final failure settles it.
+            FailStep fail =>
+                transition.Target.Phases[fail.Task] == TaskPhase.Dropped
+                    ? AbstractResponse.Step<LedgerSettleStep>()
+                    : RecordedAttempt(options, fail.Task),
+
+            // A worker finishing an attempt closes the entry, including when
+            // it honors a cancellation. This is the branch the
+            // close-cancelled ledger makes ambiguous.
+            CompleteStep => AbstractResponse.Step<LedgerSettleStep>(),
+            ObserveCancelStep => AbstractResponse.Step<LedgerSettleStep>(),
+
+            // The queue closing an unleased entry is a different ledger
+            // action depending on whether the entry was ever assigned.
+            CancelReadyStep cancelReady =>
+                history.FirstOwner[cancelReady.Task] == Ledger.NoOwner
+                    ? AbstractResponse.Step<LedgerCancelUnassignedStep>()
+                    : options.IncludeCloseCancelled
+                        ? AbstractResponse.Step<LedgerCloseCancelledStep>()
+                        : AbstractResponse.Step<LedgerSettleStep>(),
+
+            PurgeStep => AbstractResponse.Step<LedgerPurgeStep>(),
+
+            _ => AbstractResponse.Unconstrained
+        };
+    }
+
+    /// <summary>
+    /// A deliberately over-constrained transition mapping: it claims every
+    /// queue transition leaves the ledger alone.
+    /// </summary>
+    public static AbstractResponse AlwaysStutter(
+        RefinementTransition<QueueState> transition,
+        ClaimHistory history,
+        WitnessCollection witnesses)
+        => AbstractResponse.Stutter;
+
+    /// <summary>
+    /// A deliberately wrong transition mapping: it settles a cancelled entry
+    /// with the ledger action reserved for entries nobody ever accepted.
+    /// </summary>
+    public static AbstractResponse SettleCancelledAsUnassigned(
+        RefinementTransition<QueueState> transition,
+        ClaimHistory history,
+        WitnessCollection witnesses)
+        => transition.StepFunction is ObserveCancelStep
+            ? AbstractResponse.Step<LedgerCancelUnassignedStep>()
+            : AbstractResponse.Unconstrained;
+
+    /// <summary>
+    /// The state-neutral ledger action, named per entry so two assigned
+    /// entries do not offer the same response.
+    /// </summary>
+    private static AbstractResponse RecordedAttempt(
+        LedgerOptions options,
+        int task)
+        => options.IncludeRecordAttempt
+            ? AbstractResponse.Step(step =>
+                step is LedgerRecordAttemptStep record && record.Task == task)
+            : AbstractResponse.Stutter;
 
     // ---------------------------------------------------------------
     // Augmentation: determined by the concrete past.
