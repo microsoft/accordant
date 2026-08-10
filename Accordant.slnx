@@ -6,6 +6,7 @@
     <Project Path="Tests/Accordant.Tests/Accordant.Tests.csproj" />
   </Folder>
   <Folder Name="/Samples/">
+    <Project Path="Samples/AugmentedRefinement/AugmentedRefinement.csproj" />
     <Project Path="Samples/BankAccount/BankAccount.Api/BankAccount.Api.csproj" />
     <Project Path="Samples/BankAccount/BankAccount.Api.Tests/BankAccount.Api.Tests.csproj" />
     <Project Path="Samples/Booking/Booking.Api/Booking.Api.csproj" />

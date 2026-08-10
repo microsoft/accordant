@@ -53,7 +53,8 @@ public sealed class RefinementTraceItem
         object concreteEdgeMetadata,
         IState mappedAbstractState,
         IReadOnlyList<StateGraphNode> abstractCandidates,
-        bool isInCycle = false)
+        bool isInCycle = false,
+        State auxiliaryState = null)
     {
         ConcreteNode = concreteNode;
         ConcreteStepFunction = concreteStepFunction;
@@ -61,6 +62,7 @@ public sealed class RefinementTraceItem
         MappedAbstractState = mappedAbstractState;
         AbstractCandidates = abstractCandidates;
         IsInCycle = isInCycle;
+        AuxiliaryState = auxiliaryState;
     }
 
     /// <summary>The concrete graph node at this trace position.</summary>
@@ -89,6 +91,12 @@ public sealed class RefinementTraceItem
     /// counterexample.
     /// </summary>
     public bool IsInCycle { get; }
+
+    /// <summary>
+    /// Deterministic checker-local augmentation state at this position, or
+    /// null when the refinement check is not augmented.
+    /// </summary>
+    public State AuxiliaryState { get; }
 }
 
 /// <summary>
@@ -192,6 +200,11 @@ public sealed class RefinementCheckingResult
             {
                 sb.Append("; mapped abstract ")
                     .Append(item.MappedAbstractState);
+            }
+            if (item.AuxiliaryState != null)
+            {
+                sb.Append("; auxiliary ")
+                    .Append(item.AuxiliaryState);
             }
             sb.Append("; candidates ")
                 .Append(item.AbstractCandidates.Count);

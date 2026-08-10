@@ -74,6 +74,199 @@ public sealed class RefinementBuilder<TConcrete, TAbstract>
             concreteRoot,
             abstractRoot,
             correspondence ?? throw new ArgumentNullException(nameof(correspondence)));
+
+    /// <summary>
+    /// Adds deterministic checker-local state derived from the concrete
+    /// execution prefix.
+    /// </summary>
+    public AugmentedRefinementBuilder<TConcrete, TAbstract, TAuxiliary>
+        Augment<TAuxiliary>(
+            Func<TConcrete, TAuxiliary> initial,
+            Func<TAuxiliary, RefinementTransition<TConcrete>, TAuxiliary> next)
+        where TAuxiliary : State
+        => new AugmentedRefinementBuilder<
+            TConcrete,
+            TAbstract,
+            TAuxiliary>(
+                concreteRoot,
+                abstractRoot,
+                initial ?? throw new ArgumentNullException(nameof(initial)),
+                next ?? throw new ArgumentNullException(nameof(next)));
+}
+
+/// <summary>
+/// Defines refinement using deterministic checker-local augmentation state.
+/// </summary>
+public sealed class AugmentedRefinementBuilder<
+    TConcrete,
+    TAbstract,
+    TAuxiliary>
+    where TConcrete : IState
+    where TAbstract : IState
+    where TAuxiliary : State
+{
+    private readonly StateGraphNode concreteRoot;
+    private readonly StateGraphNode abstractRoot;
+    private readonly Func<TConcrete, TAuxiliary> initial;
+    private readonly Func<
+        TAuxiliary,
+        RefinementTransition<TConcrete>,
+        TAuxiliary> next;
+
+    internal AugmentedRefinementBuilder(
+        StateGraphNode concreteRoot,
+        StateGraphNode abstractRoot,
+        Func<TConcrete, TAuxiliary> initial,
+        Func<TAuxiliary, RefinementTransition<TConcrete>, TAuxiliary> next)
+    {
+        this.concreteRoot = concreteRoot;
+        this.abstractRoot = abstractRoot;
+        this.initial = initial;
+        this.next = next;
+    }
+
+    /// <summary>
+    /// Defines a functional abstract-state mapping that can read the current
+    /// concrete and augmentation states.
+    /// </summary>
+    public AugmentedFunctionalRefinementCheck<
+        TConcrete,
+        TAbstract,
+        TAuxiliary> Map(
+            Func<TConcrete, TAuxiliary, TAbstract> mapping)
+        => new AugmentedFunctionalRefinementCheck<
+            TConcrete,
+            TAbstract,
+            TAuxiliary>(
+                concreteRoot,
+                abstractRoot,
+                initial,
+                next,
+                mapping ?? throw new ArgumentNullException(nameof(mapping)));
+
+    /// <summary>
+    /// Defines a relational correspondence that can read the current
+    /// concrete and augmentation states.
+    /// </summary>
+    public AugmentedRelationalRefinementCheck<
+        TConcrete,
+        TAbstract,
+        TAuxiliary> Corresponds(
+            Func<TConcrete, TAuxiliary, TAbstract, bool> correspondence)
+        => new AugmentedRelationalRefinementCheck<
+            TConcrete,
+            TAbstract,
+            TAuxiliary>(
+                concreteRoot,
+                abstractRoot,
+                initial,
+                next,
+                correspondence ?? throw new ArgumentNullException(
+                    nameof(correspondence)));
+}
+
+/// <summary>
+/// A configured augmented functional refinement check.
+/// </summary>
+public sealed class AugmentedFunctionalRefinementCheck<
+    TConcrete,
+    TAbstract,
+    TAuxiliary>
+    where TConcrete : IState
+    where TAbstract : IState
+    where TAuxiliary : State
+{
+    private readonly StateGraphNode concreteRoot;
+    private readonly StateGraphNode abstractRoot;
+    private readonly Func<TConcrete, TAuxiliary> initial;
+    private readonly Func<
+        TAuxiliary,
+        RefinementTransition<TConcrete>,
+        TAuxiliary> next;
+    private readonly Func<TConcrete, TAuxiliary, TAbstract> mapping;
+
+    internal AugmentedFunctionalRefinementCheck(
+        StateGraphNode concreteRoot,
+        StateGraphNode abstractRoot,
+        Func<TConcrete, TAuxiliary> initial,
+        Func<TAuxiliary, RefinementTransition<TConcrete>, TAuxiliary> next,
+        Func<TConcrete, TAuxiliary, TAbstract> mapping)
+    {
+        this.concreteRoot = concreteRoot;
+        this.abstractRoot = abstractRoot;
+        this.initial = initial;
+        this.next = next;
+        this.mapping = mapping;
+    }
+
+    /// <summary>Checks augmented functional safety refinement.</summary>
+    public RefinementCheckingResult Check()
+        => AugmentedSafetyRefinement.CheckFunctional(
+            concreteRoot,
+            abstractRoot,
+            initial,
+            next,
+            mapping);
+
+    /// <summary>
+    /// Checks augmented functional temporal refinement under concrete and
+    /// abstract fairness.
+    /// </summary>
+    public RefinementCheckingResult CheckTemporal(
+        Fairness concreteFairness = null,
+        Fairness abstractFairness = null)
+        => FunctionalTemporalRefinement.CheckAugmented(
+            concreteRoot,
+            abstractRoot,
+            initial,
+            next,
+            mapping,
+            concreteFairness,
+            abstractFairness);
+}
+
+/// <summary>
+/// A configured augmented relational safety-refinement check.
+/// </summary>
+public sealed class AugmentedRelationalRefinementCheck<
+    TConcrete,
+    TAbstract,
+    TAuxiliary>
+    where TConcrete : IState
+    where TAbstract : IState
+    where TAuxiliary : State
+{
+    private readonly StateGraphNode concreteRoot;
+    private readonly StateGraphNode abstractRoot;
+    private readonly Func<TConcrete, TAuxiliary> initial;
+    private readonly Func<
+        TAuxiliary,
+        RefinementTransition<TConcrete>,
+        TAuxiliary> next;
+    private readonly Func<TConcrete, TAuxiliary, TAbstract, bool> correspondence;
+
+    internal AugmentedRelationalRefinementCheck(
+        StateGraphNode concreteRoot,
+        StateGraphNode abstractRoot,
+        Func<TConcrete, TAuxiliary> initial,
+        Func<TAuxiliary, RefinementTransition<TConcrete>, TAuxiliary> next,
+        Func<TConcrete, TAuxiliary, TAbstract, bool> correspondence)
+    {
+        this.concreteRoot = concreteRoot;
+        this.abstractRoot = abstractRoot;
+        this.initial = initial;
+        this.next = next;
+        this.correspondence = correspondence;
+    }
+
+    /// <summary>Checks augmented relational safety refinement.</summary>
+    public RefinementCheckingResult Check()
+        => AugmentedSafetyRefinement.CheckRelational(
+            concreteRoot,
+            abstractRoot,
+            initial,
+            next,
+            correspondence);
 }
 
 /// <summary>

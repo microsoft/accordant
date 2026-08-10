@@ -204,6 +204,73 @@ multiple responses, `AmbiguousTemporalRefinementException` reports that the
 general omega-language inclusion engine is required. The checker never
 silently chooses one response and risks a wrong verdict.
 
+## Add deterministic checker-local state
+
+Use `.Augment(...)` when refinement needs finite information derived from the
+concrete execution prefix but intentionally absent from the concrete model:
+
+```csharp
+var result = Refinement
+    .Between<ConcreteResource, AbstractResource>(
+        concreteRoot,
+        abstractRoot)
+    .Augment(
+        initial: _ => new OwnershipAuxiliary { Owner = "none" },
+        next: (auxiliary, transition) =>
+        {
+            var owner = transition.StepFunction is ClaimConcrete claim
+                ? claim.Owner
+                : auxiliary.Owner;
+            return new OwnershipAuxiliary { Owner = owner };
+        })
+    .Map((concrete, auxiliary) => new AbstractResource
+    {
+        Stage = MapStage(concrete.Stage),
+        Owner = auxiliary.Owner
+    })
+    .Check();
+```
+
+The augmentation value is checker-local. It does not add fields to the
+concrete model, change enabled steps, add transitions, or remove concrete
+behaviors. Every concrete path has exactly one augmentation path:
+
+```text
+concrete:      Unclaimed --claim-bob--> Active -> Completed
+augmentation: none      --claim-bob--> bob    -> bob
+```
+
+The
+[`Samples/AugmentedRefinement`](../../Samples/AugmentedRefinement/)
+sample shows why the augmentation participates in search identity. Claims by
+Alice and Bob reach the same concrete `Active` graph node, but the checker
+retains separate `(Active, alice)` and `(Active, bob)` refinement
+configurations.
+
+Augmentation state must derive from `State`. Accordant freezes each initial
+and successor value, uses its semantic state hash in graph identity, and
+checks that mapping, correspondence, and update callbacks do not mutate it.
+The update receives a `RefinementTransition<TConcrete>` containing the source,
+step function, edge metadata, and target.
+
+Augmentation works with functional safety, relational safety, and functional
+temporal checks:
+
+```csharp
+.Augment(...)
+.Corresponds((concrete, auxiliary, abstraction) => ...)
+.Check();
+
+.Augment(...)
+.Map((concrete, auxiliary) => ...)
+.CheckTemporal(concreteFairness, abstractFairness);
+```
+
+This mechanism covers history variables, counters, remembered actions,
+accumulated flags or sets, and deterministic monitor state. It cannot predict
+the future or branch existentially; witness or prophecy support is a separate
+future mode.
+
 ## Bounded graphs
 
 A genuine terminal state is complete and does not make safety refinement

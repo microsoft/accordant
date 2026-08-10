@@ -14,26 +14,82 @@ internal static class FunctionalTemporalRefinement
         Fairness abstractFairness)
         where TConcrete : IState
         where TAbstract : IState
+        => CheckCore<TConcrete, TAbstract>(
+            concreteRoot,
+            abstractRoot,
+            initialAuxiliaryState: null,
+            advanceAuxiliaryState: (_, _, _) => null,
+            auxiliaryIdentity: _ => string.Empty,
+            mapping: (concrete, _) => mapping(
+                GetConcrete<TConcrete>(concrete)),
+            includeAuxiliaryInTrace: false,
+            concreteFairness,
+            abstractFairness);
+
+    internal static RefinementCheckingResult CheckAugmented<
+        TConcrete,
+        TAbstract,
+        TAuxiliary>(
+        StateGraphNode concreteRoot,
+        StateGraphNode abstractRoot,
+        Func<TConcrete, TAuxiliary> initial,
+        Func<TAuxiliary, RefinementTransition<TConcrete>, TAuxiliary> next,
+        Func<TConcrete, TAuxiliary, TAbstract> mapping,
+        Fairness concreteFairness,
+        Fairness abstractFairness)
+        where TConcrete : IState
+        where TAbstract : IState
+        where TAuxiliary : State
+    {
+        var runtime = new AugmentationRuntime<TConcrete, TAuxiliary>(
+            concreteRoot,
+            initial,
+            next);
+        return CheckCore<TConcrete, TAbstract>(
+            concreteRoot,
+            abstractRoot,
+            runtime.InitialState,
+            runtime.Advance,
+            runtime.GetIdentity,
+            (concrete, auxiliary) =>
+            {
+                var mapped = mapping(
+                    GetConcrete<TConcrete>(concrete),
+                    runtime.GetValue(auxiliary));
+                runtime.Validate(auxiliary);
+                return mapped;
+            },
+            includeAuxiliaryInTrace: true,
+            concreteFairness,
+            abstractFairness);
+    }
+
+    private static RefinementCheckingResult CheckCore<TConcrete, TAbstract>(
+        StateGraphNode concreteRoot,
+        StateGraphNode abstractRoot,
+        object initialAuxiliaryState,
+        Func<object, StateGraphNode, StateGraphEdge, object> advanceAuxiliaryState,
+        Func<object, string> auxiliaryIdentity,
+        Func<StateGraphNode, object, TAbstract> mapping,
+        bool includeAuxiliaryInTrace,
+        Fairness concreteFairness,
+        Fairness abstractFairness)
+        where TConcrete : IState
+        where TAbstract : IState
     {
         concreteFairness ??= Fairness.None;
         abstractFairness ??= Fairness.None;
 
         var mappedStates = new Dictionary<string, TAbstract>(StringComparer.Ordinal);
 
-        TAbstract Map(StateGraphNode concrete)
+        TAbstract Map(StateGraphNode concrete, object auxiliaryState)
         {
-            if (!(concrete.State is TConcrete state))
-            {
-                throw new InvalidOperationException(
-                    $"Concrete graph node state " +
-                    $"'{concrete.State?.GetType().FullName}' is not a " +
-                    $"{typeof(TConcrete).FullName}.");
-            }
-
-            var key = concrete.GetNodeFingerprint();
+            GetConcrete<TConcrete>(concrete);
+            var key = concrete.GetNodeFingerprint() + "|" +
+                auxiliaryIdentity(auxiliaryState);
             if (!mappedStates.TryGetValue(key, out var mapped))
             {
-                mapped = mapping(state);
+                mapped = mapping(concrete, auxiliaryState);
                 if (mapped == null)
                 {
                     throw new InvalidOperationException(
@@ -45,13 +101,16 @@ internal static class FunctionalTemporalRefinement
         }
 
         ValidateAbstract<TAbstract>(abstractRoot);
-        var mappedRoot = Map(concreteRoot);
+        var mappedRoot = Map(concreteRoot, initialAuxiliaryState);
         var initialMismatch =
             !StateSemantics.Equal(mappedRoot, abstractRoot.State);
 
         var graph = BuildAlignedGraph<TConcrete, TAbstract>(
             concreteRoot,
             initialMismatch ? null : abstractRoot,
+            initialAuxiliaryState,
+            advanceAuxiliaryState,
+            auxiliaryIdentity,
             Map);
 
         var mismatchCycle = FindConcreteFairCycle(
@@ -67,7 +126,8 @@ internal static class FunctionalTemporalRefinement
                     : RefinementFailureKind.TransitionMismatch,
                 BuildTrace(
                     mismatchCycle,
-                    edge => edge.Target.AbstractNode == null));
+                    edge => edge.Target.AbstractNode == null,
+                    includeAuxiliaryInTrace));
         }
 
         foreach (var obligation in GetObligations(graph.Nodes, abstractFairness))
@@ -101,21 +161,29 @@ internal static class FunctionalTemporalRefinement
                 {
                     return RefinementCheckingResult.Failure(
                         RefinementFailureKind.TemporalFairnessMismatch,
-                        BuildTrace(fairCycle, EdgeAllowed));
+                        BuildTrace(
+                            fairCycle,
+                            EdgeAllowed,
+                            includeAuxiliaryInTrace));
                 }
             }
         }
 
         return graph.ReachedDepthFrontier
             ? RefinementCheckingResult.Inconclusive(
-                BuildFrontierTrace(graph.FirstFrontier))
+                BuildFrontierTrace(
+                    graph.FirstFrontier,
+                    includeAuxiliaryInTrace))
             : RefinementCheckingResult.Success();
     }
 
     private static AlignedGraph BuildAlignedGraph<TConcrete, TAbstract>(
         StateGraphNode concreteRoot,
         StateGraphNode abstractRoot,
-        Func<StateGraphNode, TAbstract> map)
+        object initialAuxiliaryState,
+        Func<object, StateGraphNode, StateGraphEdge, object> advanceAuxiliaryState,
+        Func<object, string> auxiliaryIdentity,
+        Func<StateGraphNode, object, TAbstract> map)
         where TConcrete : IState
         where TAbstract : IState
     {
@@ -127,11 +195,13 @@ internal static class FunctionalTemporalRefinement
             StateGraphNode concrete,
             StateGraphNode abstraction,
             IState mappedAbstractState,
+            object auxiliaryState,
             bool hasUnknown,
             ProductNode parent,
             ProductEdge incoming)
         {
             var key = concrete.GetNodeFingerprint() + "|" +
+                auxiliaryIdentity(auxiliaryState) + "|" +
                 (abstraction?.GetNodeFingerprint() ?? "<mismatch>") + "|" +
                 (hasUnknown ? "unknown" : "known");
             if (!nodes.TryGetValue(key, out var node))
@@ -140,6 +210,7 @@ internal static class FunctionalTemporalRefinement
                     concrete,
                     abstraction,
                     mappedAbstractState,
+                    auxiliaryState,
                     hasUnknown,
                     parent,
                     incoming);
@@ -153,7 +224,8 @@ internal static class FunctionalTemporalRefinement
         var root = GetOrCreate(
             concreteRoot,
             abstractRoot,
-            map(concreteRoot),
+            map(concreteRoot, initialAuxiliaryState),
+            initialAuxiliaryState,
             rootUnknown,
             parent: null,
             incoming: null);
@@ -181,7 +253,16 @@ internal static class FunctionalTemporalRefinement
             {
                 ProductNode target;
                 StateGraphEdge abstractEdge = null;
-                var mappedTarget = map(concreteEdge.Target);
+                var nextAuxiliaryState =
+                    concreteEdge.StepFunction == RefinementStutterStep.Instance
+                        ? current.AuxiliaryState
+                        : advanceAuxiliaryState(
+                            current.AuxiliaryState,
+                            current.ConcreteNode,
+                            concreteEdge);
+                var mappedTarget = map(
+                    concreteEdge.Target,
+                    nextAuxiliaryState);
 
                 if (current.AbstractNode == null)
                 {
@@ -189,6 +270,7 @@ internal static class FunctionalTemporalRefinement
                         concreteEdge.Target,
                         abstraction: null,
                         mappedTarget,
+                        nextAuxiliaryState,
                         current.HasUnknownAbstractAlternative,
                         current,
                         incoming: null);
@@ -230,6 +312,7 @@ internal static class FunctionalTemporalRefinement
                             concreteEdge.Target,
                             abstraction: null,
                             mappedTarget,
+                            nextAuxiliaryState,
                             hasUnknown: false,
                             current,
                             incoming: null);
@@ -243,6 +326,7 @@ internal static class FunctionalTemporalRefinement
                             concreteEdge.Target,
                             abstractTarget,
                             mappedTarget,
+                            nextAuxiliaryState,
                             unknown,
                             current,
                             incoming: null);
@@ -540,7 +624,8 @@ internal static class FunctionalTemporalRefinement
 
     private static IReadOnlyList<RefinementTraceItem> BuildTrace(
         IReadOnlyList<ProductNode> cycle,
-        Func<ProductEdge, bool> edgeAllowed)
+        Func<ProductEdge, bool> edgeAllowed,
+        bool includeAuxiliaryInTrace)
     {
         var cycleSet = new HashSet<ProductNode>(cycle);
         var entry = cycle[0];
@@ -561,14 +646,16 @@ internal static class FunctionalTemporalRefinement
             result.Add(ToTraceItem(
                 node,
                 node == entry,
-                node.IncomingEdge));
+                node.IncomingEdge,
+                includeAuxiliaryInTrace));
         }
         foreach (var edge in cycleEdges)
         {
             result.Add(ToTraceItem(
                 edge.Target,
                 isInCycle: true,
-                edge));
+                edge,
+                includeAuxiliaryInTrace));
         }
         return result;
     }
@@ -652,7 +739,8 @@ internal static class FunctionalTemporalRefinement
     }
 
     private static IReadOnlyList<RefinementTraceItem> BuildFrontierTrace(
-        ProductNode frontier)
+        ProductNode frontier,
+        bool includeAuxiliaryInTrace)
     {
         if (frontier == null)
         {
@@ -665,7 +753,8 @@ internal static class FunctionalTemporalRefinement
             reversed.Add(ToTraceItem(
                 node,
                 isInCycle: false,
-                node.IncomingEdge));
+                node.IncomingEdge,
+                includeAuxiliaryInTrace));
         }
         reversed.Reverse();
         return reversed;
@@ -674,7 +763,8 @@ internal static class FunctionalTemporalRefinement
     private static RefinementTraceItem ToTraceItem(
         ProductNode node,
         bool isInCycle,
-        ProductEdge incoming)
+        ProductEdge incoming,
+        bool includeAuxiliaryInTrace)
         => new RefinementTraceItem(
             node.ConcreteNode,
             incoming?.ConcreteEdge.StepFunction,
@@ -683,7 +773,23 @@ internal static class FunctionalTemporalRefinement
             node.AbstractNode == null
                 ? Array.Empty<StateGraphNode>()
                 : new[] { node.AbstractNode },
-            isInCycle);
+            isInCycle,
+            auxiliaryState: includeAuxiliaryInTrace
+                ? (State)node.AuxiliaryState
+                : null);
+
+    private static TConcrete GetConcrete<TConcrete>(StateGraphNode node)
+        where TConcrete : IState
+    {
+        if (node.State is TConcrete concrete)
+        {
+            return concrete;
+        }
+
+        throw new InvalidOperationException(
+            $"Concrete graph node state '{node.State?.GetType().FullName}' " +
+            $"is not a {typeof(TConcrete).FullName}.");
+    }
 
     private static void ValidateAbstract<TAbstract>(StateGraphNode node)
         where TAbstract : IState
@@ -719,6 +825,7 @@ internal static class FunctionalTemporalRefinement
             StateGraphNode concreteNode,
             StateGraphNode abstractNode,
             IState mappedAbstractState,
+            object auxiliaryState,
             bool hasUnknownAbstractAlternative,
             ProductNode parent,
             ProductEdge incomingEdge)
@@ -726,6 +833,7 @@ internal static class FunctionalTemporalRefinement
             ConcreteNode = concreteNode;
             AbstractNode = abstractNode;
             MappedAbstractState = mappedAbstractState;
+            AuxiliaryState = auxiliaryState;
             HasUnknownAbstractAlternative = hasUnknownAbstractAlternative;
             Parent = parent;
             IncomingEdge = incomingEdge;
@@ -734,6 +842,7 @@ internal static class FunctionalTemporalRefinement
         public StateGraphNode ConcreteNode { get; }
         public StateGraphNode AbstractNode { get; }
         public IState MappedAbstractState { get; }
+        public object AuxiliaryState { get; }
         public bool HasUnknownAbstractAlternative { get; }
         public List<ProductEdge> Edges { get; } = new List<ProductEdge>();
         public ProductNode Parent { get; set; }
