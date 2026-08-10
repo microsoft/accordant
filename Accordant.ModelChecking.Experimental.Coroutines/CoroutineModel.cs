@@ -616,6 +616,12 @@ public readonly struct ModelAwaiter<TValue> : ICriticalNotifyCompletion, IModelA
 /// Read and Loop checkpoints are internal deterministic discovery; Choose and
 /// Step become ordinary visible graph transitions.
 /// </summary>
+/// <remarks>
+/// This is a prototype and is deliberately not promoted out of the
+/// Experimental namespace: it is unpackaged and carries no compatibility
+/// promise. See docs/concepts/model-checking-frontends.md for the decision,
+/// the soundness evidence, and the migration boundary.
+/// </remarks>
 public static class CoroutineModel
 {
     /// <summary>

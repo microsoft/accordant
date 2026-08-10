@@ -12,7 +12,7 @@ Complete working examples demonstrating Accordant features.
 | [JobQueue](https://github.com/microsoft/accordant/tree/main/Samples/JobQueue) | Demonstrates async operations with step functions, polling for completion, and server-generated result paths. |
 | [WorkQueueRefinement](https://github.com/microsoft/accordant/tree/main/Samples/WorkQueueRefinement) | A leased work queue with competing workers, retries, cancellation and purging, refined against a client ledger. Combines `.Augment(...)`, `.WithWitness(...)`, `.Map(...)` and `.MapTransition(...)`, and contrasts weak and strong fairness. See [Checking Refinement](how-to/checking-refinement.md). |
 | [OperationsModelChecking](https://github.com/microsoft/accordant/tree/main/Samples/OperationsModelChecking) | Compiles finite response-dependent `Operation` inputs to ordinary model-checking step functions, including `ENABLED`, fairness, and refinement. |
-| [CoroutineModelChecking](https://github.com/microsoft/accordant/tree/main/Samples/CoroutineModelChecking) | **Experimental:** compiles finite replayable `async ModelTask` workflows to ordinary model-checking graph steps, and measures the replay-safety boundary the runtime can and cannot enforce. |
+| [CoroutineModelChecking](https://github.com/microsoft/accordant/tree/main/Samples/CoroutineModelChecking) | **Experimental:** compiles finite replayable `async ModelTask` workflows to ordinary model-checking graph steps, and measures the replay-safety boundary the runtime can and cannot enforce. Not a supported API — see [Model-Checking Frontends](concepts/model-checking-frontends.md). |
 
 ## Running a Sample
 

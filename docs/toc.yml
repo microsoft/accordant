@@ -36,6 +36,8 @@
       href: concepts/conformance-testing.md
     - name: Models vs Fakes
       href: concepts/models-vs-fakes.md
+    - name: Model-Checking Frontends
+      href: concepts/model-checking-frontends.md
 - name: How-To Guides
   items:
     - name: Overview

@@ -4,6 +4,15 @@
 front-end that compiles an `async ModelTask` workflow into ordinary `IState`,
 `IStepFunction`, `StepResult`, and `StateGraph` objects.
 
+> **Status: prototype, not being promoted.** This API stays in the
+> `Experimental` namespace, is not packaged, and carries no compatibility
+> promise. The reasoning, the evidence behind it, and the migration boundary
+> are recorded in
+> [Model-Checking Frontends](../../docs/concepts/model-checking-frontends.md).
+> For concurrent or multi-process models, write hand-written step functions
+> with an explicit program counter, as `Samples/Peterson`,
+> `Samples/DiningPhilosophers`, and `Samples/Paxos` do.
+
 Run the executable studies with:
 
 ```powershell
@@ -215,7 +224,10 @@ These are **not** enforced. Treat them as review obligations.
 ## Analyzer feasibility
 
 Some of the limitations above are decidable in source, so a Roslyn analyzer is
-the right place for them. Nothing below is implemented yet.
+the right place for them. Nothing below is implemented yet, and these rules are
+now scoped as an experiment for a *generated* control-state frontend rather
+than as hardening for this replay runtime — see
+[Model-Checking Frontends](../../docs/concepts/model-checking-frontends.md).
 
 * **Foreign awaits (decidable).** In an `async ModelTask` method, require every
   `await` operand to be an invocation of `ModelContext<TState>.Read`, `Choose`,
