@@ -24,6 +24,7 @@
     <Project Path="Samples/TemporalRefinement/TemporalRefinement.csproj" />
     <Project Path="Samples/AlternatingBit/AlternatingBit.csproj" />
     <Project Path="Samples/OperationsModelChecking/OperationsModelChecking.csproj" />
+    <Project Path="Samples/CoroutineModelChecking/CoroutineModelChecking.csproj" />
     <Project Path="Samples/WitnessRefinement/WitnessRefinement.csproj" />
     <Project Path="Samples/WorkQueueRefinement/WorkQueueRefinement.csproj" />
   </Folder>
@@ -36,5 +37,6 @@
   <Project Path="Accordant/Accordant.csproj" />
   <Project Path="Accordant.ModelChecking/Accordant.ModelChecking.csproj" />
   <Project Path="Accordant.ModelChecking.Operations/Accordant.ModelChecking.Operations.csproj" />
+  <Project Path="Accordant.ModelChecking.Experimental.Coroutines/Accordant.ModelChecking.Experimental.Coroutines.csproj" />
   <Project Path="Accordant.ModelChecking.Bdd/Accordant.ModelChecking.Bdd.csproj" />
 </Solution>
