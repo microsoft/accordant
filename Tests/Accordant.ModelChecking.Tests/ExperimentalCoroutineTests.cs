@@ -6,6 +6,7 @@ namespace Accordant.ModelChecking.Tests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Accordant;
 using Microsoft.Accordant.ModelChecking;
@@ -327,7 +328,403 @@ public class ExperimentalCoroutineTests
         var external = Assert.Throws<ModelDefinitionException>(
             () => CoroutineModel.Explore("external", new CounterState(), ExternalAwait));
         Assert.That(external.Message, Does.Contain("only supports incomplete awaits"));
+        Assert.That(external.Message, Does.Contain("YieldAwaitable"));
     }
+
+    [Test]
+    public void ForeignAwaitsThatCompleteSynchronouslyAreNotRejectedByTheRuntime()
+    {
+        async ModelTask CompletedForeignAwait(ModelContext<CounterState> context)
+        {
+            await Task.CompletedTask;
+            await context.Step("tick", state => state.Count++);
+        }
+
+        // Documents a runtime limitation, not an endorsement: the compiler resumes a
+        // synchronously completed awaiter inline, so ModelTaskMethodBuilder never sees
+        // it and cannot reject it. Only its observable effects can be detected.
+        var root = CoroutineModel.Explore("completed-foreign-await", new CounterState(), CompletedForeignAwait);
+
+        Assert.That(((CounterState)root.Edges.Single().Target.State).Count, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void ForeignSynchronousAwaitsAreCaughtOnlyWhenTheyChangeObservableBehaviour()
+    {
+        foreignAwaitResults = 0;
+
+        async ModelTask VaryingForeignAwait(ModelContext<CounterState> context)
+        {
+            var even = await Task.FromResult(foreignAwaitResults++ % 2 == 0);
+            if (even)
+            {
+                await context.Step("even", state => state.Count++);
+            }
+            else
+            {
+                await context.Step("odd", state => state.Count--);
+            }
+        }
+
+        var error = Assert.Throws<ModelDefinitionException>(
+            () => CoroutineModel.Explore(
+                "varying-foreign-await",
+                new CounterState(),
+                VaryingForeignAwait,
+                verifyDeterminism: true));
+
+        Assert.That(error.Message, Does.Contain("is not deterministic under replay"));
+        Assert.That(error.Message, Does.Contain("Step checkpoint 'even'"));
+        Assert.That(error.Message, Does.Contain("Step checkpoint 'odd'"));
+    }
+
+    [Test]
+    public void ImpureSelectorsAreRejectedWithTheOffendingCheckpointNamed()
+    {
+        var readings = 0;
+
+        async ModelTask ImpureRead(ModelContext<CounterState> context)
+        {
+            var observed = await context.Read("clock-like", state => state.Count + readings++);
+            await context.Step("tick", state => state.Count = observed);
+        }
+
+        var error = Assert.Throws<ModelDefinitionException>(
+            () => CoroutineModel.Explore(
+                "impure-read",
+                new CounterState(),
+                ImpureRead,
+                verifyDeterminism: true));
+
+        Assert.That(error.Message, Does.Contain("Read checkpoint 'clock-like'"));
+        Assert.That(error.Message, Does.Contain("is not a function of the frozen model state"));
+    }
+
+    [Test]
+    public void MutatingACapturedVariableInTheReplayedBodyIsRejected()
+    {
+        var invocations = 0;
+
+        async ModelTask CountingBody(ModelContext<CounterState> context)
+        {
+            invocations++;
+            await context.Step("tick", state => state.Count++);
+        }
+
+        var error = Assert.Throws<ModelDefinitionException>(
+            () => CoroutineModel.Explore(
+                "captured-counter",
+                new CounterState(),
+                CountingBody,
+                verifyDeterminism: true));
+
+        Assert.That(error.Message, Does.Contain("mutated the captured external variable"));
+        Assert.That(error.Message, Does.Contain("invocations"));
+    }
+
+    [Test]
+    public void CapturedInputsAreReportedWithTheirMonitoringStrength()
+    {
+        var limit = 3;
+        var log = new List<string>();
+
+        async ModelTask CapturingWorkflow(ModelContext<CounterState> context)
+        {
+            await context.Step("tick", state => state.Count = limit + log.Count);
+        }
+
+        var captured = CoroutineModel
+            .DescribeCapturedInputs<CounterState>(CapturingWorkflow)
+            .ToDictionary(input => input.Name, input => input.Monitoring);
+
+        Assert.That(captured["limit"], Is.EqualTo(CoroutineCapturedInputMonitoring.ImmutableScalar));
+        Assert.That(captured["log"], Is.EqualTo(CoroutineCapturedInputMonitoring.ReferenceIdentityOnly));
+    }
+
+    [Test]
+    public void StaticWorkflowCapturedInputsAreReportedAsNotAnalyzable()
+    {
+        var captured = CoroutineModel
+            .DescribeCapturedInputs<CounterState>(CountedWorkflow)
+            .Single();
+
+        Assert.That(captured.Monitoring, Is.EqualTo(CoroutineCapturedInputMonitoring.NotAnalyzable));
+    }
+
+    [Test]
+    public void ReplayThatCompletesWithoutConsumingItsTapeIsRejected()
+    {
+        truncatingInvocations = 0;
+
+        async ModelTask Truncating(ModelContext<CounterState> context)
+        {
+            await context.Read("a", state => state.Count);
+            if (truncatingInvocations++ < 1)
+            {
+                await context.Read("b", state => state.Count);
+            }
+        }
+
+        var error = Assert.Throws<ModelDefinitionException>(
+            () => CoroutineModel.Explore(
+                "truncating-replay",
+                new CounterState(),
+                Truncating,
+                verifyDeterminism: true));
+
+        Assert.That(error.Message, Does.Contain("completed after replaying only 1 of 2 recorded checkpoints"));
+    }
+
+    [Test]
+    public void ReplayedCheckpointValueTypesMustStayStable()
+    {
+        shiftingInvocations = 0;
+
+        async ModelTask Shifting(ModelContext<CounterState> context)
+        {
+            if (shiftingInvocations++ == 0)
+            {
+                await context.Read("value", state => state.Count);
+            }
+            else
+            {
+                await context.Read("value", state => (long)state.Count);
+            }
+
+            await context.Step("tick", _ => { });
+        }
+
+        var error = Assert.Throws<ModelDefinitionException>(
+            () => CoroutineModel.Explore(
+                "shifting-value-type",
+                new CounterState(),
+                Shifting,
+                verifyDeterminism: true));
+
+        Assert.That(error.Message, Does.Contain("Read checkpoint 'value'"));
+        Assert.That(error.Message, Does.Contain("value type must be stable across replays"));
+    }
+
+    [Test]
+    public void RecordedReplayValuesAreAlwaysImmutableScalars()
+    {
+        var root = CoroutineModel.Explore("scalar-tape", new CounterState(), PersistentLoopWorkflow);
+
+        var recorded = Reachable(root)
+            .Where(node => node.StepFunctions.Count != 0)
+            .SelectMany(node => ((ICoroutineCheckpointStep)node.StepFunctions.Single()).ReplayPrefix)
+            .Select(entry => entry.Value)
+            .ToArray();
+
+        Assert.That(recorded, Is.Not.Empty);
+        Assert.That(recorded.All(IsImmutableScalar), Is.True, "every recorded replay value must be an immutable scalar");
+    }
+
+    [Test]
+    public void StepIdentityDistinguishesDifferentChoiceSetsAtTheSameCheckpoint()
+    {
+        async ModelTask StateDependentChoices(ModelContext<CounterState> context)
+        {
+            var delta = await context.Choose(
+                "delta",
+                state => state.Count == 0 ? new[] { 1 } : new[] { 1, 2 });
+            await context.Step("apply", state => state.Count += delta);
+        }
+
+        string RootStepId(int count) => CoroutineModel
+            .Explore("choice-identity", new CounterState { Count = count }, StateDependentChoices)
+            .StepFunctions.Single().StepFunctionId;
+
+        Assert.That(RootStepId(0), Is.Not.EqualTo(RootStepId(1)));
+        Assert.That(RootStepId(1), Is.EqualTo(RootStepId(2)));
+    }
+
+    [Test]
+    public void StepIdentityIgnoresChoiceEnumerationOrder()
+    {
+        async ModelTask Choices(ModelContext<CounterState> context)
+        {
+            await context.Choose(
+                "delta",
+                state => state.Count == 0 ? new[] { 1, 2 } : new[] { 2, 1 });
+        }
+
+        string RootStepId(int count) => CoroutineModel
+            .Explore("choice-order", new CounterState { Count = count }, Choices)
+            .StepFunctions.Single().StepFunctionId;
+
+        Assert.That(RootStepId(0), Is.EqualTo(RootStepId(1)));
+    }
+
+    [Test]
+    public void StepIdentityEncodingSeparatesPunctuatedWorkflowAndCheckpointNames()
+    {
+        async ModelTask Tick(ModelContext<CounterState> context)
+        {
+            await context.Step("b", state => state.Count++);
+        }
+
+        async ModelTask PunctuatedTick(ModelContext<CounterState> context)
+        {
+            await context.Step("a:step:b", state => state.Count++);
+        }
+
+        var nested = CoroutineModel.Explore("w:step:a", new CounterState(), Tick)
+            .StepFunctions.Single().StepFunctionId;
+        var punctuated = CoroutineModel.Explore("w", new CounterState(), PunctuatedTick)
+            .StepFunctions.Single().StepFunctionId;
+
+        Assert.That(nested, Is.Not.EqualTo(punctuated));
+    }
+
+    [Test]
+    public void StepIdentityIncludesTheActionMethod()
+    {
+        async ModelTask VaryingAction(ModelContext<CounterState> context)
+        {
+            if (alternateAction)
+            {
+                await context.Step("same-name", state => state.Count++);
+            }
+            else
+            {
+                await context.Step("same-name", state => state.Count--);
+            }
+        }
+
+        alternateAction = false;
+        var decrement = CoroutineModel
+            .Explore("action-identity", new CounterState(), VaryingAction)
+            .StepFunctions.Single().StepFunctionId;
+        alternateAction = true;
+        var increment = CoroutineModel
+            .Explore("action-identity", new CounterState(), VaryingAction)
+            .StepFunctions.Single().StepFunctionId;
+
+        Assert.That(increment, Is.Not.EqualTo(decrement));
+    }
+
+    [Test]
+    public void TheDeterminismAuditRunsTheBodyTwiceAndCanBeDisabled()
+    {
+        auditedInvocations = 0;
+        CoroutineModel.Explore("audit-off", new CounterState(), CountedWorkflow);
+        var withoutAudit = auditedInvocations;
+
+        auditedInvocations = 0;
+        CoroutineModel.Explore(
+            "audit-on",
+            new CounterState(),
+            CountedWorkflow,
+            verifyDeterminism: true);
+        var withAudit = auditedInvocations;
+
+        Assert.That(withoutAudit, Is.GreaterThan(0));
+        Assert.That(withAudit, Is.EqualTo(withoutAudit * 2));
+    }
+
+    [Test]
+    public void ReplayOnlyInfiniteLoopsStopAtTheInternalCheckpointBound()
+    {
+        async ModelTask ReadForever(ModelContext<CounterState> context)
+        {
+            while (true)
+            {
+                await context.Read("tick", state => state.Count);
+            }
+        }
+
+        var error = Assert.Throws<ModelDefinitionException>(
+            () => CoroutineModel.Explore(
+                "read-forever",
+                new CounterState(),
+                ReadForever,
+                maxInternalCheckpoints: 25));
+
+        Assert.That(
+            error.Message,
+            Does.Contain("did not reach Choose, Step, or completion after 25 internal Read or Loop checkpoints"));
+    }
+
+    [Test]
+    [Timeout(30000)]
+    public void ASynchronousLoopThatTakesNoCheckpointCannotBeInterruptedByTheRuntime()
+    {
+        // A literal `while (true) { }` would hang this test process forever, which is the
+        // limitation itself. The loop below is identical from the runtime's point of view
+        // (it reaches no checkpoint and never yields), but the test can release it, so the
+        // limitation is observed without hanging.
+        spinning = true;
+        StateGraphNode root = null;
+        Exception failure = null;
+        var entered = new ManualResetEventSlim(false);
+
+        async ModelTask SpinThenStep(ModelContext<CounterState> context)
+        {
+            entered.Set();
+            while (Volatile.Read(ref spinning))
+            {
+            }
+
+            await context.Step("after-spin", state => state.Count++);
+        }
+
+        var worker = new Thread(() =>
+        {
+            try
+            {
+                root = CoroutineModel.Explore("spin", new CounterState(), SpinThenStep, maxDepth: 2);
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        })
+        {
+            IsBackground = true,
+            Name = "coroutine-spin-limitation"
+        };
+
+        worker.Start();
+        Assert.That(entered.Wait(TimeSpan.FromSeconds(10)), Is.True, "the workflow body must start");
+        Assert.That(
+            worker.Join(TimeSpan.FromMilliseconds(250)),
+            Is.False,
+            "no depth bound, checkpoint bound, or timeout can interrupt a loop that reaches no checkpoint");
+
+        Volatile.Write(ref spinning, false);
+
+        Assert.That(worker.Join(TimeSpan.FromSeconds(10)), Is.True, "the workflow must finish once the loop exits");
+        Assert.That(failure, Is.Null);
+        Assert.That(((CounterState)root.Edges.Single().Target.State).Count, Is.EqualTo(1));
+    }
+
+    private static async ModelTask CountedWorkflow(ModelContext<CounterState> context)
+    {
+        auditedInvocations++;
+        await context.Step("tick", state => state.Count++);
+    }
+
+    private static bool IsImmutableScalar(object value)
+        => value == null ||
+            value is string ||
+            value is bool ||
+            value is char ||
+            value.GetType().IsPrimitive ||
+            value.GetType().IsEnum ||
+            value is decimal ||
+            value is DateTime ||
+            value is DateTimeOffset ||
+            value is TimeSpan ||
+            value is Guid ||
+            value.GetType().Name == "ModelUnit";
+
+    private static bool spinning;
+    private static int auditedInvocations;
+    private static int foreignAwaitResults;
+    private static int truncatingInvocations;
+    private static int shiftingInvocations;
+    private static bool alternateAction;
 
     [Test]
     public void CapturedStateCannotBeMutatedOutsideAStep()

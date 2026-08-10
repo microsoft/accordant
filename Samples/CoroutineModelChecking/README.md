@@ -10,6 +10,11 @@ Run the executable studies with:
 dotnet run --project Samples\CoroutineModelChecking
 ```
 
+The sample prints three groups of measurements: the worker case study, the
+loop/replay study, and the safety-boundary study in
+`SafetyHardeningCaseStudy.cs`, which shows which unsound workflows are
+rejected and which one the runtime cannot see.
+
 ## Two-worker case study
 
 `WorkerCompetitionCaseStudy.cs` compares two workers (`ada`, `grace`) racing
@@ -107,7 +112,9 @@ that persistent value repeats.
 edge per finite scalar choice; `Step` makes one visible edge and mutates only
 a cloned state when selected. Replay values are limited to null, strings,
 primitives, enums, and selected immutable scalar value types. Mutable
-references are rejected.
+references are rejected, both when a checkpoint produces a value and again
+when the value is recorded on a tape, so no internal path can put a mutable
+reference into replay history.
 
 `Loop` is a trusted modeling boundary, not source analysis. It must be the
 first Accordant checkpoint in the workflow; ordinary setup code may precede
@@ -123,7 +130,115 @@ locals; omission can make any definitive verdict unsound, including a false
 objects.
 
 Checkpoint names must be stable along a replayed control path; repeated names
-are expected for iterations. Incomplete external awaits are rejected, but this
-is not a general async runtime. In particular, `while (true) { }` never yields
-to the runtime and cannot be interrupted by a graph depth bound. Composition
-with independently active hand-written steps remains deferred.
+are expected for iterations. Composition with independently active
+hand-written steps remains deferred.
+
+## What the runtime checks
+
+`verifyDeterminism: true` enables an opt-in diagnostic audit. Every replay
+segment is then executed twice from the same frozen state and replay prefix,
+`Read` and `Choose` selectors are evaluated twice on the same state, and
+inspectable captured external variables are compared before and after the
+body runs. This is sampling, not proof: it can miss nondeterminism and can
+reject graph-irrelevant side effects. It also doubles execution of ordinary
+workflow code and roughly doubles exploration cost, so it is off by default.
+
+| Rejected | How |
+| --- | --- |
+| Selector that is not a function of the frozen state | selector evaluated twice per new checkpoint |
+| Nondeterministic checkpoint sequence, kind, name, or value | whole segment replayed twice and the traces compared |
+| Body writes to a captured external scalar or `State` | scalar and `State` captures compared around the body |
+| Body mutates the shared model state outside `Step` | state string representation compared around the body |
+| Replay reaching a different checkpoint than the tape recorded | checkpoint identity compared position by position |
+| A checkpoint's value type changing between runs | recorded value type checked before it is handed back |
+| Replay finishing without consuming its whole tape | consumed checkpoint count compared with tape length |
+| A non-scalar replay or `LoopState` value | value type check at production and at recording |
+| An incomplete foreign await | rejected by `ModelTaskMethodBuilder` |
+| A second direct `Loop` boundary, or `Loop` after another checkpoint | tape rebase rules |
+| A loop that only takes `Read`/`Loop` checkpoints | `maxInternalCheckpoints`, default 10,000 |
+| A missing `Loop` boundary | `maxDepth`, default 16, reported as `InconclusiveBound` |
+
+Identities are built from length-prefixed components, so a workflow name,
+checkpoint name, or loop site containing `:`, `@`, or `|` cannot be confused
+with a different decomposition. A visible action's identity also includes the
+kind, name, loop site, pending value (for `Choose`, the canonicalized
+materialized choice set), `Step` delegate method, and the full replay prefix.
+A loop site is derived from
+compile-time caller information using source file name, member, and line.
+Same-named files at the same member and line can collide.
+
+`CoroutineModel.DescribeCapturedInputs` reports the external variables a
+workflow delegate captured and how closely each can be monitored
+(`ImmutableScalar`, `ModelState`, `ReferenceIdentityOnly`, `NotAnalyzable`).
+The executable sample prints, for the loop study's capturing workflow:
+
+```text
+captured input: budget : System.Int32 (ImmutableScalar)
+captured input: seen : System.Collections.Generic.List`1[...] (ReferenceIdentityOnly)
+```
+
+## Runtime limitations
+
+These are **not** enforced. Treat them as review obligations.
+
+* **Foreign awaits that complete synchronously cannot be rejected.** When an
+  awaiter reports `IsCompleted`, the C# compiler calls `GetResult` inline and
+  never calls `AwaitOnCompleted` on the custom builder, so
+  `await Task.CompletedTask`, `await Task.FromResult(x)`, an already-finished
+  `ValueTask`, or a custom awaiter reading a clock reaches no interception
+  point. The sample prints
+  `synchronously completed foreign await accepted (runtime limitation): True`.
+  Such an await is caught only through its effects: if it changes which
+  checkpoints are reached or what they produce, the determinism audit reports
+  it (the sample's `varying foreign await` line); if it is a constant, it is
+  harmless but invisible.
+* **A synchronous loop that reaches no checkpoint cannot be interrupted.**
+  `while (true) { }` never returns control to the runtime, so neither
+  `maxDepth` nor `maxInternalCheckpoints` applies; only a loop that takes
+  `Read` or `Loop` checkpoints hits the internal bound. A test asserting this
+  with a literal empty loop would hang forever, so the test suite uses a loop
+  that reaches no checkpoint but can be released by the test thread: it proves
+  the runtime cannot interrupt it, then releases it instead of hanging.
+* **Side effects that do not change checkpoints are invisible.** Writes to
+  captured objects that are only compared by reference, writes performed
+  inside a `Step` action, and I/O in ordinary code are not detected. Step
+  identity distinguishes delegate methods, but cannot prove a delegate is pure
+  or that captured values at one source location are stable. Captured
+  inputs are only enumerated for compiler-generated closures: a workflow passed
+  as a static or instance method group reports `NotAnalyzable` and is not
+  monitored at all.
+* **Omitted live locals in `LoopState` are not detected**, as described above.
+* **Determinism verification is sampling, not proof.** Two identical runs of a
+  segment do not prove determinism; a value that changes only every third
+  evaluation can still slip through.
+
+## Analyzer feasibility
+
+Some of the limitations above are decidable in source, so a Roslyn analyzer is
+the right place for them. Nothing below is implemented yet.
+
+* **Foreign awaits (decidable).** In an `async ModelTask` method, require every
+  `await` operand to be an invocation of `ModelContext<TState>.Read`, `Choose`,
+  `Step`, `Loop`, or `LoopState`. This closes the synchronously completed
+  foreign await hole exactly, because the rule is syntactic and does not depend
+  on whether the awaiter completes. Escapes remain for `dynamic` operands and
+  awaits reached through non-`ModelTask` helper types.
+* **Impure selectors (decidable, conservative).** Flag lambdas passed to `Read`
+  and `Choose` that reference any symbol other than their parameter and
+  compile-time constants, and flag well-known nondeterministic sources
+  (`DateTime.Now`, `Random`, `Guid.NewGuid`, `Environment.TickCount`).
+* **Mutable captured inputs (decidable, conservative).** Flag assignments to
+  captured locals and fields inside the workflow body, which the runtime can
+  only detect for scalar and `State` captures.
+* **Non-scalar `LoopState` values (decidable).** The value's static type is
+  known at the call site, so the runtime's dynamic check can be moved to build
+  time.
+* **Omitted live locals (feasible with caveats).** Roslyn's
+  `SemanticModel.AnalyzeDataFlow` over the loop body yields the locals declared
+  outside the loop that flow in and are written inside; comparing that set with
+  the `LoopState` value's members would catch the common omission. It is
+  conservative around aliasing, `ref` locals, and helper calls, so it can only
+  warn.
+* **Empty synchronous loops (partially decidable).** A literal
+  `while (true) { }` with no checkpoint in the body is easy to flag; general
+  termination is not decidable.

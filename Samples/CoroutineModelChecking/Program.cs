@@ -32,5 +32,16 @@ internal static class Program
             $"{rebased.DistinctContinuationIdentities} continuation identities, " +
             $"tape length {rebased.LongestVisibleReplayTape}, frontier={rebased.HasDepthFrontier}, " +
             $"cycle={rebased.HasGraphCycle}");
+
+        Console.WriteLine($"impure selector: {SafetyHardeningCaseStudy.RejectedImpureSelector()}");
+        Console.WriteLine(
+            $"varying foreign await: {SafetyHardeningCaseStudy.RejectedNondeterministicForeignAwait()}");
+        Console.WriteLine(
+            "synchronously completed foreign await accepted (runtime limitation): " +
+            $"{SafetyHardeningCaseStudy.SynchronouslyCompletedForeignAwaitIsAccepted()}");
+        foreach (var captured in SafetyHardeningCaseStudy.CapturedInputReport())
+        {
+            Console.WriteLine($"captured input: {captured}");
+        }
     }
 }
