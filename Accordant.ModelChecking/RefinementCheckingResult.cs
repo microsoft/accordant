@@ -54,7 +54,8 @@ public sealed class RefinementTraceItem
         IState mappedAbstractState,
         IReadOnlyList<StateGraphNode> abstractCandidates,
         bool isInCycle = false,
-        State auxiliaryState = null)
+        State auxiliaryState = null,
+        WitnessCollection witnesses = null)
     {
         ConcreteNode = concreteNode;
         ConcreteStepFunction = concreteStepFunction;
@@ -63,6 +64,7 @@ public sealed class RefinementTraceItem
         AbstractCandidates = abstractCandidates;
         IsInCycle = isInCycle;
         AuxiliaryState = auxiliaryState;
+        Witnesses = witnesses;
     }
 
     /// <summary>The concrete graph node at this trace position.</summary>
@@ -75,8 +77,8 @@ public sealed class RefinementTraceItem
     public object ConcreteEdgeMetadata { get; }
 
     /// <summary>
-    /// The abstract state produced by a functional refinement mapping, or
-    /// null for relational correspondence.
+    /// The abstract state produced by the functional refinement mapping at
+    /// this position.
     /// </summary>
     public IState MappedAbstractState { get; }
 
@@ -97,6 +99,14 @@ public sealed class RefinementTraceItem
     /// null when the refinement check is not augmented.
     /// </summary>
     public State AuxiliaryState { get; }
+
+    /// <summary>
+    /// The future witness values predicted at this position, or null when the
+    /// refinement check uses no witnesses. This is separate from
+    /// <see cref="AuxiliaryState"/>: augmentation is determined by the
+    /// concrete past, witnesses are validated by the concrete future.
+    /// </summary>
+    public WitnessCollection Witnesses { get; }
 }
 
 /// <summary>
@@ -205,6 +215,11 @@ public sealed class RefinementCheckingResult
             {
                 sb.Append("; auxiliary ")
                     .Append(item.AuxiliaryState);
+            }
+            if (item.Witnesses != null)
+            {
+                sb.Append("; witnesses ")
+                    .Append(item.Witnesses);
             }
             sb.Append("; candidates ")
                 .Append(item.AbstractCandidates.Count);

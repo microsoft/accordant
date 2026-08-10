@@ -175,7 +175,7 @@ public class AugmentedRefinementTests
     }
 
     [Test]
-    public void RelationalSafetyCanReadAugmentationState()
+    public void AugmentationStateIsExposedSeparatelyFromWitnesses()
     {
         var result = Refinement
             .Between<ConcreteState, AbstractState>(
@@ -184,12 +184,11 @@ public class AugmentedRefinementTests
             .Augment(
                 initial: _ => new HistoryState("none"),
                 next: UpdateOwner)
-            .Corresponds((concrete, owner, abstraction) =>
-                concrete.Stage == abstraction.Stage &&
-                owner.Owner == abstraction.Owner)
+            .Map(Map)
             .Check();
 
         Assert.That(result.Status, Is.EqualTo(RefinementCheckingStatus.Refines));
+        Assert.That(result.Trace, Is.Null);
     }
 
     [Test]
@@ -359,7 +358,7 @@ public class AugmentedRefinementTests
     }
 
     [Test]
-    public void NullAugmentedMappingAndCorrespondenceAreRejected()
+    public void NullAugmentedMappingIsRejected()
     {
         var builder = Refinement
             .Between<ConcreteState, AbstractState>(
@@ -371,9 +370,6 @@ public class AugmentedRefinementTests
 
         Assert.That(
             () => builder.Map(null),
-            Throws.ArgumentNullException);
-        Assert.That(
-            () => builder.Corresponds(null),
             Throws.ArgumentNullException);
     }
 

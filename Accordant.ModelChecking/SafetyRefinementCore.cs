@@ -9,100 +9,99 @@ internal static class SafetyRefinementCore
     internal static RefinementCheckingResult Check<TConcrete, TAbstract>(
         StateGraphNode concreteRoot,
         StateGraphNode abstractRoot,
-        Func<StateGraphNode, StateGraphNode, bool> correspondence,
+        Func<StateGraphNode, StateGraphNode, bool> matchesAbstract,
         Func<StateGraphNode, IState> abstractView = null)
         where TConcrete : IState
         where TAbstract : IState
         => Check<TConcrete, TAbstract>(
             concreteRoot,
             abstractRoot,
-            initialAuxiliaryState: null,
-            advanceAuxiliaryState: (_, _, _) => null,
-            auxiliaryIdentity: _ => string.Empty,
-            correspondence: (concrete, _, abstraction) =>
-                correspondence(concrete, abstraction),
+            new[] { RefinementProofState.Empty },
+            advance: (state, _, _) => new[] { state },
+            matchesAbstract: (concrete, _, abstraction) =>
+                matchesAbstract(concrete, abstraction),
             abstractView: abstractView == null
-                ? null
-                : (concrete, _) => abstractView(concrete),
-            includeAuxiliaryInTrace: false);
+                ? (Func<StateGraphNode, RefinementProofState, IState>)null
+                : (concrete, _) => abstractView(concrete));
 
     internal static RefinementCheckingResult Check<TConcrete, TAbstract>(
         StateGraphNode concreteRoot,
         StateGraphNode abstractRoot,
-        object initialAuxiliaryState,
-        Func<object, StateGraphNode, StateGraphEdge, object> advanceAuxiliaryState,
-        Func<object, string> auxiliaryIdentity,
-        Func<StateGraphNode, object, StateGraphNode, bool> correspondence,
-        Func<StateGraphNode, object, IState> abstractView,
-        bool includeAuxiliaryInTrace)
+        IReadOnlyList<RefinementProofState> initialProofStates,
+        Func<
+            RefinementProofState,
+            StateGraphNode,
+            StateGraphEdge,
+            IReadOnlyList<RefinementProofState>> advance,
+        Func<StateGraphNode, RefinementProofState, StateGraphNode, bool> matchesAbstract,
+        Func<StateGraphNode, RefinementProofState, IState> abstractView)
         where TConcrete : IState
         where TAbstract : IState
     {
-        var correspondenceCache = new Dictionary<string, bool>(StringComparer.Ordinal);
+        var matchCache = new Dictionary<string, bool>(StringComparer.Ordinal);
 
-        bool Corresponds(
+        bool MatchesAbstract(
             StateGraphNode concreteNode,
-            object auxiliaryState,
+            RefinementProofState proofState,
             StateGraphNode abstractNode)
         {
             ValidateConcreteState<TConcrete>(concreteNode);
             ValidateAbstractState<TAbstract>(abstractNode);
             var key = concreteNode.GetNodeFingerprint() + "|" +
-                auxiliaryIdentity(auxiliaryState) + "|" +
+                proofState.Identity + "|" +
                 abstractNode.GetNodeFingerprint();
-            if (!correspondenceCache.TryGetValue(key, out var result))
+            if (!matchCache.TryGetValue(key, out var result))
             {
-                result = correspondence(
+                result = matchesAbstract(
                     concreteNode,
-                    auxiliaryState,
+                    proofState,
                     abstractNode);
-                correspondenceCache[key] = result;
+                matchCache[key] = result;
             }
             return result;
         }
 
-        if (!Corresponds(
-            concreteRoot,
-            initialAuxiliaryState,
-            abstractRoot))
+        var queue = new Queue<SearchNode>();
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var initialProofState in initialProofStates)
         {
-            return RefinementCheckingResult.Failure(
-                RefinementFailureKind.InitialStateMismatch,
-                new[]
-                {
-                    new RefinementTraceItem(
-                        concreteRoot,
-                        concreteStepFunction: null,
-                        concreteEdgeMetadata: null,
-                        abstractView?.Invoke(
+            if (!MatchesAbstract(concreteRoot, initialProofState, abstractRoot))
+            {
+                return RefinementCheckingResult.Failure(
+                    RefinementFailureKind.InitialStateMismatch,
+                    new[]
+                    {
+                        new RefinementTraceItem(
                             concreteRoot,
-                            initialAuxiliaryState),
-                        Array.Empty<StateGraphNode>(),
-                        auxiliaryState: includeAuxiliaryInTrace
-                            ? (State)initialAuxiliaryState
-                            : null)
-                });
+                            concreteStepFunction: null,
+                            concreteEdgeMetadata: null,
+                            abstractView?.Invoke(
+                                concreteRoot,
+                                initialProofState),
+                            Array.Empty<StateGraphNode>(),
+                            auxiliaryState: initialProofState.AuxiliaryState,
+                            witnesses: initialProofState.Witnesses)
+                    });
+            }
+
+            var initial = new SearchNode(
+                concreteRoot,
+                initialProofState,
+                new[] { abstractRoot },
+                hasUnknownAbstractAlternative: false,
+                parent: null,
+                incomingEdge: null,
+                abstractView?.Invoke(concreteRoot, initialProofState));
+            if (visited.Add(MakeSearchKey(
+                initial.ConcreteNode,
+                initial.ProofState,
+                initial.AbstractCandidates)))
+            {
+                queue.Enqueue(initial);
+            }
         }
 
-        var initial = new SearchNode(
-            concreteRoot,
-            initialAuxiliaryState,
-            new[] { abstractRoot },
-            hasUnknownAbstractAlternative: false,
-            parent: null,
-            incomingEdge: null,
-            abstractView?.Invoke(concreteRoot, initialAuxiliaryState));
-        var queue = new Queue<SearchNode>();
-        queue.Enqueue(initial);
-
-        var visited = new HashSet<string>(StringComparer.Ordinal)
-        {
-            MakeSearchKey(
-                initial.ConcreteNode,
-                initial.AuxiliaryState,
-                auxiliaryIdentity,
-                initial.AbstractCandidates)
-        };
         SearchNode firstUncertain = null;
 
         void RecordUncertainty(SearchNode node)
@@ -125,84 +124,89 @@ internal static class SafetyRefinementCore
             foreach (var concreteEdge in concreteEdges)
             {
                 ValidateConcreteState<TConcrete>(concreteEdge.Target);
-                var nextAuxiliaryState = advanceAuxiliaryState(
-                    current.AuxiliaryState,
+                var nextProofStates = advance(
+                    current.ProofState,
                     current.ConcreteNode,
                     concreteEdge);
-                var nextCandidates = new Dictionary<string, StateGraphNode>(
-                    StringComparer.Ordinal);
-                var hasUnknownAbstractAlternative =
-                    current.HasUnknownAbstractAlternative;
 
-                foreach (var abstractCandidate in current.AbstractCandidates)
+                foreach (var nextProofState in nextProofStates)
                 {
-                    ValidateAbstractState<TAbstract>(abstractCandidate);
+                    var nextCandidates = new Dictionary<string, StateGraphNode>(
+                        StringComparer.Ordinal);
+                    var hasUnknownAbstractAlternative =
+                        current.HasUnknownAbstractAlternative;
 
-                    if (Corresponds(
-                        concreteEdge.Target,
-                        nextAuxiliaryState,
-                        abstractCandidate))
+                    foreach (var abstractCandidate in current.AbstractCandidates)
                     {
-                        nextCandidates[abstractCandidate.GetNodeFingerprint()] =
-                            abstractCandidate;
-                    }
+                        ValidateAbstractState<TAbstract>(abstractCandidate);
 
-                    var abstractEdges = abstractCandidate.Edges;
-                    if (abstractCandidate.IsDepthFrontier)
-                    {
-                        hasUnknownAbstractAlternative = true;
-                    }
-
-                    foreach (var abstractEdge in abstractEdges)
-                    {
-                        ValidateAbstractState<TAbstract>(abstractEdge.Target);
-                        if (Corresponds(
+                        if (MatchesAbstract(
                             concreteEdge.Target,
-                            nextAuxiliaryState,
-                            abstractEdge.Target))
+                            nextProofState,
+                            abstractCandidate))
                         {
-                            nextCandidates[abstractEdge.Target.GetNodeFingerprint()] =
-                                abstractEdge.Target;
+                            nextCandidates[abstractCandidate.GetNodeFingerprint()] =
+                                abstractCandidate;
+                        }
+
+                        var abstractEdges = abstractCandidate.Edges;
+                        if (abstractCandidate.IsDepthFrontier)
+                        {
+                            hasUnknownAbstractAlternative = true;
+                        }
+
+                        foreach (var abstractEdge in abstractEdges)
+                        {
+                            ValidateAbstractState<TAbstract>(abstractEdge.Target);
+                            if (MatchesAbstract(
+                                concreteEdge.Target,
+                                nextProofState,
+                                abstractEdge.Target))
+                            {
+                                nextCandidates[abstractEdge.Target.GetNodeFingerprint()] =
+                                    abstractEdge.Target;
+                            }
                         }
                     }
-                }
 
-                var orderedCandidates = nextCandidates.Values
-                    .OrderBy(candidate => candidate.GetNodeFingerprint(), StringComparer.Ordinal)
-                    .ToArray();
-                var next = new SearchNode(
-                    concreteEdge.Target,
-                    nextAuxiliaryState,
-                    orderedCandidates,
-                    hasUnknownAbstractAlternative,
-                    current,
-                    concreteEdge,
-                    abstractView?.Invoke(
+                    var orderedCandidates = nextCandidates.Values
+                        .OrderBy(
+                            candidate => candidate.GetNodeFingerprint(),
+                            StringComparer.Ordinal)
+                        .ToArray();
+                    var next = new SearchNode(
                         concreteEdge.Target,
-                        nextAuxiliaryState));
+                        nextProofState,
+                        orderedCandidates,
+                        hasUnknownAbstractAlternative,
+                        current,
+                        concreteEdge,
+                        abstractView?.Invoke(
+                            concreteEdge.Target,
+                            nextProofState));
 
-                if (orderedCandidates.Length == 0)
-                {
-                    if (hasUnknownAbstractAlternative)
+                    if (orderedCandidates.Length == 0)
                     {
-                        RecordUncertainty(next);
-                        continue;
+                        if (hasUnknownAbstractAlternative)
+                        {
+                            RecordUncertainty(next);
+                            continue;
+                        }
+
+                        return RefinementCheckingResult.Failure(
+                            RefinementFailureKind.TransitionMismatch,
+                            BuildTrace(next));
                     }
 
-                    return RefinementCheckingResult.Failure(
-                        RefinementFailureKind.TransitionMismatch,
-                        BuildTrace(next, includeAuxiliaryInTrace));
-                }
-
-                var key = MakeSearchKey(
-                    next.ConcreteNode,
-                    next.AuxiliaryState,
-                    auxiliaryIdentity,
-                    next.AbstractCandidates,
-                    next.HasUnknownAbstractAlternative);
-                if (visited.Add(key))
-                {
-                    queue.Enqueue(next);
+                    var key = MakeSearchKey(
+                        next.ConcreteNode,
+                        next.ProofState,
+                        next.AbstractCandidates,
+                        next.HasUnknownAbstractAlternative);
+                    if (visited.Add(key))
+                    {
+                        queue.Enqueue(next);
+                    }
                 }
             }
         }
@@ -210,7 +214,7 @@ internal static class SafetyRefinementCore
         return firstUncertain == null
             ? RefinementCheckingResult.Success()
             : RefinementCheckingResult.Inconclusive(
-                BuildTrace(firstUncertain, includeAuxiliaryInTrace));
+                BuildTrace(firstUncertain));
     }
 
     private static TConcrete ValidateConcreteState<TConcrete>(StateGraphNode node)
@@ -241,13 +245,12 @@ internal static class SafetyRefinementCore
 
     private static string MakeSearchKey(
         StateGraphNode concreteNode,
-        object auxiliaryState,
-        Func<object, string> auxiliaryIdentity,
+        RefinementProofState proofState,
         IReadOnlyList<StateGraphNode> abstractCandidates,
         bool hasUnknownAbstractAlternative = false)
     {
         return concreteNode.GetNodeFingerprint() + "|" +
-            auxiliaryIdentity(auxiliaryState) + "|" +
+            proofState.Identity + "|" +
             (hasUnknownAbstractAlternative ? "unknown|" : "known|") +
             string.Join(
                 ",",
@@ -256,9 +259,7 @@ internal static class SafetyRefinementCore
                     .OrderBy(fingerprint => fingerprint, StringComparer.Ordinal));
     }
 
-    private static IReadOnlyList<RefinementTraceItem> BuildTrace(
-        SearchNode end,
-        bool includeAuxiliaryInTrace)
+    private static IReadOnlyList<RefinementTraceItem> BuildTrace(SearchNode end)
     {
         var reversed = new List<RefinementTraceItem>();
         for (var node = end; node != null; node = node.Parent)
@@ -269,9 +270,8 @@ internal static class SafetyRefinementCore
                 node.IncomingEdge?.Metadata,
                 node.MappedAbstractState,
                 node.AbstractCandidates,
-                auxiliaryState: includeAuxiliaryInTrace
-                    ? (State)node.AuxiliaryState
-                    : null));
+                auxiliaryState: node.ProofState.AuxiliaryState,
+                witnesses: node.ProofState.Witnesses));
         }
         reversed.Reverse();
         return reversed;
@@ -281,7 +281,7 @@ internal static class SafetyRefinementCore
     {
         public SearchNode(
             StateGraphNode concreteNode,
-            object auxiliaryState,
+            RefinementProofState proofState,
             IReadOnlyList<StateGraphNode> abstractCandidates,
             bool hasUnknownAbstractAlternative,
             SearchNode parent,
@@ -289,7 +289,7 @@ internal static class SafetyRefinementCore
             IState mappedAbstractState)
         {
             ConcreteNode = concreteNode;
-            AuxiliaryState = auxiliaryState;
+            ProofState = proofState;
             AbstractCandidates = abstractCandidates;
             HasUnknownAbstractAlternative = hasUnknownAbstractAlternative;
             Parent = parent;
@@ -299,7 +299,7 @@ internal static class SafetyRefinementCore
         }
 
         public StateGraphNode ConcreteNode { get; }
-        public object AuxiliaryState { get; }
+        public RefinementProofState ProofState { get; }
         public IReadOnlyList<StateGraphNode> AbstractCandidates { get; }
         public bool HasUnknownAbstractAlternative { get; }
         public SearchNode Parent { get; }
