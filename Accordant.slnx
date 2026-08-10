@@ -23,6 +23,7 @@
     <Project Path="Samples/TerminationDetection/TerminationDetection.csproj" />
     <Project Path="Samples/TemporalRefinement/TemporalRefinement.csproj" />
     <Project Path="Samples/AlternatingBit/AlternatingBit.csproj" />
+    <Project Path="Samples/OperationsModelChecking/OperationsModelChecking.csproj" />
     <Project Path="Samples/WitnessRefinement/WitnessRefinement.csproj" />
     <Project Path="Samples/WorkQueueRefinement/WorkQueueRefinement.csproj" />
   </Folder>
@@ -34,5 +35,6 @@
   <Project Path="Accordant.SourceGenerator/Accordant.SourceGenerator.csproj" />
   <Project Path="Accordant/Accordant.csproj" />
   <Project Path="Accordant.ModelChecking/Accordant.ModelChecking.csproj" />
+  <Project Path="Accordant.ModelChecking.Operations/Accordant.ModelChecking.Operations.csproj" />
   <Project Path="Accordant.ModelChecking.Bdd/Accordant.ModelChecking.Bdd.csproj" />
 </Solution>

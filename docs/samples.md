@@ -11,6 +11,7 @@ Complete working examples demonstrating Accordant features.
 | [Booking](https://github.com/microsoft/accordant/tree/main/Samples/Booking) | Demonstrates concurrency testing — the "double-booking" scenario where two customers try to book the same slot. |
 | [JobQueue](https://github.com/microsoft/accordant/tree/main/Samples/JobQueue) | Demonstrates async operations with step functions, polling for completion, and server-generated result paths. |
 | [WorkQueueRefinement](https://github.com/microsoft/accordant/tree/main/Samples/WorkQueueRefinement) | A leased work queue with competing workers, retries, cancellation and purging, refined against a client ledger. Combines `.Augment(...)`, `.WithWitness(...)`, `.Map(...)` and `.MapTransition(...)`, and contrasts weak and strong fairness. See [Checking Refinement](how-to/checking-refinement.md). |
+| [OperationsModelChecking](https://github.com/microsoft/accordant/tree/main/Samples/OperationsModelChecking) | Compiles finite response-dependent `Operation` inputs to ordinary model-checking step functions, including `ENABLED`, fairness, and refinement. |
 
 ## Running a Sample
 
