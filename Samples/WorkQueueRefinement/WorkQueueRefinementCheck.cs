@@ -139,15 +139,18 @@ public static class WorkQueueRefinementCheck
         {
             // The first lease is the assignment the ledger commits at. A
             // retry lease finds the entry already assigned and changes
-            // nothing the client can see.
+            // nothing the client can see, so it is an internal queue action
+            // the ledger hides.
             LeaseStep lease => history.FirstOwner[lease.Task] == Ledger.NoOwner
                 ? AbstractResponse.Step<LedgerAcceptStep>()
-                : AbstractResponse.Stutter,
+                : AbstractResponse.Hidden,
 
             // An expiring lease and an arriving cancellation request are
-            // invisible to the ledger.
-            ExpireLeaseStep => AbstractResponse.Stutter,
-            RequestCancelStep => AbstractResponse.Stutter,
+            // invisible to the ledger. Hiding them is the checked claim that
+            // the ledger stands still, not a way to drop the transition: the
+            // queue can still expire and re-lease forever.
+            ExpireLeaseStep => AbstractResponse.Hidden,
+            RequestCancelStep => AbstractResponse.Hidden,
 
             // A failure inside the retry budget spends an attempt without
             // closing the entry; the final failure settles it.
@@ -201,7 +204,8 @@ public static class WorkQueueRefinementCheck
 
     /// <summary>
     /// The state-neutral ledger action, named per entry so two assigned
-    /// entries do not offer the same response.
+    /// entries do not offer the same response. A ledger without that action
+    /// hides the failed attempt entirely.
     /// </summary>
     private static AbstractResponse RecordedAttempt(
         LedgerOptions options,
@@ -209,7 +213,7 @@ public static class WorkQueueRefinementCheck
         => options.IncludeRecordAttempt
             ? AbstractResponse.Step(step =>
                 step is LedgerRecordAttemptStep record && record.Task == task)
-            : AbstractResponse.Stutter;
+            : AbstractResponse.Hidden;
 
     // ---------------------------------------------------------------
     // Augmentation: determined by the concrete past.

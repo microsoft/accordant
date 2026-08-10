@@ -15,6 +15,12 @@ refinement mechanisms at once.
 | which ledger action a queue transition is | neither model's state | `.MapTransition(...)` |
 | everything else | the concrete present | `.Map(...)` |
 
+`.Map(...)` is the projection: the ledger records a phase, an owner and a
+result, so lease holders, attempt budgets and cancellation flags are hidden by
+construction. Most queue actions are therefore internal, and
+`.MapTransition(...)` names them with `AbstractResponse.Hidden` — the checked
+claim that the ledger stands still.
+
 ```csharp
 Refinement
     .Between<QueueState, LedgerState>(WorkQueue.Explore(config), Ledger.Explore(config))
@@ -144,8 +150,8 @@ Refinement
 | Queue transition | Ledger response |
 |---|---|
 | first `lease-w{w}-t{t}` | `ledger-accept-t{t}` — the assignment the ledger commits at |
-| retry `lease`, `expire`, `request-cancel` | stutter |
-| `fail` inside the retry budget | `ledger-record-attempt-t{t}`, or stutter when the ledger has no such action |
+| retry `lease`, `expire`, `request-cancel` | hidden — the ledger does not move |
+| `fail` inside the retry budget | `ledger-record-attempt-t{t}`, or hidden when the ledger has no such action |
 | `fail` that exhausts the budget, `complete`, `observe-cancel` | `ledger-settle-t{t}` |
 | `cancel-ready-t{t}`, entry never assigned | `ledger-cancel-unassigned-t{t}` |
 | `cancel-ready-t{t}`, entry already assigned | `ledger-close-cancelled-t{t}`, or `ledger-settle-t{t}` |
@@ -176,6 +182,43 @@ Accordant fairness is defined over changing edges by design, so weak or strong
 fairness for that action adds no obligation: it can be neither starved nor
 discharged. What the declaration buys there is the abstract *configuration*
 the run continues from, not fairness accounting.
+
+## Hiding, and what hiding does not do
+
+Expiry, retry leasing and an arriving cancellation request are internal to the
+queue. `AbstractResponse.Hidden` declares exactly that, and it is checked
+against the state mapping: `AlwaysStutter` — hiding *every* queue transition —
+is a `TransitionMismatch`, not a pass, because the mapped ledger state does
+change at a lease, a settlement or a purge.
+
+Hiding says the ledger stands still. It does not remove the queue transition,
+and it does not touch enabledness or fairness:
+
+* the queue can lease and expire forever, and that loop is hidden from the
+  first transition to the last;
+* the ledger stutters through it, so **no ledger obligation is discharged**:
+  with `Fairness.None` on the implementation, settlement stays continuously
+  enabled and untaken and the check reports `TemporalFairnessMismatch`;
+* strong fairness on the concrete attempt-resolution actions — not the
+  declaration — is what excludes the loop.
+
+That is the whole of Accordant's treatment of internal divergence: no
+divergence assumption is added anywhere, so an infinite hidden loop remains a
+real behavior of the implementation until the implementation's own fairness
+rules it out.
+
+`GetProjectionString()` prints the counterexample as the projection, so hidden
+actions, the state-neutral `ledger-record-attempt-t{t}` and ordinary ledger
+steps are distinguishable at a glance:
+
+```text
+Concrete behavior projected onto the abstract model by the mapping:
+  start Queue(...)  =>  Ledger(...)
+  --lease-w0-t0--> Queue(...)  =>  Ledger(...)   abstract step ledger-accept-t0
+  --expire-w0-t0--> Queue(...)  =>  Ledger(...)   hidden action (abstract stutter)
+```
+
+`WorkQueueHidingTests.cs` pins all of this down.
 
 ## Measured sizes
 
@@ -217,3 +260,4 @@ dotnet test
 | `WorkQueueRefinementTests.cs` | safety refinement, diagnostics, prediction lifecycle, measurements |
 | `WorkQueueTemporalFairnessTests.cs` | the weak/strong fairness ladder |
 | `WorkQueueActionAmbiguityTests.cs` | the two ledgers that motivate an action mapping, and the declarations that resolve them |
+| `WorkQueueHidingTests.cs` | hidden internal actions, the projected trace view, and why hiding erases no behavior |

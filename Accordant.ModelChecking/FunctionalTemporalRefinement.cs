@@ -803,7 +803,12 @@ internal static class FunctionalTemporalRefinement
             witnesses: node.ProofState.Witnesses,
             declaredAbstractResponse: incoming?.DeclaredResponse,
             alignedAbstractTransition: incoming?.AlignedResponse,
-            stateConsistentAbstractTransitions: incoming?.StateConsistentResponses);
+            stateConsistentAbstractTransitions: incoming?.StateConsistentResponses,
+            projectionKind: RefinementTraceItem.Classify(
+                incoming?.AlignedResponse,
+                incoming != null,
+                incoming?.ConcreteEdge.StepFunction ==
+                    RefinementStutterStep.Instance));
 
     private static void ValidateAbstract<TAbstract>(StateGraphNode node)
         where TAbstract : IState
@@ -943,6 +948,12 @@ internal static class FunctionalTemporalRefinement
             => new TemporalFairnessObligation(isStrong, matches);
     }
 
+    /// <summary>
+    /// The infinite completion Accordant adds to a genuinely terminal
+    /// concrete behavior. It is a checker artifact, not a concrete model
+    /// action: it is never declared, and diagnostics never present it as a
+    /// concrete internal loop.
+    /// </summary>
     private sealed class RefinementStutterStep : IStepFunction
     {
         public static RefinementStutterStep Instance { get; } =

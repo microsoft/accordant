@@ -17,6 +17,12 @@ var result = Refinement
     .Check();
 ```
 
+`.Map(...)` **is** the state hiding: it is a projection from the concrete state
+space onto the abstract one, and everything it does not carry over is hidden by
+construction. There is no separate hiding operator, no quotient of the state
+graph, and no second way to say "ignore this field". Whatever the mapping
+drops, the abstract model never sees.
+
 The mapped concrete initial state must equal the abstract initial state. Each
 concrete transition must then correspond to either:
 
@@ -182,7 +188,8 @@ are worth stating outright:
 
 Declaring a response that is not state-consistent is therefore a
 `TransitionMismatch`, not a pass. Declaring `AbstractResponse.Stutter` for a
-transition that moves the abstract state is the common first mistake;
+transition that moves the abstract state is the common first mistake — see
+[hide an internal action](#hide-an-internal-action);
 `AbstractResponse.Unconstrained` is the right default for every transition the
 model does not need to name.
 
@@ -192,10 +199,14 @@ model does not need to name.
 |---|---|
 | `AbstractResponse.Unconstrained` | every response — reproduces state-only matching exactly |
 | `AbstractResponse.Stutter` | abstract stutter only, never a state-neutral edge |
+| `AbstractResponse.Hidden` | abstract stutter only — `Stutter` under the name that says the concrete action is internal |
 | `AbstractResponse.Step<TStep>()` | an abstract edge with that step function, never stutter |
 | `AbstractResponse.Step(step => ...)` | an abstract edge whose step matches, never stutter |
 | `AbstractResponse.Matching<TAbstract>((source, step, target) => ...)` | a typed source, step and target predicate, never stutter |
 | `AbstractResponse.Matching(response => ...)` | the full `AbstractTransition` view, including stutter |
+
+`Stutter` and `Hidden` are the same check. `AbstractResponse.HidesConcreteAction`
+is true for both, and diagnostics report which name the model used.
 
 `AbstractTransition` is the typed view of one response:
 
@@ -217,6 +228,82 @@ If two responses have the same step function, the same metadata and equal
 source and target states, no declaration can separate them. They differ only
 in abstract configuration, and `AmbiguousTemporalRefinementException` is still
 the answer.
+
+### Hide an internal action
+
+A concrete action the abstraction hides is already representable: it is a
+concrete transition that maps to *abstract stutter*. `AbstractResponse.Hidden`
+is that declaration under the name that says why:
+
+```csharp
+.Map(concrete => new AbstractState(concrete.VisibleValue))
+.MapTransition(transition => transition.StepFunction switch
+{
+    ExpireLeaseStep => AbstractResponse.Hidden,
+    RetryStep => AbstractResponse.Hidden,
+    _ => AbstractResponse.Unconstrained
+})
+```
+
+Four things follow, and they are the whole of Accordant's hiding story.
+
+**Hiding is checked, never assumed.** The declaration is applied after state
+matching, so `Hidden` only succeeds where abstract stutter was already a
+state-consistent response — that is, where the mapped abstract state genuinely
+does not change across the transition. Hiding an action the abstraction records
+is a `TransitionMismatch`:
+
+```text
+Refinement failed: a concrete transition has no coherent abstract match.
+  ...
+  The declaration hides this concrete transition, but the mapping does not:
+  the mapped abstract state is not the one the abstract model stays at.
+```
+
+There is deliberately **no unchecked way to suppress a transition**. If a
+concrete action should be invisible, make it invisible in `.Map(...)` — that is
+what the projection is for — and then, if you want the fact recorded and
+enforced, declare it `Hidden`.
+
+**Hiding is not stutter-equivalence to a state-neutral abstract action.**
+`Hidden` admits abstract stutter only. An abstract edge that happens to leave
+the abstract state unchanged is a real abstract action, not hiding; see
+[state-neutral abstract edges](#state-neutral-abstract-edges).
+
+**Hiding changes nothing about the concrete model.** A declaration reads a
+transition and filters abstract responses. It adds no concrete state, removes
+no concrete transition, and changes no concrete enabledness, so concrete
+fairness is computed on exactly the same graph with and without it.
+
+**Hidden divergence is not erased.** An infinite concrete loop of hidden
+actions is still an infinite concrete behavior, in which the abstract model
+stutters forever and therefore takes no abstract action at all. Accordant adds
+no divergence assumption and no weak-fairness-on-internal-actions default: a
+hidden loop never discharges an abstract obligation, so if the abstract model
+requires progress, the check reports `TemporalFairnessMismatch`:
+
+```text
+Refinement failed: a fair concrete behavior has no fair aligned abstract behavior.
+  ...
+  Every concrete transition in the repeating part is hidden, so the abstract
+  model stutters forever there.
+  Hidden actions never discharge an abstract fairness obligation. This concrete
+  divergence is a real behavior: exclude it with concrete fairness if the
+  implementation cannot actually run it forever.
+```
+
+The fix is a concrete fairness assumption that rules the loop out — the same
+mechanism as any other unwanted infinite concrete behavior:
+
+```csharp
+.CheckTemporal(
+    concreteFairness: Fairness.Strong<CompleteWork>(),
+    abstractFairness: Fairness.Weak<CompleteJob>());
+```
+
+The infinite completion Accordant adds for a genuinely terminal concrete state
+is a checker artifact, not a hidden concrete action, and this diagnostic never
+reports it as concrete divergence.
 
 ### State-neutral abstract edges
 
@@ -272,6 +359,20 @@ declaration reads the same information the state mapping reads:
     .MapTransition((transition, auxiliary, witnesses) => ...)
 ```
 
+Every arity also accepts a transition-only declaration, for the common case
+where the abstract action depends on nothing but the concrete step — naming
+internal actions is the usual example:
+
+```csharp
+.Augment(...).WithWitness(...).Map((concrete, auxiliary, witnesses) => ...)
+    .MapTransition(transition => transition.StepFunction is ExpireLeaseStep
+        ? AbstractResponse.Hidden
+        : AbstractResponse.Unconstrained)
+```
+
+The two overloads are the same declaration; a check still declares its
+transition mapping exactly once.
+
 This is necessary, not decorative. The concrete transition alone is often
 unable to name the abstract action:
 
@@ -315,6 +416,44 @@ it, and temporal traces also report the response that was aligned:
 Declaring the transition mapping twice is an error: combine the cases in one
 callback. Returning null from a declaration is an error too — return
 `AbstractResponse.Unconstrained` instead.
+
+### The projected trace
+
+`GetTraceString()` reports the refinement search. `GetProjectionString()`
+reports the same counterexample as the *projection* the mapping defines —
+each concrete position, the abstract state it maps to, and what the concrete
+step became abstractly:
+
+```text
+Concrete behavior projected onto the abstract model by the mapping:
+  start Queue(...)  =>  Ledger(...)
+  --lease-w0-t0--> Queue(...)  =>  Ledger(...)   abstract step ledger-accept-t0
+  --expire-w0-t0--> Queue(...)  =>  Ledger(...)   hidden action (abstract stutter)
+  --fail-w0-t0--> Queue(...)  =>  Ledger(...)   state-neutral abstract step ledger-record-attempt-t0
+  [cycle] --lease-w1-t0--> Queue(...)  =>  Ledger(...)   hidden action (abstract stutter)
+```
+
+`RefinementTraceItem.ProjectionKind` is the same classification as a value:
+
+| `AbstractProjectionKind` | Meaning |
+|---|---|
+| `Start` | the first position; no concrete step entered it |
+| `CheckerCompletion` | synthetic infinite stutter completing a genuinely terminal concrete behavior |
+| `HiddenAction` | aligned with abstract stutter — the abstraction hides this concrete action |
+| `StateNeutralStep` | aligned with a real abstract edge that does not change the abstract state |
+| `AbstractStep` | aligned with an abstract edge that changes the abstract state |
+| `AbstractUnchanged` | the mapped abstract state did not change, and the check did not pin down stutter versus a state-neutral edge |
+| `Unaligned` | no known abstract response survived — a mismatch position or bounded frontier |
+
+Safety refinement carries a *set* of coherent abstract configurations rather
+than one aligned response, so an unchanged abstract state is reported as
+`AbstractUnchanged` unless the model declared the transition hidden. Temporal
+refinement reports the exact aligned response where one exists, and
+`Unaligned` at and after a mismatch.
+
+The infinite completion of a terminal concrete behavior is printed as
+`checker completion of a terminal concrete behavior`, so it is never mistaken
+for a hidden concrete loop.
 
 ### Bounds
 
@@ -705,3 +844,10 @@ Abstract responses that share a step function, edge metadata and both states
 differ only in abstract configuration. No declaration can separate them, and
 temporal refinement still reports them as irreducibly ambiguous rather than
 choosing one.
+
+State hiding is `.Map(...)` and nothing else. Accordant has no relational
+refinement checker, no state-graph quotient, no fair-simulation or ω-language
+inclusion mode, and no separate hiding DSL. Hiding a concrete action means
+mapping it to abstract stutter, and Accordant assumes nothing about
+divergence: an infinite hidden loop stays a real concrete behavior until
+concrete fairness excludes it.

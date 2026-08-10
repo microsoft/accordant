@@ -41,7 +41,9 @@ public sealed class AbstractTransition
 
     /// <summary>
     /// Whether the abstract model does not move. Abstract stutter takes no
-    /// abstract action and keeps the same abstract graph configuration.
+    /// abstract action and keeps the same abstract graph configuration. A
+    /// concrete transition aligned with abstract stutter is exactly a concrete
+    /// action the abstraction hides.
     /// </summary>
     public bool IsStutter => StepFunction == null;
 
@@ -74,10 +76,12 @@ public sealed class AbstractResponse
 
     private AbstractResponse(
         string description,
-        Func<AbstractTransition, bool> admits)
+        Func<AbstractTransition, bool> admits,
+        bool hidesConcreteAction = false)
     {
         Description = description;
         this.admits = admits;
+        HidesConcreteAction = hidesConcreteAction;
     }
 
     /// <summary>
@@ -93,7 +97,36 @@ public sealed class AbstractResponse
     /// never a state-neutral abstract edge.
     /// </summary>
     public static AbstractResponse Stutter { get; } =
-        new AbstractResponse("stutter", transition => transition.IsStutter);
+        new AbstractResponse(
+            "stutter",
+            transition => transition.IsStutter,
+            hidesConcreteAction: true);
+
+    /// <summary>
+    /// The concrete transition is an internal action the abstraction hides:
+    /// the abstract model does not move at all.
+    /// </summary>
+    /// <remarks>
+    /// This is <see cref="Stutter"/> under the name that says why it was
+    /// declared. Hiding a concrete action in Accordant is exactly the checked
+    /// claim that the action maps to abstract stutter, and it is checked like
+    /// any other declaration: if the concrete transition changes the mapped
+    /// abstract state, the response is not state-consistent and the check
+    /// reports a <see cref="RefinementFailureKind.TransitionMismatch"/>.
+    /// There is no unchecked way to suppress a concrete transition.
+    /// <para>
+    /// Hiding declares only that the abstract model stands still. It never
+    /// removes the concrete transition, changes concrete enabledness, or
+    /// discharges an abstract fairness obligation, so an infinite concrete
+    /// loop of hidden actions remains a real concrete behavior unless
+    /// concrete fairness excludes it.
+    /// </para>
+    /// </remarks>
+    public static AbstractResponse Hidden { get; } =
+        new AbstractResponse(
+            "hidden (abstract stutter)",
+            transition => transition.IsStutter,
+            hidesConcreteAction: true);
 
     /// <summary>
     /// The abstract model takes an edge whose step function is
@@ -149,6 +182,13 @@ public sealed class AbstractResponse
 
     /// <summary>A human-readable description used in diagnostics.</summary>
     public string Description { get; }
+
+    /// <summary>
+    /// Whether this declaration admits abstract stutter only, and therefore
+    /// declares the concrete transition to be hidden by the abstraction.
+    /// True for <see cref="Stutter"/> and <see cref="Hidden"/>.
+    /// </summary>
+    public bool HidesConcreteAction { get; }
 
     /// <summary>Formats the declared response for diagnostics.</summary>
     public override string ToString() => Description;

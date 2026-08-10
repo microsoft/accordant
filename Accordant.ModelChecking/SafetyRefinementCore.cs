@@ -324,7 +324,13 @@ internal static class SafetyRefinementCore
                 auxiliaryState: node.ProofState.AuxiliaryState,
                 witnesses: node.ProofState.Witnesses,
                 declaredAbstractResponse: node.DeclaredResponse,
-                stateConsistentAbstractTransitions: node.StateConsistentResponses));
+                stateConsistentAbstractTransitions: node.StateConsistentResponses,
+                projectionKind: RefinementTraceItem.Classify(
+                    node.Parent?.MappedAbstractState,
+                    node.MappedAbstractState,
+                    node.IncomingEdge != null,
+                    node.AbstractCandidates.Count > 0,
+                    node.DeclaredResponse)));
         }
         reversed.Reverse();
         return reversed;

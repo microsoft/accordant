@@ -246,6 +246,21 @@ public sealed class AugmentedFunctionalRefinementCheck<
                 response ?? throw new ArgumentNullException(nameof(response)));
     }
 
+    /// <summary>
+    /// Declares which abstract response a concrete transition represents,
+    /// reading the concrete transition alone. Use this overload for
+    /// declarations the augmentation state does not influence, such as naming
+    /// the internal actions the abstraction hides with
+    /// <see cref="AbstractResponse.Hidden"/>.
+    /// </summary>
+    public AugmentedFunctionalRefinementCheck<TConcrete, TAbstract, TAuxiliary>
+        MapTransition(
+            Func<RefinementTransition<TConcrete>, AbstractResponse> response)
+    {
+        if (response == null) throw new ArgumentNullException(nameof(response));
+        return MapTransition((transition, _) => response(transition));
+    }
+
     /// <summary>Checks augmented functional safety refinement.</summary>
     public RefinementCheckingResult Check()
     {
@@ -409,6 +424,20 @@ public sealed class WitnessFunctionalRefinementCheck<TConcrete, TAbstract>
             next,
             mapping,
             response ?? throw new ArgumentNullException(nameof(response)));
+    }
+
+    /// <summary>
+    /// Declares which abstract response a concrete transition represents,
+    /// reading the concrete transition alone. Use this overload for
+    /// declarations no prediction influences, such as naming the internal
+    /// actions the abstraction hides with
+    /// <see cref="AbstractResponse.Hidden"/>.
+    /// </summary>
+    public WitnessFunctionalRefinementCheck<TConcrete, TAbstract> MapTransition(
+        Func<RefinementTransition<TConcrete>, AbstractResponse> response)
+    {
+        if (response == null) throw new ArgumentNullException(nameof(response));
+        return MapTransition((transition, _) => response(transition));
     }
 
     /// <summary>
@@ -627,6 +656,23 @@ public sealed class AugmentedWitnessFunctionalRefinementCheck<
                 witnessNext,
                 mapping,
                 response ?? throw new ArgumentNullException(nameof(response)));
+    }
+
+    /// <summary>
+    /// Declares which abstract response a concrete transition represents,
+    /// reading the concrete transition alone. Use this overload for
+    /// declarations neither the augmentation state nor a prediction
+    /// influences, such as naming the internal actions the abstraction hides
+    /// with <see cref="AbstractResponse.Hidden"/>.
+    /// </summary>
+    public AugmentedWitnessFunctionalRefinementCheck<
+        TConcrete,
+        TAbstract,
+        TAuxiliary> MapTransition(
+            Func<RefinementTransition<TConcrete>, AbstractResponse> response)
+    {
+        if (response == null) throw new ArgumentNullException(nameof(response));
+        return MapTransition((transition, _, _) => response(transition));
     }
 
     /// <summary>Checks augmented, witness-extended safety refinement.</summary>

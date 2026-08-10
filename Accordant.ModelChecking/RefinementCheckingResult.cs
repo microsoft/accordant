@@ -58,7 +58,8 @@ public sealed class RefinementTraceItem
         WitnessCollection witnesses = null,
         AbstractResponse declaredAbstractResponse = null,
         AbstractTransition alignedAbstractTransition = null,
-        IReadOnlyList<AbstractTransition> stateConsistentAbstractTransitions = null)
+        IReadOnlyList<AbstractTransition> stateConsistentAbstractTransitions = null,
+        AbstractProjectionKind projectionKind = AbstractProjectionKind.Start)
     {
         ConcreteNode = concreteNode;
         ConcreteStepFunction = concreteStepFunction;
@@ -71,6 +72,66 @@ public sealed class RefinementTraceItem
         DeclaredAbstractResponse = declaredAbstractResponse;
         AlignedAbstractTransition = alignedAbstractTransition;
         StateConsistentAbstractTransitions = stateConsistentAbstractTransitions;
+        ProjectionKind = projectionKind;
+    }
+
+    /// <summary>
+    /// Classifies an aligned abstract response, which the temporal check knows
+    /// exactly.
+    /// </summary>
+    internal static AbstractProjectionKind Classify(
+        AbstractTransition aligned,
+        bool hasIncomingConcreteStep,
+        bool isCheckerCompletion)
+        => !hasIncomingConcreteStep
+            ? AbstractProjectionKind.Start
+            : isCheckerCompletion
+                ? AbstractProjectionKind.CheckerCompletion
+            : aligned == null
+                ? AbstractProjectionKind.Unaligned
+                : aligned.IsStutter
+                    ? AbstractProjectionKind.HiddenAction
+                    : aligned.ChangesState
+                        ? AbstractProjectionKind.AbstractStep
+                        : AbstractProjectionKind.StateNeutralStep;
+
+    /// <summary>
+    /// Classifies a position of a safety-refinement trace, which carries a set
+    /// of coherent abstract configurations instead of one aligned response. A
+    /// changing mapped abstract state can only have come from a changing
+    /// abstract edge; an unchanged one is reported as hidden only where the
+    /// model declared it hidden.
+    /// </summary>
+    internal static AbstractProjectionKind Classify(
+        IState previousMappedAbstractState,
+        IState mappedAbstractState,
+        bool hasIncomingConcreteStep,
+        bool hasAbstractCandidates,
+        AbstractResponse declaredAbstractResponse)
+    {
+        if (!hasIncomingConcreteStep)
+        {
+            return AbstractProjectionKind.Start;
+        }
+
+        if (!hasAbstractCandidates)
+        {
+            return AbstractProjectionKind.Unaligned;
+        }
+
+        if (previousMappedAbstractState == null ||
+            mappedAbstractState == null ||
+            !StateSemantics.Equal(
+                previousMappedAbstractState,
+                mappedAbstractState))
+        {
+            return AbstractProjectionKind.AbstractStep;
+        }
+
+        return declaredAbstractResponse != null &&
+            declaredAbstractResponse.HidesConcreteAction
+                ? AbstractProjectionKind.HiddenAction
+                : AbstractProjectionKind.AbstractUnchanged;
     }
 
     /// <summary>The concrete graph node at this trace position.</summary>
@@ -136,6 +197,14 @@ public sealed class RefinementTraceItem
     /// admitted none of them or several of them. Null elsewhere.
     /// </summary>
     public IReadOnlyList<AbstractTransition> StateConsistentAbstractTransitions { get; }
+
+    /// <summary>
+    /// How the concrete step that entered this position appears after the
+    /// mapping projects it onto the abstract model: a hidden action, a
+    /// state-neutral abstract edge, an ordinary abstract step, or no abstract
+    /// projection at all.
+    /// </summary>
+    public AbstractProjectionKind ProjectionKind { get; }
 }
 
 /// <summary>
@@ -204,20 +273,7 @@ public sealed class RefinementCheckingResult
         }
 
         var sb = new StringBuilder();
-        if (Status == RefinementCheckingStatus.InconclusiveBound)
-        {
-            sb.AppendLine(
-                "Refinement is inconclusive because exploration reached a depth bound.");
-        }
-        else
-        {
-            sb.AppendLine(
-                FailureKind == RefinementFailureKind.InitialStateMismatch
-                    ? "Refinement failed: the concrete and abstract initial states do not correspond."
-                    : FailureKind == RefinementFailureKind.TemporalFairnessMismatch
-                        ? "Refinement failed: a fair concrete behavior has no fair aligned abstract behavior."
-                        : "Refinement failed: a concrete transition has no coherent abstract match.");
-        }
+        AppendOutcome(sb);
 
         if (Trace == null)
         {
@@ -289,6 +345,185 @@ public sealed class RefinementCheckingResult
             }
         }
 
+        AppendHiddenDivergenceHint(sb);
+        AppendCheckedHidingHint(sb);
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Formats the diagnostic trace as the projection the refinement mapping
+    /// defines: each concrete position, the abstract state it maps to, and how
+    /// the concrete step that entered it appears abstractly — a hidden action,
+    /// a state-neutral abstract step, or an ordinary abstract step.
+    /// </summary>
+    public string GetProjectionString()
+    {
+        if (Trace == null)
+        {
+            return GetTraceString();
+        }
+
+        var sb = new StringBuilder();
+        AppendOutcome(sb);
+        sb.AppendLine(
+            "Concrete behavior projected onto the abstract model by the mapping:");
+
+        foreach (var item in Trace)
+        {
+            sb.Append("  ")
+                .Append(item.IsInCycle ? "[cycle] " : string.Empty)
+                .Append(item.ConcreteStepFunction == null
+                    ? "start"
+                    : "--" +
+                        PropertyCheckingResult.FormatStep(
+                            item.ConcreteStepFunction) +
+                        "-->")
+                .Append(' ')
+                .Append(item.ConcreteNode.State)
+                .Append("  =>  ")
+                .Append(item.MappedAbstractState == null
+                    ? "<unmapped>"
+                    : item.MappedAbstractState.ToString());
+
+            var projection = DescribeProjection(item);
+            if (projection != null)
+            {
+                sb.Append("   ").Append(projection);
+            }
+            sb.AppendLine();
+        }
+
+        AppendHiddenDivergenceHint(sb);
+        AppendCheckedHidingHint(sb);
+        return sb.ToString();
+    }
+
+    private string DescribeProjection(RefinementTraceItem item)
+    {
+        var aligned = item.AlignedAbstractTransition;
+
+        switch (item.ProjectionKind)
+        {
+            case AbstractProjectionKind.Start:
+                return null;
+
+            case AbstractProjectionKind.CheckerCompletion:
+                return "checker completion of a terminal concrete behavior";
+
+            case AbstractProjectionKind.HiddenAction:
+                return "hidden action (abstract stutter)";
+
+            case AbstractProjectionKind.StateNeutralStep:
+                return "state-neutral abstract step " +
+                    aligned.StepFunction.StepFunctionId;
+
+            case AbstractProjectionKind.AbstractStep:
+                return aligned == null
+                    ? "abstract step"
+                    : "abstract step " + aligned.StepFunction.StepFunctionId;
+
+            case AbstractProjectionKind.AbstractUnchanged:
+                return "abstract state unchanged " +
+                    "(abstract stutter or a state-neutral abstract step)";
+
+            default:
+                return Status == RefinementCheckingStatus.InconclusiveBound
+                    ? "abstract projection unknown at depth bound"
+                    : "no abstract projection";
+        }
+    }
+
+    private void AppendOutcome(StringBuilder sb)
+    {
+        if (Status == RefinementCheckingStatus.InconclusiveBound)
+        {
+            sb.AppendLine(
+                "Refinement is inconclusive because exploration reached a depth bound.");
+            return;
+        }
+
+        if (Status == RefinementCheckingStatus.DoesNotRefine)
+        {
+            sb.AppendLine(
+                FailureKind == RefinementFailureKind.InitialStateMismatch
+                    ? "Refinement failed: the concrete and abstract initial states do not correspond."
+                    : FailureKind == RefinementFailureKind.TemporalFairnessMismatch
+                        ? "Refinement failed: a fair concrete behavior has no fair aligned abstract behavior."
+                        : "Refinement failed: a concrete transition has no coherent abstract match.");
+        }
+    }
+
+    /// <summary>
+    /// Explains a fairness counterexample whose repeating part is entirely
+    /// hidden. Hiding a concrete action declares that the abstract model does
+    /// not move; it never removes the concrete behavior, so an infinite loop
+    /// of hidden actions still has to be excluded by concrete fairness.
+    /// </summary>
+    private void AppendHiddenDivergenceHint(StringBuilder sb)
+    {
+        if (FailureKind != RefinementFailureKind.TemporalFairnessMismatch ||
+            Trace == null)
+        {
+            return;
+        }
+
+        // The first in-cycle position is the lasso entry, reported with the
+        // prefix transition that reached it. The repeating transitions are
+        // the ones after it.
+        var cycle = Trace
+            .Where(item => item.IsInCycle)
+            .Skip(1)
+            .Where(item => item.ConcreteStepFunction != null)
+            .ToArray();
+        if (cycle.Length == 0 ||
+            cycle.Any(item =>
+                item.ProjectionKind != AbstractProjectionKind.HiddenAction))
+        {
+            return;
+        }
+
+        sb.AppendLine(
+            "  Every concrete transition in the repeating part is hidden, so " +
+            "the abstract model stutters forever there.");
+        sb.AppendLine(
+            "  Hidden actions never discharge an abstract fairness " +
+            "obligation. This concrete divergence is a real behavior: " +
+            "exclude it with concrete fairness if the implementation cannot " +
+            "actually run it forever.");
+    }
+
+    /// <summary>
+    /// Explains a mismatch where the model declared a concrete transition
+    /// hidden but the mapping moves the abstract state across it. Hiding is a
+    /// checked declaration of abstract stutter, not a way to suppress a
+    /// transition.
+    /// </summary>
+    private void AppendCheckedHidingHint(StringBuilder sb)
+    {
+        if (FailureKind != RefinementFailureKind.TransitionMismatch ||
+            Trace == null ||
+            Trace.Count == 0)
+        {
+            return;
+        }
+
+        var mismatch = Trace.FirstOrDefault(item =>
+            item.ProjectionKind == AbstractProjectionKind.Unaligned &&
+            item.DeclaredAbstractResponse != null &&
+            item.DeclaredAbstractResponse.HidesConcreteAction);
+        if (mismatch == null)
+        {
+            return;
+        }
+
+        sb.AppendLine(
+            "  The declaration hides this concrete transition, but the " +
+            "mapping does not: the mapped abstract state is not the one the " +
+            "abstract model stays at.");
+        sb.AppendLine(
+            "  Hiding a concrete action is the checked claim that the " +
+            "abstract model stutters. Map the transition to the abstract " +
+            "action it really performs, or hide the concrete detail in the " +
+            "state mapping so the abstract state does not change.");
     }
 }
