@@ -23,17 +23,8 @@ public static class Formula
 /// </summary>
 public class FormulaBuilder<TState> where TState : State
 {
-    private readonly Rltl<IStatePredicate> unchanged;
-    private readonly Rltl<IStatePredicate> changed;
-
-    public FormulaBuilder()
-    {
-        var unchangedProp = StateProp.OverTransition(
-            "Unchanged",
-            context => StateSemantics.Equal(context.From, context.To));
-        unchanged = Rltl<IStatePredicate>.Atom(new StatePredAtom(unchangedProp));
-        changed = RltlAlgebra.Default.Not(unchanged);
-    }
+    private readonly Rltl<IStatePredicate> unchanged = StutterAlphabet.Unchanged;
+    private readonly Rltl<IStatePredicate> changed = StutterAlphabet.Changing;
 
     #region Observation factory
 
@@ -230,6 +221,89 @@ public class FormulaBuilder<TState> where TState : State
                 RltlAlgebra.Default.Implies(
                     Occurs(trigger),
                     Rltl<IStatePredicate>.Eventually(Occurs(response)))));
+
+    #endregion
+
+    #region Stutter-safe regular patterns (SafeRegex)
+
+    /// <summary>
+    /// One state-changing step whose <em>source</em> state satisfies
+    /// <paramref name="observation"/>.
+    ///
+    /// <para>Steps that leave the state semantically unchanged are invisible to
+    /// the resulting pattern: they neither match nor break it. See
+    /// <see cref="SafeRegex"/> for the erasure lifting.</para>
+    /// </summary>
+    public SafeRegex ChangingStep(Observation observation)
+    {
+        if (observation == null) throw new ArgumentNullException(nameof(observation));
+        return SafeRegex.Step(
+            observation.PredicateCore,
+            $"⟨{observation}⟩");
+    }
+
+    /// <summary>
+    /// One state-changing step <c>s → s'</c> satisfying
+    /// <paramref name="observation"/>.
+    ///
+    /// <para>Because the step is required to be changing, an observation that
+    /// only holds of unchanged steps yields a pattern that never matches.</para>
+    /// </summary>
+    public SafeRegex ChangingStep(TransitionObservation observation)
+    {
+        if (observation == null) throw new ArgumentNullException(nameof(observation));
+        return SafeRegex.Step(
+            observation.PredicateCore,
+            $"⟨{observation}⟩");
+    }
+
+    /// <summary>Exactly one state-changing step, unconstrained.</summary>
+    public SafeRegex AnyChangingStep => SafeRegex.AnyStep;
+
+    /// <summary>
+    /// The empty visible word <c>ε</c> — no changing step at all. Any number of
+    /// unchanged steps still matches, because they are invisible.
+    /// </summary>
+    public SafeRegex NoChangingSteps => SafeRegex.NoSteps;
+
+    /// <summary>The empty language <c>∅</c> — no behaviour matches.</summary>
+    public SafeRegex NeverMatches => SafeRegex.Never;
+
+    /// <summary>
+    /// Stutter-safe sequential prefix <c>R ; φ</c> — <em>some</em> prefix of the
+    /// behaviour matches <paramref name="pattern"/> and the remaining suffix
+    /// satisfies <paramref name="formula"/>.
+    ///
+    /// <para>The split point is the position just after the last changing step
+    /// consumed by the pattern, up to invisible unchanged steps. There is no
+    /// overlapping variant here: overlapping prefix
+    /// (<see cref="StutterSensitiveFormulaBuilder{TState}.OvlPrefix"/>),
+    /// overlapping match
+    /// (<see cref="StutterSensitiveFormulaBuilder{TState}.Match"/>), and fusion
+    /// share one physical transition between pattern and formula, which inserted
+    /// unchanged steps can move.</para>
+    /// </summary>
+    public StutterSafeFormula After(SafeRegex pattern, StutterSafeFormula formula)
+    {
+        if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+        if (formula == null) throw new ArgumentNullException(nameof(formula));
+        return new StutterSafeFormula(
+            Rltl<IStatePredicate>.SeqPrefix(pattern.Lower(), formula.Core));
+    }
+
+    /// <summary>
+    /// Stutter-safe universal trigger <c>R ⊳ φ</c> — <em>every</em> prefix
+    /// matching <paramref name="pattern"/> is followed by a suffix satisfying
+    /// <paramref name="formula"/>. The safety dual of
+    /// <see cref="After(SafeRegex, StutterSafeFormula)"/>.
+    /// </summary>
+    public StutterSafeFormula Whenever(SafeRegex pattern, StutterSafeFormula formula)
+    {
+        if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+        if (formula == null) throw new ArgumentNullException(nameof(formula));
+        return new StutterSafeFormula(
+            Rltl<IStatePredicate>.Trigger(pattern.Lower(), formula.Core));
+    }
 
     #endregion
 

@@ -1,5 +1,6 @@
 namespace Peterson
 {
+    using System.Collections.Generic;
     using Microsoft.Accordant;
     using Microsoft.Accordant.ModelChecking;
     using NUnit.Framework;
@@ -156,6 +157,102 @@ namespace Peterson
             var phi = _sensitive.Match(prefix, _p.Not(_crit1));
             var result = _root.Check(phi);
             Assert.IsTrue(result.Valid, result.GetTraceString());
+        }
+
+        // --- Stutter-safe regex properties (SafeRegex) --------------------
+
+        /// <summary>
+        /// A <see cref="SafeRegex"/> pattern counts the model's
+        /// <em>changing</em> steps, not its physical transitions. Reaching the
+        /// critical section takes four of them (Request, SetFlag, SetTurn,
+        /// EnterCS), so after the first three neither process can be inside.
+        /// </summary>
+        [Test]
+        public void SafeRegex_EnteringTheCriticalSectionTakesFourSteps()
+        {
+            var step = _p.AnyChangingStep;
+            var phi = _p.Whenever(
+                step.Then(step).Then(step),
+                (!_crit0) & !_crit1);
+            var result = _root.Check(phi.Named("No CS within three changing steps"));
+            Assert.IsTrue(result.Valid, result.GetTraceString());
+        }
+
+        /// <summary>
+        /// A forbidden pattern can be written either as
+        /// <c>Whenever(R, False)</c> or as <c>!After(R, True)</c>; both stay
+        /// <see cref="StutterSafeFormula"/>. Here: no changing step is ever
+        /// taken from a state with both processes in the critical section.
+        /// </summary>
+        [Test]
+        public void SafeRegex_NoStepEverStartsWithBothProcessesCritical()
+        {
+            var doubleCritical = _p.ChangingStep(_crit0 & _crit1);
+
+            StutterSafeFormula viaWhenever = _p.Whenever(doubleCritical, _p.False);
+            StutterSafeFormula viaAfter = !_p.After(doubleCritical, _p.True);
+
+            Assert.IsTrue(_root.Check(viaWhenever).Valid);
+            Assert.IsTrue(_root.Check(viaAfter).Valid);
+        }
+
+        /// <summary>
+        /// The payoff. Adding a state-neutral <see cref="IdleStep"/> to the
+        /// model — an action that is offered but changes nothing — leaves a
+        /// stutter-safe step-counting property intact, while the equivalent
+        /// pattern over <em>physical</em> letters breaks: two Idle letters
+        /// count as two steps although nothing happened.
+        /// </summary>
+        [Test]
+        public void SafeRegex_StepCounting_SurvivesNoOpModelEdges()
+        {
+            var steps = new List<IStepFunction>(Peterson.AllSteps()) { new IdleStep() };
+            var idlingRoot = StateGraph.ExploreStateGraph(
+                steps, Peterson.InitialState(), lazy: true);
+
+            var bothIdle = _p.Observe(
+                s => s.PC0 == PetersonPC.NCS && s.PC1 == PetersonPC.NCS, "BothInNCS");
+
+            // Two changing steps always take at least one process out of NCS.
+            var safe = _p.Whenever(
+                _p.AnyChangingStep.Then(_p.AnyChangingStep), !bothIdle);
+            Assert.IsTrue(_root.Check(safe).Valid, "safe property on the plain model");
+            Assert.IsTrue(
+                idlingRoot.Check(safe).Valid,
+                "the Idle edges are invisible to a changing-step pattern");
+
+            // The same shape over physical letters counts the Idle edges.
+            RegexPattern anyLetter = _p.Observe(s => true, "AnyLetter");
+            var sensitive = _sensitive.Trigger(
+                anyLetter.Then(anyLetter), _p.Not(bothIdle));
+            Assert.IsTrue(
+                _root.Check(sensitive).Valid,
+                "sensitive property on the plain model");
+            Assert.IsFalse(
+                idlingRoot.Check(sensitive).Valid,
+                "two Idle letters leave both processes in NCS");
+        }
+
+        // --- Shared definitions -------------------------------------------
+
+        /// <summary>
+        /// A named model edge that leaves the state unchanged. Real models
+        /// acquire these from idle ticks, no-op retries, or re-reading a value
+        /// that has not moved.
+        /// </summary>
+        private sealed class IdleStep : BaseStepFunction
+        {
+            public override string StepFunctionId => "Idle";
+
+            protected override IList<StepResult> ApplyInternal(IState state)
+                => new[]
+                {
+                    new StepResult
+                    {
+                        State = state.Clone(),
+                        StepFunctions = new IStepFunction[] { this },
+                    },
+                };
         }
     }
 }

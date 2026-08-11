@@ -14,50 +14,75 @@ namespace Microsoft.Accordant.ModelChecking
         internal Rltl<IStatePredicate> RltlCore { get; }
         internal Ere<IStatePredicate> EreCore { get; }
 
+        /// <summary>
+        /// The single-letter predicate form of this observation. Unlike
+        /// <see cref="EreCore"/> — whose complement is a whole-language
+        /// complement over words — this stays a predicate over one letter, so
+        /// it can be conjoined with the changing-step predicate by
+        /// <see cref="SafeRegex"/>.
+        /// </summary>
+        internal IStatePredicate PredicateCore { get; }
+
         internal Observation(StatePredAtom atom)
         {
             RltlCore = Rltl<IStatePredicate>.Atom(atom);
             EreCore = Ere<IStatePredicate>.Atom(atom);
+            PredicateCore = atom;
         }
 
         /// <summary>Conjunction of two observations (usable in both temporal and regex contexts).</summary>
         public static Observation operator &(Observation a, Observation b)
-            => new Observation(a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: true);
+            => new Observation(
+                a.RltlCore, b.RltlCore,
+                a.EreCore, b.EreCore,
+                a.PredicateCore, b.PredicateCore,
+                and: true);
 
         /// <summary>Disjunction of two observations.</summary>
         public static Observation operator |(Observation a, Observation b)
-            => new Observation(a.RltlCore, b.RltlCore, a.EreCore, b.EreCore, and: false);
+            => new Observation(
+                a.RltlCore, b.RltlCore,
+                a.EreCore, b.EreCore,
+                a.PredicateCore, b.PredicateCore,
+                and: false);
 
         /// <summary>Negation of an observation.</summary>
         public static Observation operator !(Observation a)
         {
             var rltl = RltlAlgebra.Default.Not(a.RltlCore);
             var ere = Ere<IStatePredicate>.Complement(a.EreCore);
-            return new Observation(rltl, ere);
+            return new Observation(rltl, ere, new StatePredNot(a.PredicateCore));
         }
 
         // Internal constructors for compound observations
         private Observation(
             Rltl<IStatePredicate> rltlA, Rltl<IStatePredicate> rltlB,
             Ere<IStatePredicate> ereA, Ere<IStatePredicate> ereB,
+            IStatePredicate predA, IStatePredicate predB,
             bool and)
         {
             if (and)
             {
                 RltlCore = RltlAlgebra.Default.And(rltlA, rltlB);
                 EreCore = Ere<IStatePredicate>.Intersect(ereA, ereB);
+                PredicateCore = new StatePredAnd(predA, predB);
             }
             else
             {
                 RltlCore = RltlAlgebra.Default.Or(rltlA, rltlB);
                 EreCore = Ere<IStatePredicate>.Union(ereA, ereB);
+                PredicateCore = new StatePredOr(predA, predB);
             }
         }
 
-        private Observation(Rltl<IStatePredicate> rltl, Ere<IStatePredicate> ere)
+        private Observation(
+            Rltl<IStatePredicate> rltl,
+            Ere<IStatePredicate> ere,
+            IStatePredicate predicate)
         {
             RltlCore = rltl;
             EreCore = ere;
+            PredicateCore = predicate;
         }
 
         /// <summary>Implicit conversion to a stutter-safe temporal formula.</summary>
@@ -211,10 +236,19 @@ namespace Microsoft.Accordant.ModelChecking
     }
 
     /// <summary>
-    /// An extended regular expression (ERE) over model-program states. Used as
-    /// the regex component of RLTL prefix operators. Constructed via
-    /// <see cref="RegexPattern.Sigma"/>, <see cref="RegexPattern.Star(RegexPattern)"/>,
+    /// An extended regular expression (ERE) over model-program transition
+    /// letters. Used as the regex component of the stutter-<em>sensitive</em>
+    /// RLTL prefix operators on
+    /// <see cref="StutterSensitiveFormulaBuilder{TState}"/>. Constructed via
+    /// <see cref="RegexPattern.Sigma"/>, <see cref="RegexPattern.Star()"/>,
     /// <see cref="Observation"/> implicit conversion, etc.
+    ///
+    /// <para>Each letter is one physical transition, including transitions that
+    /// leave the state unchanged, so a pattern built here can distinguish
+    /// stutter-equivalent behaviours. Use <see cref="SafeRegex"/> and
+    /// <c>FormulaBuilder&lt;TState&gt;.After</c> /
+    /// <c>FormulaBuilder&lt;TState&gt;.Whenever</c> for patterns over changing
+    /// steps only.</para>
     /// </summary>
     public sealed class RegexPattern
     {
@@ -233,7 +267,13 @@ namespace Microsoft.Accordant.ModelChecking
         /// <summary>The language { ε } — matches only the empty word.</summary>
         public static RegexPattern Epsilon { get; } = new RegexPattern(Ere<IStatePredicate>.Epsilon());
 
-        /// <summary>Σ — matches any single letter (one state).</summary>
+        /// <summary>
+        /// <c>Σ*</c> — the universal language over transition letters; matches
+        /// every finite word, including the empty one. (This is <em>not</em> a
+        /// single-letter language: use an <see cref="Observation"/> atom such
+        /// as <c>Observe(state =&gt; true)</c> for that. <c>p | !p</c> is also
+        /// every word, because ERE complement is a whole-language complement.)
+        /// </summary>
         public static RegexPattern Sigma { get; } = new RegexPattern(Ere<IStatePredicate>.Sigma());
 
         #endregion

@@ -45,7 +45,8 @@ bounded-inconclusive check.
 The default builder exposes only constructs that guarantee invariance under
 finite repetitions of an indistinguishable state. It includes state
 observations, Boolean operators, `Always`, `Eventually`, `Until`, `Release`,
-`LeadsTo`, and related derived operators. It does not expose `Next`.
+`LeadsTo`, related derived operators, and the changing-step regular patterns
+described below. It does not expose `Next`.
 
 Observation names are inferred from their expressions for diagnostics:
 
@@ -94,6 +95,134 @@ changing occurrence, and `Until(H, G)` means `Allowed(H) U Occurs(G)`.
 continuing-condition versus occurrence distinction. Mixed state/transition
 overloads use ordinary source-position LTL semantics.
 
+## Match regular patterns over changing steps
+
+Some properties are about a *sequence* of things happening, which temporal
+operators express only awkwardly. The default builder offers regular patterns
+for that, written with `SafeRegex`.
+
+A `SafeRegex` denotes a language over the behaviour's **changing steps**. A
+step is one transition `s → s'`. It is *unchanged* when `s` and `s'` are
+semantically equal — the same test used by `Always`, `Eventually`, `ENABLED`
+and fairness — and *changing* otherwise. Unchanged steps are invisible to a
+pattern: it never counts them, never matches them, and never changes its
+verdict when they are inserted or removed. That covers both a named model edge
+whose action leaves the state alone and the synthetic self-loop the checker
+adds at a terminal node.
+
+```csharp
+var f = Formula.For<OrderState>();
+
+var submitted = f.Observe(state => state.Status == Status.Submitted);
+var paid = f.Observe(state => state.Status == Status.Paid);
+var advances = f.ObserveTransition((state, next) => next.Version > state.Version);
+
+// One changing step whose source state is Submitted.
+SafeRegex fromSubmitted = f.ChangingStep(submitted);
+
+// One changing step across which the version advances.
+SafeRegex versionBump = f.ChangingStep(advances);
+
+// Any single changing step, no changing step at all, and the empty language.
+SafeRegex anyStep = f.AnyChangingStep;
+SafeRegex noSteps = f.NoChangingSteps;
+SafeRegex never = f.NeverMatches;
+```
+
+A state observation `p(s)` is read at the **source** state of the changing
+step; a transition observation `p(s, s')` is read across it.
+
+### Two operators consume a pattern
+
+| Operator | Meaning |
+| --- | --- |
+| `After(R, φ)` | *some* prefix matches `R` and the remaining suffix satisfies `φ` |
+| `Whenever(R, φ)` | *every* prefix matching `R` is followed by a suffix satisfying `φ` |
+
+`Whenever` is the safety dual of `After`; both return `StutterSafeFormula`.
+
+```csharp
+// Every Submitted-step followed by a Paid-step lands in a shipped state.
+var property = f.Whenever(
+    f.ChangingStep(submitted).Then(f.ChangingStep(paid)),
+    f.Observe(state => state.Shipped));
+
+// A forbidden pattern, written either way.
+var forbidden = f.Whenever(badPattern, f.False);
+var same      = !f.After(badPattern, f.True);
+```
+
+The split point is the position just after the last changing step the pattern
+consumed, up to invisible unchanged steps.
+
+```csharp
+// Counting is over changing steps, so an action that leaves the state alone —
+// an idle tick, a no-op retry, a re-read that returns the same value — does
+// not shift the count.
+var afterTwoSteps = f.Whenever(
+    f.AnyChangingStep.Then(f.AnyChangingStep),
+    f.Observe(state => state.Version == 2));
+```
+
+### The surviving algebra
+
+| Operator | Written | Meaning over changing steps |
+| --- | --- | --- |
+| Concatenation | `a.Then(b)` | `a` then `b` |
+| Union | `a \| b` | `a` or `b` |
+| Intersection | `a & b` | `a` and `b` |
+| Complement | `!a` | every changing-step word except those matching `a` |
+| Star | `a.Star()` | zero or more repetitions |
+| Plus | `a.Plus()` | one or more repetitions |
+| Optional | `a.Optional()` | `a`, or no changing step at all |
+
+Every operator except fusion survives the lift. Complement is taken relative to
+*all* changing-step words, so `!f.NoChangingSteps` is "at least one changing
+step" rather than "any word containing an unchanged step".
+
+### How a pattern is lowered
+
+Before use, a pattern is compiled to the inverse image of the erasure
+homomorphism `h` that deletes unchanged steps. Writing `⌈R⌉` for the compiled
+form, `U` for an unchanged step and `C` for a changing one, a single-step
+observation `A` becomes
+
+```
+⌈A⌉ = Unchanged* · (Changed ∧ A) · Unchanged*
+```
+
+and the rest follows structurally:
+
+| Pattern | Compiled form | Why |
+| --- | --- | --- |
+| `∅` | `∅` | |
+| `ε` | `U*` | no visible step still allows any number of unchanged ones |
+| `A` | `U* · (C ∧ A) · U*` | one visible step, padded on both sides |
+| `R · S` | `⌈R⌉ · ⌈S⌉` | every split of a lowered word induces a split of its erasure |
+| `R + S`, `R ∩ S` | `⌈R⌉ + ⌈S⌉`, `⌈R⌉ ∩ ⌈S⌉` | `h⁻¹` is a Boolean-algebra morphism |
+| `~R` | `~⌈R⌉` | `h` is total, so `h⁻¹(C* \ L) = Σ* \ h⁻¹(L)` |
+| `R*` | `U* + ⌈R⌉*` | `ε ∈ L(R*)` always, so every all-unchanged word must match |
+| `R+`, `R?` | `⌈R⌉ · ⌈R*⌉`, `⌈R⌉ + U*` | |
+
+The result is exactly `h⁻¹(L)` of the intended visible language `L`, which is
+what makes the pattern insensitive to inserted or deleted unchanged steps.
+
+### No action predicates
+
+Patterns observe state change, not action identity or edge metadata. The safe
+surface deliberately follows the existing LTL proposition policy and does not
+add "the step whose step function is `Send`", even though a changing-step guard
+could support a restricted action-aware design. Express the model-level effect
+as a transition observation instead:
+
+```csharp
+var sent = f.ObserveTransition((state, next) => next.Status == Status.Sent);
+var property = f.Whenever(f.ChangingStep(sent), f.Always(f.Observe(s => s.Sent)));
+```
+
+Action-shaped predicates remain available through `ENABLED` on the
+stutter-sensitive builder.
+
 ## Opt into stutter-sensitive formulas explicitly
 
 Some properties must observe exact transition boundaries or use operators that
@@ -117,6 +246,33 @@ unknown continuation and is not converted into a stutter loop. It also exposes
 `AllowStutterSensitiveFormulas()` does not claim every resulting formula is
 stutter-sensitive. It means Accordant's type system no longer guarantees
 stutter invariance.
+
+### Overlapping regex operators
+
+The sensitive builder also exposes the full set of RLTL regex-prefix operators,
+over `RegexPattern` — whose letters are *physical* transitions, unchanged ones
+included:
+
+| Sensitive operator | Meaning | Safe counterpart |
+| --- | --- | --- |
+| `SeqPrefix(R, φ)` | some prefix matches `R`, then `φ` | `After(R, φ)` |
+| `Trigger(R, φ)` | every prefix matching `R` is followed by `φ` | `Whenever(R, φ)` |
+| `OvlPrefix(R, φ)` | as `SeqPrefix`, but the last matched letter is also the first letter of the suffix | none |
+| `Match(R, φ)` | as `Trigger`, with the same overlap | none |
+| `R.Fusion(S)` | the last letter of an `R`-match is the first letter of an `S`-match | none |
+
+`OvlPrefix`, `Match` and `Fusion` have no stutter-safe counterpart because they
+share one **physical** transition between the two sides, and an inserted
+unchanged step moves that transition. Concretely, with `a` and `b` changing
+letters and `u` an unchanged one, the fused pattern `⌈a⌉ : ⌈b⌉` rejects `ab`
+but accepts `aub` — although the two behaviours differ only by stuttering.
+`After` and `Whenever` split *between* steps instead, which is why they survive
+the lift.
+
+`RegexPattern.Sigma` is `Σ*`, the language of every finite word, not a single
+letter. A single physical letter is an observation atom, for example
+`f.Observe(state => true)`. Note that `p | !p` is also every word, because ERE
+complement is a whole-language complement.
 
 ## Ask what a node enables
 

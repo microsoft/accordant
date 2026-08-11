@@ -279,6 +279,17 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         /// <summary>
         /// Converts a Rltl formula into the corresponding Dnf leaf, handling
         /// the structural ⊤/⊥ cases so that the resulting Dnf is canonical.
+        ///
+        /// <para>Boolean connectives are pushed into B⁺(Q) rather than kept
+        /// inside the leaf: an <c>RltlOr</c> becomes a disjunction of Dnf
+        /// clauses and an <c>RltlAnd</c> becomes a conjunction, so every ABW
+        /// state (Dnf atom) is a *non-Boolean* formula. This is required for
+        /// correctness, not just for state-space size: the Büchi acceptance
+        /// set F is defined per state head (<see cref="IsAccepting"/>), so a
+        /// compound state such as <c>(R₁;φ) ∨ (R₂;φ)</c> — produced by the
+        /// Union distribution in <see cref="Rltl{TPred}.SeqPrefix"/> and its
+        /// siblings — would be classified by its <c>∨</c> head and silently
+        /// lose the liveness obligations of its disjuncts.</para>
         /// </summary>
         private Dnf<Rltl<TPred>> ToDnfAtom(Rltl<TPred> f)
         {
@@ -291,7 +302,38 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 if (canonF is RltlTrue<TPred>) return _dnfAlgebra.Top;
                 f = canonF;
             }
-            return _dnfAlgebra.Atom(f);
+            return ToDnf(f);
+        }
+
+        /// <summary>
+        /// Lifts the positive Boolean structure of <paramref name="f"/> into
+        /// B⁺(Q): <c>∨</c> becomes Dnf disjunction, <c>∧</c> becomes Dnf
+        /// conjunction, and every other head becomes an atomic ABW state.
+        /// </summary>
+        private Dnf<Rltl<TPred>> ToDnf(Rltl<TPred> f)
+        {
+            switch (f)
+            {
+                case RltlFalse<TPred> _: return _dnfAlgebra.Bottom;
+                case RltlTrue<TPred> _: return _dnfAlgebra.Top;
+
+                case RltlOr<TPred> or:
+                {
+                    var acc = _dnfAlgebra.Bottom;
+                    foreach (var op in or.Operands) acc = _dnfAlgebra.Or(acc, ToDnf(op));
+                    return acc;
+                }
+
+                case RltlAnd<TPred> and:
+                {
+                    var acc = _dnfAlgebra.Top;
+                    foreach (var op in and.Operands) acc = _dnfAlgebra.And(acc, ToDnf(op));
+                    return acc;
+                }
+
+                default:
+                    return _dnfAlgebra.Atom(f);
+            }
         }
 
         /// <summary>
@@ -309,6 +351,11 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         ///   (the obligation has been discharged).</item>
         ///   <item>{R}ω ω-closure: always accepting (its obligation is
         ///   absorbed by the SeqPrefix unrolling in the derivative).</item>
+        ///   <item>∧ / ∨: the derivative pipeline never emits a Boolean state
+        ///   (<c>ToDnfAtom</c> lifts connectives into B⁺(Q)), but a caller may
+        ///   hand one to <see cref="ToABW"/>; such a state carries every
+        ///   obligation of its operands, so it is accepting only when all of
+        ///   them are.</item>
         /// </list>
         /// </summary>
         public bool IsAccepting(Rltl<TPred> f)
@@ -323,6 +370,18 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     return _emptiness.IsAlive(w.Regex);
                 case RltlNegWeakClosure<TPred> n:
                     return _emptiness.IsDead(n.Regex);
+                case RltlAnd<TPred> and:
+                {
+                    foreach (var op in and.Operands)
+                        if (!IsAccepting(op)) return false;
+                    return true;
+                }
+                case RltlOr<TPred> or:
+                {
+                    foreach (var op in or.Operands)
+                        if (!IsAccepting(op)) return false;
+                    return true;
+                }
                 default:
                     return true;
             }
@@ -333,12 +392,19 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         /// automaton can be passed to <see cref="AlternationElimination"/> or
         /// the incremental <see cref="IncrementalAE{TPred,TElem,TState}"/>
         /// to obtain an NBW for model checking.
+        ///
+        /// <para>The initial formula φ₀ ∈ B⁺(Q) is obtained by lifting the
+        /// top-level Boolean structure of <paramref name="formula"/> into the
+        /// Dnf, exactly as derivative leaves are: a top-level <c>∨</c>/<c>∧</c>
+        /// must not become a single ABW state, or its operands' liveness
+        /// obligations would be invisible to the Büchi acceptance set.</para>
         /// </summary>
         public SymbolicABW<TPred, TElem, Rltl<TPred>> ToABW(Rltl<TPred> formula)
         {
+            if (formula == null) throw new ArgumentNullException(nameof(formula));
             return new SymbolicABW<TPred, TElem, Rltl<TPred>>(
                 _eba, _registry, _dnfAlgebra,
-                formula,
+                ToDnf(formula),
                 IsAccepting,
                 Derivative);
         }
