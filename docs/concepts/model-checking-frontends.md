@@ -101,6 +101,34 @@ program counter (`GetPC(s, I) == PhilPC.Thinking`). Those models are the
 workload a coroutine frontend would have to beat, and the prototype cannot
 express them at all.
 
+**Two further limits are now measured rather than assumed.**
+`Samples/OrderFulfillment` compiles the same payment worker through the
+hand-written and the coroutine frontends and pins both:
+
+| Limit | Pinned by |
+| --- | --- |
+| A compiled coroutine step is not a function of the state it is applied to: its pending checkpoint — including a state-derived `Choose` set — was computed from the state the coroutine *arrived at*, so an interleaved write is invisible to it | `TheCompiledCoroutineStepIsNotAFunctionOfItsInputState` |
+| Fairness over external nondeterminism is not statable on a compiled graph, because `Choose` is state-neutral and fairness counts changing edges only | `TheGatewayFairnessAssumptionCannotBeStatedOnTheCompiledGraph`, `AddingTheGatewayAssumptionToBothSidesMakesRefinementFail` |
+| `verifyDeterminism` reports the C# compiler's `<>9__` lambda cache as a captured-variable write on a cold delegate | `AuditingAColdDelegateReportsTheCompilersLambdaCache` |
+
+The second is the sharper one for the future direction: it is not a runtime
+defect but a consequence of compiling a decision point into a visible
+state-neutral edge. A generated control-state frontend has the same choice to
+make, and the study's answer is that environment nondeterminism a fairness
+assumption must constrain has to be an ordinary changing model action.
+
+**The `Operation` adapter does compose, and that is now checked.** An
+`OperationModelStep` is an ordinary step function whose outcome is a function of
+the state it is applied to, so the ordinary exploration rules interleave it with
+independently active steps with no special support.
+`OperationModel.Explore` gained an `additionalSteps` overload that adds nothing
+to the semantics and only extends the existing duplicate-identity validation to
+the whole active set — two active steps sharing an id would silently change
+graph node identity. `Samples/OperationsModelChecking/OperationCompositionTests.cs`
+covers the overload, and `Samples/OrderFulfillment` uses it for a composed
+controller-plus-workers model that satisfies the same properties as, and
+refines, the hand-written model.
+
 **Neither adapter ships today.**
 `Accordant.ModelChecking.Experimental.Coroutines` and
 `Accordant.ModelChecking.Operations` set `IsPackable=false` and are absent from
@@ -143,6 +171,11 @@ control graph is data rather than a replayed method body.
 * `Samples/CoroutineModelChecking` stays as a study of the soundness boundary.
   Its README's "Runtime limitations" section is normative for anyone using the
   prototype.
+* `Samples/OrderFulfillment` is the applied companion: one implementation-shaped
+  system authored through all three frontends, with the coroutine used only in a
+  closed sub-model. After hiding `Choose`, its projected domain states and
+  changing transitions equal the hand-written worker's, and it refines that
+  worker rather than mixing with independently active steps.
 * Users needing concurrency today write hand-written step functions with an
   explicit program counter, exactly as Peterson, Dining, EWD998, and Paxos do.
 * Work on the replay runtime should stop except for what a study needs. New
@@ -199,11 +232,21 @@ None of these are implemented, and none require the replay runtime.
 5. **Composition test.** Whatever frontend emerges must interleave with
    independently active hand-written steps in one graph, under weak and strong
    fairness. Success: a case study that mixes both and checks a liveness
-   property that fails without fairness.
+   property that fails without fairness. *The `Operation` half of this is now
+   done in `Samples/OrderFulfillment`; the coroutine half remains open, and
+   `TheCompiledCoroutineStepIsNotAFunctionOfItsInputState` records why the
+   replay prototype cannot supply it.*
+6. **Fairness over a generated branch point.** A generated frontend must be able
+   to state a fairness assumption about environment nondeterminism. If the
+   branch point compiles to a state-neutral edge, it cannot, because fairness
+   counts changing edges only. Success: the generated model reproduces
+   `Samples/OrderFulfillment`'s hand-written result — the progress property is
+   violated under weak fairness and holds under the strong gateway assumption.
 
 ## See also
 
 * [Step Functions & Async](step-functions-and-async.md) — the stable backend surface
 * [Model-Checking Formulas](../how-to/model-checking-formulas.md)
 * [Checking Safety Refinement](../how-to/checking-refinement.md)
-* [Samples](../samples.md) — `OperationsModelChecking` and `CoroutineModelChecking`
+* [Samples](../samples.md) — `OperationsModelChecking`, `CoroutineModelChecking`,
+  and `OrderFulfillment`

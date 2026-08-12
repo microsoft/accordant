@@ -140,7 +140,19 @@ objects.
 
 Checkpoint names must be stable along a replayed control path; repeated names
 are expected for iterations. Composition with independently active
-hand-written steps remains deferred.
+hand-written steps remains deferred, and `Samples/OrderFulfillment` measures
+why: a compiled step's *pending* checkpoint — including a state-derived
+`Choose` set — was computed by advancing the workflow from the state the
+coroutine arrived at, so the step is not a function of the state it is applied
+to and an interleaved write between arrival and selection is invisible to it
+(`TheCompiledCoroutineStepIsNotAFunctionOfItsInputState`). That sample also
+shows a second consequence of compiling a decision point into a visible but
+state-neutral `Choose`: because Accordant fairness counts changing edges only,
+a fairness assumption about the externally chosen outcome cannot be attached to
+the compiled graph at all
+(`TheGatewayFairnessAssumptionCannotBeStatedOnTheCompiledGraph`). Environment
+nondeterminism a fairness assumption must constrain belongs in an ordinary
+changing model action.
 
 ## What the runtime checks
 
@@ -220,6 +232,15 @@ These are **not** enforced. Treat them as review obligations.
 * **Determinism verification is sampling, not proof.** Two identical runs of a
   segment do not prove determinism; a value that changes only every third
   evaluation can still slip through.
+* **The determinism audit reports the C# compiler's lambda cache.** The
+  compiler caches a workflow's non-escaping lambdas in `<>9__` fields on the
+  closure it captured the workflow's parameters into, and writes them the first
+  time each lambda is evaluated. `verifyDeterminism: true` compares captured
+  variables around the body, so a freshly created workflow delegate fails its
+  own audit with a diagnostic about compiler-generated state. Explore the same
+  delegate instance once before the audited run; see
+  `Samples/OrderFulfillment`'s `AuditingAColdDelegateReportsTheCompilersLambdaCache`
+  and `PaymentWorkerCoroutine.BuildAuditedGraph`.
 
 ## Analyzer feasibility
 
