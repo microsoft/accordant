@@ -305,6 +305,14 @@ The infinite completion Accordant adds for a genuinely terminal concrete state
 is a checker artifact, not a hidden concrete action, and this diagnostic never
 reports it as concrete divergence.
 
+[`Samples/WalRefinement`](../../Samples/WalRefinement/) is the worked example:
+crash, restart, recovery and write-back are hidden, an infinite crash loop is a
+real behavior that no declaration removes, and the actions a crash *disables* —
+recovery analysis, client reconnection and acknowledgement — need **strong**
+fairness. Restart needs no fairness in that model because every down state has
+restart as its only successor; weak fairness is evaluated over a complete
+cycle, not merely over the interval while an action is enabled.
+
 ### State-neutral abstract edges
 
 An abstract edge whose source and target states are equal is *state-neutral*.

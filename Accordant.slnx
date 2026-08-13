@@ -28,6 +28,7 @@
     <Project Path="Samples/CoroutineModelChecking/CoroutineModelChecking.csproj" />
     <Project Path="Samples/WitnessRefinement/WitnessRefinement.csproj" />
     <Project Path="Samples/WorkQueueRefinement/WorkQueueRefinement.csproj" />
+    <Project Path="Samples/WalRefinement/WalRefinement.csproj" />
   </Folder>
   <Project Path="Accordant.Choose/Accordant.Choose.csproj" />
   <Project Path="Microsoft.Accordant.Cli/Microsoft.Accordant.Cli.csproj" />
