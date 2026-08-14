@@ -142,11 +142,17 @@ public sealed class AbstractResponse
     /// The abstract model takes an edge whose step function matches
     /// <paramref name="selector"/>. Abstract stutter is never admitted.
     /// </summary>
-    public static AbstractResponse Step(Func<IStepFunction, bool> selector)
+    /// <param name="selector">Selects the admitted abstract step.</param>
+    /// <param name="description">
+    /// Optional diagnostic description. Defaults to <c>selected step</c>.
+    /// </param>
+    public static AbstractResponse Step(
+        Func<IStepFunction, bool> selector,
+        string description = null)
     {
         if (selector == null) throw new ArgumentNullException(nameof(selector));
         return new AbstractResponse(
-            "selected step",
+            description ?? "selected step",
             transition => !transition.IsStutter &&
                 selector(transition.StepFunction));
     }

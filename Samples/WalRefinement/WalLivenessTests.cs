@@ -15,7 +15,7 @@ using NUnit.Framework;
 /// implementation until concrete fairness excludes it.</para>
 /// </summary>
 [TestFixture]
-public class WalTemporalFairnessTests
+public class WalLivenessTests
 {
     [Test]
     public void AnInfiniteCrashLoopIsARealBehavior()
@@ -48,9 +48,9 @@ public class WalTemporalFairnessTests
     public void WeakRecoveryFairnessDoesNotSurviveACrashDuringRecovery()
     {
         // Recovery analysis is enabled only while the process is up, so a
-        // process that crashes on every recovery attempt never has it
-        // continuously enabled. Weak fairness is powerless here.
-        var result = Check(WalFairness.ImplementationWithWeakRecovery);
+        // process that crashes on every attempt never has it continuously
+        // enabled. Weak fairness is powerless here.
+        var result = Check(WalFairness.WithWeakRecovery);
 
         Assert.That(
             result.FailureKind,
@@ -65,10 +65,9 @@ public class WalTemporalFairnessTests
     [Test]
     public void WeakAcknowledgementFairnessIsNotEnoughEither()
     {
-        // Recovery now completes, and the outcome is known after every
-        // restart — but a crash disables the acknowledgement again before it
-        // is taken.
-        var result = Check(WalFairness.ImplementationWithWeakReports);
+        // Recovery now completes, and the outcome is known after every restart
+        // — but a crash disables the acknowledgement again before it is taken.
+        var result = Check(WalFairness.WithWeakReports);
 
         Assert.That(
             result.FailureKind,
@@ -91,9 +90,9 @@ public class WalTemporalFairnessTests
         // Strong fairness only asks for an action that is enabled infinitely
         // often to be taken infinitely often, which is exactly what a crash
         // loop guarantees.
-        var result = Check(WalFairness.Implementation);
-
-        Assert.That(result.Status, Is.EqualTo(RefinementCheckingStatus.Refines));
+        Assert.That(
+            Check(WalFairness.Implementation).Status,
+            Is.EqualTo(RefinementCheckingStatus.Refines));
     }
 
     [Test]
@@ -105,28 +104,24 @@ public class WalTemporalFairnessTests
         // there is no "the server sits there forever" behavior to exclude and
         // the decision steps need no fairness assumption.
         Assert.That(
-            Check(WalFairness.Implementation).Status,
-            Is.EqualTo(RefinementCheckingStatus.Refines));
-        Assert.That(
             Check(WalFairness.Implementation + WalFairness.Decides).Status,
             Is.EqualTo(RefinementCheckingStatus.Refines),
             "assuming it anyway is sound but adds nothing");
 
         var inDoubt = ModelGraph
             .Nodes(WriteAheadLog.Explore(WalConfig.Default))
-            .Where(node => WalRefinementCheck.MapPhase((WalState)node.State) ==
-                TxnPhase.Pending)
+            .Where(node => StoreRefinement.PhaseOf((WalState)node.State) == TxnPhase.Pending)
             .ToArray();
         var staysInDoubt = inDoubt
             .SelectMany(node => node.Edges.Select(edge => (Source: node, Edge: edge)))
-            .Where(step => WalRefinementCheck.MapPhase((WalState)step.Edge.Target.State) ==
+            .Where(step => StoreRefinement.PhaseOf((WalState)step.Edge.Target.State) ==
                 TxnPhase.Pending)
             .ToArray();
 
         Assert.That(inDoubt, Is.Not.Empty);
         Assert.That(
-            staysInDoubt.Select(step => step.Edge.StepFunction.StepFunctionId),
-            Has.All.EqualTo("append-redo"));
+            staysInDoubt.Select(step => WalStep.ActionOf(step.Edge.StepFunction)),
+            Has.All.EqualTo(WalAction.AppendRedo));
         Assert.That(
             staysInDoubt,
             Has.All.Matches<(StateGraphNode Source, StateGraphEdge Edge)>(step =>
@@ -138,9 +133,11 @@ public class WalTemporalFairnessTests
     [Test]
     public void NoFairnessIsNeededToRestart()
     {
-        // Every down state has exactly one outgoing edge, restart. Therefore
-        // no infinite path can remain down, and weak restart fairness is
-        // semantically redundant rather than the reason restart occurs.
+        // Every down state has exactly one outgoing edge, restart. No infinite
+        // path can remain down, so weak restart fairness is semantically
+        // redundant rather than the reason restart occurs — which also shows
+        // that weak fairness is evaluated over a complete cycle, not over the
+        // interval during which an action happens to be enabled.
         var down = ModelGraph
             .Nodes(WriteAheadLog.Explore(WalConfig.Default))
             .Where(node => ((WalState)node.State).Server == ServerPhase.Down)
@@ -148,9 +145,8 @@ public class WalTemporalFairnessTests
 
         Assert.That(down, Is.Not.Empty);
         Assert.That(
-            down.SelectMany(node => node.Edges)
-                .Select(edge => edge.StepFunction.StepFunctionId),
-            Has.All.EqualTo("restart"));
+            down.SelectMany(node => node.Edges).Select(edge => WalStep.ActionOf(edge.StepFunction)),
+            Has.All.EqualTo(WalAction.Restart));
         Assert.That(
             Check(Fairness.None + WalFairness.Restarts).FailureKind,
             Is.EqualTo(RefinementFailureKind.TemporalFairnessMismatch),
@@ -161,20 +157,36 @@ public class WalTemporalFairnessTests
     public void EveryObligationComesFromTheAbstractFairnessAssumption()
     {
         // Without an abstract obligation there is nothing for a crash loop to
-        // violate: refinement of a specification that promises no progress is
-        // a safety property.
-        var result = WalRefinementCheck
-            .BuildDeclared()
-            .CheckTemporal(Fairness.None, Fairness.None);
+        // violate: refinement of a specification that promises no progress is a
+        // safety property.
+        var result = StoreRefinement.Build().CheckTemporal(Fairness.None, Fairness.None);
 
         Assert.That(result.Status, Is.EqualTo(RefinementCheckingStatus.Refines));
     }
 
     [Test]
+    public void DeclarationsAreOptionalForAlignmentAndStillWorthMaking()
+    {
+        // Nothing in this model forces a declaration: no store action is
+        // state-neutral and no two store actions perform the same change, so
+        // temporal alignment is already deterministic without one. The
+        // declarations are here because they turn "these actions are internal"
+        // into a checked claim, as DeclaringEveryCrashHiddenIsAMismatch shows.
+        var undeclared = StoreRefinement
+            .StateOnly()
+            .CheckTemporal(WalFairness.Implementation, WalFairness.StoreLiveness);
+
+        Assert.That(undeclared.Status, Is.EqualTo(RefinementCheckingStatus.Refines));
+        Assert.That(
+            Check(WalFairness.Implementation).Status,
+            Is.EqualTo(RefinementCheckingStatus.Refines));
+    }
+
+    [Test]
     public void TheClientAlwaysLearnsTheOutcomeUnderImplementationFairness()
     {
-        // The same fairness bundle, checked directly on the implementation as
-        // a temporal property rather than through the refinement.
+        // The same fairness bundle, checked directly on the implementation as a
+        // temporal property rather than through the refinement.
         var wal = Formula.For<WalState>();
         var root = WriteAheadLog.Explore(WalConfig.Default);
         var waiting = wal.Observe(s => s.Client == ClientPhase.Waiting, "Waiting");
@@ -189,8 +201,8 @@ public class WalTemporalFairnessTests
     }
 
     private static RefinementCheckingResult Check(Fairness concreteFairness)
-        => WalRefinementCheck
-            .BuildDeclared()
+        => StoreRefinement
+            .Build()
             .CheckTemporal(concreteFairness, WalFairness.StoreLiveness);
 
     private static string[] CycleSteps(RefinementCheckingResult result)

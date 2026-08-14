@@ -68,6 +68,16 @@ public class TransitionRefinementTests
         Assert.That(result.Status, Is.EqualTo(RefinementCheckingStatus.Refines));
     }
 
+    [Test]
+    public void PredicateSelectedStepCanNameItsDiagnostic()
+    {
+        var response = AbstractResponse.Step(
+            step => step.StepFunctionId == "reconfigure",
+            "step reconfigure");
+
+        Assert.That(response.Description, Is.EqualTo("step reconfigure"));
+    }
+
     // ---------------------------------------------------------------
     // Parallel abstract edges.
     // ---------------------------------------------------------------
