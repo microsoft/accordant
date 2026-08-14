@@ -63,7 +63,7 @@ public class WalProcessDesignTests
     }
 
     [Test]
-    public void TheOnlyRolesAreThreeClientsAndThreeServerWorkers()
+    public void TheOnlyRolesAreTwoClientsAndThreeServerWorkers()
     {
         var root = WriteAheadLog.Explore(Config);
 

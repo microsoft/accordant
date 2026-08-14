@@ -8,9 +8,11 @@ using NUnit.Framework;
 
 /// <summary>
 /// The temporal refinement ladder: which concrete fairness assumptions make the
-/// process WAL refine the atomic store's liveness. The crash loop keeps the
-/// obligation from holding for free; strong fairness on the recovery/report step
-/// is what closes it.
+/// process WAL refine the atomic store's liveness. The whole ladder runs under
+/// the <em>state mapping alone</em> — every transition aligns deterministically
+/// with no <c>.MapTransition(...)</c> — so this is state-only temporal
+/// refinement. The crash loop keeps the obligation from holding for free; strong
+/// fairness on the recovery/report step is what closes it.
 ///
 /// <para>Because recovery completes and publishes the owed reply in one atomic
 /// step, that single transition is at once the server returning to
@@ -28,6 +30,22 @@ public class WalProcessLivenessTests
         => StoreRefinement.Build(Config).CheckTemporal(
             concreteFairness: concrete,
             abstractFairness: WalFairness.StoreLiveness);
+
+    [Test]
+    public void TheOptionalDeclarationsAlsoCloseTheCrashLoopTemporally()
+    {
+        // The state mapping alone already aligns every transition, so the ladder
+        // above is state-only temporal refinement. Layering the optional action
+        // declarations on top of it must still refine under the implementation
+        // fairness bundle.
+        var result = StoreRefinement.Declared(Config).CheckTemporal(
+            concreteFairness: WalFairness.Implementation,
+            abstractFairness: WalFairness.StoreLiveness);
+        Assert.That(
+            result.Status,
+            Is.EqualTo(RefinementCheckingStatus.Refines),
+            result.GetTraceString());
+    }
 
     [Test]
     public void NoFairnessLeavesTheCrashLoopAndFailsTemporalRefinement()

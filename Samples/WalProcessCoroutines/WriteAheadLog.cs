@@ -167,14 +167,15 @@ public partial class ServerState
     /// <summary>The server lifecycle mode.</summary>
     public ServerMode Mode { get; set; }
 
-    /// <summary>The server crashed.</summary>
-    public void Crash() => Mode = ServerMode.Down;
+    /// <summary>Marks the server as crashed. Assigns lifecycle state only; the
+    /// crash transition itself is owned by failure-domain scheduling.</summary>
+    public void MarkCrashed() => Mode = ServerMode.Down;
 
-    /// <summary>The server restarted into recovery.</summary>
-    public void BeginRecovery() => Mode = ServerMode.Recovering;
+    /// <summary>Marks the server as restarted into recovery.</summary>
+    public void MarkRecovering() => Mode = ServerMode.Recovering;
 
-    /// <summary>The server is up and serving.</summary>
-    public void Run() => Mode = ServerMode.Running;
+    /// <summary>Marks the server as up and serving.</summary>
+    public void MarkRunning() => Mode = ServerMode.Running;
 }
 
 /// <summary>
@@ -199,14 +200,14 @@ public partial class WalProcessState
     /// Whether a client may be admitted right now: the server is up, the log is
     /// clean (the previous transaction fully drained), and the client can claim
     /// the free slot. Admitting one transaction at a time is what serializes the
-    /// three concurrent clients through the capacity-one WAL.
+    /// two concurrent clients through the capacity-one WAL.
     /// </summary>
     public bool CanAdmit(ClientId client)
         => Server.Mode == ServerMode.Running && Wal.IsClean && Exchange.CanSubmit(client);
 }
 
 /// <summary>
-/// The process-oriented write-ahead log: three concurrent one-shot clients
+/// The process-oriented write-ahead log: two concurrent one-shot clients
 /// contending for a capacity-one request slot, and a server failure domain whose
 /// crash discards its process continuations. Only one transaction is admitted at
 /// a time, matching the one redo record and one in-flight transaction the server
@@ -285,7 +286,7 @@ public static class WriteAheadLog
     // ---- the composition root --------------------------------------------
 
     /// <summary>
-    /// Registers the process system structurally: three external clients outside
+    /// Registers the process system structurally: two external clients outside
     /// every failure domain, and a persistent page-writer, a persistent recovery
     /// worker and a guarded request-handler launch inside the <c>server</c>
     /// failure domain. Ownership is expressed by <em>where</em> each process is
@@ -305,11 +306,11 @@ public static class WriteAheadLog
         var server = model.FailureDomain(
             "server",
             crashEnabled: s => s.Server.Mode != ServerMode.Down,
-            onCrash: s => s.Server.Crash(),
+            onCrash: s => s.Server.MarkCrashed(),
             restartEnabled: s => s.Server.Mode == ServerMode.Down,
-            onRestart: s => s.Server.BeginRecovery());
+            onRestart: s => s.Server.MarkRecovering());
 
-        // The three clients are independently active processes outside the
+        // The two clients are independently active processes outside the
         // failure domain: they survive every crash with their continuation
         // intact. Each reads like one-shot request/reply implementation code.
         foreach (var client in config.Clients)
@@ -464,7 +465,7 @@ public static class WriteAheadLog
             {
                 case RecoveryDecision.None:
                     // Nothing outstanding: recovery is done and the server is up.
-                    await ctx.Step(WalAction.Recover, s => s.Server.Run());
+                    await ctx.Step(WalAction.Recover, s => s.Server.MarkRunning());
                     break;
 
                 case RecoveryDecision.Commit:
@@ -472,7 +473,7 @@ public static class WriteAheadLog
                     await ctx.Step(WalAction.AckCommit, s =>
                     {
                         s.Exchange.Publish(owed, Outcome.Committed);
-                        s.Server.Run();
+                        s.Server.MarkRunning();
                     });
                     break;
 
@@ -482,7 +483,7 @@ public static class WriteAheadLog
                     {
                         s.Wal.DiscardRedo();
                         s.Exchange.Publish(owed, Outcome.Aborted);
-                        s.Server.Run();
+                        s.Server.MarkRunning();
                     });
                     break;
             }

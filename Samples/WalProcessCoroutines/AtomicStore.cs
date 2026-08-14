@@ -9,17 +9,20 @@ using System.Linq;
 using Microsoft.Accordant;
 
 /// <summary>
-/// The three fixed, concurrent clients. Each one is one-shot: it submits exactly
-/// one transaction and keeps the outcome it is told.
+/// The two fixed, concurrent clients. Each one is one-shot: it submits exactly
+/// one transaction and keeps the outcome it is told. Two clients are enough to
+/// exercise genuine contention: the capacity-one WAL serializes their requests,
+/// so both admission orders (Alice→Bob and Bob→Alice) are reachable while a
+/// third client would only add permutations and state, not a new behavior.
 /// </summary>
-public enum ClientId { Alice, Bob, Carol }
+public enum ClientId { Alice, Bob }
 
 /// <summary>The outcome a client is told for its transaction.</summary>
 public enum Outcome { None, Committed, Aborted }
 
 /// <summary>
 /// The phase of the single in-flight transaction. Only one transaction is ever
-/// admitted at a time even though three clients contend for admission, because
+/// admitted at a time even though both clients contend for admission, because
 /// the request slot has capacity one — it models one server with one redo record
 /// and one in-flight transaction, not a single-writer key-value store.
 /// <see cref="Committed"/> and <see cref="Aborted"/> mean decided but not yet
@@ -107,9 +110,10 @@ public sealed class WalConfig
     public const int InitialValue = 0;
 
     /// <summary>
-    /// Two keys starting at <c>[0, 0]</c>, with three concurrent one-shot
-    /// clients: Alice submits <c>topup = [1, 2]</c>, Bob submits
-    /// <c>swap = [2, 1]</c>, and Carol submits <c>clear = [0, 0]</c>.
+    /// Two keys starting at <c>[0, 0]</c>, with two concurrent one-shot clients:
+    /// Alice submits <c>topup = [1, 2]</c> and Bob submits <c>swap = [2, 1]</c>.
+    /// The two write sets are distinct absolute snapshots, so which one a client
+    /// sees committed is observable.
     /// </summary>
     public static WalConfig Default { get; } = new WalConfig(
         keys: 2,
@@ -117,7 +121,6 @@ public sealed class WalConfig
         {
             (ClientId.Alice, WriteSet.Of("topup", 1, 2)),
             (ClientId.Bob, WriteSet.Of("swap", 2, 1)),
-            (ClientId.Carol, WriteSet.Of("clear", 0, 0)),
         });
 
     private readonly Dictionary<ClientId, WriteSet> byClient;
@@ -181,10 +184,6 @@ public sealed class WalConfig
     /// <summary>The transactions a client may submit.</summary>
     public IReadOnlyList<WriteSet> Transactions { get; }
 
-    /// <summary>The names of the transactions a client may submit.</summary>
-    public IReadOnlyList<string> TransactionNames
-        => Transactions.Select(transaction => transaction.Name).ToArray();
-
     /// <summary>The snapshot every key starts at.</summary>
     public WriteSet Initial { get; }
 
@@ -216,7 +215,7 @@ public sealed class WalConfig
 /// <summary>
 /// The specification state: an atomic key-value transaction store with one
 /// capacity-one request slot and one persistent reply per client. A transaction
-/// installs its <em>whole</em> write set in one indivisible step. Three clients
+/// installs its <em>whole</em> write set in one indivisible step. Two clients
 /// may each submit once; a client whose reply is already set can never submit
 /// again.
 /// </summary>

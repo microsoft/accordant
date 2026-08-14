@@ -10,7 +10,7 @@ using Microsoft.Accordant.ModelChecking.Experimental.Coroutines;
 using NUnit.Framework;
 
 /// <summary>
-/// The multi-client contract: three concurrent one-shot clients contend for the
+/// The multi-client contract: two concurrent one-shot clients contend for the
 /// capacity-one request slot, exactly one transaction is admitted at a time, the
 /// slot is never overwritten, replies are persistent and correctly targeted, and
 /// draining one transaction admits the next.
@@ -27,18 +27,18 @@ public class WalProcessMultiClientTests
                 (node, edge, ModelGraph.Transition(edge))));
 
     [Test]
-    public void AllThreeClientsContendForTheSlotAtTheStart()
+    public void BothClientsContendForTheSlotAtTheStart()
     {
         var root = WriteAheadLog.Explore(Config);
 
-        // The initial clean state admits any client: three atomic StepWhen submit
+        // The initial clean state admits any client: two atomic StepWhen submit
         // edges race for the single slot.
         var rootSubmits = root.Edges
             .Select(ModelGraph.Transition)
             .Where(t => t.SemanticAction is ClientAction.Submit)
             .Select(t => t.Subject.ToString())
             .ToList();
-        Assert.That(rootSubmits, Is.EquivalentTo(new[] { "Alice", "Bob", "Carol" }));
+        Assert.That(rootSubmits, Is.EquivalentTo(new[] { "Alice", "Bob" }));
     }
 
     [Test]
@@ -123,7 +123,7 @@ public class WalProcessMultiClientTests
             .ToList();
         Assert.That(completions, Is.EquivalentTo(Roles.Clients), "each client completes once");
 
-        // A state exists where all three clients have completed with a persistent
+        // A state exists where both clients have completed with a persistent
         // reply: the whole workload drains.
         Assert.That(
             ModelGraph.Reachable(root).Any(n =>
@@ -158,24 +158,20 @@ public class WalProcessMultiClientTests
     }
 
     [Test]
-    public void AllSixClientAdmissionOrdersAreReachable()
+    public void BothClientAdmissionOrdersAreReachable()
     {
         var root = WriteAheadLog.Explore(Config);
         var orders = ReachableAdmissionOrders(root);
 
-        var expected = new[]
-        {
-            "Alice>Bob>Carol", "Alice>Carol>Bob",
-            "Bob>Alice>Carol", "Bob>Carol>Alice",
-            "Carol>Alice>Bob", "Carol>Bob>Alice",
-        };
+        var expected = new[] { "Alice>Bob", "Bob>Alice" };
         foreach (var order in expected)
         {
             Assert.That(orders, Contains.Item(order), $"admission order {order} should be reachable");
         }
+        Assert.That(orders, Is.EquivalentTo(expected), "only the two orders are reachable");
     }
 
-    /// <summary>Every full three-client admission order reachable from the root.</summary>
+    /// <summary>Every full two-client admission order reachable from the root.</summary>
     private static HashSet<string> ReachableAdmissionOrders(StateGraphNode root)
     {
         var full = new HashSet<string>();

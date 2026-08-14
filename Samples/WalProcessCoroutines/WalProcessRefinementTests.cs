@@ -32,7 +32,7 @@ public class WalProcessRefinementTests
 
         Assert.That(walSize.Nodes, Is.GreaterThan(storeSize.Nodes));
 
-        // A concrete guard against runaway growth: three one-shot clients, one
+        // A concrete guard against runaway growth: two one-shot clients, one
         // in-flight transaction, and a single failure domain keep this well
         // under a hundred thousand nodes.
         Assert.That(walSize.Nodes, Is.LessThan(100_000));
@@ -53,9 +53,23 @@ public class WalProcessRefinementTests
     }
 
     [Test]
-    public void TheProcessWalSafelyRefinesTheAtomicStore()
+    public void TheProcessWalSafelyRefinesTheAtomicStoreWithTheStateMappingAlone()
     {
+        // The primary check: the state mapping alone, with no .MapTransition(...).
         var result = StoreRefinement.Build(Config).Check();
+        Assert.That(
+            result.Status,
+            Is.EqualTo(RefinementCheckingStatus.Refines),
+            result.GetTraceString());
+    }
+
+    [Test]
+    public void TheOptionalActionDeclarationsAlsoRefine()
+    {
+        // The secondary check layers explicit action declarations on top of the
+        // state mapping. It is not required for the refinement to hold, but it
+        // asserts the store action behind each meaningful transition and holds.
+        var result = StoreRefinement.Declared(Config).Check();
         Assert.That(
             result.Status,
             Is.EqualTo(RefinementCheckingStatus.Refines),
@@ -68,7 +82,7 @@ public class WalProcessRefinementTests
         var wal = WriteAheadLog.Explore(Config);
 
         // The initial configuration has every client and every persistent worker
-        // active: five independently active processes at once.
+        // active: four independently active processes at once.
         Assert.That(
             ModelGraph.LiveRoles(wal),
             Is.EquivalentTo(
@@ -82,7 +96,7 @@ public class WalProcessRefinementTests
     }
 
     [Test]
-    public void APrecommitCrashIsDeclaredAndCheckedAsAnAbstractAbort()
+    public void APrecommitCrashCanBeDeclaredAndCheckedAsAnAbstractAbort()
     {
         var wal = WriteAheadLog.Explore(Config);
 
@@ -106,8 +120,9 @@ public class WalProcessRefinementTests
             StoreRefinement.PhaseOf((WalProcessState)doomedCrash.edge.Target.State),
             Is.EqualTo(TxnPhase.Aborted));
 
+        // The optional declared check, which explicitly asserts that abort, holds.
         Assert.That(
-            StoreRefinement.Build(Config).Check().Status,
+            StoreRefinement.Declared(Config).Check().Status,
             Is.EqualTo(RefinementCheckingStatus.Refines));
     }
 

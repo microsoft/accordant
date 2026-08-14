@@ -1,7 +1,7 @@
 # WalProcessCoroutines
 
 **Experimental.** A small write-ahead-log *implementation design* written as
-**processes**. Three concurrent clients contend for one server; the server keeps
+**processes**. Two concurrent clients contend for one server; the server keeps
 a durable write-ahead log; a crash can strike at any point and recovery cleans up
 and reports. The whole thing is compiled to an ordinary Accordant state graph and
 checked for refinement against a compact **guarded-action** specification.
@@ -14,7 +14,7 @@ the **experimental limits** section below.
 
 ## The composition root
 
-The system reads like a small design. Three one-shot clients are registered
+The system reads like a small design. Two one-shot clients are registered
 *outside* the failure domain (they survive crashes); the page writer, recovery
 worker, and a guarded request-handler launch are registered *through* the
 `server` domain object (a crash discards them):
@@ -25,13 +25,12 @@ var model = new ProcessSystemModel<WalProcessState>(InitialState(config));
 var server = model.FailureDomain(
     "server",
     crashEnabled:   s => s.Server.Mode != ServerMode.Down,
-    onCrash:        s => s.Server.Crash(),
+    onCrash:        s => s.Server.MarkCrashed(),
     restartEnabled: s => s.Server.Mode == ServerMode.Down,
-    onRestart:      s => s.Server.BeginRecovery());
+    onRestart:      s => s.Server.MarkRecovering());
 
-model.Process("alice", ctx => Client(ctx, config, ClientId.Alice));   // topup
-model.Process("bob",   ctx => Client(ctx, config, ClientId.Bob));     // swap
-model.Process("carol", ctx => Client(ctx, config, ClientId.Carol));   // clear
+model.Process("alice", ctx => Client(ctx, config, ClientId.Alice));   // topup [1, 2]
+model.Process("bob",   ctx => Client(ctx, config, ClientId.Bob));     // swap  [2, 1]
 
 server.Process("page-writer", PageWriter);
 server.Process("recovery", Recovery);
@@ -40,6 +39,10 @@ server.On("request-handler",
                 s.Exchange.Pending != null && !s.Wal.LogRedo,
     workflow: ctx => Handler(ctx, config));
 ```
+
+Two clients are enough. The capacity-one WAL serializes accepted requests, so
+both admission orders — Alice→Bob and Bob→Alice — are already reachable; a third
+client would only add permutations and state, not a new behavior.
 
 Each **client is one-shot** — no `while` loop. It atomically claims the
 capacity-one request slot for its fixed request, waits for its persistent reply,
@@ -96,9 +99,9 @@ async ModelTask Recovery(ModelContext<WalProcessState> ctx)
 
         switch (decision)
         {
-            case RecoveryDecision.None:   await ctx.Step(WalAction.Recover,   s => s.Server.Run()); break;
-            case RecoveryDecision.Commit: await ctx.Step(WalAction.AckCommit, s => { s.Exchange.Publish(owed, Outcome.Committed); s.Server.Run(); }); break;
-            case RecoveryDecision.Abort:  await ctx.Step(WalAction.AckAbort,  s => { s.Wal.DiscardRedo(); s.Exchange.Publish(owed, Outcome.Aborted); s.Server.Run(); }); break;
+            case RecoveryDecision.None:   await ctx.Step(WalAction.Recover,   s => s.Server.MarkRunning()); break;
+            case RecoveryDecision.Commit: await ctx.Step(WalAction.AckCommit, s => { s.Exchange.Publish(owed, Outcome.Committed); s.Server.MarkRunning(); }); break;
+            case RecoveryDecision.Abort:  await ctx.Step(WalAction.AckAbort,  s => { s.Wal.DiscardRedo(); s.Exchange.Publish(owed, Outcome.Aborted); s.Server.MarkRunning(); }); break;
         }
     }
 }
@@ -106,13 +109,13 @@ async ModelTask Recovery(ModelContext<WalProcessState> ctx)
 
 | Model | Nodes | Edges |
 |---|---|---|
-| process WAL (2 keys, three clients) | 8 122 | 25 680 |
-| atomic store | 122 | 147 |
+| process WAL (2 keys, two clients) | 928 | 2 505 |
+| atomic store | 28 | 30 |
 
 The whole suite — safety refinement, the temporal fairness ladder, the checked
-hiding claims, the design tests, the multi-client contract tests and the runtime
-tests (37 tests) — runs in under a minute; graph exploration is ≈2.4 s and the
-safety refinement ≈2 s.
+declaration claims, the design tests, the multi-client contract tests, the
+property showcase (SafeRegex, regex-prefix + temporal suffix, and direct LTL)
+and the runtime tests (46 tests) — runs in a few seconds.
 
 ```bash
 cd Samples/WalProcessCoroutines
@@ -123,7 +126,7 @@ dotnet test
 
 Only **one transaction is admitted at a time**, but this is **not** a fundamental
 single-writer key-value-store assumption. It is a bounded model of a server/WAL
-implementation with **one redo record and one in-flight transaction**. The three
+implementation with **one redo record and one in-flight transaction**. The two
 clients are genuinely **concurrent** and contend for admission; the capacity-one
 request slot *serializes* accepted transactions, exactly as one redo record
 does. There is deliberately no unbounded queue and never two simultaneous WAL
@@ -163,7 +166,7 @@ state.Wal.Append(request);            // durable redo record
 state.Wal.Commit();                   // durable commit record (the linearization point)
 state.Exchange.Submit(client, req);   // claim the capacity-one slot
 state.Exchange.Publish(client, res);  // persistent reply + clear the slot
-state.Server.Crash();                 // server lifecycle only
+state.Server.MarkCrashed();           // server lifecycle only
 ```
 
 | Partition | Fields | Fate at a crash |
@@ -172,10 +175,24 @@ state.Server.Crash();                 // server lifecycle only
 | `Exchange` | `Pending`, `Replies` | **survives** — external/shared table |
 | `ServerState` | `Mode` (`Running` / `Down` / `Recovering`) | reset to `Down` |
 | server-domain continuations | handler, page writer, recovery | **discarded** |
-| client continuations | the three clients | survive — outside the domain |
+| client continuations | the two clients | survive — outside the domain |
 
 `WalProcessState` composes the three; the nested `[State]` objects clone, freeze,
 and hash correctly (the ownership/copying tests check this).
+
+### Method names: `Mark*` setters vs. action-like mutations
+
+Two kinds of nested method live side by side, named on purpose:
+
+* **`Mark*` lifecycle setters** — `Server.MarkRunning()`, `MarkCrashed()`,
+  `MarkRecovering()` — only *assign* the `ServerMode` enum. They deliberately do
+  **not** read like they launch behavior: the real crash/restart transition is
+  owned by failure-domain scheduling, and these methods just record the mode it
+  moved to.
+* **Action-like storage/mailbox mutations** — `Wal.Append`, `Wal.Commit`,
+  `Wal.Install`, `Wal.Truncate`, `Exchange.Submit`, `Exchange.Publish` — are the
+  modeled operations themselves, so their verbs are natural. They are *not*
+  mechanically prefixed with `Mark`; only the misleading lifecycle setters are.
 
 ## Minimal shared state via process locals
 
@@ -211,8 +228,8 @@ step simply retries on the next restart.
 
 ## `StepWhen` — an atomic guarded resource claim
 
-Three clients cannot safely do a separate `When(slot-free)` then `Step(Submit)`:
-all three could pass the wait, one interleaves, and another's *historical* passed
+Two clients cannot safely do a separate `When(slot-free)` then `Step(Submit)`:
+both could pass the wait, one interleaves, and the other's *historical* passed
 guard would overwrite `Pending`. `StepWhen` fuses the two:
 
 ```csharp
@@ -250,8 +267,11 @@ collision-safe checkpoint name from the enum type and value
 
 ## The refinement
 
-The state mapping and the transition declarations are written **entirely outside**
-the process code — no coroutine carries a `.Linearizes(...)` annotation.
+**The state mapping alone is the refinement mapping.** It is written entirely
+outside the process code — no coroutine carries a `.Linearizes(...)` annotation —
+and it is *enough*: `StoreRefinement.Build(...)` calls only `.Map(ToStore)`, with
+**no `.MapTransition(...)`**, and both `.Check()` (safety) and
+`.CheckTemporal(...)` (the whole fairness ladder) pass.
 
 ```text
 Values[k]   = LogCommit ? LogRecord[k] : Data[k]   // what recovery would install
@@ -260,22 +280,57 @@ Pending     = the Exchange's outstanding envelope (copied)
 Replies     = the Exchange's per-client results (copied)
 ```
 
-| Process transition | Store response |
+### Why no transition mapping is needed here
+
+Refinement aligns each concrete transition with an abstract response — an
+abstract edge, or abstract *stutter* when the concrete step does not move the
+mapped store. Transition declarations only exist to **resolve ambiguity**, when
+one mapped concrete transition could align with several abstract responses. This
+sample has none:
+
+* every concrete step that *changes* the mapped store changes it in a way exactly
+  **one** abstract edge produces (a submit lands a distinct `Pending`; the commit
+  flush is the only `Pending -> Committed`; an acknowledgement is the only
+  `Committed/Aborted -> Idle` with that reply; a dooming crash is the only
+  `Pending -> Aborted`), and
+* every other concrete step (append-redo, install, truncate, recover, launch,
+  restart, completion, and a crash outside the in-doubt window) is
+  **state-neutral**, and there are **no state-neutral abstract edges** for it to
+  be confused with, so it aligns with abstract stutter unambiguously.
+
+So the abstract actions are all distinguishable by their mapped endpoints, and
+`Unconstrained` (the default for any transition the mapping does not name)
+infers the right response everywhere.
+
+### The optional action declarations (a checked explanation)
+
+`StoreRefinement.Declared(...)` layers an *optional* `.MapTransition(...)` on top
+of the same state mapping. It is **not required** for the refinement to hold; it
+is a secondary demonstration that *asserts* which store action each meaningful
+transition performs, and those assertions are checked:
+
+| Process transition | Declared store response |
 |---|---|
 | client `StepWhen` submit | `spec-submit-{client}` |
 | `flush-commit` | `spec-commit` |
 | `ack-commit` (handler **or** recovery) | `spec-report-commit` |
 | `ack-abort` (recovery) | `spec-report-abort` |
-| `append-redo`, `install-data`, `truncate-log`, `recover` | `Hidden` |
-| launch, restart, process completion | `Hidden` |
-| **crash** | **`Hidden`, or `spec-abort`** |
+| **crash** in the in-doubt window | **`spec-abort`** |
+| **crash** outside it | **`Hidden`** (an intentional checked claim) |
+| everything else | `Unconstrained` (left to inference) |
 
-A crash while the server holds an unflushed write *is* the abort of that
-transaction — the mapping moves `Pending -> Aborted` there. Hiding is checked, not
-assumed: declaring every crash hidden, or calling the commit flush an abort, both
-fail with a transition mismatch.
+Only the crash-outside claim uses `Hidden`: hiding is a *checked assertion* that
+the abstract model stands still, worth stating for a dramatic event like a crash.
+The internal storage steps are left `Unconstrained` — the default inference
+already aligns them with stutter, so there is nothing to assert. `Unconstrained`
+means *infer any state-consistent response*; `Hidden` explicitly *requires*
+abstract stutter.
 
-The abstract spec evolved to the same three-client contract: one outstanding
+Both claims are genuinely checked: declaring **every** crash hidden, or calling
+the commit flush an abort, each fail with a transition mismatch — the tests keep
+both wrong declarations to prove it.
+
+The abstract spec is the matching two-client contract: one outstanding
 `RequestEnvelope`, one persistent reply per client, atomic `Submit(client)`,
 `Commit`, `Abort`, `ReportCommit`, `ReportAbort`, with a client whose reply is
 already set unable to submit again.
@@ -304,6 +359,90 @@ Accordant step function, so fairness is stated over **domain-state transitions**
 is non-vacuous, and crashing itself carries no fairness constraint at all —
 assuming it away would assume the problem away.
 
+## Property showcase: LTL, SafeRegex, and regex-prefix + temporal suffix
+
+`WalProcessProperties.cs` collects a few high-value properties in three
+deliberately different shapes so the division of labour is visible. Every
+"action" is observed **as the state change it makes**. The SafeRegex surface
+deliberately accepts state and source/target observations rather than edge
+metadata; moreover, this model's public step identity is the composite scheduler
+while its semantic action is metadata. So `AppendRedo` is "the redo bit goes
+`false → true`", `FlushCommit` is "the commit bit goes `false → true`", and so
+on. The safe lowering then ignores every unchanged transition.
+
+```csharp
+static readonly FormulaBuilder<WalProcessState> F = Formula.For<WalProcessState>();
+
+TransitionObservation AppendedRedo  = F.ObserveTransition((a, b) => !a.Wal.LogRedo   && b.Wal.LogRedo);
+TransitionObservation FlushedCommit = F.ObserveTransition((a, b) => !a.Wal.LogCommit && b.Wal.LogCommit);
+```
+
+**1. SafeRegex ordering within an episode.** A stutter-safe regular pattern reads
+like a protocol trace and is the natural way to say *this happens before that*.
+Redo-before-commit as a forbidden trace prefix — *after a submit, no commit flush
+with no intervening redo append*:
+
+```csharp
+F.Whenever(
+    AnySteps                                       // Σ* — floats the anchor
+        .Then(F.ChangingStep(AnySubmit))
+        .Then(F.ChangingStep(!AppendedRedo).Star())
+        .Then(F.ChangingStep(FlushedCommit)),
+    F.False);                                       // …never completes
+```
+
+The same shape gives *commit-before-the-committed-reply* and, as the abort
+alternative, *a client is told `Aborted` only after a `PrecommitCrash` doomed its
+transaction* — together pinning each episode to the committed path or the
+crash/recovery abort path.
+
+**2. A SafeRegex prefix followed by a temporal (LTL/RLTL) suffix.** This is the
+shape SafeRegex makes clearest: correlate a concrete, finite, per-client episode
+with a liveness promise. *After `Submit(Alice) · … · FlushCommit(Alice)`, Alice
+is eventually `Committed`* — under the same strong recover/report fairness the
+refinement liveness ladder uses:
+
+```csharp
+F.Whenever(
+    AnySteps.Then(F.ChangingStep(Submitted(Alice)))
+            .Then(AnySteps)
+            .Then(F.ChangingStep(FlushedCommit & PendingIs(Alice))),
+    F.Eventually(Committed(Alice)));                // needs WalFairness.Implementation
+```
+
+Its dual correlates a precommit crash with an eventual `Aborted`. Both genuinely
+need the fairness: under `Fairness.None` the crash loop starves the `◇` suffix,
+and the tests assert exactly that refutation.
+
+**3. Direct LTL.** Plain invariants and a leads-to are exactly what LTL expresses
+cleanly; no pattern is needed:
+
+```csharp
+F.Always(F.Observe(s => !s.Wal.LogCommit || s.Wal.LogRedo));   // commit ⇒ redo
+F.Always(F.ObserveTransition(RepliesNeverChange));             // replies are final
+F.LeadsTo(PendingFor(Alice), HasReply(Alice));                 // needs fairness
+```
+
+**What each shape is for.** A durable-commit-implies-durable-redo invariant or a
+replies-are-final transition invariant is a plain `□` — LTL states it directly and
+a regular pattern would only obscure it. What SafeRegex adds is *ordering within
+an episode* and *finite trace prefixes that trigger an obligation*: writing
+"submit, then (visibly) append the redo, then flush, then acknowledge" as a
+trace, and hanging a `◇` promise off the end of a matched prefix. LTL can express
+these too (with nested until/next), but far less legibly.
+
+**Non-vacuity, controls, and honest stuttering.** Every holding property is
+paired with a check that keeps it from passing for free: witnesses that the
+constrained events actually occur, a deliberately reversed ordering claim that is
+refuted, and the `Fairness.None` refutations for the liveness suffixes. One test
+proves the erasure is real: this graph has **state-neutral control transitions**
+(handler launches and process completions leave the domain state unchanged), and
+a handler launch sits *physically* between `Submit` and `AppendRedo`. The
+SafeRegex `After`/`Whenever` compile through the erasure of unchanged steps, so
+those control edges never change a verdict — while a raw, stutter-**sensitive**
+`Next` counts the launch and gives a different answer. We do not claim raw regex
+or raw `Next` are insensitive; only the SafeRegex wrapper and its lowering are.
+
 ## Experimental limits
 
 * The runtime is unpackaged and prototype. The determinism audit and the other
@@ -317,9 +456,9 @@ assuming it away would assume the problem away.
   pure functions of the frozen state; the runtime checks this only under the
   opt-in determinism audit. The handler and clients capture `config` by reference
   (compared by identity only) and never mutate it.
-* Three fixed one-shot clients, one in-flight transaction, single instances of
-  each server role and a single failure domain keep the model finite: **8 122
-  nodes / 25 680 edges**, complete with no depth frontier. The design avoids
+* Two fixed one-shot clients, one in-flight transaction, single instances of
+  each server role and a single failure domain keep the model finite: **928
+  nodes / 2 505 edges**, complete with no depth frontier. The design avoids
   unbounded launch duplication and unbounded crash generations rather than
   bounding them after the fact.
 
@@ -329,11 +468,13 @@ assuming it away would assume the problem away.
 |---|---|
 | `AtomicStore.cs` | `ClientId`, `RequestEnvelope`, `WriteSet`, `WalConfig` (the payload) and the guarded-action `StoreState` specification |
 | `WriteAheadLog.cs` | `DurableWal`, `Exchange`, `ServerState`, `WalProcessState`, the processes, the guarded handler launch and the failure domain — the composition root |
-| `Refinement.cs` | the state mapping, the transition declarations, and the fairness bundles |
+| `Refinement.cs` | the state mapping, the optional action declarations, and the fairness bundles |
+| `WalProcessProperties.cs` | the property showcase: SafeRegex ordering, regex-prefix + temporal suffix, and direct LTL, each observed as a state change |
 | `ModelGraph.cs` | a breadth-first walk and live-process inspection used by the tests |
-| `WalProcessRefinementTests.cs` | finiteness/size, safety refinement, the crash-as-abort claim, the rejected wrong declarations, at-most-one handler |
+| `WalProcessRefinementTests.cs` | finiteness/size, state-only safety refinement, the optional declared refinement and the crash-as-abort claim, the rejected wrong declarations, at-most-one handler |
 | `WalProcessDesignTests.cs` | structural ownership, the sequential handler order, the normal/recovery reporting split, the no-double-report guarantee, no recovery-only phase |
-| `WalProcessMultiClientTests.cs` | three-client contention, no slot overwrite, one-shot completion, correct persistent replies, all six admission orders, draining admits the next |
+| `WalProcessMultiClientTests.cs` | two-client contention, no slot overwrite, one-shot completion, correct persistent replies, both admission orders, draining admits the next |
+| `WalProcessPropertyTests.cs` | the showcase checks: SafeRegex ordering + witnesses, the regex-prefix/temporal-suffix episodes + fairness controls, direct LTL, and the state-neutral-erasure test |
 | `WalProcessLivenessTests.cs` | the temporal fairness ladder |
 | `ProcessRuntimeTests.cs` | focused runtime tests: interleaving, live `When`/`StepWhen` re-evaluation, the `StepWhen` race, structural crash continuation disposal |
 
