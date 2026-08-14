@@ -36,21 +36,22 @@ public enum ProcessControlKind
 /// <summary>
 /// The typed metadata attached to every edge of a compiled process-system
 /// graph. It carries the identity of the process that acted (its stable role,
-/// separate from any generated runtime id), whether that process belongs to the
-/// server failure domain, and either the underlying
-/// <see cref="CoroutineTransition"/> for a coroutine checkpoint or the
-/// <see cref="ProcessControlKind"/> for a scheduler control transition.
+/// separate from any generated runtime id), the name of the failure domain that
+/// owns that process (or null when the process is outside every domain), and
+/// either the underlying <see cref="CoroutineTransition"/> for a coroutine
+/// checkpoint or the <see cref="ProcessControlKind"/> for a scheduler control
+/// transition. A crash or restart edge names the failure domain it belongs to.
 /// </summary>
 public sealed class ProcessTransition
 {
     internal ProcessTransition(
         string processRole,
-        bool serverDomain,
+        string domain,
         ProcessControlKind control,
         CoroutineTransition checkpoint)
     {
         ProcessRole = processRole;
-        ServerDomain = serverDomain;
+        Domain = domain;
         Control = control;
         Checkpoint = checkpoint;
     }
@@ -58,8 +59,15 @@ public sealed class ProcessTransition
     /// <summary>The stable role of the process that took the transition.</summary>
     public string ProcessRole { get; }
 
-    /// <summary>Whether the acting process belongs to the server failure domain.</summary>
-    public bool ServerDomain { get; }
+    /// <summary>
+    /// The name of the failure domain that owns the acting process (or, for a
+    /// crash/restart, the domain the control transition belongs to), or null
+    /// when the process is outside every failure domain.
+    /// </summary>
+    public string Domain { get; }
+
+    /// <summary>Whether the acting process belongs to a failure domain.</summary>
+    public bool InFailureDomain => Domain != null;
 
     /// <summary>The control kind, or <see cref="ProcessControlKind.None"/> for a coroutine checkpoint.</summary>
     public ProcessControlKind Control { get; }
@@ -98,18 +106,21 @@ public sealed class ProcessTransition
 /// <summary>A snapshot of one live process in a scheduler configuration.</summary>
 public sealed class ProcessInstance
 {
-    internal ProcessInstance(string role, bool serverDomain, string continuationId)
+    internal ProcessInstance(string role, string domain, string continuationId)
     {
         Role = role;
-        ServerDomain = serverDomain;
+        Domain = domain;
         ContinuationId = continuationId;
     }
 
     /// <summary>The stable process role.</summary>
     public string Role { get; }
 
-    /// <summary>Whether the process belongs to the server failure domain.</summary>
-    public bool ServerDomain { get; }
+    /// <summary>The name of the failure domain that owns the process, or null.</summary>
+    public string Domain { get; }
+
+    /// <summary>Whether the process belongs to a failure domain.</summary>
+    public bool InFailureDomain => Domain != null;
 
     /// <summary>An opaque identity of the process's serialized continuation (replay tape).</summary>
     public string ContinuationId { get; }
@@ -130,32 +141,71 @@ public interface IProcessSchedulerStep : IStepFunction
 }
 
 /// <summary>
-/// Describes a failure domain: when a crash may occur, how it clears volatile
-/// domain state, and when and how a restart re-establishes the server. A crash
-/// additionally discards every server-domain process continuation, and a
-/// restart relaunches the persistent server-domain workers; those are handled
-/// by the scheduler and need not be spelled out here.
+/// A failure domain registered on a <see cref="ProcessSystemModel{TState}"/>.
+/// Processes and guarded launches registered <em>through</em> the domain object
+/// belong to it, which is what expresses ownership structurally instead of a
+/// boolean flag: a crash discards every continuation registered through this
+/// domain and clears its volatile state, and a restart relaunches the domain's
+/// persistent workers fresh. The domain carries a stable <see cref="Name"/> that
+/// appears in the process/control edge metadata.
 /// </summary>
-public sealed class FailureDomain<TState>
+public sealed class ProcessFailureDomain<TState>
     where TState : State
 {
-    /// <summary>Creates a failure domain.</summary>
-    public FailureDomain(
+    private readonly ProcessSystemModel<TState> model;
+
+    internal ProcessFailureDomain(
+        ProcessSystemModel<TState> model,
+        string name,
         Func<TState, bool> crashEnabled,
         Action<TState> onCrash,
         Func<TState, bool> restartEnabled,
         Action<TState> onRestart)
     {
+        this.model = model;
+        Name = name;
         CrashEnabled = crashEnabled ?? throw new ArgumentNullException(nameof(crashEnabled));
         OnCrash = onCrash ?? throw new ArgumentNullException(nameof(onCrash));
         RestartEnabled = restartEnabled ?? throw new ArgumentNullException(nameof(restartEnabled));
         OnRestart = onRestart ?? throw new ArgumentNullException(nameof(onRestart));
     }
 
+    /// <summary>The stable name of this failure domain.</summary>
+    public string Name { get; }
+
     internal Func<TState, bool> CrashEnabled { get; }
     internal Action<TState> OnCrash { get; }
     internal Func<TState, bool> RestartEnabled { get; }
     internal Action<TState> OnRestart { get; }
+
+    /// <summary>
+    /// Registers a persistent process that belongs to this failure domain: it is
+    /// live from the start, discarded at a crash, and relaunched fresh at the
+    /// next restart.
+    /// </summary>
+    public ProcessFailureDomain<TState> Process(
+        string role,
+        Func<ModelContext<TState>, ModelTask> workflow)
+    {
+        model.RegisterProcess(role, workflow, Name);
+        return this;
+    }
+
+    /// <summary>
+    /// Registers a guarded launch that belongs to this failure domain. When
+    /// <paramref name="guard"/> holds and no instance of <paramref name="role"/>
+    /// is live, the scheduler adds a fresh instance in one atomic transition; a
+    /// crash discards it and does not relaunch it (a persistent domain worker
+    /// replaces it instead).
+    /// </summary>
+    public ProcessFailureDomain<TState> On(
+        string role,
+        Func<TState, bool> guard,
+        Func<ModelContext<TState>, ModelTask> workflow)
+    {
+        model.RegisterLaunch(role, guard, workflow, Name);
+        return this;
+    }
 }
 
 internal sealed class ProcessSpec<TState>
@@ -164,18 +214,20 @@ internal sealed class ProcessSpec<TState>
     internal ProcessSpec(
         string role,
         Func<ModelContext<TState>, ModelTask> workflow,
-        bool serverDomain,
+        string domain,
         CoroutineOptions options)
     {
         Role = role;
         Workflow = workflow;
-        ServerDomain = serverDomain;
+        Domain = domain;
         Options = options;
     }
 
     internal string Role { get; }
     internal Func<ModelContext<TState>, ModelTask> Workflow { get; }
-    internal bool ServerDomain { get; }
+
+    /// <summary>The failure domain that owns this process, or null.</summary>
+    internal string Domain { get; }
     internal CoroutineOptions Options { get; }
 }
 
@@ -186,28 +238,37 @@ internal sealed class LaunchSpec<TState>
         string role,
         Func<TState, bool> guard,
         Func<ModelContext<TState>, ModelTask> workflow,
-        bool serverDomain,
+        string domain,
         CoroutineOptions options)
     {
         Role = role;
         Guard = guard;
         Workflow = workflow;
-        ServerDomain = serverDomain;
+        Domain = domain;
         Options = options;
     }
 
     internal string Role { get; }
     internal Func<TState, bool> Guard { get; }
     internal Func<ModelContext<TState>, ModelTask> Workflow { get; }
-    internal bool ServerDomain { get; }
+
+    /// <summary>The failure domain that owns this launch, or null.</summary>
+    internal string Domain { get; }
     internal CoroutineOptions Options { get; }
 }
 
 /// <summary>
 /// The composition root of an experimental process system. It registers a set
 /// of independently active replay-coroutine processes, optional guarded process
-/// launches, and an optional server failure domain, and compiles the whole
-/// system to an ordinary Accordant state graph.
+/// launches, and an optional failure domain, and compiles the whole system to
+/// an ordinary Accordant state graph.
+///
+/// <para>Ownership is expressed <em>structurally</em>: a process registered with
+/// <see cref="Process(string, Func{ModelContext{TState}, ModelTask})"/> is
+/// outside every failure domain and survives every crash, while a process
+/// registered through a <see cref="ProcessFailureDomain{TState}"/> (returned by
+/// <see cref="FailureDomain"/>) belongs to that domain and is discarded at a
+/// crash. There is no boolean domain flag.</para>
 ///
 /// <para>Each process is a replay coroutine whose serialized continuation lives
 /// in scheduler-node configuration, never in the domain <typeparamref name="TState"/>,
@@ -224,7 +285,7 @@ public sealed class ProcessSystemModel<TState>
     private readonly List<LaunchSpec<TState>> launches = new List<LaunchSpec<TState>>();
     private readonly bool verifyDeterminism;
     private readonly int maxInternalCheckpoints;
-    private FailureDomain<TState> failureDomain;
+    private ProcessFailureDomain<TState> failureDomain;
 
     /// <summary>Creates a process system rooted at <paramref name="initialState"/>.</summary>
     public ProcessSystemModel(
@@ -238,47 +299,90 @@ public sealed class ProcessSystemModel<TState>
     }
 
     /// <summary>
-    /// Registers an independently active process. It is live from the start.
-    /// A server-domain process is discarded at a crash and relaunched fresh at
-    /// the next restart; a non-server-domain process (for example an external
-    /// client) survives every crash.
+    /// Registers an independently active process that is <em>outside</em> every
+    /// failure domain: it is live from the start and survives every crash with
+    /// its continuation intact (for example an external client). To place a
+    /// process inside a failure domain, register it through the
+    /// <see cref="ProcessFailureDomain{TState}"/> returned by
+    /// <see cref="FailureDomain"/> instead.
     /// </summary>
-    public ProcessSystemModel<TState> AddProcess(
+    public ProcessSystemModel<TState> Process(
         string role,
-        Func<ModelContext<TState>, ModelTask> workflow,
-        bool serverDomain = false)
+        Func<ModelContext<TState>, ModelTask> workflow)
     {
-        RequireRole(role);
-        if (workflow == null) throw new ArgumentNullException(nameof(workflow));
-        processes.Add(new ProcessSpec<TState>(role, workflow, serverDomain, OptionsFor(role, workflow)));
+        RegisterProcess(role, workflow, domain: null);
         return this;
     }
 
     /// <summary>
-    /// Registers a guarded launch. When <paramref name="guard"/> holds and no
-    /// instance of <paramref name="role"/> is currently live, the scheduler adds
-    /// a fresh instance in one atomic transition. The no-duplicate rule uses
-    /// control state the scheduler owns, so a launch cannot fire unboundedly
-    /// while its guard remains true.
+    /// Registers a guarded launch outside every failure domain. When
+    /// <paramref name="guard"/> holds and no instance of <paramref name="role"/>
+    /// is currently live, the scheduler adds a fresh instance in one atomic
+    /// transition. The no-duplicate rule uses control state the scheduler owns,
+    /// so a launch cannot fire unboundedly while its guard remains true. To place
+    /// a launch inside a failure domain, use
+    /// <see cref="ProcessFailureDomain{TState}.On"/>.
     /// </summary>
     public ProcessSystemModel<TState> On(
         string role,
         Func<TState, bool> guard,
+        Func<ModelContext<TState>, ModelTask> workflow)
+    {
+        RegisterLaunch(role, guard, workflow, domain: null);
+        return this;
+    }
+
+    /// <summary>
+    /// Registers a failure domain with a stable <paramref name="name"/> and its
+    /// crash/restart behavior, and returns it so processes and launches can be
+    /// registered through it. Registering through the returned object is what
+    /// expresses domain ownership structurally. Exactly one failure domain is
+    /// supported.
+    /// </summary>
+    public ProcessFailureDomain<TState> FailureDomain(
+        string name,
+        Func<TState, bool> crashEnabled,
+        Action<TState> onCrash,
+        Func<TState, bool> restartEnabled,
+        Action<TState> onRestart)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("A failure domain requires a stable name.", nameof(name));
+        }
+
+        if (failureDomain != null)
+        {
+            throw new ModelDefinitionException(
+                "This prototype supports a single failure domain. " +
+                $"'{failureDomain.Name}' is already registered.");
+        }
+
+        failureDomain = new ProcessFailureDomain<TState>(
+            this, name, crashEnabled, onCrash, restartEnabled, onRestart);
+        return failureDomain;
+    }
+
+    internal void RegisterProcess(
+        string role,
         Func<ModelContext<TState>, ModelTask> workflow,
-        bool serverDomain = true)
+        string domain)
+    {
+        RequireRole(role);
+        if (workflow == null) throw new ArgumentNullException(nameof(workflow));
+        processes.Add(new ProcessSpec<TState>(role, workflow, domain, OptionsFor(role, workflow)));
+    }
+
+    internal void RegisterLaunch(
+        string role,
+        Func<TState, bool> guard,
+        Func<ModelContext<TState>, ModelTask> workflow,
+        string domain)
     {
         RequireRole(role);
         if (guard == null) throw new ArgumentNullException(nameof(guard));
         if (workflow == null) throw new ArgumentNullException(nameof(workflow));
-        launches.Add(new LaunchSpec<TState>(role, guard, workflow, serverDomain, OptionsFor(role, workflow)));
-        return this;
-    }
-
-    /// <summary>Registers the server failure domain.</summary>
-    public ProcessSystemModel<TState> WithFailureDomain(FailureDomain<TState> domain)
-    {
-        failureDomain = domain ?? throw new ArgumentNullException(nameof(domain));
-        return this;
+        launches.Add(new LaunchSpec<TState>(role, guard, workflow, domain, OptionsFor(role, workflow)));
     }
 
     /// <summary>Compiles the system to an ordinary state graph.</summary>
@@ -350,7 +454,7 @@ internal sealed class ProcessConfiguration<TState>
     internal ProcessConfiguration(
         IReadOnlyList<ProcessSpec<TState>> processes,
         IReadOnlyList<LaunchSpec<TState>> launches,
-        FailureDomain<TState> failureDomain)
+        ProcessFailureDomain<TState> failureDomain)
     {
         Processes = processes;
         Launches = launches;
@@ -361,7 +465,7 @@ internal sealed class ProcessConfiguration<TState>
 
     internal IReadOnlyList<ProcessSpec<TState>> Processes { get; }
     internal IReadOnlyList<LaunchSpec<TState>> Launches { get; }
-    internal FailureDomain<TState> FailureDomain { get; }
+    internal ProcessFailureDomain<TState> FailureDomain { get; }
 
     internal Func<ModelContext<TState>, ModelTask> WorkflowFor(string role)
         => processByRole.TryGetValue(role, out var process)
@@ -373,16 +477,17 @@ internal sealed class ProcessConfiguration<TState>
             ? process.Options
             : launchByRole[role].Options;
 
-    internal bool ServerDomainRole(string role)
+    /// <summary>The name of the failure domain that owns <paramref name="role"/>, or null.</summary>
+    internal string DomainOfRole(string role)
         => processByRole.TryGetValue(role, out var process)
-            ? process.ServerDomain
-            : launchByRole[role].ServerDomain;
+            ? process.Domain
+            : launchByRole[role].Domain;
 }
 
 /// <summary>
 /// The single active step function of a compiled process system. It owns the
 /// whole set of live process continuations, which is what lets a crash discard
-/// every server-domain continuation atomically instead of leaking disabled
+/// every failure-domain continuation atomically instead of leaking disabled
 /// steps into the graph.
 /// </summary>
 internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessSchedulerStep
@@ -408,7 +513,7 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
         => live
             .Select(p => new ProcessInstance(
                 p.Role,
-                configuration.ServerDomainRole(p.Role),
+                configuration.DomainOfRole(p.Role),
                 p.Tape.ContinuationIdentity))
             .ToList();
 
@@ -431,11 +536,11 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
                 var next = live
                     .Concat(new[] { new LiveProcess(launch.Role, new ReplayTape()) })
                     .ToList();
-                results.Add(Control(state, next, ProcessControlKind.Launch, launch.Role, launch.ServerDomain));
+                results.Add(Control(state, next, ProcessControlKind.Launch, launch.Role, launch.Domain));
             }
         }
 
-        // 3. The failure domain: crash discards every server-domain continuation.
+        // 3. The failure domain: crash discards every continuation it owns.
         var domain = configuration.FailureDomain;
         if (domain != null && domain.CrashEnabled(state))
         {
@@ -443,12 +548,12 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
             domain.OnCrash(crashed);
             crashed.Freeze();
             var survivors = live
-                .Where(p => !configuration.ServerDomainRole(p.Role))
+                .Where(p => configuration.DomainOfRole(p.Role) != domain.Name)
                 .ToList();
-            results.Add(Control(crashed, survivors, ProcessControlKind.Crash, null, serverDomain: true));
+            results.Add(Control(crashed, survivors, ProcessControlKind.Crash, null, domain.Name));
         }
 
-        // 4. Restart relaunches the persistent server-domain workers fresh.
+        // 4. Restart relaunches the domain's persistent workers fresh.
         if (domain != null && domain.RestartEnabled(state))
         {
             var restarted = (TState)state.Clone();
@@ -457,13 +562,13 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
             var relaunched = live.ToList();
             foreach (var spec in configuration.Processes)
             {
-                if (spec.ServerDomain && relaunched.All(p => p.Role != spec.Role))
+                if (spec.Domain == domain.Name && relaunched.All(p => p.Role != spec.Role))
                 {
                     relaunched.Add(new LiveProcess(spec.Role, new ReplayTape()));
                 }
             }
 
-            results.Add(Control(restarted, relaunched, ProcessControlKind.Restart, null, serverDomain: true));
+            results.Add(Control(restarted, relaunched, ProcessControlKind.Restart, null, domain.Name));
         }
 
         return results;
@@ -488,7 +593,7 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
                 WithoutRole(process.Role),
                 ProcessControlKind.Completion,
                 process.Role,
-                configuration.ServerDomainRole(process.Role)));
+                configuration.DomainOfRole(process.Role)));
             return;
         }
 
@@ -587,7 +692,7 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
             nextLive,
             new ProcessTransition(
                 role,
-                configuration.ServerDomainRole(role),
+                configuration.DomainOfRole(role),
                 ProcessControlKind.None,
                 checkpoint));
 
@@ -596,11 +701,11 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
         List<LiveProcess> nextLive,
         ProcessControlKind control,
         string role,
-        bool serverDomain)
+        string domain)
         => Emit(
             state,
             nextLive,
-            new ProcessTransition(role, serverDomain, control, checkpoint: null));
+            new ProcessTransition(role, domain, control, checkpoint: null));
 
     private StepResult Emit(TState state, List<LiveProcess> nextLive, ProcessTransition transition)
     {

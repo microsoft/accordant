@@ -62,6 +62,10 @@ public static class ModelGraph
             .OrderBy(role => role)
             .ToList();
 
+    /// <summary>The live processes at a node, with their failure-domain names.</summary>
+    public static IReadOnlyList<ProcessInstance> LiveProcesses(StateGraphNode node)
+        => ((IProcessSchedulerStep)node.StepFunctions.Single()).LiveProcesses;
+
     /// <summary>The process transition metadata on an edge.</summary>
     public static ProcessTransition Transition(StateGraphEdge edge)
         => (ProcessTransition)edge.Metadata;

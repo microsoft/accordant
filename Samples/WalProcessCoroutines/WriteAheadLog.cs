@@ -13,8 +13,12 @@ using Microsoft.Accordant.ModelChecking.Experimental.Coroutines;
 /// The volatile phase of the server process, all of it lost at a crash.
 /// <see cref="Active"/> is the server holding the client's write in memory:
 /// the outcome is in doubt, and a crash there dooms the transaction.
+/// <see cref="RecoveredCommit"/> and <see cref="RecoveredAbort"/> are phases only
+/// the recovery worker ever produces — a durable outcome it has determined and
+/// owes to a still-waiting client — so a fresh handler's ordinary
+/// <see cref="Committed"/> can never be mistaken for one recovery must report.
 /// </summary>
-public enum ServerPhase { Down, Recovering, Idle, Active, Committed, Aborted }
+public enum ServerPhase { Down, Recovering, Idle, Active, Committed, Aborted, RecoveredCommit, RecoveredAbort }
 
 /// <summary>
 /// The client is an external process outside the failure domain: it outlives
@@ -33,7 +37,6 @@ public enum WalAction
     FlushCommit,
     InstallData,
     TruncateLog,
-    Reconnect,
     AckCommit,
     AckAbort,
     Recover
@@ -44,14 +47,15 @@ public static class Checkpoints
 {
     public const string ChooseTxn = "txn";
     public const string Submit = "submit";
+    public const string RequestName = "request-name";
     public const string AppendRedo = "append-redo";
     public const string FlushCommit = "flush-commit";
     public const string InstallData = "install-data";
     public const string TruncateLog = "truncate-log";
-    public const string Reconnect = "reconnect";
     public const string AckCommit = "ack-commit";
     public const string AckAbort = "ack-abort";
     public const string Recover = "recover";
+    public const string RecoveredDecision = "recovered-decision";
     public const string DirtyKey = "dirty-key";
 
 }
@@ -62,7 +66,6 @@ public static class Roles
     public const string Client = "client";
     public const string Handler = "request-handler";
     public const string PageWriter = "page-writer";
-    public const string Reporter = "reporter";
     public const string Recovery = "recovery";
 }
 
@@ -179,42 +182,47 @@ public static class WriteAheadLog
     // ---- the composition root --------------------------------------------
 
     /// <summary>
-    /// Registers the process system:
-    /// an external client, a guarded request-handler launch, a persistent
-    /// page-writer, a persistent reporter and a persistent recovery worker in
-    /// the server failure domain, and the crash/restart behavior.
+    /// Registers the process system structurally: an external client outside
+    /// every failure domain, and a persistent page-writer, a persistent recovery
+    /// worker and a guarded request-handler launch inside the <c>server</c>
+    /// failure domain. Ownership is expressed by <em>where</em> each process is
+    /// registered — through the model (survives a crash) or through the domain
+    /// object (discarded and relaunched) — never by a boolean flag.
     /// </summary>
     public static ProcessSystemModel<WalProcessState> Build(WalConfig config = null)
     {
         config ??= WalConfig.Default;
 
-        var model = new ProcessSystemModel<WalProcessState>(InitialState(config))
-            // The client is an independently active process outside the failure
-            // domain: it survives every crash with its continuation intact.
-            .AddProcess(Roles.Client, ctx => Client(ctx, config), serverDomain: false)
+        var model = new ProcessSystemModel<WalProcessState>(InitialState(config));
 
-            // Persistent server-domain workers: discarded at a crash, relaunched
-            // fresh at the next restart.
-            .AddProcess(Roles.PageWriter, PageWriter, serverDomain: true)
-            .AddProcess(Roles.Reporter, Reporter, serverDomain: true)
-            .AddProcess(Roles.Recovery, Recovery, serverDomain: true)
+        // The server failure domain. A crash may interleave between any two
+        // atomic checkpoints while the server is up (including during recovery);
+        // it clears the volatile server phase and discards every continuation
+        // registered through this domain object.
+        var server = model.FailureDomain(
+            "server",
+            crashEnabled: s => s.Server != ServerPhase.Down,
+            onCrash: s => s.Server = ServerPhase.Down,
+            restartEnabled: s => s.Server == ServerPhase.Down,
+            onRestart: s => s.Server = ServerPhase.Recovering);
 
-            // A guarded request-handler launch in the server domain: at most one
-            // handler per in-flight transaction, and never a duplicate while the
-            // launch condition remains true.
-            .On(
-                Roles.Handler,
-                guard: s => s.Server == ServerPhase.Active && s.Request != null && !s.LogRedo,
-                workflow: Handler,
-                serverDomain: true)
+        // The client is an independently active process outside the failure
+        // domain: it survives every crash with its continuation intact.
+        model.Process(Roles.Client, ctx => Client(ctx, config));
 
-            .WithFailureDomain(new FailureDomain<WalProcessState>(
-                // A crash may interleave between any two atomic checkpoints while
-                // the server is up (including during recovery).
-                crashEnabled: s => s.Server != ServerPhase.Down,
-                onCrash: s => s.Server = ServerPhase.Down,
-                restartEnabled: s => s.Server == ServerPhase.Down,
-                onRestart: s => s.Server = ServerPhase.Recovering));
+        // Persistent server-domain workers: discarded at a crash, relaunched
+        // fresh at the next restart.
+        server.Process(Roles.PageWriter, PageWriter);
+        server.Process(Roles.Recovery, Recovery);
+
+        // A guarded request-handler launch in the server domain: at most one
+        // handler per in-flight transaction, and never a duplicate while the
+        // launch condition remains true. A crash discards it; recovery — not an
+        // automatic relaunch — replaces it.
+        server.On(
+            Roles.Handler,
+            guard: s => s.Server == ServerPhase.Active && s.Request != null && !s.LogRedo,
+            workflow: ctx => Handler(ctx, config));
 
         return model;
     }
@@ -255,29 +263,43 @@ public static class WriteAheadLog
     }
 
     /// <summary>
-    /// The request handler, launched atomically once per in-flight transaction:
-    /// append the whole redo record, then flush the commit record (the
-    /// linearization point). There is no implementation abort; a precommit crash
-    /// discards this continuation and recovery produces the abstract abort.
+    /// The request handler, launched atomically once per in-flight transaction.
+    /// It reads like ordinary local implementation code — three sequential atomic
+    /// steps with no scheduling guards between them: append the whole redo
+    /// record, flush the commit record (the linearization point), and acknowledge
+    /// the commit to the client. Interleavings may occur between the awaits, but
+    /// nothing another process can legitimately do here invalidates the next
+    /// step; the only thing that removes this handler is a crash, which
+    /// atomically discards its continuation so it never resumes. There is no
+    /// implementation abort — a precommit crash kills this handler and recovery
+    /// produces the abstract abort instead.
     /// </summary>
-    private static async ModelTask Handler(ModelContext<WalProcessState> ctx)
+    private static async ModelTask Handler(ModelContext<WalProcessState> ctx, WalConfig config)
     {
-        await ctx.When(
-            "appendable",
-            s => s.Server == ServerPhase.Active && s.Request != null && !s.LogRedo);
+        // Capture the request identity once, from an intentional local snapshot,
+        // and resolve the immutable configured write set. WriteSet is nested
+        // mutable state, so the handler carries the scalar name and re-resolves
+        // it through config rather than retaining a mutable closure.
+        var requestName = await ctx.Read(Checkpoints.RequestName, s => s.Request.Name);
+        var request = config.Find(requestName);
+
         await ctx.Step(Checkpoints.AppendRedo, WalAction.AppendRedo, s =>
         {
             s.LogRedo = true;
-            s.LogRecord = s.Request.Copy();
+            s.LogRecord = request.Copy();
         });
 
-        await ctx.When(
-            "flushable",
-            s => s.Server == ServerPhase.Active && s.LogRedo && !s.LogCommit);
         await ctx.Step(Checkpoints.FlushCommit, WalAction.FlushCommit, s =>
         {
             s.LogCommit = true;
             s.Server = ServerPhase.Committed;
+        });
+
+        await ctx.Step(Checkpoints.AckCommit, WalAction.AckCommit, s =>
+        {
+            s.Client = ClientPhase.Idle;
+            s.Request = null;
+            s.Reported = Outcome.Committed;
         });
     }
 
@@ -319,60 +341,22 @@ public static class WriteAheadLog
     }
 
     /// <summary>
-    /// The reporter: wait until the waiting client's transaction is decided,
-    /// then deliver the outcome. A committed transaction is reported directly; an
-    /// aborted one is reconnected (server goes to <see cref="ServerPhase.Aborted"/>)
-    /// and then reported.
-    /// </summary>
-    private static async ModelTask Reporter(ModelContext<WalProcessState> ctx)
-    {
-        while (true)
-        {
-            await ctx.Loop("reporter-loop");
-
-            await ctx.When("reportable", s =>
-                s.Client == ClientPhase.Waiting &&
-                (s.Server == ServerPhase.Committed ||
-                    s.Server == ServerPhase.Aborted ||
-                    (s.Server == ServerPhase.Idle && !s.LogCommit)));
-
-            var phase = await ctx.Read("server-phase", s => s.Server);
-            if (phase == ServerPhase.Committed)
-            {
-                await ctx.Step(Checkpoints.AckCommit, WalAction.AckCommit, s =>
-                {
-                    s.Client = ClientPhase.Idle;
-                    s.Request = null;
-                    s.Reported = Outcome.Committed;
-                });
-            }
-            else if (phase == ServerPhase.Aborted)
-            {
-                await ctx.Step(Checkpoints.AckAbort, WalAction.AckAbort, s =>
-                {
-                    s.Client = ClientPhase.Idle;
-                    s.Request = null;
-                    s.Reported = Outcome.Aborted;
-                    s.Server = ServerPhase.Idle;
-                });
-            }
-            else
-            {
-                // Server idle after recovery with no commit record: reconnect,
-                // then the next iteration reports the abort.
-                await ctx.Step(
-                    Checkpoints.Reconnect,
-                    WalAction.Reconnect,
-                    s => s.Server = ServerPhase.Aborted);
-            }
-        }
-    }
-
-    /// <summary>
-    /// The recovery worker, launched fresh at each restart. It reads durable
-    /// state only: a durable commit record is rolled forward (the write-back is
-    /// left to the page writer), and its absence discards the redo record and
-    /// returns the server to idle.
+    /// The recovery worker, launched fresh at each restart. It genuinely waits
+    /// for the server to be recovering, then reads durable state only: a durable
+    /// commit record is rolled forward (the write-back is left to the page
+    /// writer), and its absence discards the redo record. Because a crash kills
+    /// the request handler, this fresh recovery is also the one that reports the
+    /// outcome to a client whose request outlived that crash — but only if the
+    /// killed handler never reported it.
+    ///
+    /// <para>The report owed to a still-waiting client is captured atomically at
+    /// recover time as a recovery-only phase (<see cref="ServerPhase.RecoveredCommit"/>
+    /// or <see cref="ServerPhase.RecoveredAbort"/>). No other process ever
+    /// produces those phases, so recovery can never mistake a fresh handler's
+    /// ordinary commit for one it must report — the handler and recovery stay
+    /// strictly alternative reporters. An already-idle client (reported before
+    /// the crash, or no transaction at all) leaves the server in an ordinary
+    /// phase, and recovery simply loops back to wait for the next restart.</para>
     /// </summary>
     private static async ModelTask Recovery(ModelContext<WalProcessState> ctx)
     {
@@ -384,17 +368,46 @@ public static class WriteAheadLog
 
             await ctx.Step(Checkpoints.Recover, WalAction.Recover, s =>
             {
+                var waiting = s.Client == ClientPhase.Waiting;
                 if (s.LogCommit)
                 {
-                    s.Server = ServerPhase.Committed;
+                    // Roll the durable commit forward. A report is owed only to a
+                    // client still waiting for its killed handler.
+                    s.Server = waiting ? ServerPhase.RecoveredCommit : ServerPhase.Committed;
                 }
                 else
                 {
                     s.LogRedo = false;
                     s.LogRecord = null;
-                    s.Server = ServerPhase.Idle;
+                    s.Server = waiting ? ServerPhase.RecoveredAbort : ServerPhase.Idle;
                 }
             });
+
+            // Report the durable decision to the waiting client, replacing the
+            // handler the crash destroyed. Only the recovery-only phases trigger
+            // a report; anything else means there is nothing for recovery to say.
+            var decision = await ctx.Read(Checkpoints.RecoveredDecision, s => s.Server);
+
+            if (decision == ServerPhase.RecoveredCommit)
+            {
+                await ctx.Step(Checkpoints.AckCommit, WalAction.AckCommit, s =>
+                {
+                    s.Client = ClientPhase.Idle;
+                    s.Request = null;
+                    s.Reported = Outcome.Committed;
+                    s.Server = ServerPhase.Committed;
+                });
+            }
+            else if (decision == ServerPhase.RecoveredAbort)
+            {
+                await ctx.Step(Checkpoints.AckAbort, WalAction.AckAbort, s =>
+                {
+                    s.Client = ClientPhase.Idle;
+                    s.Request = null;
+                    s.Reported = Outcome.Aborted;
+                    s.Server = ServerPhase.Idle;
+                });
+            }
         }
     }
 }

@@ -67,11 +67,11 @@ public class WalProcessRefinementTests
             ModelGraph.LiveRoles(wal),
             Is.EquivalentTo(new[]
             {
-                Roles.Client, Roles.PageWriter, Roles.Reporter, Roles.Recovery
+                Roles.Client, Roles.PageWriter, Roles.Recovery
             }));
 
         // Somewhere a launched handler coexists with the persistent workers and
-        // the client: five independently active processes at once.
+        // the client: four independently active processes at once.
         Assert.That(
             ModelGraph.Reachable(wal)
                 .Any(node => ModelGraph.LiveRoles(node).Contains(Roles.Handler)),

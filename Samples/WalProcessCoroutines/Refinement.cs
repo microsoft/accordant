@@ -120,7 +120,6 @@ public static class StoreRefinement
             WalAction.AppendRedo or
             WalAction.InstallData or
             WalAction.TruncateLog or
-            WalAction.Reconnect or
             WalAction.Recover => AbstractResponse.Hidden,
 
             _ => AbstractResponse.Unconstrained
@@ -141,24 +140,28 @@ public static class StoreRefinement
 public static class WalFairness
 {
     /// <summary>
-    /// A restarted process eventually finishes recovery analysis. Strong
-    /// fairness is required: a crash during recovery disables the analysis.
+    /// A restarted server eventually finishes its recovery analysis and reaches a
+    /// decided phase. Strong fairness is required: a crash during recovery resets
+    /// the server to <see cref="ServerPhase.Down"/> and disables the analysis, so
+    /// the <c>Recover</c> step is only enabled intermittently.
     /// </summary>
     public static Fairness Recovers { get; } =
         Fairness.Strong<WalProcessState>((source, target) =>
             source.Server == ServerPhase.Recovering &&
-            (target.Server == ServerPhase.Committed || target.Server == ServerPhase.Idle));
+            target.Server != ServerPhase.Recovering &&
+            target.Server != ServerPhase.Down);
 
     /// <summary>
-    /// A waiting client eventually reconnects and receives the decision. Strong
-    /// fairness is required because a crash can disable both reconnection and
-    /// acknowledgement.
+    /// A waiting client eventually receives its decision and goes idle — reported
+    /// either by the original handler or, if a crash killed it, by the recovery
+    /// worker that replaces it. Strong fairness is required because a crash can
+    /// disable the acknowledgement (it discards the handler or the recovery
+    /// worker before it reports), so the report edge is only enabled
+    /// intermittently.
     /// </summary>
     public static Fairness Reports { get; } =
         Fairness.Strong<WalProcessState>((source, target) =>
-            source.Client == ClientPhase.Waiting && target.Client == ClientPhase.Idle) +
-        Fairness.Strong<WalProcessState>((source, target) =>
-            source.Server == ServerPhase.Idle && target.Server == ServerPhase.Aborted);
+            source.Client == ClientPhase.Waiting && target.Client == ClientPhase.Idle);
 
     /// <summary>Everything the implementation is assumed to guarantee.</summary>
     public static Fairness Implementation { get; } = Recovers + Reports;
@@ -167,14 +170,13 @@ public static class WalFairness
     public static Fairness WeakRecovers { get; } =
         Fairness.Weak<WalProcessState>((source, target) =>
             source.Server == ServerPhase.Recovering &&
-            (target.Server == ServerPhase.Committed || target.Server == ServerPhase.Idle));
+            target.Server != ServerPhase.Recovering &&
+            target.Server != ServerPhase.Down);
 
     /// <summary>The too-weak version of <see cref="Reports"/>.</summary>
     public static Fairness WeakReports { get; } =
         Fairness.Weak<WalProcessState>((source, target) =>
-            source.Client == ClientPhase.Waiting && target.Client == ClientPhase.Idle) +
-        Fairness.Weak<WalProcessState>((source, target) =>
-            source.Server == ServerPhase.Idle && target.Server == ServerPhase.Aborted);
+            source.Client == ClientPhase.Waiting && target.Client == ClientPhase.Idle);
 
     /// <summary>The bundle with weak recovery fairness.</summary>
     public static Fairness WithWeakRecovery { get; } = WeakRecovers + Reports;

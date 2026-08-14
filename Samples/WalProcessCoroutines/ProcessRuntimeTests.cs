@@ -34,12 +34,12 @@ public class ProcessRuntimeTests
     public void IndependentlyActiveProcessesInterleaveAndArePreserved()
     {
         var model = new ProcessSystemModel<RuntimeState>(new RuntimeState())
-            .AddProcess("p", async ctx =>
+            .Process("p", async ctx =>
             {
                 await ctx.Step("p1", s => s.A++);
                 await ctx.Step("p2", s => s.A++);
             })
-            .AddProcess("q", async ctx =>
+            .Process("q", async ctx =>
             {
                 await ctx.Step("q1", s => s.B++);
                 await ctx.Step("q2", s => s.B++);
@@ -73,12 +73,12 @@ public class ProcessRuntimeTests
     public void AGuardedWaitReEvaluatesAgainstLiveStateChangedByAnotherProcess()
     {
         var model = new ProcessSystemModel<RuntimeState>(new RuntimeState())
-            .AddProcess("waiter", async ctx =>
+            .Process("waiter", async ctx =>
             {
                 await ctx.When("flag-set", s => s.Flag);
                 await ctx.Step("react", s => s.A = 1);
             })
-            .AddProcess("setter", async ctx =>
+            .Process("setter", async ctx =>
             {
                 await ctx.Step("set", s => s.Flag = true);
             });
@@ -122,7 +122,7 @@ public class ProcessRuntimeTests
     public void AStepKeepsSemanticActionSeparateFromCheckpointIdentity()
     {
         var model = new ProcessSystemModel<RuntimeState>(new RuntimeState())
-            .AddProcess("setter", async ctx =>
+            .Process("setter", async ctx =>
             {
                 await ctx.Step(
                     "set-readable-name",
@@ -142,19 +142,28 @@ public class ProcessRuntimeTests
     [Test]
     public void ACrashDiscardsServerDomainContinuationsAndKeepsTheClient()
     {
-        var model = new ProcessSystemModel<RuntimeState>(new RuntimeState())
-            .AddProcess("worker", Worker, serverDomain: true)
-            .AddProcess("client", Client, serverDomain: false)
-            .WithFailureDomain(new FailureDomain<RuntimeState>(
-                crashEnabled: s => !s.Down,
-                onCrash: s => s.Down = true,
-                restartEnabled: s => s.Down,
-                onRestart: s => s.Down = false));
+        var model = new ProcessSystemModel<RuntimeState>(new RuntimeState());
+        var server = model.FailureDomain(
+            "server",
+            crashEnabled: s => !s.Down,
+            onCrash: s => s.Down = true,
+            restartEnabled: s => s.Down,
+            onRestart: s => s.Down = false);
+        server.Process("worker", Worker);
+        model.Process("client", Client);
 
         var root = model.Explore();
         var reachable = ModelGraph.Reachable(root);
 
         Assert.That(ModelGraph.IsComplete(root), Is.True, "no unbounded crash generations");
+
+        // The worker belongs to the named failure domain; the client does not.
+        var workerInstance = ((IProcessSchedulerStep)root.StepFunctions.Single())
+            .LiveProcesses.Single(p => p.Role == "worker");
+        var clientInstance = ((IProcessSchedulerStep)root.StepFunctions.Single())
+            .LiveProcesses.Single(p => p.Role == "client");
+        Assert.That(workerInstance.Domain, Is.EqualTo("server"));
+        Assert.That(clientInstance.Domain, Is.Null);
 
         // A crash edge departs from a state where the server-domain worker has
         // advanced its continuation past the start.
@@ -163,6 +172,11 @@ public class ProcessRuntimeTests
             .Where(x => ModelGraph.Transition(x.edge).Control == ProcessControlKind.Crash)
             .ToList();
         Assert.That(crashEdges, Is.Not.Empty);
+
+        // The crash edge names the failure domain it belongs to.
+        Assert.That(
+            crashEdges.Select(x => ModelGraph.Transition(x.edge).Domain).Distinct(),
+            Is.EquivalentTo(new[] { "server" }));
 
         var advancedCrash = crashEdges.First(x =>
             Continuation(x.node, "worker") != "start");
