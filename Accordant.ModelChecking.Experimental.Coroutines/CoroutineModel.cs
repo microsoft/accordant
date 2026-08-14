@@ -19,7 +19,17 @@ public enum ModelCheckpointKind
     Read,
     Choose,
     Step,
-    Loop
+    Loop,
+
+    /// <summary>
+    /// A guarded suspension. Like <see cref="Read"/> it is internal replay
+    /// discovery and creates no graph edge, but the coroutine cannot advance
+    /// past it until its predicate holds on the state the process is applied
+    /// to. Once passed, the (optional) captured scalar is historical and is
+    /// replayed verbatim; only a pending, not-yet-passed <c>When</c> is
+    /// re-evaluated against live shared state.
+    /// </summary>
+    When
 }
 
 /// <summary>
@@ -397,6 +407,83 @@ public sealed class ModelContext<TState>
     }
 
     /// <summary>
+    /// Schedules one visible state mutation with a typed semantic action tag
+    /// and optional immutable subject. The tag and subject are edge metadata;
+    /// <paramref name="stableName"/> remains the checkpoint's replay identity.
+    /// </summary>
+    public ModelAwaitable<ModelUnit> Step<TAction>(
+        string stableName,
+        TAction semanticAction,
+        Action<TState> action,
+        object subject = null)
+        where TAction : struct, Enum
+    {
+        if (action == null) throw new ArgumentNullException(nameof(action));
+        return AtCheckpoint<ModelUnit>(
+            ModelCheckpointKind.Step,
+            stableName,
+            () => ModelUnitValue.Instance,
+            action,
+            semanticAction: semanticAction,
+            subject: ScalarValues.Validate(subject, stableName));
+    }
+
+    /// <summary>
+    /// Suspends the process until <paramref name="predicate"/> holds on the
+    /// state the process is applied to. This is a guarded, internal checkpoint:
+    /// it creates no graph edge, and a process whose pending <c>When</c> is not
+    /// satisfied is simply not enabled, so an interleaved action by another
+    /// process that makes the predicate true is what lets this process advance.
+    /// Once the guard has been passed it is historical and never re-blocks on
+    /// replay.
+    /// </summary>
+    public ModelAwaitable<ModelUnit> When(string stableName, Func<TState, bool> predicate)
+    {
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+        RequireProcessScheduler(nameof(When));
+        return AtCheckpoint<ModelUnit>(
+            ModelCheckpointKind.When,
+            stableName,
+            () => ModelUnitValue.Instance,
+            null,
+            guard: () => predicate(state));
+    }
+
+    /// <summary>
+    /// Suspends until <paramref name="ready"/> holds, then atomically captures
+    /// the immutable scalar produced by <paramref name="capture"/> against the
+    /// same enabling state. The captured value is intentionally historical:
+    /// later replays return it verbatim, while a still-pending wait re-evaluates
+    /// <paramref name="ready"/> against live shared state.
+    /// </summary>
+    public ModelAwaitable<TValue> WaitUntil<TValue>(
+        string stableName,
+        Func<TState, bool> ready,
+        Func<TState, TValue> capture)
+    {
+        if (ready == null) throw new ArgumentNullException(nameof(ready));
+        if (capture == null) throw new ArgumentNullException(nameof(capture));
+        RequireProcessScheduler(nameof(WaitUntil));
+        return AtCheckpoint<TValue>(
+            ModelCheckpointKind.When,
+            stableName,
+            () => ScalarValues.Validate(capture(state), stableName),
+            null,
+            guard: () => ready(state));
+    }
+
+    private void RequireProcessScheduler(string checkpoint)
+    {
+        if (!options.AllowGuardedWaits)
+        {
+            throw new ModelDefinitionException(
+                $"{checkpoint} is a live guarded wait and requires ProcessSystemModel. " +
+                "A standalone coroutine has no independently active process that can " +
+                "change shared state and unblock it.");
+        }
+    }
+
+    /// <summary>
     /// Records the canonical start of a replayable loop iteration. This is an
     /// internal rebase checkpoint, not a graph edge. The supplied value must
     /// include every live local that affects later iterations; replay returns
@@ -436,7 +523,10 @@ public sealed class ModelContext<TState>
         string stableName,
         Func<object> unknownValue,
         Action<TState> action,
-        string loopSite = null)
+        string loopSite = null,
+        Func<bool> guard = null,
+        object semanticAction = null,
+        object subject = null)
     {
         ValidateName(stableName);
         var execution = ModelRuntime.Current;
@@ -473,13 +563,34 @@ public sealed class ModelContext<TState>
                 $"({checkpointIndex} > {tape.Entries.Count}).");
         }
 
+        // A pending, not-yet-passed guarded wait blocks the process against the
+        // live state. It records no value and produces no tape entry.
+        if (guard != null && !guard())
+        {
+            execution.SetPending(new PendingCheckpoint(
+                kind,
+                stableName,
+                value: null,
+                action: null,
+                loopSite: loopSite,
+                blocked: true));
+            return new ModelAwaitable<TValue>(false, default);
+        }
+
         var value = unknownValue();
         if (probeValues && kind != ModelCheckpointKind.Loop)
         {
             EnsureValueIsAFunctionOfState(kind, stableName, loopSite, value, unknownValue());
         }
 
-        execution.SetPending(new PendingCheckpoint(kind, stableName, value, action, loopSite));
+        execution.SetPending(new PendingCheckpoint(
+            kind,
+            stableName,
+            value,
+            action,
+            loopSite,
+            semanticAction: semanticAction,
+            subject: subject));
         return new ModelAwaitable<TValue>(false, default);
     }
 
@@ -771,13 +882,17 @@ public sealed class CoroutineTransition
         ModelCheckpointKind kind,
         string checkpointName,
         object value,
-        IReadOnlyList<ReplayEntry> replayPrefix)
+        IReadOnlyList<ReplayEntry> replayPrefix,
+        object semanticAction = null,
+        object subject = null)
     {
         WorkflowName = workflowName;
         Kind = kind;
         CheckpointName = checkpointName;
         Value = value;
         ReplayPrefix = replayPrefix;
+        SemanticAction = semanticAction;
+        Subject = subject;
     }
 
     /// <summary>The stable workflow name.</summary>
@@ -793,6 +908,10 @@ public sealed class CoroutineTransition
     /// typed source for locals selected by earlier Choose checkpoints.
     /// </summary>
     public IReadOnlyList<ReplayEntry> ReplayPrefix { get; }
+    /// <summary>The typed semantic action tag supplied by a Step, or null.</summary>
+    public object SemanticAction { get; }
+    /// <summary>The optional immutable action subject supplied by a Step.</summary>
+    public object Subject { get; }
 
     /// <inheritdoc/>
     public override string ToString()
@@ -858,7 +977,10 @@ internal sealed class PendingCheckpoint
         string name,
         object value,
         object action,
-        string loopSite)
+        string loopSite,
+        bool blocked = false,
+        object semanticAction = null,
+        object subject = null)
     {
         Kind = kind;
         Name = name;
@@ -866,6 +988,9 @@ internal sealed class PendingCheckpoint
         Action = action;
         ActionIdentity = DelegateIdentity.Create(action as Delegate);
         LoopSite = loopSite;
+        Blocked = blocked;
+        SemanticAction = semanticAction;
+        Subject = subject;
     }
 
     internal ModelCheckpointKind Kind { get; }
@@ -874,6 +999,14 @@ internal sealed class PendingCheckpoint
     internal object Action { get; }
     internal string ActionIdentity { get; }
     internal string LoopSite { get; }
+    internal object SemanticAction { get; }
+    internal object Subject { get; }
+
+    /// <summary>
+    /// Whether this is a guarded wait whose predicate does not yet hold, so the
+    /// process is blocked and contributes no transition.
+    /// </summary>
+    internal bool Blocked { get; }
 }
 
 internal sealed class CoroutineOptions
@@ -882,12 +1015,14 @@ internal sealed class CoroutineOptions
         string workflowName,
         bool verifyDeterminism,
         int maxInternalCheckpoints,
-        CapturedInputMonitor captures)
+        CapturedInputMonitor captures,
+        bool allowGuardedWaits = false)
     {
         WorkflowName = workflowName;
         VerifyDeterminism = verifyDeterminism;
         MaxInternalCheckpoints = maxInternalCheckpoints;
         Captures = captures;
+        AllowGuardedWaits = allowGuardedWaits;
     }
 
     internal string WorkflowName { get; }
@@ -897,20 +1032,35 @@ internal sealed class CoroutineOptions
     internal int MaxInternalCheckpoints { get; }
 
     internal CapturedInputMonitor Captures { get; }
+
+    internal bool AllowGuardedWaits { get; }
 }
 
 internal sealed class CoroutineAdvance
 {
-    internal CoroutineAdvance(ReplayTape tape, PendingCheckpoint pending, IReadOnlyList<string> trace)
+    internal CoroutineAdvance(
+        ReplayTape tape,
+        PendingCheckpoint pending,
+        IReadOnlyList<string> trace,
+        bool blocked = false)
     {
         Tape = tape;
         Pending = pending;
         Trace = trace;
+        Blocked = blocked;
     }
 
     internal ReplayTape Tape { get; }
     internal PendingCheckpoint Pending { get; }
     internal IReadOnlyList<string> Trace { get; }
+
+    /// <summary>
+    /// Whether the segment ended blocked on a guarded wait rather than at a
+    /// visible checkpoint or completion. A blocked advance has a null
+    /// <see cref="Pending"/> and is not completion: the process is simply not
+    /// currently enabled.
+    /// </summary>
+    internal bool Blocked { get; }
 }
 
 internal static class CoroutineRunner
@@ -1103,12 +1253,23 @@ internal static class CoroutineRunner
                 continue;
             }
 
-            if (pending.Kind != ModelCheckpointKind.Read)
+            // A guarded wait whose predicate does not yet hold blocks the
+            // process: no visible checkpoint, no completion, no tape entry.
+            if (pending.Kind == ModelCheckpointKind.When && pending.Blocked)
             {
-                return new CoroutineAdvance(tape, pending, trace);
+                return new CoroutineAdvance(tape, null, trace, blocked: true);
             }
 
-            tape = tape.Append(pending.Kind, pending.Name, pending.Value);
+            // A passed guarded wait behaves exactly like a Read: it captures its
+            // (optional) scalar into the tape and the segment continues.
+            if (pending.Kind == ModelCheckpointKind.Read ||
+                pending.Kind == ModelCheckpointKind.When)
+            {
+                tape = tape.Append(pending.Kind, pending.Name, pending.Value);
+                continue;
+            }
+
+            return new CoroutineAdvance(tape, pending, trace);
         }
     }
 }
@@ -1173,7 +1334,9 @@ internal sealed class CoroutineStep<TState> : BaseStepFunction, ICoroutineCheckp
                         pending.Kind,
                         pending.Name,
                         choice,
-                        tape.Entries)));
+                        tape.Entries,
+                        pending.SemanticAction,
+                        pending.Subject)));
             }
             return results;
         }
@@ -1194,7 +1357,9 @@ internal sealed class CoroutineStep<TState> : BaseStepFunction, ICoroutineCheckp
                         pending.Kind,
                         pending.Name,
                         null,
-                        tape.Entries))
+                        tape.Entries,
+                        pending.SemanticAction,
+                        pending.Subject))
             };
         }
 
