@@ -17,18 +17,27 @@ public partial class RuntimeState
     public int B { get; set; }
     public bool Flag { get; set; }
     public bool Down { get; set; }
+
+    /// <summary>A capacity-one slot claimed by <c>StepWhen</c>.</summary>
+    public string Slot { get; set; }
 }
 
 /// <summary>
 /// Focused tests of the experimental process runtime, independent of the WAL
-/// model: independently active processes interleave, guarded waits re-evaluate
-/// against live shared state, and a crash discards server-domain continuations
-/// while client continuations survive.
+/// model: independently active processes interleave, guarded waits and guarded
+/// atomic steps re-evaluate against live shared state, and a crash discards
+/// server-domain continuations while client continuations survive.
 /// </summary>
 [TestFixture]
 public class ProcessRuntimeTests
 {
-    private enum RuntimeAction { Set }
+    private enum RuntimeAction { Set, Claim }
+
+    private static IEnumerable<(StateGraphNode Node, StateGraphEdge Edge, ProcessTransition Transition)>
+        AllEdges(StateGraphNode root)
+        => ModelGraph.Reachable(root)
+            .SelectMany(node => node.Edges.Select(edge =>
+                (node, edge, ModelGraph.Transition(edge))));
 
     [Test]
     public void IndependentlyActiveProcessesInterleaveAndArePreserved()
@@ -47,22 +56,18 @@ public class ProcessRuntimeTests
 
         var root = model.Explore();
 
-        // Both processes are live and both first steps are enabled at the root.
         Assert.That(ModelGraph.LiveRoles(root), Is.EquivalentTo(new[] { "p", "q" }));
         var rootRoles = root.Edges.Select(e => ModelGraph.Transition(e).ProcessRole).ToHashSet();
         Assert.That(rootRoles, Is.EquivalentTo(new[] { "p", "q" }));
 
-        // Taking p's step preserves q as a live independent process.
         var afterP = root.Edges.Single(e => ModelGraph.Transition(e).ProcessRole == "p").Target;
         Assert.That(ModelGraph.LiveRoles(afterP), Contains.Item("q"));
 
-        // A genuinely interleaved state exists: each did exactly one step.
         Assert.That(
             ModelGraph.Reachable(root)
                 .Any(node => ((RuntimeState)node.State).A == 1 && ((RuntimeState)node.State).B == 1),
             Is.True);
 
-        // Both processes complete: the terminal state has A == 2 and B == 2.
         Assert.That(
             ModelGraph.Reachable(root)
                 .Any(node => ((RuntimeState)node.State).A == 2 && ((RuntimeState)node.State).B == 2),
@@ -85,16 +90,12 @@ public class ProcessRuntimeTests
 
         var root = model.Explore();
 
-        // The waiter is blocked at the root: only the setter can move even
-        // though both processes are live.
         Assert.That(ModelGraph.LiveRoles(root), Is.EquivalentTo(new[] { "setter", "waiter" }));
         Assert.That(
             root.Edges.Select(e => ModelGraph.Transition(e).ProcessRole),
             Is.EquivalentTo(new[] { "setter" }),
             "the waiter's guard is false against the live root state");
 
-        // After the setter flips the flag, the waiter's guard is re-evaluated
-        // against the new live state and it becomes enabled.
         var afterSet = root.Edges.Single().Target;
         Assert.That(((RuntimeState)afterSet.State).Flag, Is.True);
         Assert.That(
@@ -140,6 +141,109 @@ public class ProcessRuntimeTests
     }
 
     [Test]
+    public void AnEnumStepGeneratesItsCheckpointNameFromTheTypedAction()
+    {
+        var model = new ProcessSystemModel<RuntimeState>(new RuntimeState())
+            .Process("setter", async ctx =>
+                await ctx.Step(RuntimeAction.Set, s => s.Flag = true, subject: "flag"));
+
+        var transition = ModelGraph.Transition(model.Explore().Edges.Single());
+
+        // The typed action is authoritative; the generated stable name is a
+        // collision-safe function of the enum type and value.
+        Assert.That(transition.SemanticAction, Is.EqualTo(RuntimeAction.Set));
+        Assert.That(transition.CheckpointName, Is.EqualTo("RuntimeAction.Set"));
+        Assert.That(transition.Subject, Is.EqualTo("flag"));
+    }
+
+    // ---------------------------------------------------------------
+    // StepWhen: an atomic guarded resource claim.
+    // ---------------------------------------------------------------
+
+    [Test]
+    public void StepWhenClaimsAResourceAtomicallyWithNoStaleOverwrite()
+    {
+        var model = new ProcessSystemModel<RuntimeState>(new RuntimeState())
+            .Process("p", async ctx =>
+            {
+                await ctx.StepWhen(
+                    RuntimeAction.Claim, when: s => s.Slot == null,
+                    then: s => s.Slot = "p", subject: "p");
+                await ctx.Step("release-p", s => s.Slot = null);
+            })
+            .Process("q", async ctx =>
+            {
+                await ctx.StepWhen(
+                    RuntimeAction.Claim, when: s => s.Slot == null,
+                    then: s => s.Slot = "q", subject: "q");
+                await ctx.Step("release-q", s => s.Slot = null);
+            });
+
+        var root = model.Explore();
+        var reachable = ModelGraph.Reachable(root);
+
+        Assert.That(ModelGraph.IsComplete(root), Is.True);
+
+        // At the root both processes race: exactly two atomic Claim edges, one
+        // per contender.
+        var rootClaims = root.Edges
+            .Select(ModelGraph.Transition)
+            .Where(t => t.SemanticAction is RuntimeAction.Claim)
+            .ToList();
+        Assert.That(rootClaims.Select(t => t.Subject), Is.EquivalentTo(new object[] { "p", "q" }));
+
+        // Every Claim edge in the whole graph departs a free slot: the guard is
+        // re-evaluated live, so no historical guard fires stale after the other
+        // process interleaved and filled the slot. There is no overwrite.
+        foreach (var (node, _, t) in AllEdges(root))
+        {
+            if (t.SemanticAction is RuntimeAction.Claim)
+            {
+                Assert.That(
+                    ((RuntimeState)node.State).Slot, Is.Null,
+                    "a Claim only ever fires against a free slot");
+            }
+        }
+
+        // Both contenders win the slot on some path; it is single-valued, so at
+        // most one holds it at a time.
+        var claimed = reachable
+            .Select(n => ((RuntimeState)n.State).Slot)
+            .Where(slot => slot != null)
+            .Distinct()
+            .ToList();
+        Assert.That(claimed, Is.EquivalentTo(new[] { "p", "q" }));
+
+        // While the winner holds the slot the loser is blocked, contributing no
+        // edge; after the winner releases, the loser becomes enabled.
+        var heldByP = reachable.First(n => ((RuntimeState)n.State).Slot == "p");
+        Assert.That(
+            heldByP.Edges.Select(ModelGraph.Transition).Any(t => t.SemanticAction is RuntimeAction.Claim),
+            Is.False,
+            "the loser cannot claim while the slot is held");
+
+        var qAfterRelease = AllEdges(root).Any(x =>
+            x.Transition.SemanticAction is RuntimeAction.Claim &&
+            (string)x.Transition.Subject == "q" &&
+            ((RuntimeState)x.Node.State).Slot == null);
+        Assert.That(qAfterRelease, Is.True, "the loser claims once the slot clears");
+    }
+
+    [Test]
+    public void AStepWhenRequiresTheProcessScheduler()
+    {
+        Assert.That(
+            () => CoroutineModel.Explore(
+                "standalone-claim",
+                new RuntimeState(),
+                async ctx =>
+                    await ctx.StepWhen(
+                        RuntimeAction.Claim, s => s.Slot == null, s => s.Slot = "x")),
+            Throws.TypeOf<ModelDefinitionException>()
+                .With.Message.Contains("requires ProcessSystemModel"));
+    }
+
+    [Test]
     public void ACrashDiscardsServerDomainContinuationsAndKeepsTheClient()
     {
         var model = new ProcessSystemModel<RuntimeState>(new RuntimeState());
@@ -157,7 +261,6 @@ public class ProcessRuntimeTests
 
         Assert.That(ModelGraph.IsComplete(root), Is.True, "no unbounded crash generations");
 
-        // The worker belongs to the named failure domain; the client does not.
         var workerInstance = ((IProcessSchedulerStep)root.StepFunctions.Single())
             .LiveProcesses.Single(p => p.Role == "worker");
         var clientInstance = ((IProcessSchedulerStep)root.StepFunctions.Single())
@@ -165,15 +268,12 @@ public class ProcessRuntimeTests
         Assert.That(workerInstance.Domain, Is.EqualTo("server"));
         Assert.That(clientInstance.Domain, Is.Null);
 
-        // A crash edge departs from a state where the server-domain worker has
-        // advanced its continuation past the start.
         var crashEdges = reachable
             .SelectMany(node => node.Edges.Select(edge => new { node, edge }))
             .Where(x => ModelGraph.Transition(x.edge).Control == ProcessControlKind.Crash)
             .ToList();
         Assert.That(crashEdges, Is.Not.Empty);
 
-        // The crash edge names the failure domain it belongs to.
         Assert.That(
             crashEdges.Select(x => ModelGraph.Transition(x.edge).Domain).Distinct(),
             Is.EquivalentTo(new[] { "server" }));
@@ -181,7 +281,6 @@ public class ProcessRuntimeTests
         var advancedCrash = crashEdges.First(x =>
             Continuation(x.node, "worker") != "start");
 
-        // The worker continuation is discarded by the crash; the client survives.
         Assert.That(ModelGraph.LiveRoles(advancedCrash.node), Contains.Item("worker"));
         Assert.That(
             ModelGraph.LiveRoles(advancedCrash.edge.Target),
@@ -192,7 +291,6 @@ public class ProcessRuntimeTests
             Contains.Item("client"),
             "the external client process survives the crash");
 
-        // Restart relaunches the worker with a fresh continuation.
         var restartEdge = reachable
             .SelectMany(node => node.Edges)
             .First(edge => ModelGraph.Transition(edge).Control == ProcessControlKind.Restart);

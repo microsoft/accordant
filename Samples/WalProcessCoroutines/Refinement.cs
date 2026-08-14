@@ -46,17 +46,20 @@ public static class StoreRefinement
         {
             Values = WriteAheadLog.RecoveredSnapshot(wal),
             Phase = PhaseOf(wal),
-            Request = wal.Request?.Copy(),
-            LastOutcome = wal.Reported
+            Pending = wal.Exchange.Pending?.Copy(),
+            Replies = (Outcome[])wal.Exchange.Replies.Clone()
         };
 
-    /// <summary>The client-visible phase of the in-flight transaction.</summary>
+    /// <summary>
+    /// The client-visible phase of the in-flight transaction, derived from
+    /// durable, exchange, and mode state — never from a stored protocol phase.
+    /// </summary>
     public static TxnPhase PhaseOf(WalProcessState wal)
-        => wal.Client == ClientPhase.Idle
+        => wal.Exchange.Pending == null
             ? TxnPhase.Idle
-            : wal.LogCommit
+            : wal.Wal.LogCommit
                 ? TxnPhase.Committed
-                : wal.Server == ServerPhase.Active
+                : wal.Server.Mode == ServerMode.Running
                     ? TxnPhase.Pending
                     : TxnPhase.Aborted;
 
@@ -97,22 +100,25 @@ public static class StoreRefinement
             };
         }
 
-        // A visible Choose is a state-neutral control branch (which transaction
-        // the client will submit); the store does not move when it is taken.
-        if (process.CheckpointKind == ModelCheckpointKind.Choose)
+        // A client's guarded submission claims the slot.
+        if (process.SemanticAction is ClientAction clientAction)
         {
-            return AbstractResponse.Hidden;
+            return clientAction switch
+            {
+                ClientAction.Submit => StoreStep.Performs(
+                    StoreAction.Submit, process.Subject.ToString()),
+                _ => AbstractResponse.Unconstrained
+            };
         }
 
         if (!(process.SemanticAction is WalAction action))
         {
             throw new InvalidOperationException(
-                $"Step transition '{process}' has no typed WAL action.");
+                $"Step transition '{process}' has no typed WAL or client action.");
         }
 
         return action switch
         {
-            WalAction.Submit => StoreStep.Performs(StoreAction.Submit, (string)process.Subject),
             WalAction.FlushCommit => StoreStep.Performs(StoreAction.Commit),
             WalAction.AckCommit => StoreStep.Performs(StoreAction.ReportCommit),
             WalAction.AckAbort => StoreStep.Performs(StoreAction.ReportAbort),
@@ -128,65 +134,76 @@ public static class StoreRefinement
 
     /// <summary>
     /// Whether a transition leaving <paramref name="source"/> ends the in-doubt
-    /// window of a transaction the client is still waiting for.
+    /// window of a transaction the slot still holds: a crash from a running
+    /// server that has admitted a request but not yet flushed its commit.
     /// </summary>
     public static bool DoomsInFlightTransaction(WalProcessState source)
-        => source.Client == ClientPhase.Waiting &&
-            source.Server == ServerPhase.Active &&
-            !source.LogCommit;
+        => source.Exchange.Pending != null &&
+            source.Server.Mode == ServerMode.Running &&
+            !source.Wal.LogCommit;
 }
 
 /// <summary>The fairness constraints the two models are checked under.</summary>
 public static class WalFairness
 {
     /// <summary>
-    /// A restarted server eventually finishes its recovery analysis and reaches a
-    /// decided phase. Strong fairness is required: a crash during recovery resets
-    /// the server to <see cref="ServerPhase.Down"/> and disables the analysis, so
-    /// the <c>Recover</c> step is only enabled intermittently.
+    /// A restarted server eventually finishes its recovery and comes back up.
+    /// Strong fairness is required: a crash during recovery resets the server to
+    /// <see cref="ServerMode.Down"/> and disables the analysis, so returning to
+    /// <see cref="ServerMode.Running"/> is only enabled intermittently.
     /// </summary>
     public static Fairness Recovers { get; } =
         Fairness.Strong<WalProcessState>((source, target) =>
-            source.Server == ServerPhase.Recovering &&
-            target.Server != ServerPhase.Recovering &&
-            target.Server != ServerPhase.Down);
+            source.Server.Mode == ServerMode.Recovering &&
+            target.Server.Mode == ServerMode.Running);
 
     /// <summary>
-    /// A waiting client eventually receives its decision and goes idle — reported
-    /// either by the original handler or, if a crash killed it, by the recovery
-    /// worker that replaces it. Strong fairness is required because a crash can
-    /// disable the acknowledgement (it discards the handler or the recovery
-    /// worker before it reports), so the report edge is only enabled
-    /// intermittently.
+    /// A still-owed client eventually receives its decision — reported either by
+    /// the original handler or, if a crash killed it, by the recovery worker that
+    /// replaces it. Strong fairness is required because a crash can disable the
+    /// acknowledgement (it discards the handler or the recovery worker before it
+    /// publishes), so the report edge is only enabled intermittently.
     /// </summary>
     public static Fairness Reports { get; } =
         Fairness.Strong<WalProcessState>((source, target) =>
-            source.Client == ClientPhase.Waiting && target.Client == ClientPhase.Idle);
+            source.Exchange.Pending != null && target.Exchange.Pending == null);
 
     /// <summary>Everything the implementation is assumed to guarantee.</summary>
+    ///
+    /// <remarks>
+    /// Because recovery completes and publishes the owed reply in one atomic
+    /// step, that single transition is at once the server returning to
+    /// <see cref="ServerMode.Running"/> and the request slot being cleared, so
+    /// <see cref="Recovers"/> and <see cref="Reports"/> match the same recovery
+    /// edge from two angles. Strong fairness on either alone already closes the
+    /// crash loop; the bundle asks for both to mirror the hand-written WAL's
+    /// separate recover and report obligations and to remain honest if the two
+    /// steps were ever split.
+    /// </remarks>
     public static Fairness Implementation { get; } = Recovers + Reports;
 
     /// <summary>The too-weak version of <see cref="Recovers"/>.</summary>
     public static Fairness WeakRecovers { get; } =
         Fairness.Weak<WalProcessState>((source, target) =>
-            source.Server == ServerPhase.Recovering &&
-            target.Server != ServerPhase.Recovering &&
-            target.Server != ServerPhase.Down);
+            source.Server.Mode == ServerMode.Recovering &&
+            target.Server.Mode == ServerMode.Running);
 
     /// <summary>The too-weak version of <see cref="Reports"/>.</summary>
     public static Fairness WeakReports { get; } =
         Fairness.Weak<WalProcessState>((source, target) =>
-            source.Client == ClientPhase.Waiting && target.Client == ClientPhase.Idle);
+            source.Exchange.Pending != null && target.Exchange.Pending == null);
 
-    /// <summary>The bundle with weak recovery fairness.</summary>
-    public static Fairness WithWeakRecovery { get; } = WeakRecovers + Reports;
-
-    /// <summary>The bundle with weak acknowledgement fairness.</summary>
-    public static Fairness WithWeakReports { get; } = Recovers + WeakReports;
+    /// <summary>
+    /// Both obligations at weak strength. This is too weak: a crash resets the
+    /// server before either recovery or a report is <em>continuously</em>
+    /// enabled, so weak fairness never fires and the crash loop survives.
+    /// </summary>
+    public static Fairness WeakBoth { get; } = WeakRecovers + WeakReports;
 
     /// <summary>
     /// Every submitted transaction is eventually decided and reported. Weak
-    /// fairness on each decision; there is deliberately no obligation to submit.
+    /// fairness on each decision; there is deliberately no obligation to submit,
+    /// so no client is required to win admission.
     /// </summary>
     public static Fairness StoreLiveness { get; } =
         Fairness.Weak(StoreStep.Any(StoreAction.Commit, StoreAction.Abort)) +

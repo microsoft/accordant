@@ -1,207 +1,252 @@
 # WalProcessCoroutines
 
-**Experimental.** The [WalRefinement](../WalRefinement) write-ahead log, rewritten
-as *processes*. The abstract specification stays a handful of **guarded atomic
-actions**; the implementation becomes a set of **independently active replay
-coroutines** — an external client, a request handler, a page writer and a
-recovery worker — composed by a scheduler with an explicit **server failure
-domain** whose crash discards the domain's continuations. The two compiled
-graphs are then checked for refinement, exactly as in the hand-written sample.
+**Experimental.** A small write-ahead-log *implementation design* written as
+**processes**. Three concurrent clients contend for one server; the server keeps
+a durable write-ahead log; a crash can strike at any point and recovery cleans up
+and reports. The whole thing is compiled to an ordinary Accordant state graph and
+checked for refinement against a compact **guarded-action** specification.
 
-This sample exercises new runtime primitives layered onto
+The sample exercises runtime primitives layered onto
 `Microsoft.Accordant.ModelChecking.Experimental.Coroutines`. That package is
 unpackaged and carries no compatibility promise; see
 [Model-Checking Frontends](../../docs/concepts/model-checking-frontends.md) and
 the **experimental limits** section below.
 
-```csharp
-StoreRefinement
-    .Build(WalConfig.Default)                 // .Map(ToStore).MapTransition(Declarations)
-    .CheckTemporal(
-        concreteFairness: WalFairness.Implementation,   // strong recover + strong report
-        abstractFairness: WalFairness.StoreLiveness);
-```
+## The composition root
 
-| Model | Nodes | Edges |
-|---|---|---|
-| process WAL (2 keys, `topup` / `swap`) | 568 | 1331 |
-| atomic store | 20 | 32 |
-
-The whole suite — safety refinement, the temporal fairness ladder, the checked
-hiding claims, the corrected-design tests and the runtime tests (25 tests) — runs
-in about two seconds.
-
-```bash
-cd Samples/WalProcessCoroutines
-dotnet test
-```
-
-## The guiding principle
-
-A local request handler should read like ordinary local implementation code,
-**blissfully unaware of scheduling and crashes**:
-
-```csharp
-private static async ModelTask Handler(ModelContext<WalProcessState> ctx, WalConfig config)
-{
-    // An intentional local snapshot of the request, resolved through immutable
-    // configuration — not a fresh read of shared state at each action.
-    var requestName = await ctx.Read("request-name", s => s.Request.Name);
-    var request = config.Find(requestName);
-
-    await ctx.Step("append-redo", WalAction.AppendRedo,
-        s => { s.LogRedo = true; s.LogRecord = request.Copy(); });
-
-    await ctx.Step("flush-commit", WalAction.FlushCommit,
-        s => { s.LogCommit = true; s.Server = ServerPhase.Committed; });
-
-    await ctx.Step("ack-commit", WalAction.AckCommit,
-        s => { s.Client = ClientPhase.Idle; s.Request = null; s.Reported = Outcome.Committed; });
-}
-```
-
-Each `Step` is atomic and interleavings may occur between the awaits. Ordinary
-interleavings are allowed; **there are no protective `When` guards restating an
-expected local precondition** between naturally sequential statements. If some
-other process could invalidate the next step's assumption, the model should
-*expose* that as a bug — not silently prevent it. The one thing that removes this
-handler is a **crash**, modelled separately: it atomically destroys the handler
-continuation, so the handler never resumes after a server crash.
-
-`When` belongs only where the implementation genuinely **waits** for external
-work or state — a client waiting until the server is ready, the page writer
-waiting for a committed dirty page, the recovery worker waiting until the server
-is recovering — never between sequential handler statements.
-
-## What a process is
-
-A **process is a replay coroutine**. Its serialized continuation — a replay tape
-plus a pending checkpoint — is *control state*, and it lives in the scheduler
-node configuration, **never** in the domain `[State]`. Refinement's state
-semantics therefore see only durable/volatile/client fields, exactly as they did
-for the hand-written WAL.
-
-The scheduler advances **every** live process against the *current* shared state
-at each step. That is the one property the previous single-workflow frontend
-lacked: a compiled process step is a function of the state it is applied to, so
-independently active processes interleave soundly, and a guarded wait is
-re-evaluated live after another process moves.
-
-### The primitives this sample adds
-
-| Primitive | Meaning |
-|---|---|
-| `ctx.When(name, s => predicate)` | Suspend until the predicate holds on the live state. Internal (no edge); once passed it is historical and never re-blocks. |
-| `ctx.WaitUntil(name, ready, capture)` | The same wait, atomically capturing an immutable scalar when enabled. |
-| `model.Process(role, workflow)` | An independently active process **outside** every failure domain; it survives every crash. |
-| `model.FailureDomain(name, ...)` | Registers a named failure domain and returns it. A crash (enabled while the server is up) clears volatile state **and discards every continuation registered through the domain object**; a restart relaunches the domain's persistent workers fresh. |
-| `domain.Process(role, workflow)` | A persistent process **inside** the domain; discarded at a crash, relaunched at the next restart. |
-| `domain.On(role, guard, workflow)` | A **guarded launch** inside the domain: when `guard` holds and no instance of `role` is live, one atomic transition adds a fresh process. The no-duplicate rule uses control state the scheduler owns, so a launch cannot fire unboundedly while its guard stays true. A crash discards it; recovery — not an automatic relaunch — replaces it. |
-
-A captured local (`Read`, `WaitUntil`, `Choose`) is *intentionally historical* —
-it is what the process read earlier and remembers across an `await`. Only a
-still-pending guard is evaluated against live shared state. The two are never
-confused: a value already on the tape is replayed verbatim; a value on the
-frontier is recomputed. The handler carries the **transaction name** — an
-immutable scalar — and re-resolves the (mutable, nested) write set through frozen
-configuration, rather than retaining the write set as an untracked closure.
-
-## Structural failure-domain ownership
-
-Ownership is expressed **structurally**, by *where* each process is registered,
-not by a boolean flag:
+The system reads like a small design. Three one-shot clients are registered
+*outside* the failure domain (they survive crashes); the page writer, recovery
+worker, and a guarded request-handler launch are registered *through* the
+`server` domain object (a crash discards them):
 
 ```csharp
 var model = new ProcessSystemModel<WalProcessState>(InitialState(config));
 
 var server = model.FailureDomain(
     "server",
-    crashEnabled:   s => s.Server != ServerPhase.Down,
-    onCrash:        s => s.Server = ServerPhase.Down,
-    restartEnabled: s => s.Server == ServerPhase.Down,
-    onRestart:      s => s.Server = ServerPhase.Recovering);
+    crashEnabled:   s => s.Server.Mode != ServerMode.Down,
+    onCrash:        s => s.Server.Crash(),
+    restartEnabled: s => s.Server.Mode == ServerMode.Down,
+    onRestart:      s => s.Server.BeginRecovery());
 
-model.Process(Roles.Client, ctx => Client(ctx, config));   // outside the domain — survives
-server.Process(Roles.PageWriter, PageWriter);              // inside — dies / restarts
-server.Process(Roles.Recovery, Recovery);
-server.On(Roles.Handler,                                   // a guarded launch in the domain
-    guard: s => s.Server == ServerPhase.Active && s.Request != null && !s.LogRedo,
+model.Process("alice", ctx => Client(ctx, config, ClientId.Alice));   // topup
+model.Process("bob",   ctx => Client(ctx, config, ClientId.Bob));     // swap
+model.Process("carol", ctx => Client(ctx, config, ClientId.Carol));   // clear
+
+server.Process("page-writer", PageWriter);
+server.Process("recovery", Recovery);
+server.On("request-handler",
+    guard: s => s.Server.Mode == ServerMode.Running &&
+                s.Exchange.Pending != null && !s.Wal.LogRedo,
     workflow: ctx => Handler(ctx, config));
 ```
 
-Registering through the `server` object *is* what places a process in the
-domain. The failure domain has a stable name that appears on every process and
-control edge (`ProcessInstance.Domain`, `ProcessTransition.Domain`).
+Each **client is one-shot** — no `while` loop. It atomically claims the
+capacity-one request slot for its fixed request, waits for its persistent reply,
+and completes:
 
-* The **client** is an independently active process *outside* the failure
-  domain: choose a finite transaction, wait for the server to be ready, submit
-  it atomically, wait for the reported outcome, and loop. It survives every
-  crash with its continuation intact.
-* The **request handler** is a *guarded launch* — at most one per in-flight
-  transaction — that reads like the sequential local code above. There is **no
-  implementation abort action**; a precommit crash discards the handler and
-  recovery produces the abstract abort.
-* The **page writer** waits for a committed dirty key, installs one page, and
-  loops. Once every page is installed and the client no longer depends on the
-  log, the same worker truncates it in one guarded atomic action.
-* The **recovery** worker, launched fresh at each restart, reads durable state
-  only, and — because a crash kills the handler — also **replaces the killed
-  handler as the reporter** (see below).
+```csharp
+async ModelTask Client(ModelContext<WalProcessState> ctx, WalConfig config, ClientId client)
+{
+    var request = config.RequestOf(client);
 
-### Fate at a crash
+    await ctx.StepWhen(
+        ClientAction.Submit,
+        when: s => s.CanAdmit(client),                 // atomic guarded resource claim
+        then: s => s.Exchange.Submit(client, request),
+        subject: client);
 
-| | Fields / continuations | Fate at a crash |
+    await ctx.When("reply-ready", s => s.Exchange.HasReply(client));
+    // completes; the reply persists in the exchange as an observable result
+}
+```
+
+The **handler stays blissfully sequential and unaware of crashes** — three plain
+`Step`s with no guards between them:
+
+```csharp
+async ModelTask Handler(ModelContext<WalProcessState> ctx, WalConfig config)
+{
+    var client = await ctx.Read("owner", s => s.Exchange.Pending.Client);
+    var request = config.Find(await ctx.Read("transaction", s => s.Exchange.Pending.TransactionName));
+
+    await ctx.Step(WalAction.AppendRedo,  s => s.Wal.Append(request));
+    await ctx.Step(WalAction.FlushCommit, s => s.Wal.Commit());              // linearization point
+    await ctx.Step(WalAction.AckCommit,   s => s.Exchange.Publish(client, Outcome.Committed));
+}
+```
+
+**Recovery captures its decision as a local**, recovers durable state, and
+reports only if a request is still outstanding — with no persistent reporter and
+no recovery-only shared phase:
+
+```csharp
+async ModelTask Recovery(ModelContext<WalProcessState> ctx)
+{
+    while (true)
+    {
+        await ctx.Loop("recovery-loop");
+        await ctx.When("recovering", s => s.Server.Mode == ServerMode.Recovering);
+
+        var decision = await ctx.Read("decision", s =>
+            s.Exchange.Pending == null ? RecoveryDecision.None
+            : s.Wal.LogCommit ? RecoveryDecision.Commit : RecoveryDecision.Abort);
+        var owed = decision == RecoveryDecision.None
+            ? default : await ctx.Read("owed-client", s => s.Exchange.Pending.Client);
+
+        switch (decision)
+        {
+            case RecoveryDecision.None:   await ctx.Step(WalAction.Recover,   s => s.Server.Run()); break;
+            case RecoveryDecision.Commit: await ctx.Step(WalAction.AckCommit, s => { s.Exchange.Publish(owed, Outcome.Committed); s.Server.Run(); }); break;
+            case RecoveryDecision.Abort:  await ctx.Step(WalAction.AckAbort,  s => { s.Wal.DiscardRedo(); s.Exchange.Publish(owed, Outcome.Aborted); s.Server.Run(); }); break;
+        }
+    }
+}
+```
+
+| Model | Nodes | Edges |
 |---|---|---|
-| durable | `Data[k]`, `LogRedo`, `LogRecord`, `LogCommit` | survives |
-| volatile | `Server` phase | reset to `Down` |
-| server-domain processes | handler, page writer, recovery **continuations** | **discarded** — the scheduler removes every continuation registered through the domain |
-| client | client process **continuation**, `Client`, `Request`, `Reported` | survives — a separate process outside the domain |
+| process WAL (2 keys, three clients) | 8 122 | 25 680 |
+| atomic store | 122 | 147 |
 
-A crash is a real transition that removes continuations, not a flag that leaves
-them disabled and leaking into the graph. Restart re-adds the domain's
-persistent workers with fresh (`start`) continuations, so two crash/restart
-cycles land on the *same* node — there are **no unbounded crash generations**,
-and the graph stays finite. The launched handler is **not** relaunched; recovery
-replaces it.
+The whole suite — safety refinement, the temporal fairness ladder, the checked
+hiding claims, the design tests, the multi-client contract tests and the runtime
+tests (37 tests) — runs in under a minute; graph exploration is ≈2.4 s and the
+safety refinement ≈2 s.
 
-## Normal vs recovery reporting
+```bash
+cd Samples/WalProcessCoroutines
+dotnet test
+```
 
-There is deliberately **no permanent independent reporter process** obscuring the
-protocol. The normal handler reports the commit as its third sequential atomic
-step. If a crash kills the handler, a fresh recovery worker reports instead:
+## Why one request slot (and not a single-writer KV store)
 
-| When the crash lands | Who reports | Outcome |
+Only **one transaction is admitted at a time**, but this is **not** a fundamental
+single-writer key-value-store assumption. It is a bounded model of a server/WAL
+implementation with **one redo record and one in-flight transaction**. The three
+clients are genuinely **concurrent** and contend for admission; the capacity-one
+request slot *serializes* accepted transactions, exactly as one redo record
+does. There is deliberately no unbounded queue and never two simultaneous WAL
+records.
+
+`CanAdmit` is what serializes them: a client is admitted only when the server is
+up, the log is clean (the previous transaction has fully drained), and the slot
+is free and the client has not already been answered.
+
+## Honest communication state
+
+The client/server boundary is a shared **exchange** — a request/reply table (a
+mailbox / external DB) that **survives every server crash**:
+
+```csharp
+[State] RequestEnvelope { ClientId Client; string TransactionName; }   // the one accepted request
+
+[State] Exchange {
+    RequestEnvelope Pending;   // capacity one — survives a crash so recovery knows who is owed
+    Outcome[]       Replies;   // one persistent result per fixed client — clients are one-shot
+}
+```
+
+The `Pending` row survives a server crash because it lives in the shared table,
+not in server memory; it remains until the handler or recovery publishes the
+reply, so recovery always knows which client is still owed a result. The
+per-client `Replies` persist because clients are one-shot — a completed client
+never resubmits, so its outcome must stay observable. Client *completion* is
+process control (the coroutine finishing), never a shared flag.
+
+## Encapsulated state ownership
+
+State reads naturally through nested `[State]` objects with focused methods:
+
+```csharp
+state.Wal.Append(request);            // durable redo record
+state.Wal.Commit();                   // durable commit record (the linearization point)
+state.Exchange.Submit(client, req);   // claim the capacity-one slot
+state.Exchange.Publish(client, res);  // persistent reply + clear the slot
+state.Server.Crash();                 // server lifecycle only
+```
+
+| Partition | Fields | Fate at a crash |
 |---|---|---|
-| before durable commit | recovery | determines abort, reports abort |
-| after durable commit, before the report | recovery | determines committed, reports commit |
-| after the report | nobody | the client is already idle; recovery says nothing |
+| `DurableWal` | `Data[k]`, `LogRedo`, `LogRecord`, `LogCommit` | **survives** |
+| `Exchange` | `Pending`, `Replies` | **survives** — external/shared table |
+| `ServerState` | `Mode` (`Running` / `Down` / `Recovering`) | reset to `Down` |
+| server-domain continuations | handler, page writer, recovery | **discarded** |
+| client continuations | the three clients | survive — outside the domain |
 
-So **either the original handler or the recovery path reports, never both** in
-one surviving attempt. The report owed to a still-waiting client is captured
-atomically at recover time as a recovery-only server phase (`RecoveredCommit` /
-`RecoveredAbort`) that no other process ever produces — which is what keeps the
-handler and recovery strictly alternative reporters even as fresh transactions
-run. A crash between `recover` and the acknowledgement kills recovery too; the
-next restart retries and, under strong fairness, eventually reports. A client
-already reported before the crash is left idle, so recovery never reports twice.
+`WalProcessState` composes the three; the nested `[State]` objects clone, freeze,
+and hash correctly (the ownership/copying tests check this).
+
+## Minimal shared state via process locals
+
+There is **no** `ClientPhase`, and **no** `RecoveredCommit` / `RecoveredAbort`.
+The server lifecycle is just:
+
+```csharp
+enum ServerMode { Running, Down, Recovering }
+```
+
+Everything else is *derived* from durable + exchange + mode state:
+
+```text
+Pending == null                                  -> Idle
+Pending != null && LogCommit                      -> Committed
+Pending != null && !LogCommit && Running          -> Pending
+Pending != null && !LogCommit && (Down|Recovering)-> Aborted
+```
+
+Recovery's decision (`None` / `Commit` / `Abort`) and the owed client are
+captured as **immutable replay locals** *before* the state-changing step. A crash
+kills those locals; the next restart recomputes them from durable state. This
+preserves the earlier no-stale / no-double-report guarantee **without any
+recovery-only shared phase**: because a crash killed the handler, recovery is the
+one that reports, and it and the handler stay strictly alternative reporters.
+
+Recovery completes and publishes the owed reply in **one atomic step** — rolling
+an uncommitted redo back, or leaving the durable commit in place, and clearing
+the slot. That atomicity is what keeps a fresh handler from ever observing a
+half-rolled-back aborted transaction: the same safety the old design bought with
+a recovery-only phase, here bought with atomicity instead. A crash before that
+step simply retries on the next restart.
+
+## `StepWhen` — an atomic guarded resource claim
+
+Three clients cannot safely do a separate `When(slot-free)` then `Step(Submit)`:
+all three could pass the wait, one interleaves, and another's *historical* passed
+guard would overwrite `Pending`. `StepWhen` fuses the two:
+
+```csharp
+ctx.StepWhen(
+    ClientAction.Submit,
+    when: s => s.CanAdmit(client),                 // re-evaluated live every time
+    then: s => s.Exchange.Submit(client, request), // guard + mutation are one edge
+    subject: client);
+```
+
+The guard is re-evaluated against the **live** state every time the process is
+considered; while it is false the process is blocked and contributes **no edge or
+tape entry**; when it holds, the guard and the mutation are one visible
+transition. Because no passed-guard entry is written to the tape until the step
+is taken, a historical guard can never fire stale after an interleaving.
+
+**`StepWhen` is only for claiming a shared resource** (like the request slot),
+never a defensive guard between naturally sequential steps of one workflow. The
+distinction between the three primitives is the whole readability point:
+
+| Primitive | Use |
+|---|---|
+| `ctx.Step(action, mutation)` | plain sequential local code (the handler) — expose invalidated assumptions as bugs |
+| `ctx.When(name, predicate)` | passive waiting for external state (client waiting for its reply) |
+| `ctx.StepWhen(action, when, then)` | **atomic claim** of a contended shared resource (admission) |
 
 ## Action identity
 
-Three things are kept separate: the **process role** (`request-handler`), the
-**semantic action** (`WalAction.FlushCommit`), and the generated runtime
-step-function id (opaque). Every edge carries a typed `ProcessTransition`:
-
-```csharp
-public string ProcessRole { get; }            // "request-handler"
-public string Domain { get; }                 // "server", or null outside every domain
-public ProcessControlKind Control { get; }    // None | Launch | Crash | Restart | Completion
-public CoroutineTransition Checkpoint { get; }// kind, stable name, value, replay prefix
-public object SemanticAction { get; }         // WalAction.FlushCommit
-public object Subject { get; }                // optional transaction/key
-```
-
-Refinement declarations select the **typed action** and subject directly, never
-by parsing a checkpoint name, replay tape, or generated id.
+Three things stay separate: the **process role** (`request-handler`), the
+**typed semantic action** (`WalAction.FlushCommit`), and the opaque generated
+runtime step id. The enum-named `Step`/`StepWhen` overloads derive a
+collision-safe checkpoint name from the enum type and value
+(`WalAction.FlushCommit`), but **fairness and refinement read the typed
+`ProcessTransition.SemanticAction`, never that generated name**.
 
 ## The refinement
 
@@ -210,51 +255,54 @@ the process code — no coroutine carries a `.Linearizes(...)` annotation.
 
 ```text
 Values[k]   = LogCommit ? LogRecord[k] : Data[k]   // what recovery would install
-Phase       = Client = Idle     -> Idle
-              LogCommit         -> Committed
-              Server = Active   -> Pending
-              otherwise         -> Aborted
-Request     = the client's outstanding write set
-LastOutcome = what the client was told
+Phase       = derived, as above
+Pending     = the Exchange's outstanding envelope (copied)
+Replies     = the Exchange's per-client results (copied)
 ```
 
 | Process transition | Store response |
 |---|---|
-| `submit` | `spec-submit-{txn}` |
+| client `StepWhen` submit | `spec-submit-{client}` |
 | `flush-commit` | `spec-commit` |
 | `ack-commit` (handler **or** recovery) | `spec-report-commit` |
 | `ack-abort` (recovery) | `spec-report-abort` |
-| `append-redo`, `install-data`, `truncate-log`, `recover`, `txn` choice | `Hidden` |
+| `append-redo`, `install-data`, `truncate-log`, `recover` | `Hidden` |
 | launch, restart, process completion | `Hidden` |
 | **crash** | **`Hidden`, or `spec-abort`** |
 
-The last row is the point: a crash while the server holds an unflushed write
-*is* the abort of that transaction — it destroys the only copy and recovery finds
-no commit record (the mapping moves `Pending -> Aborted` there). Hiding is
-checked, not assumed: declaring every crash hidden, or calling the commit flush
-an abort, both fail with a transition mismatch (`WalProcessRefinementTests`).
+A crash while the server holds an unflushed write *is* the abort of that
+transaction — the mapping moves `Pending -> Aborted` there. Hiding is checked, not
+assumed: declaring every crash hidden, or calling the commit flush an abort, both
+fail with a transition mismatch.
+
+The abstract spec evolved to the same three-client contract: one outstanding
+`RequestEnvelope`, one persistent reply per client, atomic `Submit(client)`,
+`Commit`, `Abort`, `ReportCommit`, `ReportAbort`, with a client whose reply is
+already set unable to submit again.
 
 ### The fairness ladder
 
 The abstract obligation is *every submitted transaction is eventually decided and
-reported*. As in the hand-written sample, the crash loop keeps that from holding
-for free, and only **strong** recovery **and** strong reporting close it:
+reported* — there is deliberately **no** obligation to submit, so no client is
+required to win admission. The crash loop keeps that from holding for free:
 
 | Concrete fairness | Verdict | Why |
 |---|---|---|
-| none | fails | crash / restart / recover forever |
-| weak recover + strong report | fails | the process crashes *during* recovery |
-| strong recover + weak report | fails | the outcome is recovered and lost to the next crash |
-| **strong recover + strong report** | **refines** | strong fairness needs enabledness only *infinitely often*, which the crash loop provides |
+| none | fails | crash / restart forever |
+| weak recover **and** weak report | fails | a crash resets the server before either is *continuously* enabled |
+| **strong recovery** (alone or bundled) | **refines** | the atomic recovery step is `Recovering -> Running`, enabled infinitely often |
+| **strong report** (alone or bundled) | **refines** | the same atomic step also clears the slot |
+| strong recover **and** strong report | **refines** | the implementation bundle |
 
-The scheduler is a single Accordant step function, so fairness is stated over
-**domain-state transitions** — `Recovers` names *server `Recovering` → a decided
-phase*, and `Reports` names *client `Waiting` → `Idle`* (the handler's or
-recovery's acknowledgement). This is honest: the runtime cannot select a typed
-`WalAction` at the `IStepFunction` level, so fairness names state changes rather
-than a per-process action type. It is non-vacuous — each predicate matches a
-specific, enabled-intermittently transition — and crashing itself carries no
-fairness constraint at all: assuming it away would assume the problem away.
+Because recovery completes and publishes the owed reply in one atomic step, that
+single transition is at once the server returning to `Running` and the slot being
+cleared — so strong fairness on **either** characterization already closes the
+crash loop. The `Implementation` bundle asks for both, to mirror the hand-written
+WAL's separate recover and report obligations. The scheduler is a single
+Accordant step function, so fairness is stated over **domain-state transitions**
+(`Recovers` names `Recovering -> Running`; `Reports` names the slot clearing); it
+is non-vacuous, and crashing itself carries no fairness constraint at all —
+assuming it away would assume the problem away.
 
 ## Experimental limits
 
@@ -262,39 +310,42 @@ fairness constraint at all: assuming it away would assume the problem away.
   soundness caveats of the coroutine frontend still apply.
 * Refinement is external. The scheduler is one Accordant step function, so
   fairness is expressed over domain-state changes rather than over a per-process
-  step type; this is sufficient here because the recovery and report state
-  changes are distinct, but it is a real constraint on what fairness can name.
-* `When`/`WaitUntil` guards, `Choose` sets and `Read` values are trusted to be
+  step type. Here that pushed the recovery **and** report into one atomic step so
+  a state predicate could name it; a two-step recover-then-report would have left
+  a no-op analysis step that state-transition fairness cannot force.
+* `When`/`StepWhen` guards, `Choose` sets and `Read` values are trusted to be
   pure functions of the frozen state; the runtime checks this only under the
-  opt-in determinism audit. The handler captures `config` by reference (compared
-  by identity only) and never mutates it.
-* One in-flight transaction, single instances of each role and a single failure
-  domain keep the model finite. The design deliberately avoids unbounded launch
-  duplication and unbounded crash generations rather than bounding them after
-  the fact.
+  opt-in determinism audit. The handler and clients capture `config` by reference
+  (compared by identity only) and never mutate it.
+* Three fixed one-shot clients, one in-flight transaction, single instances of
+  each server role and a single failure domain keep the model finite: **8 122
+  nodes / 25 680 edges**, complete with no depth frontier. The design avoids
+  unbounded launch duplication and unbounded crash generations rather than
+  bounding them after the fact.
 
 ## Files
 
 | File | Contents |
 |---|---|
-| `AtomicStore.cs` | `WriteSet`, `WalConfig` (the payload) and the guarded-action `StoreState` specification |
-| `WriteAheadLog.cs` | `WalProcessState`, the four processes, the guarded handler launch and the failure domain — the composition root |
+| `AtomicStore.cs` | `ClientId`, `RequestEnvelope`, `WriteSet`, `WalConfig` (the payload) and the guarded-action `StoreState` specification |
+| `WriteAheadLog.cs` | `DurableWal`, `Exchange`, `ServerState`, `WalProcessState`, the processes, the guarded handler launch and the failure domain — the composition root |
 | `Refinement.cs` | the state mapping, the transition declarations, and the fairness bundles |
 | `ModelGraph.cs` | a breadth-first walk and live-process inspection used by the tests |
-| `WalProcessRefinementTests.cs` | finiteness, safety refinement, the crash-as-abort claim, the rejected wrong declarations, at-most-one handler |
-| `WalProcessDesignTests.cs` | structural ownership, the sequential handler order, the normal/recovery reporting split, and the no-double-report guarantee |
+| `WalProcessRefinementTests.cs` | finiteness/size, safety refinement, the crash-as-abort claim, the rejected wrong declarations, at-most-one handler |
+| `WalProcessDesignTests.cs` | structural ownership, the sequential handler order, the normal/recovery reporting split, the no-double-report guarantee, no recovery-only phase |
+| `WalProcessMultiClientTests.cs` | three-client contention, no slot overwrite, one-shot completion, correct persistent replies, all six admission orders, draining admits the next |
 | `WalProcessLivenessTests.cs` | the temporal fairness ladder |
-| `ProcessRuntimeTests.cs` | focused runtime tests: interleaving, live `When` re-evaluation, structural crash continuation disposal |
+| `ProcessRuntimeTests.cs` | focused runtime tests: interleaving, live `When`/`StepWhen` re-evaluation, the `StepWhen` race, structural crash continuation disposal |
 
 ## Runtime extensions
 
 The primitives live in `Microsoft.Accordant.ModelChecking.Experimental.Coroutines`:
 
-* `CoroutineModel.cs` gains the `When` checkpoint kind and `ModelContext.When` /
-  `ModelContext.WaitUntil`.
-* `ProcessModel.cs` adds `ProcessSystemModel<TState>` (the composition root and
-  scheduler), `ProcessFailureDomain<TState>` (the structural domain returned from
-  `model.FailureDomain(...)`, through which processes and the `On` guarded launch
-  are registered), and the `ProcessTransition` edge metadata. The scheduler is a
-  single composite step function that owns the whole live-process set — which is
-  what lets a crash discard several continuations atomically.
+* `CoroutineModel.cs` adds the enum-named `Step` overload and `ctx.StepWhen(...)`,
+  the atomic guarded step, alongside the existing `When` / `WaitUntil` guarded
+  waits.
+* `ProcessModel.cs` provides `ProcessSystemModel<TState>` (the composition root
+  and scheduler), `ProcessFailureDomain<TState>` (the structural domain), and the
+  `ProcessTransition` edge metadata. The scheduler is a single composite step
+  function that owns the whole live-process set — which is what lets a crash
+  discard several continuations atomically.

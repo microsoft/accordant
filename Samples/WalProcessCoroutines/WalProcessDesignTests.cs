@@ -10,11 +10,11 @@ using Microsoft.Accordant.ModelChecking.Experimental.Coroutines;
 using NUnit.Framework;
 
 /// <summary>
-/// The corrected process WAL design: a local handler that reads like ordinary
-/// sequential implementation code (AppendRedo -> FlushCommit -> AckCommit with no
-/// scheduling guards between the steps), structural failure-domain ownership with
-/// no boolean flag, and a normal/recovery reporting split in which the original
-/// handler or the recovery worker reports — never both.
+/// The process WAL design: a local handler that reads like ordinary sequential
+/// implementation code (AppendRedo -> FlushCommit -> AckCommit with no scheduling
+/// guards between the steps), structural failure-domain ownership with no boolean
+/// flag, and a normal/recovery reporting split in which the original handler or
+/// the recovery worker reports — never both — with no recovery-only shared phase.
 /// </summary>
 [TestFixture]
 public class WalProcessDesignTests
@@ -32,20 +32,19 @@ public class WalProcessDesignTests
     // ---------------------------------------------------------------
 
     [Test]
-    public void OwnershipIsStructuralWithTheClientOutsideTheNamedServerDomain()
+    public void OwnershipIsStructuralWithClientsOutsideTheNamedServerDomain()
     {
         var root = WriteAheadLog.Explore(Config);
 
-        // At the root every persistent process is live with its structural
-        // domain: the client is outside every domain, the workers are inside the
-        // named "server" domain — expressed by where each was registered, not by
-        // a boolean flag.
         var atRoot = ModelGraph.LiveProcesses(root).ToDictionary(p => p.Role, p => p.Domain);
-        Assert.That(atRoot[Roles.Client], Is.Null, "the client survives crashes: outside every domain");
+        foreach (var client in Roles.Clients)
+        {
+            Assert.That(atRoot[client], Is.Null, $"client {client} survives crashes: outside every domain");
+        }
+
         Assert.That(atRoot[Roles.PageWriter], Is.EqualTo("server"));
         Assert.That(atRoot[Roles.Recovery], Is.EqualTo("server"));
 
-        // The launched handler is also inside the server domain wherever it runs.
         var handlerDomains = ModelGraph.Reachable(root)
             .SelectMany(ModelGraph.LiveProcesses)
             .Where(p => p.Role == Roles.Handler)
@@ -54,7 +53,6 @@ public class WalProcessDesignTests
             .ToList();
         Assert.That(handlerDomains, Is.EquivalentTo(new[] { "server" }));
 
-        // Every crash/restart control edge names the failure domain it belongs to.
         var controlDomains = AllEdges(root)
             .Where(x => x.Transition.Control == ProcessControlKind.Crash ||
                         x.Transition.Control == ProcessControlKind.Restart)
@@ -65,14 +63,16 @@ public class WalProcessDesignTests
     }
 
     [Test]
-    public void ThereIsNoPersistentReporterRole()
+    public void TheOnlyRolesAreThreeClientsAndThreeServerWorkers()
     {
         var root = WriteAheadLog.Explore(Config);
 
-        // No role named "reporter" is ever registered or live.
+        // No persistent "reporter" role, and no per-client server process: the
+        // clients are outside the domain, the three workers inside it.
         Assert.That(
             ModelGraph.Reachable(root).SelectMany(ModelGraph.LiveRoles).Distinct(),
-            Is.EquivalentTo(new[] { Roles.Client, Roles.PageWriter, Roles.Recovery, Roles.Handler }));
+            Is.EquivalentTo(
+                Roles.Clients.Concat(new[] { Roles.PageWriter, Roles.Recovery, Roles.Handler })));
     }
 
     // ---------------------------------------------------------------
@@ -87,9 +87,6 @@ public class WalProcessDesignTests
             .Where(x => x.Transition.ProcessRole == Roles.Handler && !x.Transition.IsControl)
             .ToList();
 
-        // Every visible handler edge is a Step carrying one of exactly three
-        // typed actions — never a When (a guard is internal and edge-less, and
-        // the handler declares none between its steps).
         Assert.That(
             handlerEdges.Select(x => x.Transition.CheckpointKind).Distinct(),
             Is.EquivalentTo(new[] { (ModelCheckpointKind?)ModelCheckpointKind.Step }));
@@ -100,24 +97,22 @@ public class WalProcessDesignTests
                 WalAction.AppendRedo, WalAction.FlushCommit, WalAction.AckCommit
             }));
 
-        // Each step is only ever taken from its correct predecessor state, which
-        // pins the order AppendRedo -> FlushCommit -> AckCommit.
         foreach (var (node, _, t) in handlerEdges)
         {
             var s = (WalProcessState)node.State;
             switch ((WalAction)t.SemanticAction)
             {
                 case WalAction.AppendRedo:
-                    Assert.That(s.LogRedo, Is.False, "append-redo is first");
-                    Assert.That(s.LogCommit, Is.False);
+                    Assert.That(s.Wal.LogRedo, Is.False, "append-redo is first");
+                    Assert.That(s.Wal.LogCommit, Is.False);
                     break;
                 case WalAction.FlushCommit:
-                    Assert.That(s.LogRedo, Is.True, "flush-commit follows append-redo");
-                    Assert.That(s.LogCommit, Is.False);
+                    Assert.That(s.Wal.LogRedo, Is.True, "flush-commit follows append-redo");
+                    Assert.That(s.Wal.LogCommit, Is.False);
                     break;
                 case WalAction.AckCommit:
-                    Assert.That(s.LogCommit, Is.True, "ack-commit follows flush-commit");
-                    Assert.That(s.Client, Is.EqualTo(ClientPhase.Waiting));
+                    Assert.That(s.Wal.LogCommit, Is.True, "ack-commit follows flush-commit");
+                    Assert.That(s.Exchange.Pending, Is.Not.Null);
                     break;
             }
         }
@@ -126,14 +121,12 @@ public class WalProcessDesignTests
     [Test]
     public void DurableCommitAlwaysImpliesADurableRedoRecord()
     {
-        // The order is also visible as a state invariant: no reachable state has
-        // a commit record without the redo record that must precede it.
         foreach (var node in ModelGraph.Reachable(WriteAheadLog.Explore(Config)))
         {
             var s = (WalProcessState)node.State;
-            if (s.LogCommit)
+            if (s.Wal.LogCommit)
             {
-                Assert.That(s.LogRedo, Is.True, s.StringRepresentation());
+                Assert.That(s.Wal.LogRedo, Is.True, s.StringRepresentation());
             }
         }
     }
@@ -147,8 +140,6 @@ public class WalProcessDesignTests
     {
         var root = WriteAheadLog.Explore(Config);
 
-        // A precommit crash departs an in-flight state where the handler is live
-        // and discards it.
         var precommitCrash = AllEdges(root).First(x =>
             x.Transition.Control == ProcessControlKind.Crash &&
             ModelGraph.LiveRoles(x.Node).Contains(Roles.Handler) &&
@@ -159,8 +150,8 @@ public class WalProcessDesignTests
             Does.Not.Contain(Roles.Handler),
             "the crash atomically destroys the handler continuation");
 
-        // Recovery — not the handler — takes the abort acknowledgement, from the
-        // recovery-only RecoveredAbort phase.
+        // Recovery — not the handler — takes the abort acknowledgement, from a
+        // recovering server holding an uncommitted request.
         var recoveryAbort = AllEdges(root)
             .Where(x => x.Transition.ProcessRole == Roles.Recovery &&
                         x.Transition.SemanticAction is WalAction.AckAbort)
@@ -169,8 +160,9 @@ public class WalProcessDesignTests
         foreach (var (node, _, _) in recoveryAbort)
         {
             var s = (WalProcessState)node.State;
-            Assert.That(s.Server, Is.EqualTo(ServerPhase.RecoveredAbort));
-            Assert.That(s.Client, Is.EqualTo(ClientPhase.Waiting));
+            Assert.That(s.Server.Mode, Is.EqualTo(ServerMode.Recovering));
+            Assert.That(s.Wal.LogCommit, Is.False);
+            Assert.That(s.Exchange.Pending, Is.Not.Null);
         }
     }
 
@@ -179,19 +171,18 @@ public class WalProcessDesignTests
     {
         var root = WriteAheadLog.Explore(Config);
 
-        // There is a crash that departs a durably-committed, still-waiting state
-        // where the handler is live and discards it before it acknowledged.
         var postCommitCrash = AllEdges(root).First(x =>
             x.Transition.Control == ProcessControlKind.Crash &&
             ModelGraph.LiveRoles(x.Node).Contains(Roles.Handler) &&
-            ((WalProcessState)x.Node.State) is { LogCommit: true, Client: ClientPhase.Waiting });
+            ((WalProcessState)x.Node.State) is { Wal.LogCommit: true } s &&
+            s.Exchange.Pending != null);
         Assert.That(ModelGraph.LiveRoles(postCommitCrash.Node), Contains.Item(Roles.Handler));
         Assert.That(
             ModelGraph.LiveRoles(postCommitCrash.Edge.Target),
             Does.Not.Contain(Roles.Handler));
 
-        // Recovery takes the commit acknowledgement, from the recovery-only
-        // RecoveredCommit phase.
+        // Recovery takes the commit acknowledgement, from a recovering server
+        // holding a durable commit.
         var recoveryCommit = AllEdges(root)
             .Where(x => x.Transition.ProcessRole == Roles.Recovery &&
                         x.Transition.SemanticAction is WalAction.AckCommit)
@@ -200,9 +191,9 @@ public class WalProcessDesignTests
         foreach (var (node, _, _) in recoveryCommit)
         {
             var s = (WalProcessState)node.State;
-            Assert.That(s.Server, Is.EqualTo(ServerPhase.RecoveredCommit));
-            Assert.That(s.LogCommit, Is.True);
-            Assert.That(s.Client, Is.EqualTo(ClientPhase.Waiting));
+            Assert.That(s.Server.Mode, Is.EqualTo(ServerMode.Recovering));
+            Assert.That(s.Wal.LogCommit, Is.True);
+            Assert.That(s.Exchange.Pending, Is.Not.Null);
         }
     }
 
@@ -212,17 +203,16 @@ public class WalProcessDesignTests
         var root = WriteAheadLog.Explore(Config);
 
         // No acknowledgement — by the handler or by recovery — ever fires unless
-        // a client is genuinely still waiting. That is the whole no-double-report
-        // guarantee: whichever of the two reports first sets the client idle, and
-        // the other can no longer report.
+        // a request is genuinely still outstanding. Whichever of the two reports
+        // first clears the slot, and the other can no longer report.
         foreach (var (node, _, t) in AllEdges(root))
         {
             if (t.SemanticAction is WalAction.AckCommit or WalAction.AckAbort)
             {
                 Assert.That(
-                    ((WalProcessState)node.State).Client,
-                    Is.EqualTo(ClientPhase.Waiting),
-                    $"{t.ProcessRole} {t.SemanticAction} fired without a waiting client");
+                    ((WalProcessState)node.State).Exchange.Pending,
+                    Is.Not.Null,
+                    $"{t.ProcessRole} {t.SemanticAction} fired with no outstanding request");
             }
         }
     }
@@ -237,8 +227,6 @@ public class WalProcessDesignTests
             .Distinct()
             .ToList();
 
-        // Both the handler and recovery report somewhere in the graph, and only
-        // those two ever do.
         Assert.That(reporters, Is.EquivalentTo(new[] { Roles.Handler, Roles.Recovery }));
 
         // The handler only ever commits (it has no abort); every abort report is
@@ -249,5 +237,16 @@ public class WalProcessDesignTests
             .Select(x => x.Transition.SemanticAction)
             .Distinct();
         Assert.That(handlerActions, Is.EquivalentTo(new object[] { WalAction.AckCommit }));
+    }
+
+    [Test]
+    public void ThereIsNoRecoveryOnlyServerPhaseTheDecisionIsALocal()
+    {
+        // The server has exactly the three lifecycle modes and no recovered-commit
+        // or recovered-abort phase: recovery's decision lives only as a replay
+        // local, so the mode enum stays minimal.
+        Assert.That(
+            System.Enum.GetNames(typeof(ServerMode)),
+            Is.EquivalentTo(new[] { "Running", "Down", "Recovering" }));
     }
 }

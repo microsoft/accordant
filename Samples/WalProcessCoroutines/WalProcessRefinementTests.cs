@@ -31,6 +31,11 @@ public class WalProcessRefinementTests
         TestContext.WriteLine($"process WAL {walSize}, atomic store {storeSize}");
 
         Assert.That(walSize.Nodes, Is.GreaterThan(storeSize.Nodes));
+
+        // A concrete guard against runaway growth: three one-shot clients, one
+        // in-flight transaction, and a single failure domain keep this well
+        // under a hundred thousand nodes.
+        Assert.That(walSize.Nodes, Is.LessThan(100_000));
     }
 
     [Test]
@@ -58,20 +63,18 @@ public class WalProcessRefinementTests
     }
 
     [Test]
-    public void MultipleServerDomainProcessesAreLiveAtOnceWithTheClient()
+    public void EveryClientRoleIsLiveOutsideTheServerDomainAlongsideTheWorkers()
     {
         var wal = WriteAheadLog.Explore(Config);
 
-        // The initial configuration has every persistent process active.
+        // The initial configuration has every client and every persistent worker
+        // active: five independently active processes at once.
         Assert.That(
             ModelGraph.LiveRoles(wal),
-            Is.EquivalentTo(new[]
-            {
-                Roles.Client, Roles.PageWriter, Roles.Recovery
-            }));
+            Is.EquivalentTo(
+                Roles.Clients.Concat(new[] { Roles.PageWriter, Roles.Recovery })));
 
-        // Somewhere a launched handler coexists with the persistent workers and
-        // the client: four independently active processes at once.
+        // Somewhere a launched handler coexists with the workers and the clients.
         Assert.That(
             ModelGraph.Reachable(wal)
                 .Any(node => ModelGraph.LiveRoles(node).Contains(Roles.Handler)),
@@ -83,8 +86,6 @@ public class WalProcessRefinementTests
     {
         var wal = WriteAheadLog.Explore(Config);
 
-        // Some crash departs an in-flight, pre-commit state and is therefore the
-        // abort of that transaction rather than an invisible action.
         var doomedCrash = ModelGraph.Reachable(wal)
             .SelectMany(node => node.Edges.Select(edge => new { node, edge }))
             .First(x =>
@@ -98,7 +99,6 @@ public class WalProcessRefinementTests
             response.ToString(),
             Is.EqualTo(StoreStep.Performs(StoreAction.Abort).ToString()));
 
-        // Mapped, the store really moves from Pending to Aborted across it.
         Assert.That(
             StoreRefinement.PhaseOf((WalProcessState)doomedCrash.node.State),
             Is.EqualTo(TxnPhase.Pending));
@@ -106,7 +106,6 @@ public class WalProcessRefinementTests
             StoreRefinement.PhaseOf((WalProcessState)doomedCrash.edge.Target.State),
             Is.EqualTo(TxnPhase.Aborted));
 
-        // And the ordinary refinement, which declares exactly this, holds.
         Assert.That(
             StoreRefinement.Build(Config).Check().Status,
             Is.EqualTo(RefinementCheckingStatus.Refines));

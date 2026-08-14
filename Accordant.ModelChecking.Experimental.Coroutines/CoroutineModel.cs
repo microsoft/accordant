@@ -429,6 +429,72 @@ public sealed class ModelContext<TState>
     }
 
     /// <summary>
+    /// Schedules one visible state mutation whose typed semantic action tag also
+    /// generates the checkpoint's stable replay identity, so a naturally
+    /// sequential step needs no duplicated string. The generated name is a
+    /// collision-safe function of the enum type and value (for example
+    /// <c>WalAction.FlushCommit</c>); fairness and refinement read the typed
+    /// <see cref="ProcessTransition.SemanticAction"/>, never this generated name.
+    /// </summary>
+    public ModelAwaitable<ModelUnit> Step<TAction>(
+        TAction semanticAction,
+        Action<TState> action,
+        object subject = null)
+        where TAction : struct, Enum
+    {
+        if (action == null) throw new ArgumentNullException(nameof(action));
+        var stableName = EnumCheckpointName.Of(semanticAction);
+        return AtCheckpoint<ModelUnit>(
+            ModelCheckpointKind.Step,
+            stableName,
+            () => ModelUnitValue.Instance,
+            action,
+            semanticAction: semanticAction,
+            subject: ScalarValues.Validate(subject, stableName));
+    }
+
+    /// <summary>
+    /// A guarded atomic step: the sole primitive for claiming a shared resource.
+    /// The <paramref name="when"/> guard is re-evaluated against the live state
+    /// every time the process is considered; while it is false the process is
+    /// blocked and contributes no edge or tape entry, and when it holds the
+    /// guard and the <paramref name="then"/> mutation are one indivisible visible
+    /// transition. Because the guard leaves no passed-guard entry on the tape
+    /// until the step is actually taken, a historical guard can never fire stale
+    /// after another process interleaves and invalidates it.
+    ///
+    /// <para>This is emphatically <em>not</em> a defensive guard to insert
+    /// between naturally sequential local steps of one workflow: ordinary
+    /// sequential code uses plain <see cref="Step{TAction}(TAction, Action{TState}, object)"/>
+    /// and lets the model expose any invalidated assumption as a real bug. Use
+    /// <c>StepWhen</c> only where independent processes atomically contend for a
+    /// shared slot (for example admitting one transaction into a capacity-one
+    /// request table). Like <see cref="When"/> it requires a
+    /// <see cref="ProcessSystemModel{TState}"/>: a standalone coroutine has no
+    /// other independently active process that could change the guard.</para>
+    /// </summary>
+    public ModelAwaitable<ModelUnit> StepWhen<TAction>(
+        TAction semanticAction,
+        Func<TState, bool> when,
+        Action<TState> then,
+        object subject = null)
+        where TAction : struct, Enum
+    {
+        if (when == null) throw new ArgumentNullException(nameof(when));
+        if (then == null) throw new ArgumentNullException(nameof(then));
+        RequireProcessScheduler(nameof(StepWhen));
+        var stableName = EnumCheckpointName.Of(semanticAction);
+        return AtCheckpoint<ModelUnit>(
+            ModelCheckpointKind.Step,
+            stableName,
+            () => ModelUnitValue.Instance,
+            then,
+            guard: () => when(state),
+            semanticAction: semanticAction,
+            subject: ScalarValues.Validate(subject, stableName));
+    }
+
+    /// <summary>
     /// Suspends the process until <paramref name="predicate"/> holds on the
     /// state the process is applied to. This is a guarded, internal checkpoint:
     /// it creates no graph edge, and a process whose pending <c>When</c> is not
@@ -1253,9 +1319,10 @@ internal static class CoroutineRunner
                 continue;
             }
 
-            // A guarded wait whose predicate does not yet hold blocks the
-            // process: no visible checkpoint, no completion, no tape entry.
-            if (pending.Kind == ModelCheckpointKind.When && pending.Blocked)
+            // A guarded checkpoint whose predicate does not yet hold blocks the
+            // process: no visible checkpoint, no completion, no tape entry. This
+            // covers both a passive When and a StepWhen resource claim.
+            if (pending.Blocked)
             {
                 return new CoroutineAdvance(tape, null, trace, blocked: true);
             }
@@ -1416,8 +1483,7 @@ internal static class DelegateIdentity
 
 internal static class CheckpointIdentity
 {
-    internal static string Create(ModelCheckpointKind kind, string name, string loopSite)
-        => Identifiers.Join(
+    internal static string Create(ModelCheckpointKind kind, string name, string loopSite)        => Identifiers.Join(
             kind.ToString(),
             name ?? string.Empty,
             kind == ModelCheckpointKind.Loop ? loopSite ?? string.Empty : string.Empty);
@@ -1433,6 +1499,20 @@ internal static class CheckpointIdentity
             (callerMember ?? string.Empty) + ":" +
             callerLine.ToString(CultureInfo.InvariantCulture);
     }
+}
+
+/// <summary>
+/// Derives a stable checkpoint name from a typed semantic action enum. The name
+/// combines the enum type and value (for example <c>WalAction.FlushCommit</c>)
+/// so two different actions can never collapse to the same replay identity. It
+/// is a diagnostic/replay name only; refinement and fairness read the typed
+/// <see cref="ProcessTransition.SemanticAction"/>, never this string.
+/// </summary>
+internal static class EnumCheckpointName
+{
+    internal static string Of<TAction>(TAction action)
+        where TAction : struct, Enum
+        => typeof(TAction).Name + "." + action.ToString();
 }
 
 internal static class Identifiers
