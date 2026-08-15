@@ -71,7 +71,55 @@ trace ID, atomically (via a temporary file plus a non-overwriting move) into a
 caller-provided traces directory; a persisted trace file is never overwritten.
 `TraceStore.LoadAsync` reloads a trace file back into a `RecordedTrace`.
 
-See `tests/Specmine.Tests` for recorder, persistence, and TaskWorkflow
+## Investigation workspace (`src/Specmine`)
+
+A `Workspace` is a minimal, on-disk investigation workspace: a small, fixed set of
+artifacts rooted at one directory.
+
+```
+<root>/
+  workspace.json   - schema version and the target adapter declaration
+  target/          - reserved for adapter-owned target artifacts
+  traces/          - recorded traces (see TraceRecorder / TraceStore above)
+  frontier.md      - free-form notes on open questions and next steps
+  journal.md       - free-form running log of what was tried and observed
+```
+
+```csharp
+var settings = JsonSerializer.SerializeToElement(new { baseUrl = "https://localhost:5001" });
+var workspace = await Workspace.InitializeAsync(workspaceRoot, new TargetAdapterDeclaration("openapi", settings));
+
+// Later, in a fresh process:
+var reloaded = await Workspace.LoadAsync(workspaceRoot);
+
+// Point the recorder at the workspace's traces directory.
+await TraceRecorder.RunAsync(reloaded.TracesDirectory, async recorder => { /* ... */ });
+```
+
+`workspace.json` declares a schema version and a single `TargetAdapter` with an
+`AdapterType` string and an opaque `Settings` JSON value. **Adapter settings are
+entirely adapter-owned**: the workspace schema does not define a base URL,
+credential model, capability taxonomy, reset model, or operation catalog - an
+OpenAPI adapter, a command adapter, or any future custom adapter defines its own
+`Settings` shape without changing the workspace schema. `Settings` is snapshotted
+(cloned) at construction time, so later mutation or disposal of whatever JSON
+object or document the caller built it from cannot alter the workspace afterward.
+
+`Workspace.InitializeAsync` creates the root directory (building the whole
+artifact set in a private staging directory and moving it into place with a
+single directory rename when the root doesn't already exist, so a reader never
+observes a partially initialized workspace) and refuses to run if a workspace is
+already initialized there or an existing file/directory would conflict with one
+of its artifacts. `Workspace.LoadAsync` validates that `workspace.json` exists,
+declares a supported schema version and a non-blank adapter type, and that the
+`target/`, `traces/`, `frontier.md`, and `journal.md` artifacts all exist,
+throwing a specific exception for whichever check fails.
+
+A workspace performs no orchestration and includes no adapter implementation or
+CLI: it only creates, validates, and resolves paths, and exposes
+`TracesDirectory` for `TraceRecorder` to write into.
+
+See `tests/Specmine.Tests` for recorder, persistence, workspace, and TaskWorkflow
 integration tests; run them with:
 
 ```powershell
