@@ -25,6 +25,7 @@
     <Project Path="Samples/AlternatingBit/AlternatingBit.csproj" />
     <Project Path="Samples/OperationsModelChecking/OperationsModelChecking.csproj" />
     <Project Path="Samples/OrderFulfillment/OrderFulfillment.csproj" />
+    <Project Path="Samples/DurableJobs/DurableJobs.csproj" />
     <Project Path="Samples/CoroutineModelChecking/CoroutineModelChecking.csproj" />
     <Project Path="Samples/WitnessRefinement/WitnessRefinement.csproj" />
     <Project Path="Samples/WorkQueueRefinement/WorkQueueRefinement.csproj" />
