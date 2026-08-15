@@ -103,8 +103,9 @@ for that, written with `SafeRegex`.
 
 A `SafeRegex` denotes a language over the behaviour's **changing steps**. A
 step is one transition `s → s'`. It is *unchanged* when `s` and `s'` are
-semantically equal — the same test used by `Always`, `Eventually`, `ENABLED`
-and fairness — and *changing* otherwise. Unchanged steps are invisible to a
+semantically equal — the same domain-state projection used by `Always`,
+`Eventually`, legacy `ENABLED`, and legacy fairness — and *changing*
+otherwise. Unchanged steps are invisible to a
 pattern: it never counts them, never matches them, and never changes its
 verdict when they are inserted or removed. That covers both a named model edge
 whose action leaves the state alone and the synthetic self-loop the checker
@@ -207,7 +208,7 @@ and the rest follows structurally:
 The result is exactly `h⁻¹(L)` of the intended visible language `L`, which is
 what makes the pattern insensitive to inserted or deleted unchanged steps.
 
-### No action predicates
+### No action predicates on the stutter-safe surface
 
 Patterns observe state change, not action identity or edge metadata. The safe
 surface deliberately follows the existing LTL proposition policy and does not
@@ -220,8 +221,8 @@ var sent = f.ObserveTransition((state, next) => next.Status == Status.Sent);
 var property = f.Whenever(f.ChangingStep(sent), f.Always(f.Observe(s => s.Sent)));
 ```
 
-Action-shaped predicates remain available through `ENABLED` on the
-stutter-sensitive builder.
+Action-shaped predicates remain available through `ObserveAction`,
+`EnabledAction`, and legacy `Enabled` on the stutter-sensitive builder.
 
 ## Opt into stutter-sensitive formulas explicitly
 
@@ -246,6 +247,40 @@ unknown continuation and is not converted into a stutter loop. It also exposes
 `AllowStutterSensitiveFormulas()` does not claim every resulting formula is
 stutter-sensitive. It means Accordant's type system no longer guarantees
 stutter invariance.
+
+### Observe physical actions and metadata
+
+`ObserveAction` reads the action and metadata on one physical edge. It is
+available only from the stutter-sensitive builder and returns
+`TemporalFormula`, because a state-neutral semantic action is not preserved by
+domain-state stutter erasure:
+
+```csharp
+var exact = f.AllowStutterSensitiveFormulas();
+
+Func<ProcessTransition, bool> acceptedChoice =
+    transition =>
+        transition.SemanticAction is GatewayChoice.Accepted;
+
+TemporalFormula accepted = exact.ObserveAction(acceptedChoice);
+TemporalFormula nextAccepted = exact.Next(accepted);
+```
+
+The strongly typed overloads accept either metadata alone or
+`(source, metadata, target)`. The generic path exposes `Transition`, whose
+`Action`, `ActionId`, and `Metadata` properties can be inspected:
+
+```csharp
+var published = exact.ObserveAction(
+    (OrderState source, Transition edge, OrderState target) =>
+        edge.Metadata is ProcessTransition process &&
+        process.SemanticAction is Publish &&
+        target.Version == source.Version);
+```
+
+These observations see changing model edges, state-neutral model edges, and the
+synthetic terminal stutter literally. Typed metadata predicates normally ignore
+the synthetic stutter because it has no model metadata.
 
 ### Overlapping regex operators
 
@@ -287,15 +322,16 @@ var canSend = exact.Enabled<SendStep>();
 var property = exact.Always(exact.Implies(queued, canSend));
 ```
 
-`Enabled(A)` holds at a graph node when at least one *changing* outgoing model
-edge of that node carries an action satisfying `A`. It uses the same
-enabledness Accordant already uses for fairness:
+Legacy `Enabled(A)` holds at a graph node when at least one *changing* outgoing
+model edge of that node carries an action satisfying `A`. It uses the same
+enabledness as legacy fairness:
 
 - A state-neutral edge never counts, so an action that leaves the state
   unchanged is neither enabled nor taken.
 - A terminal node enables nothing.
 
-`Enabled` accepts the same action shapes as `Fairness`:
+`Enabled` accepts the same legacy action shapes as `Fairness.Weak` and
+`Fairness.Strong`:
 
 ```csharp
 exact.Enabled<SendStep>();
@@ -305,10 +341,33 @@ exact.Enabled((state, action, next) => action.StepFunctionId == "Send" && next.S
 exact.Enabled(f.ObserveTransition((state, next) => next.Sent));
 ```
 
-`Enabled` is stutter-sensitive, and so lives only on the sensitive builder,
-because a graph node is a (state, active step-function set) pair: two nodes
-carrying equal states can enable different actions, and an inserted stutter
-step changes which node a position refers to.
+Use `EnabledAction` for a semantic edge selected through action metadata. A
+selected state-neutral model edge counts:
+
+```csharp
+Func<ProcessTransition, bool> acceptedChoice =
+    transition =>
+        transition.SemanticAction is GatewayChoice.Accepted;
+
+var canAccept = exact.EnabledAction(acceptedChoice);
+var canPublish = exact.EnabledAction(
+    (OrderState source, ProcessTransition edge, OrderState target) =>
+        edge.SemanticAction is Publish &&
+        source.OrderId == target.OrderId);
+```
+
+The selector is authoritative. Other state-neutral administrative edges are
+not enabled obligations unless they match it, and the synthetic terminal
+stutter is never an outgoing model edge, so a terminal node enables nothing.
+A selected no-op edge is nevertheless a real semantic occurrence and can
+discharge action fairness. If the assumption is meant to force domain progress,
+make the selector exclude no-op occurrences rather than relying only on an
+action tag.
+
+`Enabled` and `EnabledAction` are stutter-sensitive and live only on the
+sensitive builder, because a graph node is a (state, active step-function set)
+pair: two nodes carrying equal states can enable different actions, and an
+inserted stutter step changes which node a position refers to.
 
 Enabledness is a property of a node's complete outgoing edge set, which a
 depth-truncated or not-yet-expanded frontier does not have. A check whose
@@ -339,8 +398,16 @@ opt-out.
 ## Add fairness explicitly
 
 Checks use `Fairness.None` unless a fairness constraint is supplied. Fairness
-always concerns changing edges; an action that produces an unchanged state
-does not count as enabled or taken for fairness.
+has two additive surfaces.
+
+Keep three axes separate: source/target state equality determines domain
+effect, `ObserveAction` determines whether a physical semantic edge is visible
+to an exact formula, and the fairness selector plus optional key determines
+obligation identity.
+
+The existing `Weak`, `Strong`, and `WeakAll` APIs retain their compatibility
+semantics: they concern changing domain-state edges only, and step-function
+overloads group by `StepFunctionId`.
 
 ```csharp
 var byStep = Fairness.Weak<SendStep>();
@@ -356,12 +423,51 @@ Strong fairness requires a changing action enabled infinitely often to occur
 infinitely often. Constraints can be combined with `+`; use
 `Fairness.WeakAll` to apply weak fairness to every changing step.
 
-The `Enabled` proposition reports the same enabledness these constraints use,
-so it can express the fairness antecedents directly: `Stabilizes(Enabled(A))`
-is "A is continuously enabled from some point on" (the weak-fairness premise)
-and `InfinitelyOften(Enabled(A))` is the strong-fairness premise.
+Use `WeakAction` or `StrongAction` when semantic identity lives on edge
+metadata. These methods create **one collective obligation** for the selected
+action family and count a selected state-neutral model edge:
+
+```csharp
+Func<ProcessTransition, bool> publishes =
+    transition => transition.SemanticAction is Publish;
+
+var collectivePublish = Fairness.WeakAction(publishes);
+```
+
+At an exact graph configuration, that family is enabled when any selected
+outgoing model edge exists. Weak fairness requires a selected edge when the
+family is enabled at every configuration in the recurring SCC. Strong fairness
+requires one when the family is enabled at any recurring configuration.
+Equivalently on an infinite run, weak fairness says that an obligation which
+stays enabled must eventually occur (and repeatedly do so if it stays enabled),
+while strong fairness says that an obligation enabled infinitely often must
+occur infinitely often.
+
+Use `WeakEach` or `StrongEach` when each subject, client, process role, or other
+stable key is a separate obligation:
+
+```csharp
+var everyClientPublishes = Fairness.WeakEach(
+    publishes,
+    transition => transition.Subject);
+```
+
+Keys use ordinary equality. For each key, enabledness and taken-ness are
+computed independently; an occurrence for client A cannot discharge client
+B's obligation. This is deliberately different from collective fairness.
+
+`Enabled` reports legacy changing-edge enabledness, while `EnabledAction`
+reports the semantic-action enabledness used by `WeakAction`/`StrongAction`
+and `WeakEach`/`StrongEach`. Both are evaluated at exact graph
+configurations—not by domain state alone.
 
 `Enabled(A)` considers changing edges only. A raw stutter-sensitive
 `ObserveTransition(...)` may also hold on a state-neutral edge, so
 `A => Enabled(A)` is valid only when `A` denotes the corresponding changing
 action occurrence.
+
+Similarly, `ObserveAction(A)` is the literal physical occurrence and
+`EnabledAction(A)` is its exact-node availability proposition. Neither is
+silently promoted to the stutter-safe formula surface. Unselected
+administrative edges and the checker's synthetic terminal stutter create no
+semantic-action fairness obligation.

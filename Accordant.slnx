@@ -3,6 +3,7 @@
     <Project Path="Tests/Accordant.Choose.Tests/Accordant.Choose.Tests.csproj" />
     <Project Path="Tests/Accordant.ModelChecking.Tests/Accordant.ModelChecking.Tests.csproj" />
     <Project Path="Tests/Accordant.Operations.Tests/Accordant.Operations.Tests.csproj" />
+    <Project Path="Tests/Accordant.SourceGenerator.Tests/Accordant.SourceGenerator.Tests.csproj" />
     <Project Path="Tests/Accordant.Tests/Accordant.Tests.csproj" />
   </Folder>
   <Folder Name="/Samples/">
@@ -26,7 +27,7 @@
     <Project Path="Samples/OperationsModelChecking/OperationsModelChecking.csproj" />
     <Project Path="Samples/OrderFulfillment/OrderFulfillment.csproj" />
     <Project Path="Samples/DurableJobs/DurableJobs.csproj" />
-    <Project Path="Samples/CoroutineModelChecking/CoroutineModelChecking.csproj" />
+    <Project Path="Samples/ProcessModelChecking/ProcessModelChecking.csproj" />
     <Project Path="Samples/WitnessRefinement/WitnessRefinement.csproj" />
     <Project Path="Samples/WorkQueueRefinement/WorkQueueRefinement.csproj" />
     <Project Path="Samples/WalRefinement/WalRefinement.csproj" />

@@ -79,43 +79,29 @@ async ModelTask Handler(ModelContext<WalProcessState> ctx, WalConfig config)
 }
 ```
 
-**Recovery captures its decision as a local**, recovers durable state, and
-reports only if a request is still outstanding — with no persistent reporter and
-no recovery-only shared phase:
+**Recovery uses a structured iteration and helper call**, captures its decision
+as an iteration local, and reports only if a request is still outstanding —
+with no persistent reporter and no recovery-only shared phase:
 
 ```csharp
-async ModelTask Recovery(ModelContext<WalProcessState> ctx)
-{
-    while (true)
-    {
-        await ctx.Loop("recovery-loop");
-        await ctx.When("recovering", s => s.Server.Mode == ServerMode.Recovering);
+context => context.Forever("recovery-loop", RecoveryIteration)
 
-        var decision = await ctx.Read("decision", s =>
-            s.Exchange.Pending == null ? RecoveryDecision.None
-            : s.Wal.LogCommit ? RecoveryDecision.Commit : RecoveryDecision.Abort);
-        var owed = decision == RecoveryDecision.None
-            ? default : await ctx.Read("owed-client", s => s.Exchange.Pending.Client);
-
-        switch (decision)
-        {
-            case RecoveryDecision.None:   await ctx.Step(WalAction.Recover,   s => s.Server.MarkRunning()); break;
-            case RecoveryDecision.Commit: await ctx.Step(WalAction.AckCommit, s => { s.Exchange.Publish(owed, Outcome.Committed); s.Server.MarkRunning(); }); break;
-            case RecoveryDecision.Abort:  await ctx.Step(WalAction.AckAbort,  s => { s.Wal.DiscardRedo(); s.Exchange.Publish(owed, Outcome.Aborted); s.Server.MarkRunning(); }); break;
-        }
-    }
-}
+await context.When(
+    "recovering",
+    state => state.Server.Mode == ServerMode.Recovering);
+var decision = await context.Call("analyze-recovery", AnalyzeRecovery);
 ```
 
-| Model | Nodes | Edges |
-|---|---|---|
-| process WAL (2 keys, two clients) | 928 | 2 505 |
-| atomic store | 28 | 30 |
+| Model | Exact configurations | Edges | Domain states |
+|---|---:|---:|---:|
+| process WAL (2 keys, two clients) | 427 | 1 094 | 174 |
+| atomic store | 28 | 30 | 28 |
 
 The whole suite — safety refinement, the temporal fairness ladder, the checked
 declaration claims, the design tests, the multi-client contract tests, the
 property showcase (SafeRegex, regex-prefix + temporal suffix, and direct LTL)
-and the runtime tests (46 tests) — runs in a few seconds.
+and the focused structured-runtime tests — is **61 tests** and runs in a few
+seconds.
 
 ```bash
 cd Samples/WalProcessCoroutines
@@ -154,8 +140,7 @@ The `Pending` row survives a server crash because it lives in the shared table,
 not in server memory; it remains until the handler or recovery publishes the
 reply, so recovery always knows which client is still owed a result. The
 per-client `Replies` persist because clients are one-shot — a completed client
-never resubmits, so its outcome must stay observable. Client *completion* is
-process control (the coroutine finishing), never a shared flag.
+never resubmits, so its outcome must stay observable. Client *completion* is process control, never a shared flag.
 
 ## Encapsulated state ownership
 
@@ -213,8 +198,8 @@ Pending != null && !LogCommit && (Down|Recovering)-> Aborted
 ```
 
 Recovery's decision (`None` / `Commit` / `Abort`) and the owed client are
-captured as **immutable replay locals** *before* the state-changing step. A crash
-kills those locals; the next restart recomputes them from durable state. This
+captured in **immutable structured frames** before the state-changing step. A
+crash kills those frames; the next restart recomputes them from durable state. This
 preserves the earlier no-stale / no-double-report guarantee **without any
 recovery-only shared phase**: because a crash killed the handler, recovery is the
 one that reports, and it and the handler stay strictly alternative reporters.
@@ -242,8 +227,8 @@ ctx.StepWhen(
 
 The guard is re-evaluated against the **live** state every time the process is
 considered; while it is false the process is blocked and contributes **no edge or
-tape entry**; when it holds, the guard and the mutation are one visible
-transition. Because no passed-guard entry is written to the tape until the step
+recorded checkpoint**; when it holds, the guard and the mutation are one visible
+transition. Because no passed-guard entry is committed until the step
 is taken, a historical guard can never fire stale after an interleaving.
 
 **`StepWhen` is only for claiming a shared resource** (like the request slot),
@@ -268,7 +253,7 @@ collision-safe checkpoint name from the enum type and value
 ## The refinement
 
 **The state mapping alone is the refinement mapping.** It is written entirely
-outside the process code — no coroutine carries a `.Linearizes(...)` annotation —
+outside the process code — no workflow carries a `.Linearizes(...)` annotation —
 and it is *enough*: `StoreRefinement.Build(...)` calls only `.Map(ToStore)`, with
 **no `.MapTransition(...)`**, and both `.Check()` (safety) and
 `.CheckTemporal(...)` (the whole fairness ladder) pass.
@@ -353,11 +338,12 @@ Because recovery completes and publishes the owed reply in one atomic step, that
 single transition is at once the server returning to `Running` and the slot being
 cleared — so strong fairness on **either** characterization already closes the
 crash loop. The `Implementation` bundle asks for both, to mirror the hand-written
-WAL's separate recover and report obligations. The scheduler is a single
-Accordant step function, so fairness is stated over **domain-state transitions**
-(`Recovers` names `Recovering -> Running`; `Reports` names the slot clearing); it
-is non-vacuous, and crashing itself carries no fairness constraint at all —
-assuming it away would assume the problem away.
+WAL's separate recover and report obligations. Fairness is stated directly over
+typed `ProcessTransition` metadata: recovery is a collective
+`StrongAction`, while reporting is `StrongEach` keyed by client subject.
+The weak negative controls use the corresponding action-aware weak forms.
+Crashing itself carries no fairness constraint — assuming it away would assume
+the problem away.
 
 ## Property showcase: LTL, SafeRegex, and regex-prefix + temporal suffix
 
@@ -445,20 +431,14 @@ or raw `Next` are insensitive; only the SafeRegex wrapper and its lowering are.
 
 ## Experimental limits
 
-* The runtime is unpackaged and prototype. The determinism audit and the other
-  soundness caveats of the coroutine frontend still apply.
-* Refinement is external. The scheduler is one Accordant step function, so
-  fairness is expressed over domain-state changes rather than over a per-process
-  step type. Here that pushed the recovery **and** report into one atomic step so
-  a state predicate could name it; a two-step recover-then-report would have left
-  a no-op analysis step that state-transition fairness cannot force.
-* `When`/`StepWhen` guards, `Choose` sets and `Read` values are trusted to be
-  pure functions of the frozen state; the runtime checks this only under the
-  opt-in determinism audit. The handler and clients capture `config` by reference
-  (compared by identity only) and never mutate it.
+* The runtime is unpackaged and carries no compatibility promise.
+* Checkpoint-history values and captured locals use the immutable scalar whitelist;
+  arbitrary foreign awaits remain unsupported.
+* There is one failure domain.
 * Two fixed one-shot clients, one in-flight transaction, single instances of
-  each server role and a single failure domain keep the model finite: **928
-  nodes / 2 505 edges**, complete with no depth frontier. The design avoids
+  each server role and a single failure domain keep the model finite: **427
+  exact configurations / 1 094 edges / 174 domain states**, complete with no
+  depth frontier. The design avoids
   unbounded launch duplication and unbounded crash generations rather than
   bounding them after the fact.
 
@@ -476,17 +456,19 @@ or raw `Next` are insensitive; only the SafeRegex wrapper and its lowering are.
 | `WalProcessMultiClientTests.cs` | two-client contention, no slot overwrite, one-shot completion, correct persistent replies, both admission orders, draining admits the next |
 | `WalProcessPropertyTests.cs` | the showcase checks: SafeRegex ordering + witnesses, the regex-prefix/temporal-suffix episodes + fairness controls, direct LTL, and the state-neutral-erasure test |
 | `WalProcessLivenessTests.cs` | the temporal fairness ladder |
-| `ProcessRuntimeTests.cs` | focused runtime tests: interleaving, live `When`/`StepWhen` re-evaluation, the `StepWhen` race, structural crash continuation disposal |
+| `ProcessRuntimeTests.cs` | focused runtime tests: `Forever`, `Call`, `ChooseStep`, recurring actions, stale-read prevention, interleaving, frames, and crash disposal |
 
 ## Runtime extensions
 
 The primitives live in `Microsoft.Accordant.ModelChecking.Experimental.Coroutines`:
 
-* `CoroutineModel.cs` adds the enum-named `Step` overload and `ctx.StepWhen(...)`,
-  the atomic guarded step, alongside the existing `When` / `WaitUntil` guarded
-  waits.
+* `ProcessRuntime.cs` contains the shared `ModelTask` checkpoint machinery,
+  including `Read`, `Choose`, `ChooseStep`, `Step`, `When`, `WaitUntil`, and
+  `StepWhen`.
+* `ProcessContinuationRuntime.cs` provides explicit root/call/iteration frames and
+  administrative normalization.
 * `ProcessModel.cs` provides `ProcessSystemModel<TState>` (the composition root
-  and scheduler), `ProcessFailureDomain<TState>` (the structural domain), and the
-  `ProcessTransition` edge metadata. The scheduler is a single composite step
-  function that owns the whole live-process set — which is what lets a crash
-  discard several continuations atomically.
+  and scheduler), `ProcessFailureDomain<TState>`, recurring actions, and typed
+  `ProcessTransition` metadata.
+* `ProcessDiagnostics.cs` reports exact configurations, domain states,
+  completeness, edges, and continuation forms.

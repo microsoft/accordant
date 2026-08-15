@@ -56,18 +56,16 @@ The complete contract graph is **5 nodes / 25 edges**. Its liveness check is
 deliberately conditional: `Pending` can be observed or re-submitted forever
 without fairness, and becomes terminal under the stated completion fairness.
 
-## Process/coroutine detailed design
+## Structured process detailed design
 
 `DurableJobDesign.cs` is the single canonical detailed design. It uses the
 repository's actual
 `Microsoft.Accordant.ModelChecking.Experimental.Coroutines.ProcessSystemModel`
 API rather than a sample-specific state-machine wrapper.
 
-The API is experimental and unpackaged, as documented by Accordant. This
-sample uses the compositional process scheduler, not a standalone replay
-coroutine: every live process is advanced against current shared state, guarded
-waits are re-evaluated after interleavings, and failure-domain ownership is
-part of scheduler configuration.
+The API is experimental and unpackaged. Every live process is advanced against
+current shared state, guarded waits are re-evaluated after interleavings, and
+failure-domain ownership is part of exact scheduler configuration.
 
 ### Shared implementation-shaped state
 
@@ -88,15 +86,15 @@ because every bounded delivery carries the same fixed job id.
 
 Outside the worker failure domain:
 
-* looping submit, get, and cancel API processes;
-* duplicate delivery, dispatch loss, and durable-row dispatch reconstruction;
-* a lease reaper that expires a crashed claim;
-* the optional row-loss defect used only by a negative refinement test.
+* recurring submit, get, and cancel actions;
+* recurring duplicate delivery, dispatch loss, and durable-row reconstruction;
+* a recurring lease-reaper action;
+* the optional recurring row-loss defect used by a negative refinement test.
 
 Inside the `worker-host` failure domain:
 
-* the worker coroutine;
-* success and failure response sources for the finite attempt.
+* the structured worker process;
+* recurring success and failure response actions.
 
 A crash discards all three worker-host continuations and clears only volatile
 attempt-response state. The durable row, queue, lease, attempts, and crash count
@@ -105,62 +103,43 @@ worker-host processes.
 
 ### Code-shaped worker control flow
 
-The worker is ordinary sequential process code:
+The worker is ordinary sequential process code with an explicit iteration
+frame and a real helper call frame:
 
 ```csharp
-while (true)
-{
-    await context.Loop("worker-loop");
-    await context.StepWhen(DesignAction.ClaimNext, canClaim, claim);
+context => context.Forever(
+    "worker-loop",
+    allowCompletionAfterCancellation,
+    WorkerIteration)
 
-    var token = await context.Read("lease-token", state => state.LeaseToken);
-    var outcome = await context.WaitUntil(
-        "attempt-finished",
-        responseReadyOrLeaseLost,
-        captureResponseOrAbandoned);
-
-    switch (outcome)
-    {
-        case AttemptOutcome.Succeeded:
-            await context.Step(DesignAction.CompleteSuccess, complete);
-            break;
-        case AttemptOutcome.Failed:
-            await context.Step(DesignAction.FailAttempt, failOrRetry);
-            break;
-        case AttemptOutcome.Abandoned:
-            await context.Step(DesignAction.AbandonAttempt, _ => { });
-            break;
-    }
-}
+var token = await context.Read("lease-token", state => state.LeaseToken);
+var outcome = await context.Call("await-attempt", token, AwaitAttempt);
 ```
 
 That mirrors `ClaimNext`, `CompleteSuccess`, and `FailAttempt` in the service.
-The other process bodies similarly use loops and guarded atomic steps for
-dispatch reconstruction, lease expiry, and outcome arrival.
+The one-step recurring roles use `RepeatedAction`, so they add no continuation
+configurations.
 
 The success/failure response is recorded by an ordinary **changing** model
-action before the worker branches. This is intentional. A coroutine `Choose`
-would create a state-neutral control edge; Accordant fairness only constrains
-changing edges, so an eventual-response assumption could not honestly be
-attached to that branch. The explicit volatile response slot keeps the model
-finite and makes the liveness assumption checkable.
+action before the worker branches. Keeping it as a changing response-source
+action mirrors the implementation-shaped environment and lets action-aware
+fairness select the outcome family collectively.
 
 ### Exact configuration graph
 
-The complete design graph is **1010 nodes / 4702 edges**, projecting to **56
-distinct shared-domain states**. The larger node count is intentional:
-node identity includes the exact live-process set and replay continuation, not
-only the `[State]` value.
+`ProcessGraphDiagnostics` reports **61 exact configurations / 293 edges / 56
+distinct shared-domain states**. Structured iteration, calls, and stateless
+recurring actions remove continuation-only administrative configurations without
+merging distinct executable continuations.
 
 One checked `AbandonAttempt` edge leaves shared state unchanged but moves the
 worker to a different continuation. The tests assert that its source and target
 have equal domain state and different node fingerprints. This prevents a
 state-only graph from accidentally merging distinct executable configurations.
 
-No synthetic always-enabled stutter action is added to the model. Duplicate
-API requests and `Get` are real named state-neutral actions. Accordant's own
-synthetic infinite stutter remains reserved for genuinely terminal graph
-nodes; none of the progress arguments relies on it.
+No synthetic always-enabled stutter action is added. Duplicate API requests
+and `Get` are real named state-neutral semantic actions. Synthetic terminal
+stutter is excluded from action-aware fairness.
 
 ## Property suite
 
@@ -217,6 +196,11 @@ Negative checks are part of the specification:
 
 These are scheduler/environment assumptions, not unconditional service
 guarantees.
+
+Every obligation is stated over typed `ProcessTransition` metadata. Response
+fairness is intentionally collective: either success or failure discharges the
+single attempt-outcome obligation. Job-scoped actions carry `job-1` as their
+stable subject.
 
 ## Direct safety refinement
 
@@ -306,12 +290,12 @@ bundle implements the contract's abstract completion fairness.
 | --- | --- |
 | `Domain.cs` | finite workload and API types |
 | `AtomicJobContract.cs` | response-dependent contract and atomic graph adapter |
-| `DurableJobDesign.cs` | process/coroutine design and failure domain |
+| `DurableJobDesign.cs` | structured process design and failure domain |
 | `DurableJobProperties.cs` | safety formulas, progress formulas, fairness |
 | `DurableJobRefinement.cs` | direct state mapping and action declarations |
 | `DurableJobService.cs` | independent thread-safe implementation |
 | `AtomicJobContractTests.cs` | contract behavior, isolation, liveness, size |
-| `DurableJobDesignTests.cs` | exact configuration and coroutine structure |
+| `DurableJobDesignTests.cs` | exact configuration, frames, and recurring roles |
 | `DurableJobSafetyTests.cs` | design invariants and non-vacuity witnesses |
 | `DurableJobLivenessTests.cs` | fairness ladder and recovery progress |
 | `DurableJobRefinementTests.cs` | correct and broken safety refinements |

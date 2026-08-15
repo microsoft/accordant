@@ -157,7 +157,7 @@ namespace Accordant.ModelChecking.Tests
         [Test]
         public void Models_Delegates_To_Atom_Evaluate()
         {
-            var trueProp  = new StateProp("alwaysTrue",  _ => true);
+            var trueProp = new StateProp("alwaysTrue", _ => true);
             var falseProp = new StateProp("alwaysFalse", _ => false);
             var phi = _eba.And(new StatePredAtom(trueProp),
                                _eba.Not(new StatePredAtom(falseProp)));

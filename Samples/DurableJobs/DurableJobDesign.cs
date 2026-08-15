@@ -86,7 +86,7 @@ public partial class DurableJobLeaseState
 }
 
 /// <summary>
-/// The process model's shared state. Coroutine continuations and failure-domain
+/// The process model's shared state. Process continuations and failure-domain
 /// ownership are scheduler configuration, not fields in this domain state.
 /// </summary>
 [State]
@@ -357,7 +357,12 @@ public static class DurableJobRoles
     public const string RowLossDefect = "row-loss-defect";
     public const string WorkerHost = "worker-host";
 
-    public static IReadOnlyList<string> Correct { get; } =
+    public static IReadOnlyList<string> Processes { get; } =
+    [
+        Worker
+    ];
+
+    public static IReadOnlyList<string> RepeatedActions { get; } =
     [
         SubmitApi,
         GetApi,
@@ -366,14 +371,16 @@ public static class DurableJobRoles
         DispatchLoss,
         DispatchRebuilder,
         LeaseReaper,
-        Worker,
         SuccessSource,
         FailureSource
     ];
+
+    public static IReadOnlyList<string> Correct { get; } =
+        Processes.Concat(RepeatedActions).ToArray();
 }
 
 /// <summary>
-/// Builds the one canonical detailed design with real process/coroutine APIs.
+/// Builds the one canonical detailed design with structured process APIs.
 /// </summary>
 public static class DurableJobDesign
 {
@@ -392,33 +399,81 @@ public static class DurableJobDesign
             options.AllowCompletionAfterCancellation;
 
         var model = new ProcessSystemModel<DurableJobDesignState>(InitialState())
-            .Process(
+            .RepeatedAction(
                 DurableJobRoles.SubmitApi,
-                SubmitApi)
-            .Process(
+                DesignAction.Submit,
+                state => state.Submit(),
+                subject: DurableJobFixture.JobId)
+            .RepeatedAction(
                 DurableJobRoles.GetApi,
-                GetApi)
-            .Process(
+                DesignAction.Get,
+                _ => { },
+                subject: DurableJobFixture.JobId)
+            .RepeatedAction(
                 DurableJobRoles.CancelApi,
-                context => CancelApi(
-                    context,
-                    allowCompletionAfterCancellation))
-            .Process(
+                DesignAction.Cancel,
+                state => state.Cancel(allowCompletionAfterCancellation),
+                subject: DurableJobFixture.JobId)
+            .RepeatedAction(
                 DurableJobRoles.DuplicateDispatcher,
-                DuplicateDispatcher)
-            .Process(
+                state =>
+                    state.Row?.Status == JobStatus.Pending &&
+                    state.QueueDepth < 2,
+                DesignAction.EnqueueDuplicate,
+                state => state.EnqueueDuplicate(),
+                subject: DurableJobFixture.JobId)
+            .RepeatedAction(
                 DurableJobRoles.DispatchLoss,
-                DispatchLoss)
-            .Process(
+                state =>
+                    state.Row is
+                    {
+                        Status: JobStatus.Pending,
+                        Attempts: < DurableJobFixture.MaxAttempts
+                    } &&
+                    state.Worker == WorkerPhase.Idle &&
+                    state.ActiveLease is null &&
+                    state.QueueDepth > 0,
+                DesignAction.LoseDispatch,
+                state => state.LoseDispatch(),
+                subject: DurableJobFixture.JobId)
+            .RepeatedAction(
                 DurableJobRoles.DispatchRebuilder,
-                DispatchRebuilder)
-            .Process(
+                state =>
+                    state.Row is
+                    {
+                        Status: JobStatus.Pending,
+                        Attempts: < DurableJobFixture.MaxAttempts
+                    } &&
+                    state.Worker == WorkerPhase.Idle &&
+                    state.ActiveLease is null &&
+                    state.QueueDepth == 0,
+                DesignAction.RebuildDispatch,
+                state => state.RebuildDispatch(),
+                subject: DurableJobFixture.JobId)
+            .RepeatedAction(
                 DurableJobRoles.LeaseReaper,
-                LeaseReaper);
+                state =>
+                    state.Row?.Status == JobStatus.Pending &&
+                    state.Worker == WorkerPhase.Crashed &&
+                    state.ActiveLease is not null,
+                DesignAction.ExpireLease,
+                state => state.ExpireLease(),
+                subject: DurableJobFixture.JobId);
 
         if (options.LoseAcceptedJob)
         {
-            model.Process(DurableJobRoles.RowLossDefect, RowLossDefect);
+            model.RepeatedAction(
+                DurableJobRoles.RowLossDefect,
+                state =>
+                    state.Row is
+                    {
+                        Status: JobStatus.Pending,
+                        Attempts: 0
+                    } &&
+                    state.Worker == WorkerPhase.Idle,
+                DesignAction.LoseAcceptedJob,
+                state => state.LoseAcceptedJob(),
+                subject: DurableJobFixture.JobId);
         }
 
         var workerHost = model.FailureDomain(
@@ -434,15 +489,22 @@ public static class DurableJobDesign
 
         workerHost.Process(
             DurableJobRoles.Worker,
-            context => Worker(
-                context,
-                allowCompletionAfterCancellation));
-        workerHost.Process(
+            context => context.Forever(
+                "worker-loop",
+                allowCompletionAfterCancellation,
+                WorkerIteration));
+        workerHost.RepeatedAction(
             DurableJobRoles.SuccessSource,
-            SuccessSource);
-        workerHost.Process(
+            state => state.CanRecordOutcome,
+            DesignAction.RecordSuccess,
+            state => state.AttemptOutcome = AttemptOutcome.Succeeded,
+            subject: DurableJobFixture.JobId);
+        workerHost.RepeatedAction(
             DurableJobRoles.FailureSource,
-            FailureSource);
+            state => state.CanRecordOutcome,
+            DesignAction.RecordFailure,
+            state => state.AttemptOutcome = AttemptOutcome.Failed,
+            subject: DurableJobFixture.JobId);
 
         return model;
     }
@@ -471,209 +533,67 @@ public static class DurableJobDesign
         };
     }
 
-    private static async ModelTask SubmitApi(
-        ModelContext<DurableJobDesignState> context)
-    {
-        while (true)
-        {
-            await context.Loop("submit-loop");
-            await context.Step(DesignAction.Submit, state => state.Submit());
-        }
-    }
-
-    private static async ModelTask GetApi(
-        ModelContext<DurableJobDesignState> context)
-    {
-        while (true)
-        {
-            await context.Loop("get-loop");
-            await context.Step(DesignAction.Get, _ => { });
-        }
-    }
-
-    private static async ModelTask CancelApi(
-        ModelContext<DurableJobDesignState> context,
-        bool preserveLiveLease)
-    {
-        while (true)
-        {
-            await context.Loop("cancel-loop");
-            await context.Step(
-                DesignAction.Cancel,
-                state => state.Cancel(preserveLiveLease));
-        }
-    }
-
-    private static async ModelTask DuplicateDispatcher(
-        ModelContext<DurableJobDesignState> context)
-    {
-        while (true)
-        {
-            await context.Loop("duplicate-dispatch-loop");
-            await context.StepWhen(
-                DesignAction.EnqueueDuplicate,
-                state =>
-                    state.Row?.Status == JobStatus.Pending &&
-                    state.QueueDepth < 2,
-                state => state.EnqueueDuplicate());
-        }
-    }
-
-    private static async ModelTask DispatchLoss(
-        ModelContext<DurableJobDesignState> context)
-    {
-        while (true)
-        {
-            await context.Loop("dispatch-loss-loop");
-            await context.StepWhen(
-                DesignAction.LoseDispatch,
-                state =>
-                    state.Row is
-                    {
-                        Status: JobStatus.Pending,
-                        Attempts: < DurableJobFixture.MaxAttempts
-                    } &&
-                    state.Worker == WorkerPhase.Idle &&
-                    state.ActiveLease is null &&
-                    state.QueueDepth > 0,
-                state => state.LoseDispatch());
-        }
-    }
-
-    private static async ModelTask DispatchRebuilder(
-        ModelContext<DurableJobDesignState> context)
-    {
-        while (true)
-        {
-            await context.Loop("dispatch-rebuild-loop");
-            await context.StepWhen(
-                DesignAction.RebuildDispatch,
-                state =>
-                    state.Row is
-                    {
-                        Status: JobStatus.Pending,
-                        Attempts: < DurableJobFixture.MaxAttempts
-                    } &&
-                    state.Worker == WorkerPhase.Idle &&
-                    state.ActiveLease is null &&
-                    state.QueueDepth == 0,
-                state => state.RebuildDispatch());
-        }
-    }
-
-    private static async ModelTask LeaseReaper(
-        ModelContext<DurableJobDesignState> context)
-    {
-        while (true)
-        {
-            await context.Loop("lease-reaper-loop");
-            await context.StepWhen(
-                DesignAction.ExpireLease,
-                state =>
-                    state.Row?.Status == JobStatus.Pending &&
-                    state.Worker == WorkerPhase.Crashed &&
-                    state.ActiveLease is not null,
-                state => state.ExpireLease());
-        }
-    }
-
-    private static async ModelTask SuccessSource(
-        ModelContext<DurableJobDesignState> context)
-    {
-        while (true)
-        {
-            await context.Loop("success-source-loop");
-            await context.StepWhen(
-                DesignAction.RecordSuccess,
-                state => state.CanRecordOutcome,
-                state => state.AttemptOutcome = AttemptOutcome.Succeeded);
-        }
-    }
-
-    private static async ModelTask FailureSource(
-        ModelContext<DurableJobDesignState> context)
-    {
-        while (true)
-        {
-            await context.Loop("failure-source-loop");
-            await context.StepWhen(
-                DesignAction.RecordFailure,
-                state => state.CanRecordOutcome,
-                state => state.AttemptOutcome = AttemptOutcome.Failed);
-        }
-    }
-
-    private static async ModelTask Worker(
+    private static async ModelTask WorkerIteration(
         ModelContext<DurableJobDesignState> context,
         bool allowCompletionAfterCancellation)
     {
-        while (true)
+        await context.StepWhen(
+            DesignAction.ClaimNext,
+            state => state.CanClaim,
+            state => state.ClaimNext(),
+            subject: DurableJobFixture.JobId);
+
+        var leaseToken = await context.Read(
+            "lease-token",
+            state => state.LeaseToken);
+
+        var outcome = await context.Call(
+            "await-attempt",
+            leaseToken,
+            AwaitAttempt);
+
+        switch (outcome)
         {
-            await context.Loop("worker-loop");
+            case AttemptOutcome.Succeeded:
+                await context.Step(
+                    DesignAction.CompleteSuccess,
+                    state => state.CompleteSuccess(
+                        leaseToken,
+                        allowCompletionAfterCancellation),
+                    subject: DurableJobFixture.JobId);
+                break;
 
-            await context.StepWhen(
-                DesignAction.ClaimNext,
-                state => state.CanClaim,
-                state => state.ClaimNext());
+            case AttemptOutcome.Failed:
+                await context.Step(
+                    DesignAction.FailAttempt,
+                    state => state.FailAttempt(leaseToken),
+                    subject: DurableJobFixture.JobId);
+                break;
 
-            var leaseToken = await context.Read(
-                "lease-token",
-                state => state.LeaseToken);
+            case AttemptOutcome.Abandoned:
+                await context.Step(
+                    DesignAction.AbandonAttempt,
+                    _ => { },
+                    subject: DurableJobFixture.JobId);
+                break;
 
-            var outcome = await context.WaitUntil(
-                "attempt-finished",
-                state =>
-                    !state.OwnsActiveLease(leaseToken) ||
-                    state.AttemptOutcome != AttemptOutcome.None,
-                state => state.OwnsActiveLease(leaseToken)
-                    ? state.AttemptOutcome
-                    : AttemptOutcome.Abandoned);
-
-            switch (outcome)
-            {
-                case AttemptOutcome.Succeeded:
-                    await context.Step(
-                        DesignAction.CompleteSuccess,
-                        state => state.CompleteSuccess(
-                            leaseToken,
-                            allowCompletionAfterCancellation));
-                    break;
-
-                case AttemptOutcome.Failed:
-                    await context.Step(
-                        DesignAction.FailAttempt,
-                        state => state.FailAttempt(leaseToken));
-                    break;
-
-                case AttemptOutcome.Abandoned:
-                    await context.Step(
-                        DesignAction.AbandonAttempt,
-                        _ => { });
-                    break;
-
-                default:
-                    throw new InvalidOperationException(
-                        $"Unexpected attempt outcome '{outcome}'.");
-            }
+            default:
+                throw new InvalidOperationException(
+                    $"Unexpected attempt outcome '{outcome}'.");
         }
     }
 
-    private static async ModelTask RowLossDefect(
-        ModelContext<DurableJobDesignState> context)
+    private static async ModelTask<AttemptOutcome> AwaitAttempt(
+        ModelContext<DurableJobDesignState> context,
+        int leaseToken)
     {
-        while (true)
-        {
-            await context.Loop("row-loss-loop");
-            await context.StepWhen(
-                DesignAction.LoseAcceptedJob,
-                state =>
-                    state.Row is
-                    {
-                        Status: JobStatus.Pending,
-                        Attempts: 0
-                    } &&
-                    state.Worker == WorkerPhase.Idle,
-                state => state.LoseAcceptedJob());
-        }
+        return await context.WaitUntil(
+            "attempt-finished",
+            state =>
+                !state.OwnsActiveLease(leaseToken) ||
+                state.AttemptOutcome != AttemptOutcome.None,
+            state => state.OwnsActiveLease(leaseToken)
+                ? state.AttemptOutcome
+                : AttemptOutcome.Abandoned);
     }
 }

@@ -9,12 +9,12 @@ using System.Linq;
 using Microsoft.Accordant;
 
 /// <summary>
-/// The kind of scheduler edge, distinguishing an ordinary coroutine checkpoint
+/// The kind of scheduler edge, distinguishing an ordinary model-workflow checkpoint
 /// from the failure-domain and launch control transitions the scheduler owns.
 /// </summary>
 public enum ProcessControlKind
 {
-    /// <summary>An ordinary coroutine checkpoint (<see cref="ProcessTransition.Checkpoint"/> is set).</summary>
+    /// <summary>An ordinary model-workflow checkpoint (<see cref="ProcessTransition.Checkpoint"/> is set).</summary>
     None,
 
     /// <summary>A guarded launch that added a fresh process to the live set.</summary>
@@ -38,7 +38,7 @@ public enum ProcessControlKind
 /// graph. It carries the identity of the process that acted (its stable role,
 /// separate from any generated runtime id), the name of the failure domain that
 /// owns that process (or null when the process is outside every domain), and
-/// either the underlying <see cref="CoroutineTransition"/> for a coroutine
+/// either the underlying <see cref="ProcessCheckpointTransition"/> for a workflow
 /// checkpoint or the <see cref="ProcessControlKind"/> for a scheduler control
 /// transition. A crash or restart edge names the failure domain it belongs to.
 /// </summary>
@@ -48,7 +48,7 @@ public sealed class ProcessTransition
         string processRole,
         string domain,
         ProcessControlKind control,
-        CoroutineTransition checkpoint)
+        ProcessCheckpointTransition checkpoint)
     {
         ProcessRole = processRole;
         Domain = domain;
@@ -69,13 +69,13 @@ public sealed class ProcessTransition
     /// <summary>Whether the acting process belongs to a failure domain.</summary>
     public bool InFailureDomain => Domain != null;
 
-    /// <summary>The control kind, or <see cref="ProcessControlKind.None"/> for a coroutine checkpoint.</summary>
+    /// <summary>The control kind, or <see cref="ProcessControlKind.None"/> for a workflow checkpoint.</summary>
     public ProcessControlKind Control { get; }
 
-    /// <summary>The coroutine checkpoint metadata, or null for a control transition.</summary>
-    public CoroutineTransition Checkpoint { get; }
+    /// <summary>The model-workflow checkpoint metadata, or null for a control transition.</summary>
+    public ProcessCheckpointTransition Checkpoint { get; }
 
-    /// <summary>Whether this edge is a scheduler control transition rather than a coroutine checkpoint.</summary>
+    /// <summary>Whether this edge is a scheduler control transition rather than a workflow checkpoint.</summary>
     public bool IsControl => Control != ProcessControlKind.None;
 
     /// <summary>The checkpoint kind, or null for a control transition.</summary>
@@ -93,8 +93,8 @@ public sealed class ProcessTransition
     /// <summary>The optional immutable action subject supplied by a Step.</summary>
     public object Subject => Checkpoint?.Subject;
 
-    /// <summary>The replay prefix of the underlying checkpoint, or null.</summary>
-    public IReadOnlyList<ReplayEntry> ReplayPrefix => Checkpoint?.ReplayPrefix;
+    /// <summary>The frame-local checkpoint history before the transition, or null.</summary>
+    public IReadOnlyList<ProcessCheckpointRecord> CheckpointHistory => Checkpoint?.CheckpointHistory;
 
     /// <inheritdoc/>
     public override string ToString()
@@ -106,11 +106,16 @@ public sealed class ProcessTransition
 /// <summary>A snapshot of one live process in a scheduler configuration.</summary>
 public sealed class ProcessInstance
 {
-    internal ProcessInstance(string role, string domain, string continuationId)
+    internal ProcessInstance(
+        string role,
+        string domain,
+        string continuationId,
+        IReadOnlyList<ProcessContinuationFrame> frames)
     {
         Role = role;
         Domain = domain;
         ContinuationId = continuationId;
+        Frames = frames;
     }
 
     /// <summary>The stable process role.</summary>
@@ -122,8 +127,15 @@ public sealed class ProcessInstance
     /// <summary>Whether the process belongs to a failure domain.</summary>
     public bool InFailureDomain => Domain != null;
 
-    /// <summary>An opaque identity of the process's serialized continuation (replay tape).</summary>
+    /// <summary>An opaque identity of the process's complete structured continuation.</summary>
     public string ContinuationId { get; }
+
+    /// <summary>The structured root/call/iteration frames of this continuation.</summary>
+    public IReadOnlyList<ProcessContinuationFrame> Frames { get; }
+
+    /// <summary>A human-readable structured continuation description.</summary>
+    public string ContinuationDescription
+        => string.Join(" -> ", Frames.Select(frame => frame.ToString()));
 
     /// <inheritdoc/>
     public override string ToString() => $"{Role}#{ContinuationId}";
@@ -206,6 +218,43 @@ public sealed class ProcessFailureDomain<TState>
         model.RegisterLaunch(role, guard, workflow, Name);
         return this;
     }
+
+    /// <summary>
+    /// Registers an always-enabled recurring atomic action in this failure
+    /// domain. If its mutation is a semantic no-op, the resulting edge is a
+    /// real graph self-loop rather than an artificial continuation state. The
+    /// graph remains complete, but changing-edge fairness predicates naturally
+    /// do not count a state-neutral self-loop as progress.
+    /// </summary>
+    public ProcessFailureDomain<TState> RepeatedAction<TAction>(
+        string role,
+        TAction semanticAction,
+        Action<TState> action,
+        object subject = null)
+        where TAction : struct, Enum
+        => RepeatedAction(role, _ => true, semanticAction, action, subject);
+
+    /// <summary>
+    /// Registers a guarded recurring atomic action in this failure domain. It
+    /// is structurally unavailable between this domain's crash and restart.
+    /// </summary>
+    public ProcessFailureDomain<TState> RepeatedAction<TAction>(
+        string role,
+        Func<TState, bool> guard,
+        TAction semanticAction,
+        Action<TState> action,
+        object subject = null)
+        where TAction : struct, Enum
+    {
+        model.RegisterRepeatedAction(
+            role,
+            guard,
+            semanticAction,
+            action,
+            subject,
+            Name);
+        return this;
+    }
 }
 
 internal sealed class ProcessSpec<TState>
@@ -213,9 +262,9 @@ internal sealed class ProcessSpec<TState>
 {
     internal ProcessSpec(
         string role,
-        Func<ModelContext<TState>, ModelTask> workflow,
+        ModelWorkflow<TState> workflow,
         string domain,
-        CoroutineOptions options)
+        ProcessRuntimeOptions options)
     {
         Role = role;
         Workflow = workflow;
@@ -224,11 +273,11 @@ internal sealed class ProcessSpec<TState>
     }
 
     internal string Role { get; }
-    internal Func<ModelContext<TState>, ModelTask> Workflow { get; }
+    internal ModelWorkflow<TState> Workflow { get; }
 
     /// <summary>The failure domain that owns this process, or null.</summary>
     internal string Domain { get; }
-    internal CoroutineOptions Options { get; }
+    internal ProcessRuntimeOptions Options { get; }
 }
 
 internal sealed class LaunchSpec<TState>
@@ -237,9 +286,9 @@ internal sealed class LaunchSpec<TState>
     internal LaunchSpec(
         string role,
         Func<TState, bool> guard,
-        Func<ModelContext<TState>, ModelTask> workflow,
+        ModelWorkflow<TState> workflow,
         string domain,
-        CoroutineOptions options)
+        ProcessRuntimeOptions options)
     {
         Role = role;
         Guard = guard;
@@ -250,16 +299,46 @@ internal sealed class LaunchSpec<TState>
 
     internal string Role { get; }
     internal Func<TState, bool> Guard { get; }
-    internal Func<ModelContext<TState>, ModelTask> Workflow { get; }
+    internal ModelWorkflow<TState> Workflow { get; }
 
     /// <summary>The failure domain that owns this launch, or null.</summary>
     internal string Domain { get; }
-    internal CoroutineOptions Options { get; }
+    internal ProcessRuntimeOptions Options { get; }
+}
+
+internal sealed class RepeatedActionSpec<TState>
+    where TState : State
+{
+    internal RepeatedActionSpec(
+        string role,
+        Func<TState, bool> guard,
+        string checkpointName,
+        object semanticAction,
+        Action<TState> action,
+        object subject,
+        string domain)
+    {
+        Role = role;
+        Guard = guard;
+        CheckpointName = checkpointName;
+        SemanticAction = semanticAction;
+        Action = action;
+        Subject = subject;
+        Domain = domain;
+    }
+
+    internal string Role { get; }
+    internal Func<TState, bool> Guard { get; }
+    internal object SemanticAction { get; }
+    internal Action<TState> Action { get; }
+    internal object Subject { get; }
+    internal string Domain { get; }
+    internal string CheckpointName { get; }
 }
 
 /// <summary>
 /// The composition root of an experimental process system. It registers a set
-/// of independently active replay-coroutine processes, optional guarded process
+/// of independently active structured model processes, optional guarded process
 /// launches, and an optional failure domain, and compiles the whole system to
 /// an ordinary Accordant state graph.
 ///
@@ -270,8 +349,8 @@ internal sealed class LaunchSpec<TState>
 /// <see cref="FailureDomain"/>) belongs to that domain and is discarded at a
 /// crash. There is no boolean domain flag.</para>
 ///
-/// <para>Each process is a replay coroutine whose serialized continuation lives
-/// in scheduler-node configuration, never in the domain <typeparamref name="TState"/>,
+/// <para>Each process has an explicit structured continuation in scheduler-node
+/// configuration, never in the domain <typeparamref name="TState"/>,
 /// so refinement's state semantics see only domain state. The scheduler advances
 /// every live process against the <em>current</em> shared state at each step, so
 /// a process is a function of the state it is applied to and guarded waits are
@@ -283,6 +362,8 @@ public sealed class ProcessSystemModel<TState>
     private readonly TState initialState;
     private readonly List<ProcessSpec<TState>> processes = new List<ProcessSpec<TState>>();
     private readonly List<LaunchSpec<TState>> launches = new List<LaunchSpec<TState>>();
+    private readonly List<RepeatedActionSpec<TState>> repeatedActions =
+        new List<RepeatedActionSpec<TState>>();
     private readonly bool verifyDeterminism;
     private readonly int maxInternalCheckpoints;
     private ProcessFailureDomain<TState> failureDomain;
@@ -294,6 +375,13 @@ public sealed class ProcessSystemModel<TState>
         int maxInternalCheckpoints = 10000)
     {
         this.initialState = initialState ?? throw new ArgumentNullException(nameof(initialState));
+        if (maxInternalCheckpoints <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(maxInternalCheckpoints),
+                "The internal checkpoint limit must be positive.");
+        }
+
         this.verifyDeterminism = verifyDeterminism;
         this.maxInternalCheckpoints = maxInternalCheckpoints;
     }
@@ -329,6 +417,42 @@ public sealed class ProcessSystemModel<TState>
         Func<ModelContext<TState>, ModelTask> workflow)
     {
         RegisterLaunch(role, guard, workflow, domain: null);
+        return this;
+    }
+
+    /// <summary>
+    /// Registers an always-enabled recurring atomic action outside every
+    /// failure domain. A semantic no-op intentionally produces a graph
+    /// self-loop and no continuation configuration. The graph remains complete,
+    /// but changing-edge fairness predicates do not count that loop as progress.
+    /// </summary>
+    public ProcessSystemModel<TState> RepeatedAction<TAction>(
+        string role,
+        TAction semanticAction,
+        Action<TState> action,
+        object subject = null)
+        where TAction : struct, Enum
+        => RepeatedAction(role, _ => true, semanticAction, action, subject);
+
+    /// <summary>
+    /// Registers a guarded recurring atomic action outside every failure
+    /// domain.
+    /// </summary>
+    public ProcessSystemModel<TState> RepeatedAction<TAction>(
+        string role,
+        Func<TState, bool> guard,
+        TAction semanticAction,
+        Action<TState> action,
+        object subject = null)
+        where TAction : struct, Enum
+    {
+        RegisterRepeatedAction(
+            role,
+            guard,
+            semanticAction,
+            action,
+            subject,
+            domain: null);
         return this;
     }
 
@@ -370,7 +494,12 @@ public sealed class ProcessSystemModel<TState>
     {
         RequireRole(role);
         if (workflow == null) throw new ArgumentNullException(nameof(workflow));
-        processes.Add(new ProcessSpec<TState>(role, workflow, domain, OptionsFor(role, workflow)));
+        var modelWorkflow = ModelWorkflow<TState>.ForRoot(role, workflow);
+        processes.Add(new ProcessSpec<TState>(
+            role,
+            modelWorkflow,
+            domain,
+            OptionsFor(role, modelWorkflow)));
     }
 
     internal void RegisterLaunch(
@@ -382,7 +511,35 @@ public sealed class ProcessSystemModel<TState>
         RequireRole(role);
         if (guard == null) throw new ArgumentNullException(nameof(guard));
         if (workflow == null) throw new ArgumentNullException(nameof(workflow));
-        launches.Add(new LaunchSpec<TState>(role, guard, workflow, domain, OptionsFor(role, workflow)));
+        var modelWorkflow = ModelWorkflow<TState>.ForRoot(role, workflow);
+        launches.Add(new LaunchSpec<TState>(
+            role,
+            guard,
+            modelWorkflow,
+            domain,
+            OptionsFor(role, modelWorkflow)));
+    }
+
+    internal void RegisterRepeatedAction<TAction>(
+        string role,
+        Func<TState, bool> guard,
+        TAction semanticAction,
+        Action<TState> action,
+        object subject,
+        string domain)
+        where TAction : struct, Enum
+    {
+        RequireRole(role);
+        if (guard == null) throw new ArgumentNullException(nameof(guard));
+        if (action == null) throw new ArgumentNullException(nameof(action));
+        repeatedActions.Add(new RepeatedActionSpec<TState>(
+            role,
+            guard,
+            EnumCheckpointName.Of(semanticAction),
+            semanticAction,
+            action,
+            ScalarValues.Validate(subject, role),
+            domain));
     }
 
     /// <summary>Compiles the system to an ordinary state graph.</summary>
@@ -390,6 +547,7 @@ public sealed class ProcessSystemModel<TState>
     {
         var uniqueRoles = processes.Select(p => p.Role)
             .Concat(launches.Select(l => l.Role))
+            .Concat(repeatedActions.Select(action => action.Role))
             .GroupBy(role => role, StringComparer.Ordinal)
             .FirstOrDefault(group => group.Count() > 1);
         if (uniqueRoles != null)
@@ -400,13 +558,20 @@ public sealed class ProcessSystemModel<TState>
         }
 
         initialState.Freeze();
-        var configuration = new ProcessConfiguration<TState>(processes, launches, failureDomain);
+        var configuration = new ProcessConfiguration<TState>(
+            processes,
+            launches,
+            repeatedActions,
+            failureDomain);
         var live = processes
-            .Select(spec => new LiveProcess(spec.Role, new ReplayTape()))
+            .Select(spec => FreshProcess(spec.Role, spec.Workflow, spec.Options, initialState))
             .OrderBy(p => p.Role, StringComparer.Ordinal)
             .ToList();
 
-        var scheduler = new ProcessSchedulerStep<TState>(configuration, live);
+        var scheduler = new ProcessSchedulerStep<TState>(
+            configuration,
+            live,
+            failureDomainRunning: failureDomain != null);
         return StateGraph.ExploreStateGraph(
             new IStepFunction[] { scheduler },
             initialState,
@@ -414,13 +579,25 @@ public sealed class ProcessSystemModel<TState>
             lazy: lazy);
     }
 
-    private CoroutineOptions OptionsFor(string role, Func<ModelContext<TState>, ModelTask> workflow)
-        => new CoroutineOptions(
+    private LiveProcess<TState> FreshProcess(
+        string role,
+        ModelWorkflow<TState> workflow,
+        ProcessRuntimeOptions options,
+        TState state)
+    {
+        var start = ProcessContinuation<TState>.Root(role, workflow);
+        var normalized = ProcessContinuationRunner.Normalize(start, state, options);
+        return new LiveProcess<TState>(
+            role,
+            normalized.Completed ? start : normalized.Continuation);
+    }
+
+    private ProcessRuntimeOptions OptionsFor(string role, ModelWorkflow<TState> workflow)
+        => new ProcessRuntimeOptions(
             role,
             verifyDeterminism,
             maxInternalCheckpoints,
-            CapturedInputMonitor.Create(workflow),
-            allowGuardedWaits: true);
+            workflow.Captures);
 
     private static void RequireRole(string role)
     {
@@ -432,16 +609,17 @@ public sealed class ProcessSystemModel<TState>
 }
 
 /// <summary>One live process: its stable role and its serialized continuation.</summary>
-internal sealed class LiveProcess
+internal sealed class LiveProcess<TState>
+    where TState : State
 {
-    internal LiveProcess(string role, ReplayTape tape)
+    internal LiveProcess(string role, ProcessContinuation<TState> continuation)
     {
         Role = role;
-        Tape = tape;
+        Continuation = continuation;
     }
 
     internal string Role { get; }
-    internal ReplayTape Tape { get; }
+    internal ProcessContinuation<TState> Continuation { get; }
 }
 
 /// <summary>The immutable registration a scheduler shares across all of its nodes.</summary>
@@ -450,29 +628,29 @@ internal sealed class ProcessConfiguration<TState>
 {
     private readonly Dictionary<string, ProcessSpec<TState>> processByRole;
     private readonly Dictionary<string, LaunchSpec<TState>> launchByRole;
+    private readonly Dictionary<string, RepeatedActionSpec<TState>> actionByRole;
 
     internal ProcessConfiguration(
         IReadOnlyList<ProcessSpec<TState>> processes,
         IReadOnlyList<LaunchSpec<TState>> launches,
+        IReadOnlyList<RepeatedActionSpec<TState>> repeatedActions,
         ProcessFailureDomain<TState> failureDomain)
     {
         Processes = processes;
         Launches = launches;
+        RepeatedActions = repeatedActions;
         FailureDomain = failureDomain;
         processByRole = processes.ToDictionary(p => p.Role, StringComparer.Ordinal);
         launchByRole = launches.ToDictionary(l => l.Role, StringComparer.Ordinal);
+        actionByRole = repeatedActions.ToDictionary(a => a.Role, StringComparer.Ordinal);
     }
 
     internal IReadOnlyList<ProcessSpec<TState>> Processes { get; }
     internal IReadOnlyList<LaunchSpec<TState>> Launches { get; }
+    internal IReadOnlyList<RepeatedActionSpec<TState>> RepeatedActions { get; }
     internal ProcessFailureDomain<TState> FailureDomain { get; }
 
-    internal Func<ModelContext<TState>, ModelTask> WorkflowFor(string role)
-        => processByRole.TryGetValue(role, out var process)
-            ? process.Workflow
-            : launchByRole[role].Workflow;
-
-    internal CoroutineOptions OptionsFor(string role)
+    internal ProcessRuntimeOptions OptionsFor(string role)
         => processByRole.TryGetValue(role, out var process)
             ? process.Options
             : launchByRole[role].Options;
@@ -481,7 +659,9 @@ internal sealed class ProcessConfiguration<TState>
     internal string DomainOfRole(string role)
         => processByRole.TryGetValue(role, out var process)
             ? process.Domain
-            : launchByRole[role].Domain;
+            : launchByRole.TryGetValue(role, out var launch)
+                ? launch.Domain
+                : actionByRole[role].Domain;
 }
 
 /// <summary>
@@ -490,21 +670,35 @@ internal sealed class ProcessConfiguration<TState>
 /// every failure-domain continuation atomically instead of leaking disabled
 /// steps into the graph.
 /// </summary>
-internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessSchedulerStep
+internal sealed class ProcessSchedulerStep<TState> :
+    BaseStepFunction,
+    IProcessSchedulerStep,
+    IProcessSchedulerDiagnostics
     where TState : State
 {
     private readonly ProcessConfiguration<TState> configuration;
-    private readonly IReadOnlyList<LiveProcess> live;
+    private readonly IReadOnlyList<LiveProcess<TState>> live;
+    private readonly bool failureDomainRunning;
     private readonly string id;
 
     internal ProcessSchedulerStep(
         ProcessConfiguration<TState> configuration,
-        IReadOnlyList<LiveProcess> live)
+        IReadOnlyList<LiveProcess<TState>> live,
+        bool failureDomainRunning)
     {
         this.configuration = configuration;
         this.live = live;
+        this.failureDomainRunning = failureDomainRunning;
         id = "process-system#" + Identifiers.Join(
-            live.SelectMany(p => new[] { p.Role, p.Tape.ContinuationIdentity }).ToArray());
+            new[]
+            {
+                configuration.FailureDomain == null
+                    ? "no-failure-domain"
+                    : configuration.FailureDomain.Name + ":" +
+                        (failureDomainRunning ? "running" : "crashed")
+            }
+            .Concat(live.SelectMany(p => new[] { p.Role, p.Continuation.Identity }))
+            .ToArray());
     }
 
     public override string StepFunctionId => id;
@@ -514,7 +708,20 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
             .Select(p => new ProcessInstance(
                 p.Role,
                 configuration.DomainOfRole(p.Role),
-                p.Tape.ContinuationIdentity))
+                p.Continuation.DisplayIdentity,
+                p.Continuation.Snapshot()))
+            .ToList();
+
+    public IReadOnlyList<string> ProcessRoles
+        => configuration.Processes.Select(process => process.Role)
+            .Concat(configuration.Launches.Select(launch => launch.Role))
+            .OrderBy(role => role, StringComparer.Ordinal)
+            .ToList();
+
+    public IReadOnlyList<string> RepeatedActionRoles
+        => configuration.RepeatedActions
+            .Select(action => action.Role)
+            .OrderBy(role => role, StringComparer.Ordinal)
             .ToList();
 
     protected override IList<StepResult> ApplyInternal(IState source)
@@ -528,21 +735,57 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
             AdvanceProcess(state, process, results);
         }
 
-        // 2. Guarded launches add a fresh process when enabled and not already live.
+        // 2. Recurring stateless actions offer one atomic edge and retain no
+        // continuation configuration.
+        foreach (var action in configuration.RepeatedActions)
+        {
+            if (!DomainAvailable(action.Domain) || !action.Guard(state))
+            {
+                continue;
+            }
+
+            var next = (TState)state.Clone();
+            action.Action(next);
+            next.Freeze();
+            results.Add(Checkpoint(
+                next,
+                live.ToList(),
+                action.Role,
+                new ProcessCheckpointTransition(
+                    action.Role,
+                    ModelCheckpointKind.Step,
+                    action.CheckpointName,
+                    value: null,
+                    checkpointHistory: Array.Empty<ProcessCheckpointRecord>(),
+                    semanticAction: action.SemanticAction,
+                    subject: action.Subject)));
+        }
+
+        // 3. Guarded launches add a fresh process when enabled and not already live.
         foreach (var launch in configuration.Launches)
         {
-            if (launch.Guard(state) && !live.Any(p => p.Role == launch.Role))
+            if (DomainAvailable(launch.Domain) &&
+                launch.Guard(state) &&
+                !live.Any(p => p.Role == launch.Role))
             {
                 var next = live
-                    .Concat(new[] { new LiveProcess(launch.Role, new ReplayTape()) })
+                    .Concat(new[]
+                    {
+                        FreshProcess(
+                            launch.Role,
+                            launch.Workflow,
+                            launch.Options,
+                            state)
+                    })
                     .ToList();
                 results.Add(Control(state, next, ProcessControlKind.Launch, launch.Role, launch.Domain));
             }
         }
 
-        // 3. The failure domain: crash discards every continuation it owns.
+        // 4. The failure domain: crash discards every continuation it owns and
+        // structurally disables its stateless actions and launches.
         var domain = configuration.FailureDomain;
-        if (domain != null && domain.CrashEnabled(state))
+        if (domain != null && failureDomainRunning && domain.CrashEnabled(state))
         {
             var crashed = (TState)state.Clone();
             domain.OnCrash(crashed);
@@ -550,11 +793,17 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
             var survivors = live
                 .Where(p => configuration.DomainOfRole(p.Role) != domain.Name)
                 .ToList();
-            results.Add(Control(crashed, survivors, ProcessControlKind.Crash, null, domain.Name));
+            results.Add(Control(
+                crashed,
+                survivors,
+                ProcessControlKind.Crash,
+                role: null,
+                domain: domain.Name,
+                nextFailureDomainRunning: false));
         }
 
-        // 4. Restart relaunches the domain's persistent workers fresh.
-        if (domain != null && domain.RestartEnabled(state))
+        // 5. Restart relaunches the domain's persistent workers fresh.
+        if (domain != null && !failureDomainRunning && domain.RestartEnabled(state))
         {
             var restarted = (TState)state.Clone();
             domain.OnRestart(restarted);
@@ -564,28 +813,43 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
             {
                 if (spec.Domain == domain.Name && relaunched.All(p => p.Role != spec.Role))
                 {
-                    relaunched.Add(new LiveProcess(spec.Role, new ReplayTape()));
+                    relaunched.Add(FreshProcess(
+                        spec.Role,
+                        spec.Workflow,
+                        spec.Options,
+                        restarted));
                 }
             }
 
-            results.Add(Control(restarted, relaunched, ProcessControlKind.Restart, null, domain.Name));
+            results.Add(Control(
+                restarted,
+                relaunched,
+                ProcessControlKind.Restart,
+                role: null,
+                domain: domain.Name,
+                nextFailureDomainRunning: true));
         }
 
         return results;
     }
 
-    private void AdvanceProcess(TState state, LiveProcess process, List<StepResult> results)
+    private void AdvanceProcess(
+        TState state,
+        LiveProcess<TState> process,
+        List<StepResult> results)
     {
-        var workflow = configuration.WorkflowFor(process.Role);
         var options = configuration.OptionsFor(process.Role);
-        var advance = CoroutineRunner.Advance(workflow, state, process.Tape, options);
+        var advance = ProcessContinuationRunner.Advance(
+            process.Continuation,
+            state,
+            options);
 
         if (advance.Blocked)
         {
             return;
         }
 
-        if (advance.Pending == null)
+        if (advance.Completed)
         {
             // The process completed. Drop it in one state-neutral control edge.
             results.Add(Control(
@@ -598,26 +862,68 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
         }
 
         var pending = advance.Pending;
-        var checkpointPrefix = advance.Tape.Entries;
+        if (pending == null || pending.Deferred)
+        {
+            throw new ModelDefinitionException(
+                $"Process '{process.Role}' did not normalize to a visible checkpoint.");
+        }
+
+        var checkpointHistory = advance.Continuation.Top.History.Records;
 
         if (pending.Kind == ModelCheckpointKind.Choose)
         {
             foreach (var choice in (object[])pending.Value)
             {
-                var nextTape = advance.Tape.Append(ModelCheckpointKind.Choose, pending.Name, choice);
-                var committed = Commit(process.Role, workflow, options, nextTape, state);
-                results.Add(Coroutine(
+                var committed = Commit(
+                    process.Role,
+                    advance.Continuation,
+                    options,
+                    pending,
+                    choice,
+                    state);
+                results.Add(Checkpoint(
                     state,
                     Replace(process.Role, committed),
                     process.Role,
-                    new CoroutineTransition(
+                    new ProcessCheckpointTransition(
                         process.Role,
                         pending.Kind,
                         pending.Name,
                         choice,
-                        checkpointPrefix,
+                        checkpointHistory,
                         pending.SemanticAction,
                         pending.Subject)));
+            }
+
+            return;
+        }
+
+        if (pending.Kind == ModelCheckpointKind.ChooseStep)
+        {
+            foreach (var choice in (object[])pending.Value)
+            {
+                var next = (TState)state.Clone();
+                ((Action<TState, object>)pending.Action)(next, choice);
+                next.Freeze();
+                var committed = Commit(
+                    process.Role,
+                    advance.Continuation,
+                    options,
+                    pending,
+                    choice,
+                    next);
+                results.Add(Checkpoint(
+                    next,
+                    Replace(process.Role, committed),
+                    process.Role,
+                    new ProcessCheckpointTransition(
+                        process.Role,
+                        pending.Kind,
+                        pending.Name,
+                        choice,
+                        checkpointHistory,
+                        pending.SemanticAction,
+                        pending.SubjectFor(choice))));
             }
 
             return;
@@ -628,18 +934,23 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
             var next = (TState)state.Clone();
             ((Action<TState>)pending.Action)(next);
             next.Freeze();
-            var nextTape = advance.Tape.Append(ModelCheckpointKind.Step, pending.Name, ModelUnitValue.Instance);
-            var committed = Commit(process.Role, workflow, options, nextTape, next);
-            results.Add(Coroutine(
+            var committed = Commit(
+                process.Role,
+                advance.Continuation,
+                options,
+                pending,
+                ModelUnitValue.Instance,
+                next);
+            results.Add(Checkpoint(
                 next,
                 Replace(process.Role, committed),
                 process.Role,
-                new CoroutineTransition(
+                new ProcessCheckpointTransition(
                     process.Role,
                     pending.Kind,
                     pending.Name,
                     null,
-                    checkpointPrefix,
+                    checkpointHistory,
                     pending.SemanticAction,
                     pending.Subject)));
             return;
@@ -649,26 +960,44 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
             $"Process '{process.Role}' reached an unsupported visible checkpoint kind '{pending.Kind}'.");
     }
 
-    /// <summary>
-    /// Decides whether a process still exists after taking a visible checkpoint.
-    /// Advancing the committed tape against the resulting state reveals whether
-    /// the process continues (or blocks) or falls off the end of its workflow;
-    /// in the latter case it is folded away with the same edge.
-    /// </summary>
-    private LiveProcess Commit(
+    private LiveProcess<TState> Commit(
         string role,
-        Func<ModelContext<TState>, ModelTask> workflow,
-        CoroutineOptions options,
-        ReplayTape tape,
+        ProcessContinuation<TState> continuation,
+        ProcessRuntimeOptions options,
+        PendingCheckpoint pending,
+        object recordedValue,
         TState resultingState)
     {
-        var peek = CoroutineRunner.Advance(workflow, resultingState, tape, options);
-        return peek.Pending == null && !peek.Blocked
+        var normalized = ProcessContinuationRunner.Commit(
+            continuation,
+            pending,
+            recordedValue,
+            resultingState,
+            options);
+        return normalized.Completed
             ? null
-            : new LiveProcess(role, tape);
+            : new LiveProcess<TState>(role, normalized.Continuation);
     }
 
-    private List<LiveProcess> Replace(string role, LiveProcess replacement)
+    private LiveProcess<TState> FreshProcess(
+        string role,
+        ModelWorkflow<TState> workflow,
+        ProcessRuntimeOptions options,
+        TState state)
+    {
+        var start = ProcessContinuation<TState>.Root(role, workflow);
+        var normalized = ProcessContinuationRunner.Normalize(start, state, options);
+        return new LiveProcess<TState>(
+            role,
+            normalized.Completed ? start : normalized.Continuation);
+    }
+
+    private bool DomainAvailable(string domain)
+        => domain == null || failureDomainRunning;
+
+    private List<LiveProcess<TState>> Replace(
+        string role,
+        LiveProcess<TState> replacement)
     {
         var next = live.Where(p => p.Role != role).ToList();
         if (replacement != null)
@@ -679,14 +1008,14 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
         return next;
     }
 
-    private List<LiveProcess> WithoutRole(string role)
+    private List<LiveProcess<TState>> WithoutRole(string role)
         => live.Where(p => p.Role != role).ToList();
 
-    private StepResult Coroutine(
+    private StepResult Checkpoint(
         TState state,
-        List<LiveProcess> nextLive,
+        List<LiveProcess<TState>> nextLive,
         string role,
-        CoroutineTransition checkpoint)
+        ProcessCheckpointTransition checkpoint)
         => Emit(
             state,
             nextLive,
@@ -698,16 +1027,22 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
 
     private StepResult Control(
         TState state,
-        List<LiveProcess> nextLive,
+        List<LiveProcess<TState>> nextLive,
         ProcessControlKind control,
         string role,
-        string domain)
+        string domain,
+        bool? nextFailureDomainRunning = null)
         => Emit(
             state,
             nextLive,
-            new ProcessTransition(role, domain, control, checkpoint: null));
+            new ProcessTransition(role, domain, control, checkpoint: null),
+            nextFailureDomainRunning);
 
-    private StepResult Emit(TState state, List<LiveProcess> nextLive, ProcessTransition transition)
+    private StepResult Emit(
+        TState state,
+        List<LiveProcess<TState>> nextLive,
+        ProcessTransition transition,
+        bool? nextFailureDomainRunning = null)
     {
         var ordered = nextLive
             .OrderBy(p => p.Role, StringComparer.Ordinal)
@@ -717,7 +1052,10 @@ internal sealed class ProcessSchedulerStep<TState> : BaseStepFunction, IProcessS
             State = state,
             StepFunctions = new IStepFunction[]
             {
-                new ProcessSchedulerStep<TState>(configuration, ordered)
+                new ProcessSchedulerStep<TState>(
+                    configuration,
+                    ordered,
+                    nextFailureDomainRunning ?? failureDomainRunning)
             },
             EdgeMetadata = transition
         };

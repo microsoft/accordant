@@ -243,8 +243,8 @@ public class WalProcessDesignTests
     public void ThereIsNoRecoveryOnlyServerPhaseTheDecisionIsALocal()
     {
         // The server has exactly the three lifecycle modes and no recovered-commit
-        // or recovered-abort phase: recovery's decision lives only as a replay
-        // local, so the mode enum stays minimal.
+        // or recovered-abort phase: recovery's decision lives only in its
+        // structured call/iteration frames, so the mode enum stays minimal.
         Assert.That(
             System.Enum.GetNames(typeof(ServerMode)),
             Is.EquivalentTo(new[] { "Running", "Down", "Recovering" }));

@@ -14,7 +14,7 @@ using Microsoft.Accordant.ModelChecking.Experimental.Coroutines;
 /// atomic store. The <em>state mapping alone</em> is the refinement mapping and
 /// is enough here; the optional transition declarations are a secondary,
 /// checked explanation. Both are written entirely outside the process code: no
-/// coroutine carries a <c>.Linearizes(...)</c> annotation.
+/// workflow carries a <c>.Linearizes(...)</c> annotation.
 /// </summary>
 public static class StoreRefinement
 {
@@ -187,9 +187,7 @@ public static class WalFairness
     /// <see cref="ServerMode.Running"/> is only enabled intermittently.
     /// </summary>
     public static Fairness Recovers { get; } =
-        Fairness.Strong<WalProcessState>((source, target) =>
-            source.Server.Mode == ServerMode.Recovering &&
-            target.Server.Mode == ServerMode.Running);
+        Fairness.StrongAction<ProcessTransition>(IsRecoveryCompletion);
 
     /// <summary>
     /// A still-owed client eventually receives its decision — reported either by
@@ -199,8 +197,9 @@ public static class WalFairness
     /// publishes), so the report edge is only enabled intermittently.
     /// </summary>
     public static Fairness Reports { get; } =
-        Fairness.Strong<WalProcessState>((source, target) =>
-            source.Exchange.Pending != null && target.Exchange.Pending == null);
+        Fairness.StrongEach<ProcessTransition, object>(
+            IsReport,
+            transition => transition.Subject);
 
     /// <summary>Everything the implementation is assumed to guarantee.</summary>
     ///
@@ -218,14 +217,13 @@ public static class WalFairness
 
     /// <summary>The too-weak version of <see cref="Recovers"/>.</summary>
     public static Fairness WeakRecovers { get; } =
-        Fairness.Weak<WalProcessState>((source, target) =>
-            source.Server.Mode == ServerMode.Recovering &&
-            target.Server.Mode == ServerMode.Running);
+        Fairness.WeakAction<ProcessTransition>(IsRecoveryCompletion);
 
     /// <summary>The too-weak version of <see cref="Reports"/>.</summary>
     public static Fairness WeakReports { get; } =
-        Fairness.Weak<WalProcessState>((source, target) =>
-            source.Exchange.Pending != null && target.Exchange.Pending == null);
+        Fairness.WeakEach<ProcessTransition, object>(
+            IsReport,
+            transition => transition.Subject);
 
     /// <summary>
     /// Both obligations at weak strength. This is too weak: a crash resets the
@@ -242,4 +240,17 @@ public static class WalFairness
     public static Fairness StoreLiveness { get; } =
         Fairness.Weak(StoreStep.Any(StoreAction.Commit, StoreAction.Abort)) +
         Fairness.Weak(StoreStep.Any(StoreAction.ReportCommit, StoreAction.ReportAbort));
+
+    private static bool IsRecoveryCompletion(ProcessTransition transition)
+        => transition.ProcessRole == Roles.Recovery &&
+            transition.SemanticAction is WalAction action &&
+            action is
+                WalAction.Recover or
+                WalAction.AckCommit or
+                WalAction.AckAbort;
+
+    private static bool IsReport(ProcessTransition transition)
+        => transition.SemanticAction is WalAction action &&
+            (action is WalAction.AckCommit or WalAction.AckAbort) &&
+            transition.Subject is ClientId;
 }

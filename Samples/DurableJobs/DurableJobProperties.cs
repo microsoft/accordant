@@ -1,6 +1,7 @@
 namespace DurableJobs;
 
 using Microsoft.Accordant.ModelChecking;
+using Microsoft.Accordant.ModelChecking.Experimental.Coroutines;
 
 /// <summary>
 /// Safety and progress claims for the process design, plus the scheduler and
@@ -236,57 +237,53 @@ public static class DurableJobProperties
                 "Terminal"));
 
     public static Fairness RebuildsDispatch { get; } =
-        Fairness.Weak<DurableJobDesignState>(
-            (from, to) =>
-                IsMissingDispatch(from) &&
-                to.QueueDepth > 0);
+        Fairness.WeakAction<ProcessTransition>(
+            transition => IsAction(
+                transition,
+                DesignAction.RebuildDispatch));
 
     public static Fairness ClaimsWork { get; } =
-        Fairness.Strong<DurableJobDesignState>(
-            (from, to) =>
-                from.CanClaim &&
-                to.ActiveLease is not null &&
-                to.Attempts == from.Attempts + 1);
+        Fairness.StrongAction<ProcessTransition>(
+            transition => IsAction(
+                transition,
+                DesignAction.ClaimNext));
 
     public static Fairness WeakClaimsWork { get; } =
-        Fairness.Weak<DurableJobDesignState>(
-            (from, to) =>
-                from.CanClaim &&
-                to.ActiveLease is not null &&
-                to.Attempts == from.Attempts + 1);
+        Fairness.WeakAction<ProcessTransition>(
+            transition => IsAction(
+                transition,
+                DesignAction.ClaimNext));
 
+    /// <summary>
+    /// Collective weak fairness for the finite success/failure response family:
+    /// when an attempt continuously awaits an outcome, either response may
+    /// discharge the single obligation.
+    /// </summary>
     public static Fairness RecordsAttemptOutcome { get; } =
-        Fairness.Weak<DurableJobDesignState>(
-            (from, to) =>
-                from.CanRecordOutcome &&
-                to.AttemptOutcome is
-                    AttemptOutcome.Succeeded or AttemptOutcome.Failed);
+        Fairness.WeakAction<ProcessTransition>(
+            transition => IsAction(
+                transition,
+                DesignAction.RecordSuccess,
+                DesignAction.RecordFailure));
 
     public static Fairness CommitsAttempt { get; } =
-        Fairness.Weak<DurableJobDesignState>(
-            (from, to) =>
-                from.Worker == WorkerPhase.Running &&
-                from.ActiveLease is not null &&
-                from.AttemptOutcome is
-                    AttemptOutcome.Succeeded or AttemptOutcome.Failed &&
-                to.ActiveLease is null &&
-                to.AttemptOutcome == AttemptOutcome.None &&
-                to.Status is
-                    JobStatus.Pending or JobStatus.Succeeded or JobStatus.Failed);
+        Fairness.WeakAction<ProcessTransition>(
+            transition => IsAction(
+                transition,
+                DesignAction.CompleteSuccess,
+                DesignAction.FailAttempt));
 
     public static Fairness ExpiresCrashedLeases { get; } =
-        Fairness.Weak<DurableJobDesignState>(
-            (from, to) =>
-                from.Worker == WorkerPhase.Crashed &&
-                from.ActiveLease is not null &&
-                to.Worker == WorkerPhase.Stopped &&
-                to.ActiveLease is null);
+        Fairness.WeakAction<ProcessTransition>(
+            transition => IsAction(
+                transition,
+                DesignAction.ExpireLease));
 
     public static Fairness RestartsWorker { get; } =
-        Fairness.Weak<DurableJobDesignState>(
-            (from, to) =>
-                from.Worker == WorkerPhase.Stopped &&
-                to.Worker == WorkerPhase.Idle);
+        Fairness.WeakAction<ProcessTransition>(
+            transition =>
+                transition.Control == ProcessControlKind.Restart &&
+                transition.Domain == DurableJobRoles.WorkerHost);
 
     public static Fairness InfrastructureWithoutOutcome { get; } =
         RebuildsDispatch +
@@ -324,4 +321,11 @@ public static class DurableJobProperties
         state.Worker == WorkerPhase.Idle &&
         state.ActiveLease is null &&
         state.QueueDepth == 0;
+
+    private static bool IsAction(
+        ProcessTransition transition,
+        params DesignAction[] actions)
+        => transition.Control == ProcessControlKind.None &&
+            transition.SemanticAction is DesignAction action &&
+            actions.Contains(action);
 }

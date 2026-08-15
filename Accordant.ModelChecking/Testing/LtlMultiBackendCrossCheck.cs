@@ -216,25 +216,26 @@ namespace Microsoft.Accordant.ModelChecking.Testing
             var alg = LtlAlgebra.Default;
             switch (phi)
             {
-                case LtlTrue _:    return alg.True;
-                case LtlFalse _:   return alg.False;
-                case LtlProp p:    return alg.Atom(
+                case LtlTrue _: return alg.True;
+                case LtlFalse _: return alg.False;
+                case LtlProp p:
+                    return alg.Atom(
                     new StatePredAtom(new StateProp(p.ToString(), p.Predicate)));
-                case LtlNot n:     return alg.Not(Convert(n.Inner));
+                case LtlNot n: return alg.Not(Convert(n.Inner));
                 case LtlAnd a:
-                {
-                    Ltl<IStatePredicate> acc = alg.True;
-                    foreach (var c in a.Children) acc = alg.And(acc, Convert(c));
-                    return acc;
-                }
+                    {
+                        Ltl<IStatePredicate> acc = alg.True;
+                        foreach (var c in a.Children) acc = alg.And(acc, Convert(c));
+                        return acc;
+                    }
                 case LtlOr o:
-                {
-                    Ltl<IStatePredicate> acc = alg.False;
-                    foreach (var c in o.Children) acc = alg.Or(acc, Convert(c));
-                    return acc;
-                }
-                case LtlNext n:    return alg.Next(Convert(n.Inner));
-                case LtlUntil u:   return alg.Until(Convert(u.Hold), Convert(u.Goal));
+                    {
+                        Ltl<IStatePredicate> acc = alg.False;
+                        foreach (var c in o.Children) acc = alg.Or(acc, Convert(c));
+                        return acc;
+                    }
+                case LtlNext n: return alg.Next(Convert(n.Inner));
+                case LtlUntil u: return alg.Until(Convert(u.Hold), Convert(u.Goal));
                 case LtlRelease r: return alg.Release(Convert(r.Release_), Convert(r.Hold));
                 default:
                     throw new NotSupportedException(

@@ -98,15 +98,15 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         {
             switch (ere)
             {
-                case EreEmpty<TPred> _:    return new SAtom("empty");
-                case EreEpsilon<TPred> _:  return new SAtom("eps");
-                case EreAtom<TPred> a:     return new SList(new SAtom("atom"), codec.Print(a.Predicate));
-                case EreConcat<TPred> c:   return Flatten("concat", c, codec);
-                case EreUnion<TPred> u:    return Nary("union", u.Operands, codec);
-                case EreIntersect<TPred> i:return Nary("inter", i.Operands, codec);
+                case EreEmpty<TPred> _: return new SAtom("empty");
+                case EreEpsilon<TPred> _: return new SAtom("eps");
+                case EreAtom<TPred> a: return new SList(new SAtom("atom"), codec.Print(a.Predicate));
+                case EreConcat<TPred> c: return Flatten("concat", c, codec);
+                case EreUnion<TPred> u: return Nary("union", u.Operands, codec);
+                case EreIntersect<TPred> i: return Nary("inter", i.Operands, codec);
                 case EreComplement<TPred> n: return new SList(new SAtom("comp"), EreTo(n.Inner, codec));
-                case EreStar<TPred> s:     return new SList(new SAtom("star"), EreTo(s.Inner, codec));
-                case EreFusion<TPred> f:   return new SList(new SAtom("fusion"), EreTo(f.Left, codec), EreTo(f.Right, codec));
+                case EreStar<TPred> s: return new SList(new SAtom("star"), EreTo(s.Inner, codec));
+                case EreFusion<TPred> f: return new SList(new SAtom("fusion"), EreTo(f.Left, codec), EreTo(f.Right, codec));
                 case EreXor<TPred> x:
                     var head = new SAtom(x.Negated ? "xnor" : "xor");
                     var items = new SExpr[x.Operands.Count + 1];
@@ -160,7 +160,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 switch (a.Value)
                 {
                     case "empty": return EreEmpty<TPred>.Instance;
-                    case "eps":   return EreEpsilon<TPred>.Instance;
+                    case "eps": return EreEpsilon<TPred>.Instance;
                     default:
                         throw new FormatException(
                             $"Unknown ERE atom '{a.Value}'. Expected 'empty', 'eps', or a parenthesised form.");
@@ -231,10 +231,10 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         {
             switch (phi)
             {
-                case RltlTrue<TPred> _:  return new SAtom("true");
+                case RltlTrue<TPred> _: return new SAtom("true");
                 case RltlFalse<TPred> _: return new SAtom("false");
-                case RltlAtom<TPred> a:  return new SList(new SAtom("atom"), codec.Print(a.Predicate));
-                case RltlNext<TPred> n:  return new SList(new SAtom("X"), RltlTo(n.Inner, codec));
+                case RltlAtom<TPred> a: return new SList(new SAtom("atom"), codec.Print(a.Predicate));
+                case RltlNext<TPred> n: return new SList(new SAtom("X"), RltlTo(n.Inner, codec));
                 case RltlUntil<TPred> u when u.Left is RltlTrue<TPred>:
                     return new SList(new SAtom("F"), RltlTo(u.Right, codec));
                 case RltlRelease<TPred> r when r.Left is RltlFalse<TPred>:
@@ -243,8 +243,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     return new SList(new SAtom("U"), RltlTo(u.Left, codec), RltlTo(u.Right, codec));
                 case RltlRelease<TPred> r:
                     return new SList(new SAtom("R"), RltlTo(r.Left, codec), RltlTo(r.Right, codec));
-                case RltlAnd<TPred> a:   return RltlNary("and", a.Operands, codec);
-                case RltlOr<TPred> o:    return RltlNary("or",  o.Operands, codec);
+                case RltlAnd<TPred> a: return RltlNary("and", a.Operands, codec);
+                case RltlOr<TPred> o: return RltlNary("or", o.Operands, codec);
                 case RltlSeqPrefix<TPred> s:
                     return new SList(new SAtom("seq"), EreTo(s.Regex, codec), RltlTo(s.Phi, codec));
                 case RltlOvlPrefix<TPred> v:
@@ -254,11 +254,11 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 case RltlMatch<TPred> m:
                     return new SList(new SAtom("match"), EreTo(m.Regex, codec), RltlTo(m.Phi, codec));
                 case RltlWeakClosure<TPred> w:
-                    return new SList(new SAtom("wcl"),  EreTo(w.Regex, codec));
+                    return new SList(new SAtom("wcl"), EreTo(w.Regex, codec));
                 case RltlNegWeakClosure<TPred> nw:
                     return new SList(new SAtom("nwcl"), EreTo(nw.Regex, codec));
                 case RltlOmegaClosure<TPred> oc:
-                    return new SList(new SAtom("ocl"),  EreTo(oc.Regex, codec));
+                    return new SList(new SAtom("ocl"), EreTo(oc.Regex, codec));
                 default:
                     throw new ArgumentException($"Unknown RLTL node type: {phi.GetType().Name}");
             }
@@ -289,7 +289,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             {
                 switch (a.Value)
                 {
-                    case "true":  return RltlTrue<TPred>.Instance;
+                    case "true": return RltlTrue<TPred>.Instance;
                     case "false": return RltlFalse<TPred>.Instance;
                     default:
                         throw new FormatException(

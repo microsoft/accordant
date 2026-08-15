@@ -108,55 +108,55 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
                 case LtlFalse _:
                     return 0;
                 case LtlProp pa:
-                {
-                    var pb = (LtlProp)b;
-                    int nc = string.CompareOrdinal(pa.Name, pb.Name);
-                    if (nc != 0) return nc;
-                    return System.Runtime.CompilerServices.RuntimeHelpers
-                        .GetHashCode(pa.Predicate)
-                        .CompareTo(System.Runtime.CompilerServices.RuntimeHelpers
-                            .GetHashCode(pb.Predicate));
-                }
+                    {
+                        var pb = (LtlProp)b;
+                        int nc = string.CompareOrdinal(pa.Name, pb.Name);
+                        if (nc != 0) return nc;
+                        return System.Runtime.CompilerServices.RuntimeHelpers
+                            .GetHashCode(pa.Predicate)
+                            .CompareTo(System.Runtime.CompilerServices.RuntimeHelpers
+                                .GetHashCode(pb.Predicate));
+                    }
                 case LtlNot na:
                     return CompareStructural(na.Inner, ((LtlNot)b).Inner);
                 case LtlNext nx:
                     return CompareStructural(nx.Inner, ((LtlNext)b).Inner);
                 case LtlUntil u:
-                {
-                    var ub = (LtlUntil)b;
-                    int c = CompareStructural(u.Hold, ub.Hold);
-                    return c != 0 ? c : CompareStructural(u.Goal, ub.Goal);
-                }
+                    {
+                        var ub = (LtlUntil)b;
+                        int c = CompareStructural(u.Hold, ub.Hold);
+                        return c != 0 ? c : CompareStructural(u.Goal, ub.Goal);
+                    }
                 case LtlRelease r:
-                {
-                    var rb = (LtlRelease)b;
-                    int c = CompareStructural(r.Release_, rb.Release_);
-                    return c != 0 ? c : CompareStructural(r.Hold, rb.Hold);
-                }
+                    {
+                        var rb = (LtlRelease)b;
+                        int c = CompareStructural(r.Release_, rb.Release_);
+                        return c != 0 ? c : CompareStructural(r.Hold, rb.Hold);
+                    }
                 case LtlAnd an:
-                {
-                    var bn = (LtlAnd)b;
-                    int lc = an.Children.Count.CompareTo(bn.Children.Count);
-                    if (lc != 0) return lc;
-                    for (int i = 0; i < an.Children.Count; i++)
                     {
-                        int cc = CompareStructural(an.Children[i], bn.Children[i]);
-                        if (cc != 0) return cc;
+                        var bn = (LtlAnd)b;
+                        int lc = an.Children.Count.CompareTo(bn.Children.Count);
+                        if (lc != 0) return lc;
+                        for (int i = 0; i < an.Children.Count; i++)
+                        {
+                            int cc = CompareStructural(an.Children[i], bn.Children[i]);
+                            if (cc != 0) return cc;
+                        }
+                        return 0;
                     }
-                    return 0;
-                }
                 case LtlOr ao:
-                {
-                    var bo = (LtlOr)b;
-                    int lc = ao.Children.Count.CompareTo(bo.Children.Count);
-                    if (lc != 0) return lc;
-                    for (int i = 0; i < ao.Children.Count; i++)
                     {
-                        int cc = CompareStructural(ao.Children[i], bo.Children[i]);
-                        if (cc != 0) return cc;
+                        var bo = (LtlOr)b;
+                        int lc = ao.Children.Count.CompareTo(bo.Children.Count);
+                        if (lc != 0) return lc;
+                        for (int i = 0; i < ao.Children.Count; i++)
+                        {
+                            int cc = CompareStructural(ao.Children[i], bo.Children[i]);
+                            if (cc != 0) return cc;
+                        }
+                        return 0;
                     }
-                    return 0;
-                }
                 default:
                     throw new InvalidOperationException(
                         $"Unhandled LtlFormula kind: {a.GetType().Name}");
@@ -352,19 +352,19 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
                 case LtlFalse _: return True;
                 case LtlNot not: return not.Inner;
                 case LtlAnd and:
-                {
-                    LtlFormula acc = False;
-                    foreach (var c in and.Children)
-                        acc = Or(acc, Create(c));
-                    return acc;
-                }
+                    {
+                        LtlFormula acc = False;
+                        foreach (var c in and.Children)
+                            acc = Or(acc, Create(c));
+                        return acc;
+                    }
                 case LtlOr or:
-                {
-                    LtlFormula acc = True;
-                    foreach (var c in or.Children)
-                        acc = And(acc, Create(c));
-                    return acc;
-                }
+                    {
+                        LtlFormula acc = True;
+                        foreach (var c in or.Children)
+                            acc = And(acc, Create(c));
+                        return acc;
+                    }
                 case LtlNext nx:
                     return Next(Create(nx.Inner));
                 case LtlUntil u:

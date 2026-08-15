@@ -360,6 +360,82 @@ public sealed class StutterSensitiveFormulaBuilder<TState> : FormulaBuilder<TSta
             Rltl<IStatePredicate>.Atom(new StatePredAtom(prop)));
     }
 
+    /// <summary>
+    /// Define a stutter-sensitive observation over the action and metadata on
+    /// one physical transition.
+    ///
+    /// <para>The observation is evaluated literally on changing model edges,
+    /// state-neutral model edges, and the synthetic terminal stutter. It
+    /// therefore returns <see cref="TemporalFormula"/>, not
+    /// <see cref="StutterSafeFormula"/>.</para>
+    /// </summary>
+    public TemporalFormula ObserveAction(
+        Func<Transition, bool> predicate,
+        string name = null,
+        [CallerArgumentExpression("predicate")] string expression = null)
+    {
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+        return ActionFormula(
+            ActionPredicate.ForAction(predicate),
+            ResolveObservationName(name, expression));
+    }
+
+    /// <summary>
+    /// Define a stutter-sensitive observation over a transition's source
+    /// state, action/metadata view, and target state.
+    /// </summary>
+    public TemporalFormula ObserveAction(
+        Func<TState, Transition, TState, bool> predicate,
+        string name = null,
+        [CallerArgumentExpression("predicate")] string expression = null)
+    {
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+        return ActionFormula(
+            ActionPredicate.ForAction(predicate),
+            ResolveObservationName(name, expression));
+    }
+
+    /// <summary>
+    /// Define a stutter-sensitive observation over typed edge metadata.
+    /// Letters whose metadata is not <typeparamref name="TMetadata"/> do not
+    /// match.
+    /// </summary>
+    public TemporalFormula ObserveAction<TMetadata>(
+        Func<TMetadata, bool> predicate,
+        string name = null,
+        [CallerArgumentExpression("predicate")] string expression = null)
+    {
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+        return ActionFormula(
+            ActionPredicate.ForMetadata(predicate),
+            ResolveObservationName(name, expression));
+    }
+
+    /// <summary>
+    /// Define a stutter-sensitive observation over a source state, typed edge
+    /// metadata, and target state. Letters whose metadata is not
+    /// <typeparamref name="TMetadata"/> do not match.
+    /// </summary>
+    public TemporalFormula ObserveAction<TMetadata>(
+        Func<TState, TMetadata, TState, bool> predicate,
+        string name = null,
+        [CallerArgumentExpression("predicate")] string expression = null)
+    {
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+        return ActionFormula(
+            ActionPredicate.ForMetadata(predicate),
+            ResolveObservationName(name, expression));
+    }
+
+    private static TemporalFormula ActionFormula(
+        Func<TransitionContext, bool> predicate,
+        string name)
+    {
+        var prop = StateProp.OverTransition(name, predicate);
+        return new TemporalFormula(
+            Rltl<IStatePredicate>.Atom(new StatePredAtom(prop)));
+    }
+
     #endregion
 
     #region Unrestricted operators
@@ -410,9 +486,11 @@ public sealed class StutterSensitiveFormulaBuilder<TState> : FormulaBuilder<TSta
     /// <em>changing</em> outgoing model edge of that node is produced by an
     /// action satisfying <paramref name="selector"/>.
     ///
-    /// <para>State-neutral edges do not count, matching Accordant's fairness
-    /// enabledness: an action that leaves the state unchanged is neither
-    /// enabled nor taken. A terminal node therefore enables nothing.</para>
+    /// <para>State-neutral edges do not count, matching the compatibility
+    /// fairness APIs: an action that leaves the state unchanged is neither
+    /// enabled nor taken. A terminal node therefore enables nothing. Use
+    /// <see cref="EnabledAction(Func{Transition, bool}, string, string)"/> for
+    /// an explicitly selected semantic state-neutral edge.</para>
     ///
     /// <para>Enabledness is read from the node, not from the state alone: a
     /// node is a (state, active step-function set) pair, so two nodes with
@@ -482,14 +560,76 @@ public sealed class StutterSensitiveFormulaBuilder<TState> : FormulaBuilder<TSta
             ActionPredicate.ForObservation(observation),
             ResolveEnabledName(name, observation?.ToString()));
 
+    /// <summary>
+    /// Metadata/action-aware enabledness. Holds at an exact graph
+    /// configuration iff at least one outgoing model edge satisfies
+    /// <paramref name="predicate"/>. A selected state-neutral edge counts.
+    ///
+    /// <para>The synthetic terminal stutter is not a model edge, so a terminal
+    /// node enables nothing. This remains stutter-sensitive because two graph
+    /// configurations with equal domain states may offer different edges.</para>
+    /// </summary>
+    public TemporalFormula EnabledAction(
+        Func<Transition, bool> predicate,
+        string name = null,
+        [CallerArgumentExpression("predicate")] string expression = null)
+        => EnabledActionFormula(
+            ActionPredicate.ForAction(predicate),
+            ResolveEnabledActionName(name, expression));
+
+    /// <summary>
+    /// Metadata/action-aware enabledness over source state, action/metadata,
+    /// and target state. A selected state-neutral model edge counts.
+    /// </summary>
+    public TemporalFormula EnabledAction(
+        Func<TState, Transition, TState, bool> predicate,
+        string name = null,
+        [CallerArgumentExpression("predicate")] string expression = null)
+        => EnabledActionFormula(
+            ActionPredicate.ForAction(predicate),
+            ResolveEnabledActionName(name, expression));
+
+    /// <summary>
+    /// Metadata/action-aware enabledness over typed edge metadata. Edges whose
+    /// metadata is not <typeparamref name="TMetadata"/> do not match.
+    /// </summary>
+    public TemporalFormula EnabledAction<TMetadata>(
+        Func<TMetadata, bool> predicate,
+        string name = null,
+        [CallerArgumentExpression("predicate")] string expression = null)
+        => EnabledActionFormula(
+            ActionPredicate.ForMetadata(predicate),
+            ResolveEnabledActionName(name, expression));
+
+    /// <summary>
+    /// Metadata/action-aware enabledness over source state, typed edge
+    /// metadata, and target state.
+    /// </summary>
+    public TemporalFormula EnabledAction<TMetadata>(
+        Func<TState, TMetadata, TState, bool> predicate,
+        string name = null,
+        [CallerArgumentExpression("predicate")] string expression = null)
+        => EnabledActionFormula(
+            ActionPredicate.ForMetadata(predicate),
+            ResolveEnabledActionName(name, expression));
+
     private static TemporalFormula EnabledFormula(
         Func<TransitionContext, bool> action, string name)
         => new TemporalFormula(
             Rltl<IStatePredicate>.Atom(
                 new StatePredAtom(StateProp.Enabled(name, action))));
 
+    private static TemporalFormula EnabledActionFormula(
+        Func<TransitionContext, bool> action, string name)
+        => new TemporalFormula(
+            Rltl<IStatePredicate>.Atom(
+                new StatePredAtom(StateProp.EnabledAction(name, action))));
+
     private static string ResolveEnabledName(string name, string expression)
         => name ?? $"Enabled({ResolveObservationName(null, expression)})";
+
+    private static string ResolveEnabledActionName(string name, string expression)
+        => name ?? $"EnabledAction({ResolveObservationName(null, expression)})";
 
     #endregion
 

@@ -69,8 +69,8 @@ dotnet_code_quality_unused_parameters = all:suggestion
 #### C# code style ####
 
 # Namespaces — file-scoped, usings inside
-csharp_style_namespace_declarations = file_scoped:warning
-csharp_using_directive_placement = inside_namespace:warning
+csharp_style_namespace_declarations = file_scoped:suggestion
+csharp_using_directive_placement = inside_namespace:suggestion
 
 # var preferences — codebase uses explicit types mostly
 csharp_style_var_for_built_in_types = false:silent

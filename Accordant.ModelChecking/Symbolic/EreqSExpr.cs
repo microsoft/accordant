@@ -62,8 +62,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         {
             switch (ere)
             {
-                case EreEmpty<TPred> _:    return new SAtom("empty");
-                case EreEpsilon<TPred> _:  return new SAtom("eps");
+                case EreEmpty<TPred> _: return new SAtom("empty");
+                case EreEpsilon<TPred> _: return new SAtom("eps");
                 case EreAtom<TPred> a:
                     return new SList(new SAtom("atom"), codec.Print(a.Predicate));
                 case EreProposition<TPred> p:
@@ -157,7 +157,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 switch (a.Value)
                 {
                     case "empty": return EreEmpty<TPred>.Instance;
-                    case "eps":   return EreEpsilon<TPred>.Instance;
+                    case "eps": return EreEpsilon<TPred>.Instance;
                     default:
                         throw new FormatException(
                             $"Unknown ERE atom '{a.Value}'. Expected 'empty', 'eps', " +

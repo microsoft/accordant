@@ -50,7 +50,10 @@ namespace TerminationDetection
             {
                 nodes.Add(new NodeState
                 {
-                    Active = true, Pending = 0, Color = Color.White, Counter = 0
+                    Active = true,
+                    Pending = 0,
+                    Color = Color.White,
+                    Counter = 0
                 });
             }
             var initialState = new SystemState { Nodes = nodes, Token = token };

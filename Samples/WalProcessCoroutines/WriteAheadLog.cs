@@ -36,8 +36,8 @@ public enum WalAction
 }
 
 /// <summary>
-/// The durable decision recovery captures as a replay local before it recovers
-/// state. A crash kills this local; a restart recomputes it.
+/// The durable decision recovery captures in its call/iteration frames before
+/// it recovers state. A crash kills those frames; a restart recomputes it.
 /// </summary>
 internal enum RecoveryDecision { None, Commit, Abort }
 
@@ -321,8 +321,12 @@ public static class WriteAheadLog
 
         // Persistent server-domain workers: discarded at a crash, relaunched
         // fresh at the next restart.
-        server.Process(Roles.PageWriter, PageWriter);
-        server.Process(Roles.Recovery, Recovery);
+        server.Process(
+            Roles.PageWriter,
+            ctx => ctx.Forever("page-writer-loop", PageWriterIteration));
+        server.Process(
+            Roles.Recovery,
+            ctx => ctx.Forever("recovery-loop", RecoveryIteration));
 
         // A guarded request-handler launch in the server domain: at most one
         // handler per in-flight transaction, and never a duplicate while the
@@ -390,9 +394,18 @@ public static class WriteAheadLog
         var name = await ctx.Read("transaction", s => s.Exchange.Pending.TransactionName);
         var request = config.Find(name);
 
-        await ctx.Step(WalAction.AppendRedo, s => s.Wal.Append(request));
-        await ctx.Step(WalAction.FlushCommit, s => s.Wal.Commit());
-        await ctx.Step(WalAction.AckCommit, s => s.Exchange.Publish(client, Outcome.Committed));
+        await ctx.Step(
+            WalAction.AppendRedo,
+            s => s.Wal.Append(request),
+            subject: client);
+        await ctx.Step(
+            WalAction.FlushCommit,
+            s => s.Wal.Commit(),
+            subject: client);
+        await ctx.Step(
+            WalAction.AckCommit,
+            s => s.Exchange.Publish(client, Outcome.Committed),
+            subject: client);
     }
 
     /// <summary>
@@ -401,31 +414,26 @@ public static class WriteAheadLog
     /// (the slot is empty), the same worker truncates it in one guarded atomic
     /// action, which lets the next client be admitted.
     /// </summary>
-    private static async ModelTask PageWriter(ModelContext<WalProcessState> ctx)
+    private static async ModelTask PageWriterIteration(ModelContext<WalProcessState> ctx)
     {
-        while (true)
+        await ctx.When(
+            "installable-or-truncatable",
+            s => HasCommittedDirtyKey(s) || CanTruncate(s));
+
+        var key = await ctx.Read("dirty-key", FirstDirtyKey);
+        if (key >= 0)
         {
-            await ctx.Loop("page-writer-loop");
-
-            await ctx.When(
-                "installable-or-truncatable",
-                s => HasCommittedDirtyKey(s) || CanTruncate(s));
-
-            var key = await ctx.Read("dirty-key", FirstDirtyKey);
-            if (key >= 0)
-            {
-                await ctx.Step(WalAction.InstallData, s => s.Wal.Install(key), subject: key);
-            }
-            else
-            {
-                await ctx.Step(WalAction.TruncateLog, s => s.Wal.Truncate());
-            }
+            await ctx.Step(WalAction.InstallData, s => s.Wal.Install(key), subject: key);
+        }
+        else
+        {
+            await ctx.Step(WalAction.TruncateLog, s => s.Wal.Truncate());
         }
     }
 
     /// <summary>
     /// The recovery worker, launched fresh at each restart. It captures the
-    /// durable decision and the owed client as immutable replay locals
+    /// durable decision and the owed client as immutable frame locals
     /// <em>before</em> its state-changing step, then completes recovery in one
     /// atomic action that restores service: it rolls an uncommitted redo back, or
     /// leaves the durable commit in place, and publishes the reply owed to the
@@ -441,52 +449,52 @@ public static class WriteAheadLog
     /// crash before this step simply retries on the next restart; with nothing
     /// outstanding the server is marked running immediately.</para>
     /// </summary>
-    private static async ModelTask Recovery(ModelContext<WalProcessState> ctx)
+    private static async ModelTask RecoveryIteration(ModelContext<WalProcessState> ctx)
     {
-        while (true)
+        await ctx.When("recovering", s => s.Server.Mode == ServerMode.Recovering);
+
+        // Analyze durable state in a nested call frame. A crash discards both
+        // the recovery iteration and this helper, so the next restart recomputes
+        // the decision from current durable state.
+        var decision = await ctx.Call("analyze-recovery", AnalyzeRecovery);
+
+        // Capture the owed client identity too, only when a report is owed.
+        var owed = decision == RecoveryDecision.None
+            ? default(ClientId)
+            : await ctx.Read("owed-client", s => s.Exchange.Pending.Client);
+
+        switch (decision)
         {
-            await ctx.Loop("recovery-loop");
+            case RecoveryDecision.None:
+                // Nothing outstanding: recovery is done and the server is up.
+                await ctx.Step(WalAction.Recover, s => s.Server.MarkRunning());
+                break;
 
-            await ctx.When("recovering", s => s.Server.Mode == ServerMode.Recovering);
+            case RecoveryDecision.Commit:
+                // The durable commit is rolled forward and reported.
+                await ctx.Step(WalAction.AckCommit, s =>
+                {
+                    s.Exchange.Publish(owed, Outcome.Committed);
+                    s.Server.MarkRunning();
+                }, subject: owed);
+                break;
 
-            // Capture the durable decision as an immutable replay local, read from
-            // durable and exchange state only, before recovery changes anything.
-            var decision = await ctx.Read("decision", s =>
-                s.Exchange.Pending == null ? RecoveryDecision.None
-                : s.Wal.LogCommit ? RecoveryDecision.Commit
-                : RecoveryDecision.Abort);
-
-            // Capture the owed client identity too, only when a report is owed.
-            var owed = decision == RecoveryDecision.None
-                ? default(ClientId)
-                : await ctx.Read("owed-client", s => s.Exchange.Pending.Client);
-
-            switch (decision)
-            {
-                case RecoveryDecision.None:
-                    // Nothing outstanding: recovery is done and the server is up.
-                    await ctx.Step(WalAction.Recover, s => s.Server.MarkRunning());
-                    break;
-
-                case RecoveryDecision.Commit:
-                    // The durable commit is rolled forward and reported.
-                    await ctx.Step(WalAction.AckCommit, s =>
-                    {
-                        s.Exchange.Publish(owed, Outcome.Committed);
-                        s.Server.MarkRunning();
-                    });
-                    break;
-
-                case RecoveryDecision.Abort:
-                    // The uncommitted redo is rolled back and the abort reported.
-                    await ctx.Step(WalAction.AckAbort, s =>
-                    {
-                        s.Wal.DiscardRedo();
-                        s.Exchange.Publish(owed, Outcome.Aborted);
-                        s.Server.MarkRunning();
-                    });
-                    break;
-            }
+            case RecoveryDecision.Abort:
+                // The uncommitted redo is rolled back and the abort reported.
+                await ctx.Step(WalAction.AckAbort, s =>
+                {
+                    s.Wal.DiscardRedo();
+                    s.Exchange.Publish(owed, Outcome.Aborted);
+                    s.Server.MarkRunning();
+                }, subject: owed);
+                break;
         }
     }
+
+    private static async ModelTask<RecoveryDecision> AnalyzeRecovery(
+        ModelContext<WalProcessState> ctx)
+        => await ctx.Read("decision", s =>
+            s.Exchange.Pending == null ? RecoveryDecision.None
+            : s.Wal.LogCommit ? RecoveryDecision.Commit
+            : RecoveryDecision.Abort);
 }

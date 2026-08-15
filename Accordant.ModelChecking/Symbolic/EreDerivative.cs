@@ -88,28 +88,28 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         {
             switch (r)
             {
-                case EreEmpty<TPred> _:   return _eba.Bottom;
+                case EreEmpty<TPred> _: return _eba.Bottom;
                 case EreEpsilon<TPred> _: return _eba.Bottom;
                 case EreAtom<TPred> atom: return atom.Predicate;
                 case EreConcat<TPred> c:
-                {
-                    // a ∈ L(R·S) iff a ∈ L(R) ∧ ε ∈ L(S)  or  ε ∈ L(R) ∧ a ∈ L(S)
-                    TPred lhs = c.Right.Nullable ? OneStep(c.Left) : _eba.Bottom;
-                    TPred rhs = c.Left.Nullable ? OneStep(c.Right) : _eba.Bottom;
-                    return _eba.Or(lhs, rhs);
-                }
+                    {
+                        // a ∈ L(R·S) iff a ∈ L(R) ∧ ε ∈ L(S)  or  ε ∈ L(R) ∧ a ∈ L(S)
+                        TPred lhs = c.Right.Nullable ? OneStep(c.Left) : _eba.Bottom;
+                        TPred rhs = c.Left.Nullable ? OneStep(c.Right) : _eba.Bottom;
+                        return _eba.Or(lhs, rhs);
+                    }
                 case EreUnion<TPred> u:
-                {
-                    TPred acc = _eba.Bottom;
-                    foreach (var op in u.Operands) acc = _eba.Or(acc, OneStep(op));
-                    return acc;
-                }
+                    {
+                        TPred acc = _eba.Bottom;
+                        foreach (var op in u.Operands) acc = _eba.Or(acc, OneStep(op));
+                        return acc;
+                    }
                 case EreIntersect<TPred> i:
-                {
-                    TPred acc = _eba.Top;
-                    foreach (var op in i.Operands) acc = _eba.And(acc, OneStep(op));
-                    return acc;
-                }
+                    {
+                        TPred acc = _eba.Top;
+                        foreach (var op in i.Operands) acc = _eba.And(acc, OneStep(op));
+                        return acc;
+                    }
                 case EreComplement<TPred> cmp:
                     // a ∈ L(~R) iff a ∉ L(R)
                     return _eba.Not(OneStep(cmp.Inner));
@@ -291,124 +291,124 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     return _termAlgebra.Bottom;
 
                 case EreAtom<TPred> atom:
-                {
-                    int idx = _termAlgebra.Registry.Register(atom.Predicate);
-                    return _termAlgebra.MkIte(
-                        idx,
-                        TransitionTerm<Ere<TPred>>.Leaf(Ere<TPred>.Epsilon()),
-                        _termAlgebra.Bottom);
-                }
+                    {
+                        int idx = _termAlgebra.Registry.Register(atom.Predicate);
+                        return _termAlgebra.MkIte(
+                            idx,
+                            TransitionTerm<Ere<TPred>>.Leaf(Ere<TPred>.Epsilon()),
+                            _termAlgebra.Bottom);
+                    }
 
                 case EreConcat<TPred> concat:
-                {
-                    var dR = Derivative(concat.Left);
-                    var lifted = _termAlgebra.MapUnary(
-                        dR, r => Ere<TPred>.Concat(r, concat.Right));
-                    if (concat.Left.Nullable)
-                        return _termAlgebra.Or(lifted, Derivative(concat.Right));
-                    return lifted;
-                }
+                    {
+                        var dR = Derivative(concat.Left);
+                        var lifted = _termAlgebra.MapUnary(
+                            dR, r => Ere<TPred>.Concat(r, concat.Right));
+                        if (concat.Left.Nullable)
+                            return _termAlgebra.Or(lifted, Derivative(concat.Right));
+                        return lifted;
+                    }
 
                 case EreUnion<TPred> union:
-                {
-                    var result = Derivative(union.Operands[0]);
-                    for (int i = 1; i < union.Operands.Count; i++)
-                        result = _termAlgebra.Or(result, Derivative(union.Operands[i]));
-                    return result;
-                }
+                    {
+                        var result = Derivative(union.Operands[0]);
+                        for (int i = 1; i < union.Operands.Count; i++)
+                            result = _termAlgebra.Or(result, Derivative(union.Operands[i]));
+                        return result;
+                    }
 
                 case EreIntersect<TPred> inter:
-                {
-                    var result = Derivative(inter.Operands[0]);
-                    for (int i = 1; i < inter.Operands.Count; i++)
-                        result = _termAlgebra.And(result, Derivative(inter.Operands[i]));
-                    return result;
-                }
+                    {
+                        var result = Derivative(inter.Operands[0]);
+                        for (int i = 1; i < inter.Operands.Count; i++)
+                            result = _termAlgebra.And(result, Derivative(inter.Operands[i]));
+                        return result;
+                    }
 
                 case EreComplement<TPred> comp:
-                {
-                    var dR = Derivative(comp.Inner);
-                    return _termAlgebra.MapUnary(dR, Ere<TPred>.Complement);
-                }
+                    {
+                        var dR = Derivative(comp.Inner);
+                        return _termAlgebra.MapUnary(dR, Ere<TPred>.Complement);
+                    }
 
                 case EreStar<TPred> star:
-                {
-                    var dR = Derivative(star.Inner);
-                    return _termAlgebra.MapUnary(
-                        dR, r => Ere<TPred>.Concat(r, star));
-                }
+                    {
+                        var dR = Derivative(star.Inner);
+                        return _termAlgebra.MapUnary(
+                            dR, r => Ere<TPred>.Concat(r, star));
+                    }
 
                 case EreFusion<TPred> fusion:
-                {
-                    // δ(R:S) = (OneStep(R), δ(S)) | (δ(R):S)        — eq. (32), §7.3
-                    // The guard (α, t) is encoded as the TTerm (α ? ⊤ : ⊥) ∧ t, which
-                    // keeps the BDD ordering correct regardless of α's index relative
-                    // to t's top condition.
-                    var oneStepR = OneStep(fusion.Left);
-                    int idx = _termAlgebra.Registry.Register(oneStepR);
-                    var guard = _termAlgebra.MkIte(
-                        idx, _termAlgebra.Top, _termAlgebra.Bottom);
-                    var guarded = _termAlgebra.And(guard, Derivative(fusion.Right));
+                    {
+                        // δ(R:S) = (OneStep(R), δ(S)) | (δ(R):S)        — eq. (32), §7.3
+                        // The guard (α, t) is encoded as the TTerm (α ? ⊤ : ⊥) ∧ t, which
+                        // keeps the BDD ordering correct regardless of α's index relative
+                        // to t's top condition.
+                        var oneStepR = OneStep(fusion.Left);
+                        int idx = _termAlgebra.Registry.Register(oneStepR);
+                        var guard = _termAlgebra.MkIte(
+                            idx, _termAlgebra.Top, _termAlgebra.Bottom);
+                        var guarded = _termAlgebra.And(guard, Derivative(fusion.Right));
 
-                    var dRfused = _termAlgebra.MapUnary(
-                        Derivative(fusion.Left),
-                        r => Ere<TPred>.Fusion(r, fusion.Right));
+                        var dRfused = _termAlgebra.MapUnary(
+                            Derivative(fusion.Left),
+                            r => Ere<TPred>.Fusion(r, fusion.Right));
 
-                    return _termAlgebra.Or(guarded, dRfused);
-                }
+                        return _termAlgebra.Or(guarded, dRfused);
+                    }
 
                 case EreXor<TPred> xor:
-                {
-                    // δ(R₁ ⊕ … ⊕ Rₙ) = δR₁ ⊕ … ⊕ δRₙ — XOR commutes with
-                    // derivative because complement does and XOR is built
-                    // from complement+union (CAV'26 §4).
-                    // For XNOR (Negated): δ(~X) = ~δX → complement leaves.
-                    var result = Derivative(xor.Operands[0]);
-                    for (int i = 1; i < xor.Operands.Count; i++)
-                        result = _termAlgebra.Xor(result, Derivative(xor.Operands[i]));
-                    if (xor.Negated)
-                        result = _termAlgebra.MapUnary(result, Ere<TPred>.Complement);
-                    return result;
-                }
+                    {
+                        // δ(R₁ ⊕ … ⊕ Rₙ) = δR₁ ⊕ … ⊕ δRₙ — XOR commutes with
+                        // derivative because complement does and XOR is built
+                        // from complement+union (CAV'26 §4).
+                        // For XNOR (Negated): δ(~X) = ~δX → complement leaves.
+                        var result = Derivative(xor.Operands[0]);
+                        for (int i = 1; i < xor.Operands.Count; i++)
+                            result = _termAlgebra.Xor(result, Derivative(xor.Operands[i]));
+                        if (xor.Negated)
+                            result = _termAlgebra.MapUnary(result, Ere<TPred>.Complement);
+                        return result;
+                    }
 
                 case EreProposition<TPred> prop:
-                {
-                    // EREQ Phase 2 / paper §7: ∂(p) is a single-letter atom
-                    // gated by the proposition's truth value. Polarity=true
-                    // accepts when p holds along the letter; polarity=false
-                    // accepts when p does not hold. Encoded as an ITE split
-                    // on the (negative) proposition index — TransitionTermAlgebra
-                    // recognises the negative level and skips path tightening
-                    // (D5), so both branches remain reachable.
-                    var epsLeaf = TransitionTerm<Ere<TPred>>.Leaf(Ere<TPred>.Epsilon());
-                    return prop.Polarity
-                        ? _termAlgebra.MkIte(prop.PropositionIndex, epsLeaf, _termAlgebra.Bottom)
-                        : _termAlgebra.MkIte(prop.PropositionIndex, _termAlgebra.Bottom, epsLeaf);
-                }
+                    {
+                        // EREQ Phase 2 / paper §7: ∂(p) is a single-letter atom
+                        // gated by the proposition's truth value. Polarity=true
+                        // accepts when p holds along the letter; polarity=false
+                        // accepts when p does not hold. Encoded as an ITE split
+                        // on the (negative) proposition index — TransitionTermAlgebra
+                        // recognises the negative level and skips path tightening
+                        // (D5), so both branches remain reachable.
+                        var epsLeaf = TransitionTerm<Ere<TPred>>.Leaf(Ere<TPred>.Epsilon());
+                        return prop.Polarity
+                            ? _termAlgebra.MkIte(prop.PropositionIndex, epsLeaf, _termAlgebra.Bottom)
+                            : _termAlgebra.MkIte(prop.PropositionIndex, _termAlgebra.Bottom, epsLeaf);
+                    }
 
                 case EreExists<TPred> ex:
-                {
-                    // EREQ Phase 2 / paper §7 / Rust prototype lib.rs:1199:
-                    //   ∂(∃p. R) = ∃p. ∂(R)  lifted onto TTerm leaves.
-                    // Bit-elimination optimisation: if the top condition of
-                    // ∂(R) is exactly the bound proposition, distribute ∃ over
-                    // both branches and union — this strips the prop split out
-                    // of the resulting TTerm, since
-                    //   ∃p. (p ? T₁ : T₀)  ≡  ∃p.T₁  ∪  ∃p.T₀.
-                    var bodyDer = Derivative(ex.Body);
-                    int bound = ex.PropositionIndex;
-                    if (bodyDer is TransitionTermIte<Ere<TPred>> ite
-                        && ite.ConditionIndex == bound)
                     {
-                        var hi = _termAlgebra.MapUnary(
-                            ite.Hi, r => Ere<TPred>.Exists(bound, r));
-                        var lo = _termAlgebra.MapUnary(
-                            ite.Lo, r => Ere<TPred>.Exists(bound, r));
-                        return _termAlgebra.Or(hi, lo);
+                        // EREQ Phase 2 / paper §7 / Rust prototype lib.rs:1199:
+                        //   ∂(∃p. R) = ∃p. ∂(R)  lifted onto TTerm leaves.
+                        // Bit-elimination optimisation: if the top condition of
+                        // ∂(R) is exactly the bound proposition, distribute ∃ over
+                        // both branches and union — this strips the prop split out
+                        // of the resulting TTerm, since
+                        //   ∃p. (p ? T₁ : T₀)  ≡  ∃p.T₁  ∪  ∃p.T₀.
+                        var bodyDer = Derivative(ex.Body);
+                        int bound = ex.PropositionIndex;
+                        if (bodyDer is TransitionTermIte<Ere<TPred>> ite
+                            && ite.ConditionIndex == bound)
+                        {
+                            var hi = _termAlgebra.MapUnary(
+                                ite.Hi, r => Ere<TPred>.Exists(bound, r));
+                            var lo = _termAlgebra.MapUnary(
+                                ite.Lo, r => Ere<TPred>.Exists(bound, r));
+                            return _termAlgebra.Or(hi, lo);
+                        }
+                        return _termAlgebra.MapUnary(
+                            bodyDer, r => Ere<TPred>.Exists(bound, r));
                     }
-                    return _termAlgebra.MapUnary(
-                        bodyDer, r => Ere<TPred>.Exists(bound, r));
-                }
 
                 default:
                     throw new ArgumentException($"Unknown ERE: {regex.GetType()}");

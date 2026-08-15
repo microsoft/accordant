@@ -13,12 +13,7 @@ public class DurableJobDesignTests
     public void TheDetailedDesignIsACompleteExactProcessGraph()
     {
         var root = DurableJobDesign.Explore();
-        var size = ModelGraph.Measure(root);
-        var domainStates = ModelGraph
-            .Nodes(root)
-            .Select(node => node.State.StringRepresentation())
-            .Distinct(StringComparer.Ordinal)
-            .Count();
+        var report = ProcessGraphDiagnostics.Describe(root);
         var scheduler = (IProcessSchedulerStep)root.StepFunctions.Single();
         var actions = AllEdges(root)
             .Select(item => DurableJobDesign.ActionOf(item.Transition))
@@ -28,12 +23,25 @@ public class DurableJobDesignTests
         Assert.Multiple(() =>
         {
             Assert.That(ModelGraph.IsComplete(root), Is.True);
-            Assert.That(size, Is.EqualTo((1010, 4702)));
-            Assert.That(domainStates, Is.EqualTo(56));
+            Assert.That(
+                (report.ConfigurationCount, report.TransitionCount),
+                Is.EqualTo((61, 293)));
+            Assert.That(report.DomainStateCount, Is.EqualTo(56));
+            Assert.That(report.Complete, Is.True);
             Assert.That(root.StepFunctions, Has.Count.EqualTo(1));
             Assert.That(
                 scheduler.LiveProcesses.Select(process => process.Role),
+                Is.EquivalentTo(DurableJobRoles.Processes));
+            Assert.That(
+                report.ContinuationFormsByRole.Keys,
                 Is.EquivalentTo(DurableJobRoles.Correct));
+            Assert.That(
+                DurableJobRoles.RepeatedActions.Select(role =>
+                    report.ContinuationFormsByRole[role].Single()),
+                Has.All.EqualTo("<stateless recurring action>"));
+            Assert.That(
+                report.ContinuationFormsByRole[DurableJobRoles.Worker],
+                Has.Some.Contains("foreveriteration:worker-loop"));
             Assert.That(actions, Does.Contain(DesignAction.EnqueueDuplicate));
             Assert.That(actions, Does.Contain(DesignAction.LoseDispatch));
             Assert.That(actions, Does.Contain(DesignAction.RebuildDispatch));
@@ -48,12 +56,12 @@ public class DurableJobDesignTests
         });
 
         TestContext.WriteLine(
-            $"process design: {size.Nodes} nodes, {size.Edges} edges, " +
-            $"{domainStates} domain states");
+            $"process design: {report.ConfigurationCount} configurations, " +
+            $"{report.TransitionCount} edges, {report.DomainStateCount} domain states");
     }
 
     [Test]
-    public void TheWorkerCoroutineReadsLikeClaimWaitBranchAndCommit()
+    public void TheWorkerProcessReadsLikeClaimWaitBranchAndCommit()
     {
         var edges = AllEdges(DurableJobDesign.Explore()).ToArray();
 
@@ -129,13 +137,15 @@ public class DurableJobDesignTests
         {
             Assert.That(beforeCrash, Does.Contain(DurableJobRoles.Worker));
             Assert.That(afterCrash, Does.Not.Contain(DurableJobRoles.Worker));
-            Assert.That(afterCrash, Does.Not.Contain(DurableJobRoles.SuccessSource));
-            Assert.That(afterCrash, Does.Not.Contain(DurableJobRoles.FailureSource));
-            Assert.That(afterCrash, Does.Contain(DurableJobRoles.CancelApi));
-            Assert.That(afterCrash, Does.Contain(DurableJobRoles.LeaseReaper));
             Assert.That(afterRestart, Does.Contain(DurableJobRoles.Worker));
-            Assert.That(afterRestart, Does.Contain(DurableJobRoles.SuccessSource));
-            Assert.That(afterRestart, Does.Contain(DurableJobRoles.FailureSource));
+            Assert.That(
+                crash.Edge.Target.Edges
+                    .Select(edge => DurableJobDesign.TransitionOf(edge).ProcessRole),
+                Does.Not.Contain(DurableJobRoles.SuccessSource));
+            Assert.That(
+                crash.Edge.Target.Edges
+                    .Select(edge => DurableJobDesign.TransitionOf(edge).ProcessRole),
+                Does.Not.Contain(DurableJobRoles.FailureSource));
         });
     }
 

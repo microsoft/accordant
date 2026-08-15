@@ -345,12 +345,12 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             var pGoal = Prop("g", s => ((TestState)s).Value == 99);
             var pA = Prop("a", s => ((TestState)s).Value == 1);
 
-            AssertAgree(BuildLinearSelfLoop(new[] { 1 }),         G(Atom(pVpos)), "Ga-sat-single");
-            AssertAgree(BuildLinearSelfLoop(new[] { 1, 0 }),      G(Atom(pVpos)), "Ga-vio");
-            AssertAgree(BuildLinearSelfLoop(new[] { 0, 0, 99 }),  F(Atom(pGoal)), "Fa-sat");
-            AssertAgree(BuildTwoCycle(0, 1),                       F(Atom(pGoal)), "Fa-vio");
-            AssertAgree(BuildTwoCycle(1, 0),                       G(F(Atom(pA))), "GFa-sat");
-            AssertAgree(BuildLinearSelfLoop(new[] { 1, 0 }),       G(F(Atom(pA))), "GFa-vio");
+            AssertAgree(BuildLinearSelfLoop(new[] { 1 }), G(Atom(pVpos)), "Ga-sat-single");
+            AssertAgree(BuildLinearSelfLoop(new[] { 1, 0 }), G(Atom(pVpos)), "Ga-vio");
+            AssertAgree(BuildLinearSelfLoop(new[] { 0, 0, 99 }), F(Atom(pGoal)), "Fa-sat");
+            AssertAgree(BuildTwoCycle(0, 1), F(Atom(pGoal)), "Fa-vio");
+            AssertAgree(BuildTwoCycle(1, 0), G(F(Atom(pA))), "GFa-sat");
+            AssertAgree(BuildLinearSelfLoop(new[] { 1, 0 }), G(F(Atom(pA))), "GFa-vio");
         }
 
         private static void AssertAgree(StateGraphNode root, Ltl<IStatePredicate> phi, string label)

@@ -9,7 +9,7 @@
 When you run tests, Accordant writes logs to a timestamped folder next to your test assembly:
 
 ```
-bin/Debug/net8.0/
+bin/Debug/net10.0/
 ├── YourTests.dll
 └── test-logs/
     └── 2026-05-24-14-32-17-ms/
@@ -225,7 +225,7 @@ httpExecutable.LogLineEmitter = logLine =>
 If you're not sure where logs went:
 
 1. Check the test output for the path (Accordant logs the directory)
-2. Look in `bin/Debug/net8.0/test-logs/` (or your output directory)
+2. Look in `bin/Debug/net10.0/test-logs/` (or your output directory)
 3. Sort by date — the most recent folder is your latest run
 
 ### Keeping Logs Organized

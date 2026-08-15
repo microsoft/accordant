@@ -46,7 +46,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
             switch (f)
             {
-                case RltlTrue<string> _:  sb.Append("{\"op\":\"True\"}"); break;
+                case RltlTrue<string> _: sb.Append("{\"op\":\"True\"}"); break;
                 case RltlFalse<string> _: sb.Append("{\"op\":\"False\"}"); break;
                 case RltlAtom<string> a:
                     sb.Append("{\"op\":\"Atom\",\"pred\":");
@@ -92,11 +92,11 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     break;
                 case RltlSeqPrefix<string> s: EmitRegexAndPhi(sb, "SeqPrefix", s.Regex, s.Phi, depth); break;
                 case RltlOvlPrefix<string> s: EmitRegexAndPhi(sb, "OvlPrefix", s.Regex, s.Phi, depth); break;
-                case RltlTrigger<string>   s: EmitRegexAndPhi(sb, "Trigger",   s.Regex, s.Phi, depth); break;
-                case RltlMatch<string>     s: EmitRegexAndPhi(sb, "Match",     s.Regex, s.Phi, depth); break;
-                case RltlWeakClosure<string>    w: EmitRegexOnly(sb, "WeakClosure",    w.Regex, depth); break;
+                case RltlTrigger<string> s: EmitRegexAndPhi(sb, "Trigger", s.Regex, s.Phi, depth); break;
+                case RltlMatch<string> s: EmitRegexAndPhi(sb, "Match", s.Regex, s.Phi, depth); break;
+                case RltlWeakClosure<string> w: EmitRegexOnly(sb, "WeakClosure", w.Regex, depth); break;
                 case RltlNegWeakClosure<string> w: EmitRegexOnly(sb, "NegWeakClosure", w.Regex, depth); break;
-                case RltlOmegaClosure<string>   w: EmitRegexOnly(sb, "OmegaClosure",   w.Regex, depth); break;
+                case RltlOmegaClosure<string> w: EmitRegexOnly(sb, "OmegaClosure", w.Regex, depth); break;
                 default:
                     throw new ArgumentException($"Unknown RLTL type: {f.GetType()}");
             }
@@ -143,58 +143,58 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
             switch (op)
             {
-                case "True":  return StringAlgebra.True;
+                case "True": return StringAlgebra.True;
                 case "False": return StringAlgebra.False;
                 case "Atom":
-                {
-                    if (!fields.TryGetValue("pred", out var pred))
-                        throw new FormatException("Atom missing 'pred' field.");
-                    bool neg = fields.TryGetValue("neg", out var nv) && nv == "true";
-                    return neg ? StringAlgebra.NegAtom(pred) : StringAlgebra.Atom(pred);
-                }
+                    {
+                        if (!fields.TryGetValue("pred", out var pred))
+                            throw new FormatException("Atom missing 'pred' field.");
+                        bool neg = fields.TryGetValue("neg", out var nv) && nv == "true";
+                        return neg ? StringAlgebra.NegAtom(pred) : StringAlgebra.Atom(pred);
+                    }
                 case "Next":
-                {
-                    var inner = ParseInner(fields, "Next");
-                    return StringAlgebra.Next(inner);
-                }
+                    {
+                        var inner = ParseInner(fields, "Next");
+                        return StringAlgebra.Next(inner);
+                    }
                 case "Until":
-                {
-                    var (l, r) = ParseBinary(fields, "Until");
-                    return StringAlgebra.Until(l, r);
-                }
+                    {
+                        var (l, r) = ParseBinary(fields, "Until");
+                        return StringAlgebra.Until(l, r);
+                    }
                 case "Release":
-                {
-                    var (l, r) = ParseBinary(fields, "Release");
-                    return StringAlgebra.Release(l, r);
-                }
+                    {
+                        var (l, r) = ParseBinary(fields, "Release");
+                        return StringAlgebra.Release(l, r);
+                    }
                 case "Eventually": return StringAlgebra.Eventually(ParseInner(fields, "Eventually"));
-                case "Globally":   return StringAlgebra.Globally(ParseInner(fields, "Globally"));
+                case "Globally": return StringAlgebra.Globally(ParseInner(fields, "Globally"));
                 case "And":
-                {
-                    var args = ParseArgs(fields, "And");
-                    var r = args[0];
-                    for (int i = 1; i < args.Count; i++) r = StringAlgebra.And(r, args[i]);
-                    return r;
-                }
+                    {
+                        var args = ParseArgs(fields, "And");
+                        var r = args[0];
+                        for (int i = 1; i < args.Count; i++) r = StringAlgebra.And(r, args[i]);
+                        return r;
+                    }
                 case "Or":
-                {
-                    var args = ParseArgs(fields, "Or");
-                    var r = args[0];
-                    for (int i = 1; i < args.Count; i++) r = StringAlgebra.Or(r, args[i]);
-                    return r;
-                }
+                    {
+                        var args = ParseArgs(fields, "Or");
+                        var r = args[0];
+                        for (int i = 1; i < args.Count; i++) r = StringAlgebra.Or(r, args[i]);
+                        return r;
+                    }
                 case "Implies":
-                {
-                    var (l, r) = ParseBinary(fields, "Implies");
-                    return StringAlgebra.Or(StringAlgebra.Not(l), r);
-                }
+                    {
+                        var (l, r) = ParseBinary(fields, "Implies");
+                        return StringAlgebra.Or(StringAlgebra.Not(l), r);
+                    }
                 case "SeqPrefix": return StringAlgebra.SeqPrefix(ParseRegex(fields, "SeqPrefix"), ParsePhi(fields, "SeqPrefix"));
                 case "OvlPrefix": return StringAlgebra.OvlPrefix(ParseRegex(fields, "OvlPrefix"), ParsePhi(fields, "OvlPrefix"));
-                case "Trigger":   return StringAlgebra.Trigger(ParseRegex(fields, "Trigger"),     ParsePhi(fields, "Trigger"));
-                case "Match":     return StringAlgebra.Match(ParseRegex(fields, "Match"),         ParsePhi(fields, "Match"));
-                case "WeakClosure":    return StringAlgebra.WeakClosure(ParseRegex(fields, "WeakClosure"));
+                case "Trigger": return StringAlgebra.Trigger(ParseRegex(fields, "Trigger"), ParsePhi(fields, "Trigger"));
+                case "Match": return StringAlgebra.Match(ParseRegex(fields, "Match"), ParsePhi(fields, "Match"));
+                case "WeakClosure": return StringAlgebra.WeakClosure(ParseRegex(fields, "WeakClosure"));
                 case "NegWeakClosure": return StringAlgebra.NegWeakClosure(ParseRegex(fields, "NegWeakClosure"));
-                case "OmegaClosure":   return StringAlgebra.OmegaClosure(ParseRegex(fields, "OmegaClosure"));
+                case "OmegaClosure": return StringAlgebra.OmegaClosure(ParseRegex(fields, "OmegaClosure"));
                 default:
                     throw new FormatException($"Unknown RLTL op: '{op}'.");
             }

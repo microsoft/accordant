@@ -147,7 +147,7 @@ namespace Microsoft.Accordant.ModelChecking
             {
                 sb.AppendLine();
                 sb.AppendLine($"Bad cycle contains {BadCycle.Nodes.Count} state(s).");
-                
+
                 // Show which step functions were enabled but not taken (fairness hint)
                 var enabledNotTaken = GetEnabledButNotTakenSteps(BadCycle);
                 if (enabledNotTaken.Any())

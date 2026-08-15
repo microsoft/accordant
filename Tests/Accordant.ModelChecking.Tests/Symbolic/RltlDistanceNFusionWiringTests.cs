@@ -119,8 +119,8 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             // top-level shape is a Fusion rather than a Union of Fusions.
             // Semantics are preserved (factoring is sound); this test
             // just documents the new canonical shape.
-            var a   = Prop("a",   s => false);
-            var b   = Prop("b",   s => false);
+            var a = Prop("a", s => false);
+            var b = Prop("b", s => false);
             var end = Prop("end", s => false);
             const int n = 2;
 
@@ -146,10 +146,10 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             // a top-level Union, so SeqPrefix-over-Union does not split
             // and the RLTL shape stays a single RltlSeqPrefix. This is
             // the new canonical shape; language semantics are preserved.
-            var a   = Prop("a",   s => false);
-            var b   = Prop("b",   s => false);
+            var a = Prop("a", s => false);
+            var b = Prop("b", s => false);
             var end = Prop("end", s => false);
-            var q   = Prop("q",   s => false);
+            var q = Prop("q", s => false);
             const int n = 2;
 
             var r = Ere<IStatePredicate>.Fusion(
@@ -180,10 +180,10 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         [Test]
         public void EndToEnd_FusedDistanceN_Sat_ViaADisjunct()
         {
-            var a   = Prop("a",   s => ((TestState)s).Value == 1);
-            var b   = Prop("b",   s => ((TestState)s).Value == 2);
+            var a = Prop("a", s => ((TestState)s).Value == 1);
+            var b = Prop("b", s => ((TestState)s).Value == 2);
             var end = Prop("end", s => ((TestState)s).Value == 1); // a∧end at s0
-            var q   = Prop("q",   s => ((TestState)s).Value == 9);
+            var q = Prop("q", s => ((TestState)s).Value == 9);
 
             // s0(a,end) → s1(q) → s2(q) self-loop. Position 0 satisfies a∧end
             // (matched by (Σ*·a):end with k-1=0), position 1 satisfies q (witness
@@ -217,11 +217,11 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         [Test]
         public void EndToEnd_FusedDistanceN_Vio_NeitherDisjunctMatches()
         {
-            var a   = Prop("a",   s => ((TestState)s).Value == 1);
-            var b   = Prop("b",   s => ((TestState)s).Value == 2);
+            var a = Prop("a", s => ((TestState)s).Value == 1);
+            var b = Prop("b", s => ((TestState)s).Value == 2);
             // end is now disjoint from both a and b — no position can be both.
             var end = Prop("end", s => ((TestState)s).Value == 7);
-            var q   = Prop("q",   s => ((TestState)s).Value == 9);
+            var q = Prop("q", s => ((TestState)s).Value == 9);
 
             // s0(a) → s1 → s2(q) → s2(q) — no state ever satisfies end.
             var s0 = MakeNode(new TestState("s0", 1));
@@ -265,10 +265,10 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         [Test]
         public void DistributedShape_EqualsHandDistributedShape()
         {
-            var a   = Prop("a",   s => ((TestState)s).Value == 1);
-            var b   = Prop("b",   s => ((TestState)s).Value == 2);
+            var a = Prop("a", s => ((TestState)s).Value == 1);
+            var b = Prop("b", s => ((TestState)s).Value == 2);
             var end = Prop("end", s => ((TestState)s).Value == 1);
-            var q   = Prop("q",   s => ((TestState)s).Value == 9);
+            var q = Prop("q", s => ((TestState)s).Value == 9);
             const int n = 0;
 
             var auto = Rltl<IStatePredicate>.SeqPrefix(

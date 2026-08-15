@@ -118,6 +118,21 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 false);
         }
 
+        /// <summary>
+        /// Creates metadata/action-aware enabledness. A selected
+        /// state-neutral model edge counts as enabled.
+        /// </summary>
+        public static StateProp EnabledAction(
+            string name, Func<TransitionContext, bool> actionPredicate)
+        {
+            if (actionPredicate == null)
+                throw new ArgumentNullException(nameof(actionPredicate));
+            return new StateProp(
+                name,
+                Enabledness.CreateAction(actionPredicate),
+                false);
+        }
+
         public bool Equals(StateProp other) => other != null && Id == other.Id;
         public override bool Equals(object obj) => Equals(obj as StateProp);
         public override int GetHashCode() => Id;

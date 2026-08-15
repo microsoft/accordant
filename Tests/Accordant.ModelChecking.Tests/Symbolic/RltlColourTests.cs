@@ -17,32 +17,39 @@ namespace Accordant.ModelChecking.Tests.Symbolic
 
         // --- IsRejecting: matches ABW IsAccepting partition (Until = rejecting). ---
 
-        [Test] public void Atom_IsSafety() =>
+        [Test]
+        public void Atom_IsSafety() =>
             Assert.That(RltlColour.IsRejecting(Alg.Atom(new StatePredAtom(Pa))), Is.False);
 
-        [Test] public void Eventually_IsRejecting() =>
+        [Test]
+        public void Eventually_IsRejecting() =>
             Assert.That(RltlColour.IsRejecting(
                 Alg.Eventually(Alg.Atom(new StatePredAtom(Pa)))), Is.True);
 
-        [Test] public void Until_IsRejecting() =>
+        [Test]
+        public void Until_IsRejecting() =>
             Assert.That(RltlColour.IsRejecting(
                 Alg.Until(Alg.Atom(new StatePredAtom(Pa)),
                           Alg.Atom(new StatePredAtom(Pb)))), Is.True);
 
-        [Test] public void Globally_IsSafety() =>
+        [Test]
+        public void Globally_IsSafety() =>
             Assert.That(RltlColour.IsRejecting(
                 Alg.Globally(Alg.Atom(new StatePredAtom(Pa)))), Is.False);
 
-        [Test] public void Release_IsSafety() =>
+        [Test]
+        public void Release_IsSafety() =>
             Assert.That(RltlColour.IsRejecting(
                 Alg.Release(Alg.Atom(new StatePredAtom(Pa)),
                             Alg.Atom(new StatePredAtom(Pb)))), Is.False);
 
-        [Test] public void Next_IsSafety() =>
+        [Test]
+        public void Next_IsSafety() =>
             Assert.That(RltlColour.IsRejecting(
                 Alg.Next(Alg.Atom(new StatePredAtom(Pa)))), Is.False);
 
-        [Test] public void GFa_IsSafety_ButFa_IsRejecting()
+        [Test]
+        public void GFa_IsSafety_ButFa_IsRejecting()
         {
             var a = Alg.Atom(new StatePredAtom(Pa));
             var Fa = Alg.Eventually(a);
@@ -50,13 +57,14 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             Assert.Multiple(() =>
             {
                 Assert.That(RltlColour.IsRejecting(GFa), Is.False, "GFa head=R, ∉ F");
-                Assert.That(RltlColour.IsRejecting(Fa),  Is.True,  "Fa head=U, ∈ F");
+                Assert.That(RltlColour.IsRejecting(Fa), Is.True, "Fa head=U, ∈ F");
                 Assert.That(RltlColour.SameColour(GFa, Fa), Is.False,
                     "Different colours: the macrostate-subsumption guard must block dropping Fa for GFa.");
             });
         }
 
-        [Test] public void And_IsSafety_ByHead()
+        [Test]
+        public void And_IsSafety_ByHead()
         {
             var a = Alg.Atom(new StatePredAtom(Pa));
             var b = Alg.Atom(new StatePredAtom(Pb));
@@ -64,7 +72,8 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             Assert.That(RltlColour.IsRejecting(and), Is.False);
         }
 
-        [Test] public void Or_IsSafety_ByHead()
+        [Test]
+        public void Or_IsSafety_ByHead()
         {
             var a = Alg.Atom(new StatePredAtom(Pa));
             var b = Alg.Atom(new StatePredAtom(Pb));
@@ -72,14 +81,16 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             Assert.That(RltlColour.IsRejecting(or), Is.False);
         }
 
-        [Test] public void SameColour_TwoUntils_True()
+        [Test]
+        public void SameColour_TwoUntils_True()
         {
             var Fa = Alg.Eventually(Alg.Atom(new StatePredAtom(Pa)));
             var Fb = Alg.Eventually(Alg.Atom(new StatePredAtom(Pb)));
             Assert.That(RltlColour.SameColour(Fa, Fb), Is.True);
         }
 
-        [Test] public void SameColour_TwoReleases_True()
+        [Test]
+        public void SameColour_TwoReleases_True()
         {
             var Ga = Alg.Globally(Alg.Atom(new StatePredAtom(Pa)));
             var Gb = Alg.Globally(Alg.Atom(new StatePredAtom(Pb)));
@@ -88,7 +99,8 @@ namespace Accordant.ModelChecking.Tests.Symbolic
 
         // Sanity: the classifier matches RltlDerivative.IsAccepting head-by-head
         // for the non-WeakClosure heads we care about.
-        [Test] public void MatchesDerivativeIsAccepting_OnCoreHeads()
+        [Test]
+        public void MatchesDerivativeIsAccepting_OnCoreHeads()
         {
             var registry = new ConditionRegistry<IStatePredicate>(
                 System.Collections.Generic.EqualityComparer<IStatePredicate>.Default);

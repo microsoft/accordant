@@ -328,25 +328,42 @@ ordinary abstract edge    IsStutter = false   ChangesState = true
 
 A state-neutral edge may be aligned explicitly, and doing so is often the
 point: it selects the abstract configuration the rest of the run continues
-from. It nevertheless stays **outside changing-edge fairness, by design**.
-Accordant fairness — for refinement and for property checking alike — is
-defined over transitions that change the state, so a state-neutral abstract
-edge:
+from. It stays outside the compatibility fairness APIs: `Weak`, `Strong`, and
+`WeakAll` retain changing-domain-state semantics. Under those APIs a
+state-neutral abstract edge:
 
 - never contributes to abstract enabledness, so it cannot raise a weak or
   strong obligation;
 - never counts as taken, so it cannot discharge one.
 
 Declaring a state-neutral edge instead of stutter therefore changes which
-abstract configuration the alignment continues from, and nothing about
-fairness accounting. Requesting fairness for a state-neutral abstract action
-adds no obligation; if that action needs to be forced, give the abstract model
-a state footprint that makes the difference observable.
+abstract configuration the alignment continues from without changing legacy
+fairness accounting.
+
+Metadata-aware fairness can select the real edge explicitly without adding a
+fake state footprint:
+
+```csharp
+Func<ProcessTransition, bool> accepts =
+    transition => transition.SemanticAction is Accept;
+
+var collective = Fairness.WeakAction(accepts);
+var perClient = Fairness.StrongEach(
+    accepts,
+    transition => transition.Subject);
+```
+
+The selector is authoritative. A selected state-neutral abstract edge
+participates in enabledness and taken-ness; unrelated hidden administration
+does not. `WeakAction`/`StrongAction` create one family obligation, while
+`WeakEach`/`StrongEach` create one obligation per stable key. Temporal
+refinement applies the same exact-configuration semantics on both the concrete
+and abstract sides as ordinary property checking.
 
 The infinite completion Accordant adds for a genuinely terminal concrete
 state is a checker artifact, not a concrete action. It always aligns with
 abstract stutter, never with a real state-neutral abstract edge, and does not
-invoke `.MapTransition(...)`.
+invoke `.MapTransition(...)` or satisfy a metadata-aware fairness obligation.
 
 ### Reading proof state
 

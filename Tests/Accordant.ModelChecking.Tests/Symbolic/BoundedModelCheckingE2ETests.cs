@@ -111,7 +111,8 @@ namespace Accordant.ModelChecking.Tests.Symbolic
 
             var root = StateGraph.ExploreStateGraph(steps, initial, maxDepth: 10);
 
-            var inBounds = Prop("inBounds", s => {
+            var inBounds = Prop("inBounds", s =>
+            {
                 var c = ((CounterState)s).Count;
                 return c >= 0 && c <= max;
             });

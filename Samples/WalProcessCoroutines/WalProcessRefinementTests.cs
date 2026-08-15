@@ -23,19 +23,30 @@ public class WalProcessRefinementTests
     {
         var wal = WriteAheadLog.Explore(Config);
         var store = AtomicStore.Explore(Config, lazy: false);
+        var report = ProcessGraphDiagnostics.Describe(wal);
 
-        Assert.That(ModelGraph.IsComplete(wal), Is.True, "a depth frontier would make verdicts bounded");
+        Assert.That(report.Complete, Is.True, "a depth frontier would make verdicts bounded");
 
         var walSize = ModelGraph.Size(wal);
         var storeSize = ModelGraph.Size(store);
-        TestContext.WriteLine($"process WAL {walSize}, atomic store {storeSize}");
+        TestContext.WriteLine(
+            $"process WAL: {report.ConfigurationCount} configurations, " +
+            $"{report.TransitionCount} edges, {report.DomainStateCount} domain states; " +
+            $"atomic store {storeSize}");
 
         Assert.That(walSize.Nodes, Is.GreaterThan(storeSize.Nodes));
 
-        // A concrete guard against runaway growth: two one-shot clients, one
-        // in-flight transaction, and a single failure domain keep this well
-        // under a hundred thousand nodes.
-        Assert.That(walSize.Nodes, Is.LessThan(100_000));
+        // Intentional exact-configuration guard. Structured iteration and calls
+        // canonicalize administrative progress without hiding continuation state.
+        Assert.That(report.ConfigurationCount, Is.EqualTo(427));
+        Assert.That(report.TransitionCount, Is.EqualTo(1_094));
+        Assert.That(report.DomainStateCount, Is.EqualTo(174));
+        Assert.That(
+            report.ContinuationFormsByRole[Roles.PageWriter],
+            Has.Some.Contains("foreveriteration:page-writer-loop"));
+        Assert.That(
+            report.ContinuationFormsByRole[Roles.Recovery],
+            Has.Some.Contains("foreveriteration:recovery-loop"));
     }
 
     [Test]

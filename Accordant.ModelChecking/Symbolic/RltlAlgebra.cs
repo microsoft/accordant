@@ -82,14 +82,14 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         {
             switch (f)
             {
-                case RltlTrue<TPred> _:    return False;
-                case RltlFalse<TPred> _:   return True;
-                case RltlAtom<TPred> a:    return Atom(_eba.Not(a.Predicate));
-                case RltlNext<TPred> n:    return Next(Not(n.Inner));
-                case RltlUntil<TPred> u:   return Release(Not(u.Left), Not(u.Right));
+                case RltlTrue<TPred> _: return False;
+                case RltlFalse<TPred> _: return True;
+                case RltlAtom<TPred> a: return Atom(_eba.Not(a.Predicate));
+                case RltlNext<TPred> n: return Next(Not(n.Inner));
+                case RltlUntil<TPred> u: return Release(Not(u.Left), Not(u.Right));
                 case RltlRelease<TPred> r: return Until(Not(r.Left), Not(r.Right));
-                case RltlAnd<TPred> a:     return OrMany(a.Operands.Select(Not));
-                case RltlOr<TPred> o:      return AndMany(o.Operands.Select(Not));
+                case RltlAnd<TPred> a: return OrMany(a.Operands.Select(Not));
+                case RltlOr<TPred> o: return AndMany(o.Operands.Select(Not));
                 // Regex-prefix duals (Section 7 NNF):
                 //   ¬(R ; φ)  = R ⊳  ¬φ
                 //   ¬(R : φ)  = R ⊳⊳ ¬φ
@@ -97,13 +97,13 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 //   ¬(R ⊳⊳ φ) = R :  ¬φ
                 case RltlSeqPrefix<TPred> s: return Trigger(s.Regex, Not(s.Phi));
                 case RltlOvlPrefix<TPred> s: return Match(s.Regex, Not(s.Phi));
-                case RltlTrigger<TPred> s:   return SeqPrefix(s.Regex, Not(s.Phi));
-                case RltlMatch<TPred> s:     return OvlPrefix(s.Regex, Not(s.Phi));
+                case RltlTrigger<TPred> s: return SeqPrefix(s.Regex, Not(s.Phi));
+                case RltlMatch<TPred> s: return OvlPrefix(s.Regex, Not(s.Phi));
                 // Closure duals — JACM Def. RLTLp (line 2779):
                 //   ¬{R}    = {{R}}̄
                 //   ¬{{R}}̄ = {R}
                 // ω-closure is *not* closed under negation in RLTL+ (line 2781).
-                case RltlWeakClosure<TPred> w:    return NegWeakClosure(w.Regex);
+                case RltlWeakClosure<TPred> w: return NegWeakClosure(w.Regex);
                 case RltlNegWeakClosure<TPred> n: return WeakClosure(n.Regex);
                 case RltlOmegaClosure<TPred> _:
                     throw new NotSupportedException(

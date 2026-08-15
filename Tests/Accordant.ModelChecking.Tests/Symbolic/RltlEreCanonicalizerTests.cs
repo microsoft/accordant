@@ -166,8 +166,8 @@ namespace Accordant.ModelChecking.Tests.Symbolic
 
             _ = _canon.SeqPrefix(_r1, _phi);   // class 1
             _ = _canon.SeqPrefix(_r2, _phi);   // joins class 1
-            _ = _canon.SeqPrefix(a,   _phi);   // class 2
-            _ = _canon.SeqPrefix(b,   _phi);   // class 3
+            _ = _canon.SeqPrefix(a, _phi);   // class 2
+            _ = _canon.SeqPrefix(b, _phi);   // class 3
             Assert.That(_canonImpl.ClassCount, Is.EqualTo(3));
         }
 
