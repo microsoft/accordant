@@ -24,6 +24,10 @@
     <Project Path="tools/specmine/benchmarks/TaskWorkflow/TaskWorkflow.Api/TaskWorkflow.Api.csproj" />
     <Project Path="tools/specmine/benchmarks/TaskWorkflow/TaskWorkflow.Tests/TaskWorkflow.Tests.csproj" />
   </Folder>
+  <Folder Name="/Tools/Specmine/">
+    <Project Path="tools/specmine/src/Specmine/Specmine.csproj" />
+    <Project Path="tools/specmine/tests/Specmine.Tests/Specmine.Tests.csproj" />
+  </Folder>
   <Project Path="Accordant.Choose/Accordant.Choose.csproj" />
   <Project Path="Microsoft.Accordant.Cli/Microsoft.Accordant.Cli.csproj" />
   <Project Path="Accordant.Invariant/Accordant.Invariant.csproj" />
