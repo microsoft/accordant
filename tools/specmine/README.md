@@ -48,20 +48,31 @@ single-file trace. It intentionally does not depend on Accordant.
 A `TraceRecorder` is scoped to one experiment:
 
 ```csharp
+var createTask = new ExecutableOperation<CreateTaskRequest, CreateTaskResponse>(
+    "CreateTask",
+    request => client.CreateTaskAsync(request));
+
+var completeTask = new ExecutableOperation<TaskIdRequest, TaskResponse>(
+    "CompleteTask",
+    request => client.CompleteTaskAsync(request));
+
 var (trace, path) = await TraceRecorder.RunAsync(tracesDirectory, async recorder =>
 {
-    var created = await recorder.ExecuteAsync("CreateTask", new CreateTaskRequest("write benchmark"),
-        request => client.CreateTaskAsync(request));
+    var created = await recorder.ExecuteAsync(
+        createTask,
+        new CreateTaskRequest("write benchmark"));
 
     // Response-dependent code works naturally: the server-generated ID from
     // `created` flows straight into the next call.
-    await recorder.ExecuteAsync("CompleteTask", new TaskIdRequest(created.Id),
-        request => client.CompleteTaskAsync(request));
+    await recorder.ExecuteAsync(
+        completeTask,
+        new TaskIdRequest(created.Id));
 });
 ```
 
-`ExecuteAsync` snapshots the request, invokes the execution delegate against the
-system under test, and records either the response or - if the delegate throws -
+An `ExecutableOperation<TRequest, TResponse>` binds target-specific execution
+once and can be reused across calls. `ExecuteAsync` snapshots the request, invokes
+the bound operation against the system under test, and records either the response or - if it throws -
 an execution error (exception type and message) before rethrowing. `RunAsync`
 persists a `Completed` trace if the body finishes, or an `Interrupted` trace (with
 the calls recorded so far) if it throws, and always rethrows the original failure.

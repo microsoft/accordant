@@ -31,12 +31,14 @@ public sealed class TaskWorkflowRecordingTests
 
     private WebApplicationFactory<Program> _factory = null!;
     private HttpClient _client = null!;
+    private TaskWorkflowOperations _operations = null!;
 
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
         _factory = new WebApplicationFactory<Program>();
         _client = _factory.CreateClient();
+        _operations = new TaskWorkflowOperations(_client);
     }
 
     [OneTimeTearDown]
@@ -54,23 +56,11 @@ public sealed class TaskWorkflowRecordingTests
 
         var (trace, path) = await TraceRecorder.RunAsync(tracesDirectory.Path, async recorder =>
         {
-            await recorder.ExecuteAsync("ResetBenchmark", new ResetRequest(), async _ =>
-            {
-                var response = await _client.PostAsync("/__test/reset", content: null);
-                return new TaskCallResponse((int)response.StatusCode, Task: null, Error: null);
-            });
+            await recorder.ExecuteAsync(_operations.Reset, new ResetRequest());
 
             var created = await recorder.ExecuteAsync(
-                "CreateTask",
-                new CreateTaskRequest("write benchmark"),
-                async request =>
-                {
-                    var response = await _client.PostAsJsonAsync("/tasks", request);
-                    var task = response.IsSuccessStatusCode
-                        ? await response.Content.ReadFromJsonAsync<TaskResponse>()
-                        : null;
-                    return new TaskCallResponse((int)response.StatusCode, task, Error: null);
-                });
+                _operations.CreateTask,
+                new CreateTaskRequest("write benchmark"));
 
             // The task ID is only known once CreateTask's real response comes back - this
             // is exactly the response-dependent chaining the recorder is meant to support.
@@ -79,16 +69,8 @@ public sealed class TaskWorkflowRecordingTests
             for (var i = 0; i < 2; i++)
             {
                 await recorder.ExecuteAsync(
-                    "CompleteTask",
-                    new TaskIdRequest(taskId),
-                    async request =>
-                    {
-                        var response = await _client.PostAsync($"/tasks/{request.Id}/complete", content: null);
-                        var task = response.IsSuccessStatusCode
-                            ? await response.Content.ReadFromJsonAsync<TaskResponse>()
-                            : null;
-                        return new TaskCallResponse((int)response.StatusCode, task, Error: null);
-                    });
+                    _operations.CompleteTask,
+                    new TaskIdRequest(taskId));
             }
         });
 
@@ -117,5 +99,47 @@ public sealed class TaskWorkflowRecordingTests
                 Assert.That(completedTask.GetProperty("Status").GetString(), Is.EqualTo("completed"));
             }
         });
+    }
+
+    private sealed class TaskWorkflowOperations
+    {
+        public ExecutableOperation<ResetRequest, TaskCallResponse> Reset { get; }
+
+        public ExecutableOperation<CreateTaskRequest, TaskCallResponse> CreateTask { get; }
+
+        public ExecutableOperation<TaskIdRequest, TaskCallResponse> CompleteTask { get; }
+
+        public TaskWorkflowOperations(HttpClient client)
+        {
+            Reset = new ExecutableOperation<ResetRequest, TaskCallResponse>(
+                "ResetBenchmark",
+                async _ =>
+                {
+                    var response = await client.PostAsync("/__test/reset", content: null);
+                    return new TaskCallResponse((int)response.StatusCode, Task: null, Error: null);
+                });
+
+            CreateTask = new ExecutableOperation<CreateTaskRequest, TaskCallResponse>(
+                "CreateTask",
+                async request =>
+                {
+                    var response = await client.PostAsJsonAsync("/tasks", request);
+                    var task = response.IsSuccessStatusCode
+                        ? await response.Content.ReadFromJsonAsync<TaskResponse>()
+                        : null;
+                    return new TaskCallResponse((int)response.StatusCode, task, Error: null);
+                });
+
+            CompleteTask = new ExecutableOperation<TaskIdRequest, TaskCallResponse>(
+                "CompleteTask",
+                async request =>
+                {
+                    var response = await client.PostAsync($"/tasks/{request.Id}/complete", content: null);
+                    var task = response.IsSuccessStatusCode
+                        ? await response.Content.ReadFromJsonAsync<TaskResponse>()
+                        : null;
+                    return new TaskCallResponse((int)response.StatusCode, task, Error: null);
+                });
+        }
     }
 }

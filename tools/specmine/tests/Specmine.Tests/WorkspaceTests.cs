@@ -326,11 +326,13 @@ public sealed class WorkspaceTests
         using var root = new TestWorkspaceRoot();
         var settings = JsonSerializer.SerializeToElement(new { baseUrl = "https://example.test" });
         var workspace = await Workspace.InitializeAsync(root.Path, new TargetAdapterDeclaration("openapi", settings));
+        var echo = new ExecutableOperation<EchoRequest, EchoResponse>(
+            "Echo",
+            request => Task.FromResult(new EchoResponse(request.Text)));
 
         var (trace, path) = await TraceRecorder.RunAsync(workspace.TracesDirectory, async recorder =>
         {
-            await recorder.ExecuteAsync("Echo", new EchoRequest("hello"),
-                request => Task.FromResult(new EchoResponse(request.Text)));
+            await recorder.ExecuteAsync(echo, new EchoRequest("hello"));
         });
 
         var reloaded = await TraceStore.LoadAsync(path);

@@ -24,14 +24,15 @@ public sealed class TraceRecorderTests
     public async Task RunAsync_CompletedExperiment_PersistsCallsInOrderWithSnapshots()
     {
         using var tracesDirectory = new TestTracesDirectory();
+        var echo = new ExecutableOperation<EchoRequest, EchoResponse>(
+            "Echo",
+            request => Task.FromResult(new EchoResponse(request.Text)));
 
         var (trace, path) = await TraceRecorder.RunAsync(tracesDirectory.Path, async recorder =>
         {
-            var first = await recorder.ExecuteAsync("Echo", new EchoRequest("a"),
-                request => Task.FromResult(new EchoResponse(request.Text)));
+            var first = await recorder.ExecuteAsync(echo, new EchoRequest("a"));
 
-            await recorder.ExecuteAsync("Echo", new EchoRequest(first.Text + "b"),
-                request => Task.FromResult(new EchoResponse(request.Text)));
+            await recorder.ExecuteAsync(echo, new EchoRequest(first.Text + "b"));
         });
 
         Assert.Multiple(() =>
@@ -58,18 +59,22 @@ public sealed class TraceRecorderTests
     {
         using var tracesDirectory = new TestTracesDirectory();
         string? capturedId = null;
+        var create = new ExecutableOperation<CreateRequest, CreateResponse>(
+            "Create",
+            _ => Task.FromResult(new CreateResponse(Id: "generated-42")));
+        var complete = new ExecutableOperation<CompleteRequest, CompleteResponse>(
+            "Complete",
+            request => Task.FromResult(new CompleteResponse(request.Id, "done")));
 
         var (trace, _) = await TraceRecorder.RunAsync(tracesDirectory.Path, async recorder =>
         {
             // Execute Create, inspect the returned ID, then execute Complete using that ID -
             // the pattern this API is meant to support naturally.
-            var created = await recorder.ExecuteAsync("Create", new CreateRequest("widget"),
-                request => Task.FromResult(new CreateResponse(Id: "generated-42")));
+            var created = await recorder.ExecuteAsync(create, new CreateRequest("widget"));
 
             capturedId = created.Id;
 
-            await recorder.ExecuteAsync("Complete", new CompleteRequest(created.Id),
-                request => Task.FromResult(new CompleteResponse(request.Id, "done")));
+            await recorder.ExecuteAsync(complete, new CompleteRequest(created.Id));
         });
 
         Assert.Multiple(() =>
@@ -84,15 +89,19 @@ public sealed class TraceRecorderTests
     public void RunAsync_ExecutionDelegateThrows_RethrowsAndPersistsInterruptedTraceWithError()
     {
         using var tracesDirectory = new TestTracesDirectory();
+        var echo = new ExecutableOperation<EchoRequest, EchoResponse>(
+            "Echo",
+            request => Task.FromResult(new EchoResponse(request.Text)));
+        var failingEcho = new ExecutableOperation<EchoRequest, EchoResponse>(
+            "Echo",
+            _ => throw new InvalidOperationException("boom"));
 
         var thrown = Assert.ThrowsAsync<InvalidOperationException>(() =>
             TraceRecorder.RunAsync(tracesDirectory.Path, async recorder =>
             {
-                await recorder.ExecuteAsync("Echo", new EchoRequest("a"),
-                    request => Task.FromResult(new EchoResponse(request.Text)));
+                await recorder.ExecuteAsync(echo, new EchoRequest("a"));
 
-                await recorder.ExecuteAsync<EchoRequest, EchoResponse>("Echo", new EchoRequest("b"),
-                    _ => throw new InvalidOperationException("boom"));
+                await recorder.ExecuteAsync(failingEcho, new EchoRequest("b"));
             }));
 
         Assert.That(thrown!.Message, Is.EqualTo("boom"));
@@ -105,15 +114,19 @@ public sealed class TraceRecorderTests
     public async Task RunAsync_ExecutionDelegateThrows_InterruptedTraceHasSuccessCallAndErrorCall()
     {
         using var tracesDirectory = new TestTracesDirectory();
+        var echo = new ExecutableOperation<EchoRequest, EchoResponse>(
+            "Echo",
+            request => Task.FromResult(new EchoResponse(request.Text)));
+        var failingEcho = new ExecutableOperation<EchoRequest, EchoResponse>(
+            "Echo",
+            _ => throw new InvalidOperationException("boom"));
 
         Assert.ThrowsAsync<InvalidOperationException>(() =>
             TraceRecorder.RunAsync(tracesDirectory.Path, async recorder =>
             {
-                await recorder.ExecuteAsync("Echo", new EchoRequest("a"),
-                    request => Task.FromResult(new EchoResponse(request.Text)));
+                await recorder.ExecuteAsync(echo, new EchoRequest("a"));
 
-                await recorder.ExecuteAsync<EchoRequest, EchoResponse>("Echo", new EchoRequest("b"),
-                    _ => throw new InvalidOperationException("boom"));
+                await recorder.ExecuteAsync(failingEcho, new EchoRequest("b"));
             }));
 
         var path = Directory.GetFiles(tracesDirectory.Path, "*.json").Single();

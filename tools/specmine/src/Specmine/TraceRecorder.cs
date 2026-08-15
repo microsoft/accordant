@@ -24,41 +24,35 @@ public sealed class TraceRecorder
     }
 
     /// <summary>
-    /// Executes one operation call: snapshots <paramref name="request"/>, invokes
-    /// <paramref name="execute"/> against the system under test, and records either the
+    /// Executes one bound operation call: snapshots <paramref name="request"/>, invokes
+    /// <paramref name="operation"/> against the system under test, and records either the
     /// snapshotted response or the execution error.
     ///
-    /// If <paramref name="execute"/> throws, that means the execution delegate failed to
+    /// If the operation throws, that means its execution binding failed to
     /// produce its declared response. The failure is recorded as an execution error and
     /// the exception is rethrown unchanged - this method never swallows a failure or
     /// turns it into a success.
     /// </summary>
     /// <typeparam name="TRequest">The type of the request.</typeparam>
     /// <typeparam name="TResponse">The type of the declared response.</typeparam>
-    /// <param name="operationName">The name of the operation being called.</param>
-    /// <param name="request">The request to record and pass to <paramref name="execute"/>.</param>
-    /// <param name="execute">
-    /// The delegate that actually calls the system under test with <paramref name="request"/>
-    /// and returns its response.
-    /// </param>
-    /// <returns>The response produced by <paramref name="execute"/>.</returns>
+    /// <param name="operation">The reusable operation and its target-specific execution binding.</param>
+    /// <param name="request">The request to record and pass to the operation.</param>
+    /// <returns>The response produced by the operation.</returns>
     public async Task<TResponse> ExecuteAsync<TRequest, TResponse>(
-        string operationName,
-        TRequest request,
-        Func<TRequest, Task<TResponse>> execute)
+        ExecutableOperation<TRequest, TResponse> operation,
+        TRequest request)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(operationName);
-        ArgumentNullException.ThrowIfNull(execute);
+        ArgumentNullException.ThrowIfNull(operation);
 
         var callId = _nextCallId++;
         var requestSnapshot = JsonSerializer.SerializeToElement(request, TraceJson.SnapshotOptions);
 
         try
         {
-            var response = await execute(request).ConfigureAwait(false);
+            var response = await operation.ExecuteAsync(request).ConfigureAwait(false);
             var responseSnapshot = JsonSerializer.SerializeToElement(response, TraceJson.SnapshotOptions);
 
-            _calls.Add(new RecordedCall(callId, operationName, requestSnapshot, responseSnapshot, error: null));
+            _calls.Add(new RecordedCall(callId, operation.Name, requestSnapshot, responseSnapshot, error: null));
 
             return response;
         }
@@ -66,7 +60,7 @@ public sealed class TraceRecorder
         {
             _calls.Add(new RecordedCall(
                 callId,
-                operationName,
+                operation.Name,
                 requestSnapshot,
                 response: null,
                 RecordedError.FromException(ex)));
