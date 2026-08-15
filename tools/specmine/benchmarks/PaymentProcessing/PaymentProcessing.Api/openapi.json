@@ -1,0 +1,256 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Payment Processing Benchmark API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "Health",
+        "responses": {
+          "200": {
+            "description": "Service health",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "GetOpenApiDocument",
+        "responses": {
+          "200": {
+            "description": "This OpenAPI document",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/__test/reset": {
+      "post": {
+        "operationId": "Reset",
+        "responses": {
+          "204": { "description": "State cleared" }
+        }
+      }
+    },
+    "/payments/authorize": {
+      "post": {
+        "operationId": "AuthorizePayment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AuthorizePaymentRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorization result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/PaymentResponse" },
+                    { "$ref": "#/components/schemas/DeclinedPaymentResponse" }
+                  ]
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Payment authorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaymentResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/{id}": {
+      "get": {
+        "operationId": "GetPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaymentResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Payment not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/{id}/capture": {
+      "post": {
+        "operationId": "CapturePayment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaymentResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Payment not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/{id}/void": {
+      "post": {
+        "operationId": "VoidPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaymentResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Payment not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuthorizePaymentRequest": {
+        "type": "object",
+        "required": [ "idempotencyKey", "amount", "currency" ],
+        "properties": {
+          "idempotencyKey": { "type": "string" },
+          "amount": { "type": "number", "format": "decimal" },
+          "currency": { "type": "string" }
+        }
+      },
+      "PaymentResponse": {
+        "type": "object",
+        "required": [ "id", "idempotencyKey", "amount", "currency", "status" ],
+        "properties": {
+          "id": { "type": "string" },
+          "idempotencyKey": { "type": "string" },
+          "amount": { "type": "number", "format": "decimal" },
+          "currency": { "type": "string" },
+          "status": { "type": "string" }
+        }
+      },
+      "DeclinedPaymentResponse": {
+        "type": "object",
+        "required": [ "status", "reason" ],
+        "properties": {
+          "status": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [ "type", "code", "message" ],
+        "properties": {
+          "type": { "type": "string" },
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "required": [ "status" ],
+        "properties": {
+          "status": { "type": "string" }
+        }
+      }
+    }
+  }
+}

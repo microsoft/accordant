@@ -1,0 +1,254 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Inventory Reservation Benchmark API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "Health",
+        "responses": {
+          "200": {
+            "description": "Service health",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "OpenApi",
+        "responses": {
+          "200": {
+            "description": "OpenAPI document",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inventory/{sku}": {
+      "get": {
+        "operationId": "GetInventory",
+        "parameters": [
+          {
+            "name": "sku",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inventory availability",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InventoryResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "SKU not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reservations": {
+      "post": {
+        "operationId": "CreateReservation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateReservationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reservation created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CreateReservationResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "SKU not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Reservation conflict",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reservations/{id}": {
+      "get": {
+        "operationId": "GetReservation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GetReservationResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Reservation not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reservations/{id}/release": {
+      "post": {
+        "operationId": "ReleaseReservation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservation release result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReleaseReservationResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Reservation not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/__test/reset": {
+      "post": {
+        "operationId": "Reset",
+        "responses": {
+          "204": {
+            "description": "Benchmark state reset"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "type": "string" }
+        }
+      },
+      "InventoryResponse": {
+        "type": "object",
+        "required": ["sku", "available"],
+        "properties": {
+          "sku": { "type": "string" },
+          "available": { "type": "integer", "format": "int32" }
+        }
+      },
+      "CreateReservationRequest": {
+        "type": "object",
+        "required": ["sku", "quantity"],
+        "properties": {
+          "sku": { "type": "string" },
+          "quantity": { "type": "integer", "format": "int32" }
+        }
+      },
+      "CreateReservationResponse": {
+        "type": "object",
+        "required": ["id", "sku", "quantity", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "sku": { "type": "string" },
+          "quantity": { "type": "integer", "format": "int32" },
+          "status": { "type": "string" }
+        }
+      },
+      "GetReservationResponse": {
+        "type": "object",
+        "required": ["id", "sku", "quantity", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "sku": { "type": "string" },
+          "quantity": { "type": "integer", "format": "int32" },
+          "status": { "type": "string" }
+        }
+      },
+      "ReleaseReservationResponse": {
+        "type": "object",
+        "required": ["id", "sku", "quantity", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "sku": { "type": "string" },
+          "quantity": { "type": "integer", "format": "int32" },
+          "status": { "type": "string" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -16,6 +16,14 @@
     <Project Path="Samples/TodoList-Extended/TodoList-Extended.Api/TodoList-Extended.Api.csproj" />
     <Project Path="Samples/TodoList-Extended/TodoList-Extended.Tests/TodoList-Extended.Tests.csproj" />
   </Folder>
+  <Folder Name="/Tools/Specmine Benchmarks/">
+    <Project Path="tools/specmine/benchmarks/InventoryReservation/InventoryReservation.Api/InventoryReservation.Api.csproj" />
+    <Project Path="tools/specmine/benchmarks/InventoryReservation/InventoryReservation.Tests/InventoryReservation.Tests.csproj" />
+    <Project Path="tools/specmine/benchmarks/PaymentProcessing/PaymentProcessing.Api/PaymentProcessing.Api.csproj" />
+    <Project Path="tools/specmine/benchmarks/PaymentProcessing/PaymentProcessing.Tests/PaymentProcessing.Tests.csproj" />
+    <Project Path="tools/specmine/benchmarks/TaskWorkflow/TaskWorkflow.Api/TaskWorkflow.Api.csproj" />
+    <Project Path="tools/specmine/benchmarks/TaskWorkflow/TaskWorkflow.Tests/TaskWorkflow.Tests.csproj" />
+  </Folder>
   <Project Path="Accordant.Choose/Accordant.Choose.csproj" />
   <Project Path="Microsoft.Accordant.Cli/Microsoft.Accordant.Cli.csproj" />
   <Project Path="Accordant.Invariant/Accordant.Invariant.csproj" />
