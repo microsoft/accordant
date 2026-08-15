@@ -5,6 +5,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
     using System.Linq;
     using Microsoft.Accordant;
     using Microsoft.Accordant.ModelChecking;
+    using Microsoft.Accordant.ModelChecking.Ltl;
     using Microsoft.Accordant.ModelChecking.Rltl;
     using Microsoft.Accordant.ModelChecking.Symbolic;
     using NUnit.Framework;
@@ -94,12 +95,69 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             return s0;
         }
 
+        private static StateGraphNode BuildIntermittentlyEnabledSystem()
+        {
+            var s0State = new TestState("s0", 0); s0State.Freeze();
+            var s1State = new TestState("s1", 1); s1State.Freeze();
+            var goalState = new TestState("goal", 99); goalState.Freeze();
+            var cycle = new StepLoop();
+            var progress = new StepProgress();
+            var s0 = new StateGraphNode
+            {
+                State = s0State,
+                StepFunctions = new List<IStepFunction> { cycle, progress },
+                Edges = new List<StateGraphEdge>(),
+            };
+            var s1 = new StateGraphNode
+            {
+                State = s1State,
+                StepFunctions = new List<IStepFunction> { cycle },
+                Edges = new List<StateGraphEdge>(),
+            };
+            var goal = new StateGraphNode
+            {
+                State = goalState,
+                StepFunctions = new List<IStepFunction>(),
+                Edges = new List<StateGraphEdge>(),
+            };
+            s0.Edges.Add(new StateGraphEdge { Target = s1, StepFunction = cycle });
+            s0.Edges.Add(new StateGraphEdge { Target = goal, StepFunction = progress });
+            s1.Edges.Add(new StateGraphEdge { Target = s0, StepFunction = cycle });
+            return s0;
+        }
+
         private static StateProp Goal => new StateProp(
             "goal", s => ((TestState)s).Value == 99);
 
         #endregion
 
         #region SymbolicLtlCheck + Fairness
+
+        [Test]
+        public void ExplicitLtl_F_Goal_Violated_WithDefaultNoFairness()
+        {
+            var s0 = BuildSystem();
+            var phi = LtlFormula.Eventually(
+                LtlFormula.Prop(state => ((TestState)state).Value == 99, "goal"));
+
+            var result = LtlCheck.Check(s0, phi);
+
+            Assert.That(result.Valid, Is.False);
+        }
+
+        [Test]
+        public void ExplicitLtl_F_Goal_Holds_Under_StatePairFairness()
+        {
+            var s0 = BuildSystem();
+            var phi = LtlFormula.Eventually(
+                LtlFormula.Prop(state => ((TestState)state).Value == 99, "goal"));
+            var fairness = Fairness.Weak<TestState>(
+                (state, next) => next.Value > state.Value);
+
+            var result = LtlCheck.Check(s0, phi, fairness);
+
+            Assert.That(result.Valid, Is.True);
+        }
 
         [Test]
         public void Ltl_F_Goal_Violated_Without_Fairness()
@@ -114,14 +172,14 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         }
 
         [Test]
-        public void Ltl_F_Goal_Holds_Under_WeakFairAll()
+        public void Ltl_F_Goal_Holds_Under_WeakAll()
         {
             var s0 = BuildSystem();
             var phi = Ltl<IStatePredicate>.Eventually(
                 Ltl<IStatePredicate>.Atom(new StatePredAtom(Goal)));
 
             var result = SymbolicLtlCheck.Check(s0, phi, maxDepth: 0,
-                fairness: Fairness.WeakFairAll);
+                fairness: Fairness.WeakAll);
             Assert.That(result.Valid, Is.True,
                 "Under weak fairness, step_progress is continuously enabled at s0 " +
                 "and must be taken, so F goal holds.");
@@ -134,8 +192,24 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             var phi = Ltl<IStatePredicate>.Eventually(
                 Ltl<IStatePredicate>.Atom(new StatePredAtom(Goal)));
 
-            var fairness = Fairness.WeakFair<StepProgress>();
+            var fairness = Fairness.Weak<StepProgress>();
             var result = SymbolicLtlCheck.Check(s0, phi, maxDepth: 0, fairness: fairness);
+            Assert.That(result.Valid, Is.True);
+        }
+
+        [Test]
+        public void Ltl_F_Goal_Holds_Under_FullEdgeFairness()
+        {
+            var s0 = BuildSystem();
+            var phi = Ltl<IStatePredicate>.Eventually(
+                Ltl<IStatePredicate>.Atom(new StatePredAtom(Goal)));
+            var fairness = Fairness.Weak<TestState>(
+                (_, action, next) =>
+                    action is StepProgress && next.Value == 99);
+
+            var result = SymbolicLtlCheck.Check(
+                s0, phi, maxDepth: 0, fairness: fairness);
+
             Assert.That(result.Valid, Is.True);
         }
 
@@ -149,9 +223,31 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             var phi = Ltl<IStatePredicate>.Eventually(
                 Ltl<IStatePredicate>.Atom(new StatePredAtom(Goal)));
 
-            var fairness = Fairness.WeakFair<StepLoop>();
+            var fairness = Fairness.Weak<StepLoop>();
             var result = SymbolicLtlCheck.Check(s0, phi, maxDepth: 0, fairness: fairness);
             Assert.That(result.Valid, Is.False);
+        }
+
+        [Test]
+        public void RelationalFairness_DistinguishesWeakFromStrong_InProductCycle()
+        {
+            var root = BuildIntermittentlyEnabledSystem();
+            var phi = Ltl<IStatePredicate>.Eventually(
+                Ltl<IStatePredicate>.Atom(new StatePredAtom(Goal)));
+            Func<TestState, TestState, bool> reachesGoal =
+                (_, next) => next.Value == 99;
+
+            var weak = SymbolicLtlCheck.Check(
+                root,
+                phi,
+                fairness: Fairness.Weak(reachesGoal));
+            var strong = SymbolicLtlCheck.Check(
+                root,
+                phi,
+                fairness: Fairness.Strong(reachesGoal));
+
+            Assert.That(weak.Valid, Is.False);
+            Assert.That(strong.Valid, Is.True);
         }
 
         #endregion
@@ -159,12 +255,12 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         #region SymbolicRltlCheck + Fairness
 
         [Test]
-        public void Rltl_F_Goal_Holds_Under_WeakFairAll()
+        public void Rltl_F_Goal_Holds_Under_WeakAll()
         {
             var s0 = BuildSystem();
             var phi = RltlFormula.Eventually(RltlFormula.Prop(s => ((TestState)s).Value == 99, "goal"));
 
-            var result = RltlCheck.Check(s0, phi, maxDepth: 0, fairness: Fairness.WeakFairAll);
+            var result = RltlCheck.Check(s0, phi, maxDepth: 0, fairness: Fairness.WeakAll);
             Assert.That(result.Valid, Is.True);
         }
 
@@ -175,6 +271,38 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             var phi = RltlFormula.Eventually(RltlFormula.Prop(s => ((TestState)s).Value == 99, "goal"));
 
             var result = RltlCheck.Check(s0, phi);
+            Assert.That(result.Valid, Is.False);
+        }
+
+        [Test]
+        public void HighLevelRltl_F_Goal_Holds_Under_ObservedTransitionFairness()
+        {
+            var s0 = BuildSystem();
+            var f = Formula.For<TestState>();
+            var goal = f.Observe(state => state.Value == 99);
+            var progresses = f.ObserveTransition(
+                (state, next) => next.Value > state.Value);
+
+            var result = s0.Check(
+                f.Eventually(goal),
+                fairness: Fairness.Weak(progresses));
+
+            Assert.That(result.Valid, Is.True);
+        }
+
+        [Test]
+        public void ObservedUnchangedTransition_DoesNotCreateFairnessObligation()
+        {
+            var s0 = BuildSystem();
+            var f = Formula.For<TestState>();
+            var goal = f.Observe(state => state.Value == 99);
+            var unchanged = f.ObserveTransition(
+                (state, next) => state.Value == next.Value);
+
+            var result = s0.Check(
+                f.Eventually(goal),
+                fairness: Fairness.Weak(unchanged));
+
             Assert.That(result.Valid, Is.False);
         }
 
@@ -190,7 +318,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             var phi = RltlFormula.InfinitelyOften(
                 RltlFormula.Prop(s => ((TestState)s).Value == 99, "goal"));
 
-            var fairness = Fairness.StrongFair<StepProgress>();
+            var fairness = Fairness.Strong<StepProgress>();
             var result = RltlCheck.Check(s0, phi, maxDepth: 0, fairness: fairness);
             Assert.That(result.Valid, Is.True);
         }
@@ -215,7 +343,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
 
             // Fairness only on StepLoop leaves the self-loop run fair → counterexample.
             var result = SymbolicLtlCheck.Check(s0, phi, maxDepth: 0,
-                fairness: Fairness.WeakFair<StepLoop>());
+                fairness: Fairness.Weak<StepLoop>());
 
             Assert.That(result.Valid, Is.False);
             Assert.That(result.BadCycle, Is.Not.Null,

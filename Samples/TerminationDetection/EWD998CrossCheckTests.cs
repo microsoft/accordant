@@ -63,7 +63,7 @@ namespace TerminationDetection
             LtlRltlCrossCheck.Run(
                 _rootNode,
                 LtlFormula.LeadsTo(Terminated, Detected),
-                fairness: Fairness.WeakFairAll,
+                fairness: Fairness.WeakAll,
                 label: nameof(Liveness_TerminatedLeadsToDetected_CrossCheck)
             ).ThrowIfDisagree();
 
@@ -73,7 +73,7 @@ namespace TerminationDetection
                 _rootNode,
                 LtlFormula.Always(LtlFormula.Implies(Detected, Terminated))
                     & LtlFormula.LeadsTo(Terminated, Detected),
-                fairness: Fairness.WeakFairAll,
+                fairness: Fairness.WeakAll,
                 label: nameof(Combined_SafetyAndLiveness_CrossCheck)
             ).ThrowIfDisagree();
 

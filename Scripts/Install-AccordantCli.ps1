@@ -30,7 +30,7 @@ if ($installed) {
     Write-Host "Uninstalled." -ForegroundColor Green
 }
 
-# Build the tool (creates binaries for all target frameworks)
+# Build the tool
 Write-Host ""
 Write-Host "Building..." -ForegroundColor Yellow
 dotnet build $projectPath -c Release
@@ -65,7 +65,7 @@ if ($nugetExe) {
 }
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Pack failed! Check if nuspec matches csproj TargetFrameworks." -ForegroundColor Red
+    Write-Host "Pack failed! Check if nuspec matches the csproj TargetFramework." -ForegroundColor Red
     exit 1
 }
 

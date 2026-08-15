@@ -242,12 +242,12 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     return Concat(Exists(propIdx, cc.Left), Exists(propIdx, cc.Right));
 
                 case EreUnion<TPred> uu:                    // ∃p. (R+S) = ∃p.R + ∃p.S — D3
-                {
-                    Ere<TPred> acc = Empty();
-                    foreach (var op in uu.Operands)
-                        acc = Union(acc, Exists(propIdx, op));
-                    return acc;
-                }
+                    {
+                        Ere<TPred> acc = Empty();
+                        foreach (var op in uu.Operands)
+                            acc = Union(acc, Exists(propIdx, op));
+                        return acc;
+                    }
 
                 case EreStar<TPred> st:                     // ∃p. R* = (∃p.R)*
                     return Star(Exists(propIdx, st.Inner));
@@ -256,35 +256,35 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     return Fusion(Exists(propIdx, fu.Left), Exists(propIdx, fu.Right));
 
                 case EreIntersect<TPred> ii:                // ∃p. (A ∩ B) = A ∩ ∃p.B if p ∉ Free(A)
-                {
-                    Ere<TPred> extracted = Sigma(); // intersection identity
-                    Ere<TPred> kept = Sigma();
-                    foreach (var op in ii.Operands)
                     {
-                        if ((op.FreeProps & bit) == 0UL)
-                            extracted = Intersect(extracted, op);
-                        else
-                            kept = Intersect(kept, op);
+                        Ere<TPred> extracted = Sigma(); // intersection identity
+                        Ere<TPred> kept = Sigma();
+                        foreach (var op in ii.Operands)
+                        {
+                            if ((op.FreeProps & bit) == 0UL)
+                                extracted = Intersect(extracted, op);
+                            else
+                                kept = Intersect(kept, op);
+                        }
+                        if (!IsSigma(extracted))
+                        {
+                            // recurse on the kept block: still contains p,
+                            // but may admit further internal simplification
+                            // through factory-canonicalised forms.
+                            var inner = IsSigma(kept)
+                                ? kept
+                                : DefaultBuilder.Intern(new EreExists<TPred>(propIdx, kept));
+                            return Intersect(extracted, inner);
+                        }
+                        // Nothing to extract — fall through to residual node.
+                        break;
                     }
-                    if (!IsSigma(extracted))
-                    {
-                        // recurse on the kept block: still contains p,
-                        // but may admit further internal simplification
-                        // through factory-canonicalised forms.
-                        var inner = IsSigma(kept)
-                            ? kept
-                            : DefaultBuilder.Intern(new EreExists<TPred>(propIdx, kept));
-                        return Intersect(extracted, inner);
-                    }
-                    // Nothing to extract — fall through to residual node.
-                    break;
-                }
 
                 case EreXor<TPred> xx:                      // expand XOR then re-enter
-                {
-                    Ere<TPred> expanded = ExpandXor(xx);
-                    return Exists(propIdx, expanded);
-                }
+                    {
+                        Ere<TPred> expanded = ExpandXor(xx);
+                        return Exists(propIdx, expanded);
+                    }
             }
 
             // Σ* (= ~∅) pass-through: handled implicitly because FreeProps(Σ*)=0.
@@ -661,7 +661,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                         foreach (var cc in toDistribute)
                         {
                             ops.Remove(cc);
-                            var left  = Intersect(predStar, cc.Left);
+                            var left = Intersect(predStar, cc.Left);
                             var right = Intersect(predStar, cc.Right);
                             var distributed = Concat(left, right);
                             if (distributed is EreEmpty<TPred>) return Empty();
@@ -762,7 +762,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         {
             // Fusion requires both sides to contribute at least one letter at the
             // shared position; ∅ or ε on either side yields ∅.
-            if (a is EreEmpty<TPred>   || b is EreEmpty<TPred>)   return Empty();
+            if (a is EreEmpty<TPred> || b is EreEmpty<TPred>) return Empty();
             if (a is EreEpsilon<TPred> || b is EreEpsilon<TPred>) return Empty();
             // Distribute Fusion over Union on the LEFT only (right-propagating):
             //   (R₁ + R₂) : S = (R₁:S) + (R₂:S)

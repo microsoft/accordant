@@ -22,7 +22,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
                 $"Round-trip failed. JSON: {json}\nOriginal: {phi}\nGot: {back}");
         }
 
-        [Test] public void True_()  => RoundTrip(Alg.True);
+        [Test] public void True_() => RoundTrip(Alg.True);
         [Test] public void False_() => RoundTrip(Alg.False);
         [Test] public void Atom_A() => RoundTrip(A);
 
@@ -34,22 +34,22 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             RoundTrip(na);
         }
 
-        [Test] public void Next_A()         => RoundTrip(Alg.Next(A));
-        [Test] public void Until_AB()       => RoundTrip(Alg.Until(A, B));
-        [Test] public void Release_AB()     => RoundTrip(Alg.Release(A, B));
-        [Test] public void Eventually_A()   => RoundTrip(Alg.Eventually(A));
-        [Test] public void Globally_A()     => RoundTrip(Alg.Globally(A));
-        [Test] public void And_AB()         => RoundTrip(Alg.And(A, B));
-        [Test] public void Or_AB()          => RoundTrip(Alg.Or(A, B));
+        [Test] public void Next_A() => RoundTrip(Alg.Next(A));
+        [Test] public void Until_AB() => RoundTrip(Alg.Until(A, B));
+        [Test] public void Release_AB() => RoundTrip(Alg.Release(A, B));
+        [Test] public void Eventually_A() => RoundTrip(Alg.Eventually(A));
+        [Test] public void Globally_A() => RoundTrip(Alg.Globally(A));
+        [Test] public void And_AB() => RoundTrip(Alg.And(A, B));
+        [Test] public void Or_AB() => RoundTrip(Alg.Or(A, B));
 
         // RLTL-specific: embedded ERE.
-        [Test] public void SeqPrefix_aB()      => RoundTrip(Alg.SeqPrefix(Ra, B));
-        [Test] public void OvlPrefix_aB()      => RoundTrip(Alg.OvlPrefix(Ra, B));
-        [Test] public void Trigger_aB()        => RoundTrip(Alg.Trigger(Ra, B));
-        [Test] public void Match_aB()          => RoundTrip(Alg.Match(Ra, B));
-        [Test] public void WeakClosure_a()     => RoundTrip(Alg.WeakClosure(Ra));
-        [Test] public void NegWeakClosure_a()  => RoundTrip(Alg.NegWeakClosure(Ra));
-        [Test] public void OmegaClosure_a()    => RoundTrip(Alg.OmegaClosure(Ra));
+        [Test] public void SeqPrefix_aB() => RoundTrip(Alg.SeqPrefix(Ra, B));
+        [Test] public void OvlPrefix_aB() => RoundTrip(Alg.OvlPrefix(Ra, B));
+        [Test] public void Trigger_aB() => RoundTrip(Alg.Trigger(Ra, B));
+        [Test] public void Match_aB() => RoundTrip(Alg.Match(Ra, B));
+        [Test] public void WeakClosure_a() => RoundTrip(Alg.WeakClosure(Ra));
+        [Test] public void NegWeakClosure_a() => RoundTrip(Alg.NegWeakClosure(Ra));
+        [Test] public void OmegaClosure_a() => RoundTrip(Alg.OmegaClosure(Ra));
 
         [Test]
         public void Nested_AcrossEreAndRltl()

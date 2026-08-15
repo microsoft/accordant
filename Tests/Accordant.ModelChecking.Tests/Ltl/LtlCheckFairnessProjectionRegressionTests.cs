@@ -30,7 +30,7 @@ namespace Accordant.ModelChecking.Tests.Ltl
     /// The synthetic scenario constructed here exhibits exactly this
     /// pattern: one system state with two enabled self-loops α and τ,
     /// and a single product node whose only in-SCC outgoing edge is τ;
-    /// the α-edge leaves the SCC. Under <see cref="Fairness.WeakFairAll"/>
+    /// the α-edge leaves the SCC. Under <see cref="Fairness.WeakAll"/>
     /// α is continuously enabled but never taken by the projected cycle,
     /// so the cycle must be classified as <b>unfair</b>.
     /// </para>
@@ -58,7 +58,7 @@ namespace Accordant.ModelChecking.Tests.Ltl
         }
 
         [Test]
-        public void Unfair_When_AlphaSystemSelfLoop_But_ProductAlphaLeavesSCC()
+        public void Fair_When_OnlyUntakenActionIsAnUnchangedSelfLoop()
         {
             var sState = new TestState("s"); sState.Freeze();
             var outState = new TestState("out"); outState.Freeze();
@@ -100,14 +100,13 @@ namespace Accordant.ModelChecking.Tests.Ltl
                 .GetProperty(nameof(StronglyConnectedComponent.HasCycle))
                 .SetValue(systemOnlySCC, true);
             Assert.That(
-                Fairness.WeakFairAll.IsFairCycle(systemOnlySCC), Is.True,
+                Fairness.WeakAll.IsFairCycle(systemOnlySCC), Is.True,
                 "Sanity: system-only projection is fair (pre-fix would accept).");
 
-            // Post-fix: product-edge-projected fairness must reject.
+            // Fairness ignores unchanged edges, including named model actions.
             Assert.That(
-                LtlCheck.IsFairCycle(scc, Fairness.WeakFairAll), Is.False,
-                "α is continuously enabled at s but the product cycle never " +
-                "fires α — cycle is unfair under WeakFairAll.");
+                LtlCheck.IsFairCycle(scc, Fairness.WeakAll), Is.True,
+                "The untaken α edge is unchanged and creates no fairness obligation.");
         }
 
         [Test]
@@ -136,12 +135,12 @@ namespace Accordant.ModelChecking.Tests.Ltl
             // HasCycle is internal-set; not needed by IsFairCycle
 
             Assert.That(
-                LtlCheck.IsFairCycle(scc, Fairness.WeakFairAll), Is.True,
-                "Both α and τ taken in product SCC; cycle is fair under WeakFairAll.");
+                LtlCheck.IsFairCycle(scc, Fairness.WeakAll), Is.True,
+                "Both α and τ taken in product SCC; cycle is fair under WeakAll.");
         }
 
         [Test]
-        public void StrongFair_Detects_AlphaNotTakenInProduct()
+        public void StrongFair_Ignores_UntakenUnchangedAlpha()
         {
             var sState = new TestState("s"); sState.Freeze();
 
@@ -174,11 +173,10 @@ namespace Accordant.ModelChecking.Tests.Ltl
             scc.Nodes.Add(p);
             // HasCycle is internal-set; not needed by IsFairCycle
 
-            var sf = Fairness.StrongFair(x => x.StepFunctionId == "alpha");
+            var sf = Fairness.Strong(x => x.StepFunctionId == "alpha");
             Assert.That(
-                LtlCheck.IsFairCycle(scc, sf), Is.False,
-                "Strong fairness on α must reject the cycle since α is enabled at s " +
-                "but the product cycle never fires α.");
+                LtlCheck.IsFairCycle(scc, sf), Is.True,
+                "Strong fairness does not treat an unchanged α edge as enabled.");
         }
     }
 }

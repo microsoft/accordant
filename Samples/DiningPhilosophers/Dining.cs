@@ -59,8 +59,12 @@ namespace DiningPhilosophers
         /// <summary>Initial state: everyone thinking, every fork free.</summary>
         public static DiningState InitialState() => new DiningState
         {
-            PC0 = PhilPC.Thinking, PC1 = PhilPC.Thinking, PC2 = PhilPC.Thinking,
-            F0 = -1, F1 = -1, F2 = -1,
+            PC0 = PhilPC.Thinking,
+            PC1 = PhilPC.Thinking,
+            PC2 = PhilPC.Thinking,
+            F0 = -1,
+            F1 = -1,
+            F2 = -1,
         };
 
         /// <summary>

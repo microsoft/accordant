@@ -51,6 +51,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 Dictionary<TNbwState, ProductNode<TNbwState>>>();
             var allNodes = new List<ProductNode<TNbwState>>();
             var worklist = new Queue<ProductNode<TNbwState>>();
+            var reachedDepthFrontier = false;
 
             ProductNode<TNbwState> GetOrCreate(
                 StateGraphNode sysNode,
@@ -83,46 +84,44 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             while (worklist.Count > 0)
             {
                 var current = worklist.Dequeue();
+                var sysNode = current.SystemNode;
+                var sysEdges = sysNode.Edges;
+                var nbwTrans = nbw.GetTransition(current.NbwState);
+                var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
+                var terminal =
+                    (sysEdges == null || sysEdges.Count == 0) &&
+                    !sysNode.IsDepthFrontier;
+                var atFrontier =
+                    sysNode.IsDepthFrontier ||
+                    (maxDepth > 0 && current.Depth >= maxDepth && !terminal);
 
-                if (maxDepth > 0 && current.Depth >= maxDepth)
+                if (atFrontier)
                 {
-                    // At the depth frontier we cannot explore further system
-                    // edges, so the only continuation we admit is a system
-                    // stutter (sys stays the same). The NBW, however, must
-                    // make a real transition on the current state's label —
-                    // pretending it can self-loop unconditionally would
-                    // fabricate accepting cycles for properties the NBW
-                    // cannot actually satisfy here. Aligns with the
-                    // <see cref="NestedDfsCheck"/> frontier handling.
-                    var frontierNbw = nbw.GetTransition(current.NbwState);
-                    var frontierSuccs = EvaluateNbwTransitions(
-                        frontierNbw, TransitionContext.Stutter(current.SystemNode.State),
-                        registry, nbwStateComparer);
-                    foreach (var succNbw in frontierSuccs)
+                    if (anyTransitionAware)
                     {
-                        var succ = GetOrCreate(
-                            current.SystemNode, succNbw, current.Depth + 1, null, current);
-                        current.Successors.Add(new ProductEdge<TNbwState>(null, succ));
+                        reachedDepthFrontier = true;
+                        continue;
                     }
+
+                    var frontierSuccessors = EvaluateNbwTransitions(
+                        nbwTrans,
+                        TransitionContext.Source(sysNode.State, sysNode),
+                        registry,
+                        nbwStateComparer);
+                    reachedDepthFrontier |= frontierSuccessors.Count > 0;
                     continue;
                 }
 
-                var nbwTrans = nbw.GetTransition(current.NbwState);
-                var sysNode = current.SystemNode;
-                var sysEdges = sysNode.Edges;
-
-                // GetTransition has registered this node's guard predicates.
-                var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
-
-                if (sysEdges == null || sysEdges.Count == 0)
+                if (terminal)
                 {
                     var stutterSuccs = EvaluateNbwTransitions(
-                        nbwTrans, TransitionContext.Stutter(sysNode.State),
+                        nbwTrans, TransitionContext.Stutter(sysNode.State, sysNode),
                         registry, nbwStateComparer);
                     foreach (var succNbw in stutterSuccs)
                     {
                         var succ = GetOrCreate(sysNode, succNbw, current.Depth + 1, null, current);
-                        current.Successors.Add(new ProductEdge<TNbwState>(null, succ));
+                        current.Successors.Add(
+                            new ProductEdge<TNbwState>(null, null, succ));
                     }
                     continue;
                 }
@@ -132,7 +131,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     // Fast path: NBW successors depend only on the source
                     // system state, so evaluate once and reuse for all edges.
                     var nbwSuccsAll = EvaluateNbwTransitions(
-                        nbwTrans, TransitionContext.Source(sysNode.State),
+                        nbwTrans, TransitionContext.Source(sysNode.State, sysNode),
                         registry, nbwStateComparer);
 
                     foreach (var edge in sysEdges)
@@ -142,7 +141,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                             var succ = GetOrCreate(
                                 edge.Target, succNbw, current.Depth + 1, edge.StepFunction, current);
                             current.Successors.Add(
-                                new ProductEdge<TNbwState>(edge.StepFunction, succ));
+                                new ProductEdge<TNbwState>(
+                                    edge.StepFunction, edge.Metadata, succ));
                         }
                     }
                     continue;
@@ -153,7 +153,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 foreach (var edge in sysEdges)
                 {
                     var ctx = TransitionContext.Edge(
-                        sysNode.State, edge.StepFunction, edge.Metadata, edge.Target.State);
+                        sysNode.State, edge.StepFunction, edge.Metadata, edge.Target.State,
+                        sysNode);
                     var nbwSuccs = EvaluateNbwTransitions(
                         nbwTrans, ctx, registry, nbwStateComparer);
                     foreach (var succNbw in nbwSuccs)
@@ -161,7 +162,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                         var succ = GetOrCreate(
                             edge.Target, succNbw, current.Depth + 1, edge.StepFunction, current);
                         current.Successors.Add(
-                            new ProductEdge<TNbwState>(edge.StepFunction, succ));
+                            new ProductEdge<TNbwState>(
+                                edge.StepFunction, edge.Metadata, succ));
                     }
                 }
             }
@@ -186,7 +188,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 return PropertyCheckingResult.Failure(trace, badCycle);
             }
 
-            return PropertyCheckingResult.Success();
+            return reachedDepthFrontier
+                ? PropertyCheckingResult.InconclusiveBound()
+                : PropertyCheckingResult.Success();
         }
 
         #region Transition evaluation
@@ -251,15 +255,20 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
             var sccNodes = new HashSet<ProductNode<TNbwState>>(scc.Nodes);
 
-            IEnumerable<IStepFunction> EnabledAt(StateGraphNode sys)
-                => sys.Edges.Select(e => e.StepFunction);
+            IEnumerable<FairnessEdge> EnabledAt(StateGraphNode sys)
+                => sys.Edges.Select(e =>
+                    new FairnessEdge(sys, e.StepFunction, e.Metadata, e.Target));
 
-            IEnumerable<IStepFunction> Taken()
+            IEnumerable<FairnessEdge> Taken()
             {
                 foreach (var n in scc.Nodes)
                     foreach (var pe in n.Successors)
                         if (sccNodes.Contains(pe.Target))
-                            yield return pe.StepFunction;
+                            yield return new FairnessEdge(
+                                n.SystemNode,
+                                pe.StepFunction,
+                                pe.Metadata,
+                                pe.Target.SystemNode);
             }
 
             var analysis = CycleFairness.Compute(systemNodes.Values, EnabledAt, Taken());
@@ -454,11 +463,16 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         private sealed class ProductEdge<TNbwState>
         {
             public IStepFunction StepFunction { get; }
+            public object Metadata { get; }
             public ProductNode<TNbwState> Target { get; }
 
-            public ProductEdge(IStepFunction stepFunction, ProductNode<TNbwState> target)
+            public ProductEdge(
+                IStepFunction stepFunction,
+                object metadata,
+                ProductNode<TNbwState> target)
             {
                 StepFunction = stepFunction;
+                Metadata = metadata;
                 Target = target;
             }
         }

@@ -31,7 +31,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         ///   (non-<c>null</c> and not <see cref="Fairness.None"/>), emptiness
         ///   is checked with <see cref="SccProductCheck"/> so only fair
         ///   accepting cycles count as counterexamples.</param>
-        /// <returns>Result with counterexample if property is violated.</returns>
+        /// <returns>A conclusive result with a counterexample on violation, or
+        /// a bounded-inconclusive result when an unexplored frontier can affect
+        /// the verdict.</returns>
         public static PropertyCheckingResult Check(
             StateGraphNode root,
             Ltl<IStatePredicate> property,
@@ -64,7 +66,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 return SccProductCheck.Check(root, nbw, maxDepth, bpComparer, fairness);
             }
 
-            return ExploreProduct(root, nbw, registry, maxDepth);
+            var result = ExploreProduct(root, nbw, registry, maxDepth);
+            return ResolveFiniteInvariantViolation(root, property, maxDepth, result);
         }
 
         /// <summary>
@@ -99,7 +102,22 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             var nbw = incAE.ToNBW();
 
             var bpComparer = BreakpointState<Ltl<IStatePredicate>>.GetEqualityComparer();
-            return NestedDfsCheck.Check(root, nbw, maxDepth, bpComparer);
+            var result = NestedDfsCheck.Check(root, nbw, maxDepth, bpComparer);
+            return ResolveFiniteInvariantViolation(root, property, maxDepth, result);
+        }
+
+        private static PropertyCheckingResult ResolveFiniteInvariantViolation(
+            StateGraphNode root,
+            Ltl<IStatePredicate> property,
+            int maxDepth,
+            PropertyCheckingResult result)
+        {
+            if (result.Status != PropertyCheckingStatus.InconclusiveBound)
+            {
+                return result;
+            }
+
+            return FiniteInvariantCheck.FindViolation(root, property, maxDepth) ?? result;
         }
 
         /// <summary>
@@ -119,6 +137,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             // Product node tracking
             var productNodes = new Dictionary<string, ProductNodeInfo>();
             var worklist = new Queue<ProductNodeInfo>();
+            var reachedDepthFrontier = false;
 
             // Initialize: system root × each NBW initial state
             foreach (var nbwInit in nbw.InitialStates)
@@ -136,55 +155,40 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             while (worklist.Count > 0)
             {
                 var current = worklist.Dequeue();
+                var sysNode = current.SystemNode;
+                var sysEdges = sysNode.Edges;
+                var nbwState = current.NbwState;
+                var nbwTransitions = nbw.GetTransition(nbwState);
+                var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
+                var terminal =
+                    (sysEdges == null || sysEdges.Count == 0) &&
+                    !sysNode.IsDepthFrontier;
+                var atFrontier =
+                    sysNode.IsDepthFrontier ||
+                    (maxDepth > 0 && current.Depth >= maxDepth && !terminal);
 
-                if (maxDepth > 0 && current.Depth >= maxDepth)
+                if (atFrontier)
                 {
-                    // At the depth frontier we admit only a system stutter
-                    // (sys stays put); the NBW must make a real transition
-                    // on the current state's label rather than a fake
-                    // unconditional self-loop. The previous unconditional
-                    // self-loop fabricated accepting cycles for properties
-                    // the NBW could not actually satisfy at the frontier
-                    // state (e.g. <c>F p</c> when <c>p</c> is true at the
-                    // frontier and the NBW for <c>G ¬p</c> has no
-                    // outgoing transition there). Now consistent with the
-                    // <see cref="NestedDfsCheck"/> frontier handling.
-                    var nbwTransitionsFr = nbw.GetTransition(current.NbwState);
-                    var frontierSuccs = EvaluateNbwTransitions(
-                        nbwTransitionsFr, TransitionContext.Stutter(current.SystemNode.State),
-                        registry);
-                    foreach (var succNbwState in frontierSuccs)
+                    if (anyTransitionAware)
                     {
-                        var succKey = MakeProductKey(current.SystemNode, succNbwState);
-                        if (!productNodes.TryGetValue(succKey, out var succInfo))
-                        {
-                            succInfo = new ProductNodeInfo(
-                                current.SystemNode, succNbwState, succKey,
-                                current.Depth + 1, null, current);
-                            productNodes[succKey] = succInfo;
-                            worklist.Enqueue(succInfo);
-                        }
-                        current.Successors.Add(succInfo);
+                        reachedDepthFrontier = true;
+                        continue;
                     }
+
+                    var frontierSuccessors = EvaluateNbwTransitions(
+                        nbwTransitions,
+                        TransitionContext.Source(sysNode.State, sysNode),
+                        registry);
+                    reachedDepthFrontier |= frontierSuccessors.Count > 0;
                     continue;
                 }
 
-                var sysNode = current.SystemNode;
-                var nbwState = current.NbwState;
-
-                // Get NBW transitions for current NBW state
-                var nbwTransitions = nbw.GetTransition(nbwState);
-
-                // GetTransition has registered this node's guard predicates.
-                var anyTransitionAware = NestedDfsCheck.AnyTransitionAware(registry);
-
                 // If system node is terminal (no outgoing edges): stutter self-loop
-                var sysEdges = sysNode.Edges;
-                if (sysEdges == null || sysEdges.Count == 0)
+                if (terminal)
                 {
                     // Stutter: stay in same system state, advance NBW
                     var successorNbwStates = EvaluateNbwTransitions(
-                        nbwTransitions, TransitionContext.Stutter(sysNode.State), registry);
+                        nbwTransitions, TransitionContext.Stutter(sysNode.State, sysNode), registry);
 
                     foreach (var succNbwState in successorNbwStates)
                     {
@@ -208,7 +212,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     // system state (the label is consumed at the source), so
                     // evaluate once and reuse for every outgoing edge.
                     var successorNbwStates = EvaluateNbwTransitions(
-                        nbwTransitions, TransitionContext.Source(sysNode.State), registry);
+                        nbwTransitions, TransitionContext.Source(sysNode.State, sysNode), registry);
 
                     foreach (var edge in sysEdges)
                     {
@@ -237,7 +241,8 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     var nextSysNode = edge.Target;
 
                     var ctx = TransitionContext.Edge(
-                        sysNode.State, edge.StepFunction, edge.Metadata, nextSysNode.State);
+                        sysNode.State, edge.StepFunction, edge.Metadata, nextSysNode.State,
+                        sysNode);
                     var successorNbwStates = EvaluateNbwTransitions(
                         nbwTransitions, ctx, registry);
 
@@ -276,7 +281,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 return PropertyCheckingResult.Failure(trace);
             }
 
-            return PropertyCheckingResult.Success();
+            return reachedDepthFrontier
+                ? PropertyCheckingResult.InconclusiveBound()
+                : PropertyCheckingResult.Success();
         }
 
         /// <summary>

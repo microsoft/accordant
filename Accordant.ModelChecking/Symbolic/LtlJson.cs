@@ -181,73 +181,73 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     return Ltl<string>.False();
 
                 case "Atom":
-                {
-                    if (!fields.TryGetValue("pred", out var pred))
-                        throw new FormatException("Atom missing 'pred' field.");
-                    bool neg = fields.TryGetValue("neg", out var negVal) && negVal == "true";
-                    return neg ? StringAlgebra.NegAtom(pred) : StringAlgebra.Atom(pred);
-                }
+                    {
+                        if (!fields.TryGetValue("pred", out var pred))
+                            throw new FormatException("Atom missing 'pred' field.");
+                        bool neg = fields.TryGetValue("neg", out var negVal) && negVal == "true";
+                        return neg ? StringAlgebra.NegAtom(pred) : StringAlgebra.Atom(pred);
+                    }
 
                 case "Next":
-                {
-                    if (!fields.TryGetValue("inner", out var innerJson))
-                        throw new FormatException("Next missing 'inner' field.");
-                    int p = 0;
-                    return Ltl<string>.Next(ParseFormula(innerJson, ref p));
-                }
+                    {
+                        if (!fields.TryGetValue("inner", out var innerJson))
+                            throw new FormatException("Next missing 'inner' field.");
+                        int p = 0;
+                        return Ltl<string>.Next(ParseFormula(innerJson, ref p));
+                    }
 
                 case "Until":
-                {
-                    var (left, right) = ParseBinary(fields, "Until");
-                    return Ltl<string>.Until(left, right);
-                }
+                    {
+                        var (left, right) = ParseBinary(fields, "Until");
+                        return Ltl<string>.Until(left, right);
+                    }
 
                 case "Release":
-                {
-                    var (left, right) = ParseBinary(fields, "Release");
-                    return Ltl<string>.Release(left, right);
-                }
+                    {
+                        var (left, right) = ParseBinary(fields, "Release");
+                        return Ltl<string>.Release(left, right);
+                    }
 
                 case "And":
-                {
-                    var args = ParseArgs(fields, "And");
-                    Ltl<string> result = args[0];
-                    for (int i = 1; i < args.Count; i++)
-                        result = StringAlgebra.And(result, args[i]);
-                    return result;
-                }
+                    {
+                        var args = ParseArgs(fields, "And");
+                        Ltl<string> result = args[0];
+                        for (int i = 1; i < args.Count; i++)
+                            result = StringAlgebra.And(result, args[i]);
+                        return result;
+                    }
 
                 case "Or":
-                {
-                    var args = ParseArgs(fields, "Or");
-                    Ltl<string> result = args[0];
-                    for (int i = 1; i < args.Count; i++)
-                        result = StringAlgebra.Or(result, args[i]);
-                    return result;
-                }
+                    {
+                        var args = ParseArgs(fields, "Or");
+                        Ltl<string> result = args[0];
+                        for (int i = 1; i < args.Count; i++)
+                            result = StringAlgebra.Or(result, args[i]);
+                        return result;
+                    }
 
                 // Sugar forms
                 case "Eventually":
-                {
-                    if (!fields.TryGetValue("inner", out var innerJson))
-                        throw new FormatException("Eventually missing 'inner' field.");
-                    int p = 0;
-                    return Ltl<string>.Eventually(ParseFormula(innerJson, ref p));
-                }
+                    {
+                        if (!fields.TryGetValue("inner", out var innerJson))
+                            throw new FormatException("Eventually missing 'inner' field.");
+                        int p = 0;
+                        return Ltl<string>.Eventually(ParseFormula(innerJson, ref p));
+                    }
 
                 case "Globally":
-                {
-                    if (!fields.TryGetValue("inner", out var innerJson))
-                        throw new FormatException("Globally missing 'inner' field.");
-                    int p = 0;
-                    return Ltl<string>.Globally(ParseFormula(innerJson, ref p));
-                }
+                    {
+                        if (!fields.TryGetValue("inner", out var innerJson))
+                            throw new FormatException("Globally missing 'inner' field.");
+                        int p = 0;
+                        return Ltl<string>.Globally(ParseFormula(innerJson, ref p));
+                    }
 
                 case "Implies":
-                {
-                    var (left, right) = ParseBinary(fields, "Implies");
-                    return StringAlgebra.Implies(left, right);
-                }
+                    {
+                        var (left, right) = ParseBinary(fields, "Implies");
+                        return StringAlgebra.Implies(left, right);
+                    }
 
                 default:
                     throw new FormatException($"Unknown op: '{op}'.");

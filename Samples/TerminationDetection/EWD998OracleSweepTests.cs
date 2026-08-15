@@ -49,7 +49,7 @@ namespace TerminationDetection
         private static LtlFormula TokenAtLeader =>
             LtlFormula.Prop(state => ((SystemState)state).Token.NodeIndex == 0, "TokenAtLeader");
 
-        private static readonly Fairness PerNodeFairness = Fairness.StrongFair(sf =>
+        private static readonly Fairness PerNodeFairness = Fairness.Strong(sf =>
             sf is EWD998.DeactivateStep || sf is EWD998.PassTokenStep || sf is EWD998.InitiateProbeStep);
 
         // --- Safety ----------------------------------------------------
@@ -64,10 +64,10 @@ namespace TerminationDetection
         }
 
         [Test]
-        public void Oracle_Safety_DetectedImpliesTerminated_WeakFairAll()
+        public void Oracle_Safety_DetectedImpliesTerminated_WeakAll()
         {
             var phi = LtlFormula.Always(LtlFormula.Implies(Detected, Terminated));
-            var r = LtlMultiBackendCrossCheck.Run(_root, phi, Fairness.WeakFairAll, nameof(Oracle_Safety_DetectedImpliesTerminated_WeakFairAll));
+            var r = LtlMultiBackendCrossCheck.Run(_root, phi, Fairness.WeakAll, nameof(Oracle_Safety_DetectedImpliesTerminated_WeakAll));
             r.ThrowIfDisagree();
             Assert.That(r.Verdicts[0].Result.Valid, Is.True);
         }

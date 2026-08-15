@@ -247,6 +247,13 @@ public class StateGraphNode
     internal int Depth { get; set; }
 
     /// <summary>
+    /// Indicates that exploration omitted at least one otherwise eligible
+    /// successor because of the state graph's construction-time depth bound.
+    /// A depth frontier is not a terminal state: its continuation is unknown.
+    /// </summary>
+    public bool IsDepthFrontier { get; internal set; }
+
+    /// <summary>
     /// The node from which this node was first discovered (its parent in the
     /// discovery tree), or <c>null</c> for the root. Together with
     /// <see cref="DiscoveredVia"/> this forms an immutable, prefix-shared

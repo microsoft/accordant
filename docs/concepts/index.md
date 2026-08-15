@@ -12,3 +12,4 @@ Understand the theory behind Accordant and model-based testing.
 | [Request Derivations](request-derivations.md) | Generating inputs automatically |
 | [Conformance Testing](conformance-testing.md) | Validating implementations |
 | [Models vs Fakes](models-vs-fakes.md) | Specs compared to test doubles |
+| [Model-Checking Frontends](model-checking-frontends.md) | Which model-authoring APIs are stable, which are experimental, and why |

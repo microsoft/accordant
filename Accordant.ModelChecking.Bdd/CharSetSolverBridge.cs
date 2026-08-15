@@ -51,7 +51,7 @@ namespace Microsoft.Accordant.ModelChecking.Bdd
         // correspond to enum members declared inside the engine. We keep
         // them as ints to avoid taking a hard reference to the internal
         // enum type.
-        private const int OrId  = 0;
+        private const int OrId = 0;
         private const int AndId = 1;
         private const int XorId = 2;
 

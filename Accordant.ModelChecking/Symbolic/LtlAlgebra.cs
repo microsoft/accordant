@@ -67,14 +67,14 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         {
             switch (f)
             {
-                case LtlTrue<TPred> _:   return False;
-                case LtlFalse<TPred> _:  return True;
-                case LtlAtom<TPred> a:   return Atom(_eba.Not(a.Predicate));
-                case LtlNext<TPred> n:   return Next(Not(n.Inner));
-                case LtlUntil<TPred> u:  return Release(Not(u.Left), Not(u.Right));
-                case LtlRelease<TPred> r:return Until(Not(r.Left), Not(r.Right));
-                case LtlAnd<TPred> a:    return OrMany(a.Operands.Select(Not));
-                case LtlOr<TPred> o:     return AndMany(o.Operands.Select(Not));
+                case LtlTrue<TPred> _: return False;
+                case LtlFalse<TPred> _: return True;
+                case LtlAtom<TPred> a: return Atom(_eba.Not(a.Predicate));
+                case LtlNext<TPred> n: return Next(Not(n.Inner));
+                case LtlUntil<TPred> u: return Release(Not(u.Left), Not(u.Right));
+                case LtlRelease<TPred> r: return Until(Not(r.Left), Not(r.Right));
+                case LtlAnd<TPred> a: return OrMany(a.Operands.Select(Not));
+                case LtlOr<TPred> o: return AndMany(o.Operands.Select(Not));
                 default: throw new ArgumentException($"Unknown formula type: {f.GetType()}");
             }
         }

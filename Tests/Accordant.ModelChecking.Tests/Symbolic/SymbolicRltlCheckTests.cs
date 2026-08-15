@@ -331,7 +331,9 @@ namespace Accordant.ModelChecking.Tests.Symbolic
                 nodes[0],
                 Rltl<IStatePredicate>.Trigger(ESigma(), RAtom(p)),
                 maxDepth: 3);
-            Assert.That(result.Valid, Is.True);
+            Assert.That(
+                result.Status,
+                Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
         }
 
         #endregion
@@ -398,7 +400,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         {
             var seqRtoTrue = Rltl<IStatePredicate>.SeqPrefix(r, Rltl<IStatePredicate>.True());
             var notSeq = RltlAlgebra.Default.Not(seqRtoTrue);
-            return SymbolicRltlCheck.Check(chaosRoot, notSeq).Valid;
+            return SymbolicRltlCheck.Check(chaosRoot, notSeq).Valid == true;
         }
 
         #endregion

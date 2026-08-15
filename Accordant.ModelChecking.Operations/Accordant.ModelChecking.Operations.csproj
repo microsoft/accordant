@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <OutputType>Library</OutputType>
+    <OutputPath>../bin</OutputPath>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Microsoft.Accordant.ModelChecking.Operations</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Accordant/Accordant.csproj" />
+    <ProjectReference Include="../Accordant.Operations/Accordant.Operations.csproj" />
+    <ProjectReference Include="../Accordant.ModelChecking/Accordant.ModelChecking.csproj" />
+  </ItemGroup>
+
+</Project>

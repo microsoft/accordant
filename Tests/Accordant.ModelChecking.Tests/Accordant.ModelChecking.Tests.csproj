@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<OutputType>Library</OutputType>
 	</PropertyGroup>
@@ -19,6 +19,8 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\Accordant.ModelChecking\Accordant.ModelChecking.csproj" />
 		<ProjectReference Include="..\..\Accordant.ModelChecking.Bdd\Accordant.ModelChecking.Bdd.csproj" />
+		<ProjectReference Include="..\..\Accordant.ModelChecking.Experimental.Coroutines\Accordant.ModelChecking.Experimental.Coroutines.csproj" />
+		<ProjectReference Include="..\..\Samples\ProcessModelChecking\ProcessModelChecking.csproj" />
 	</ItemGroup>
 
 </Project>

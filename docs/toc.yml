@@ -36,6 +36,8 @@
       href: concepts/conformance-testing.md
     - name: Models vs Fakes
       href: concepts/models-vs-fakes.md
+    - name: Model-Checking Frontends
+      href: concepts/model-checking-frontends.md
 - name: How-To Guides
   items:
     - name: Overview
@@ -48,6 +50,10 @@
       href: how-to/indefinite-failures.md
     - name: Validating Your Model
       href: how-to/validating-your-model.md
+    - name: Model-Checking Formulas
+      href: how-to/model-checking-formulas.md
+    - name: Checking Safety Refinement
+      href: how-to/checking-refinement.md
     - name: Modeling Large Data
       href: how-to/modeling-large-data.md
     - name: Resetting State

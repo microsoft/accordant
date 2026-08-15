@@ -125,24 +125,24 @@ namespace Microsoft.Accordant.ModelChecking.Testing
         {
             switch (phi)
             {
-                case LtlTrue _:    return RltlFormula.True;
-                case LtlFalse _:   return RltlFormula.False;
-                case LtlProp p:    return RltlFormula.Prop(p.Predicate, p.ToString());
-                case LtlNot n:     return RltlFormula.Not(Lift(n.Inner));
+                case LtlTrue _: return RltlFormula.True;
+                case LtlFalse _: return RltlFormula.False;
+                case LtlProp p: return RltlFormula.Prop(p.Predicate, p.ToString());
+                case LtlNot n: return RltlFormula.Not(Lift(n.Inner));
                 case LtlAnd a:
-                {
-                    RltlFormula acc = RltlFormula.True;
-                    foreach (var c in a.Children) acc = RltlFormula.And(acc, Lift(c));
-                    return acc;
-                }
+                    {
+                        RltlFormula acc = RltlFormula.True;
+                        foreach (var c in a.Children) acc = RltlFormula.And(acc, Lift(c));
+                        return acc;
+                    }
                 case LtlOr o:
-                {
-                    RltlFormula acc = RltlFormula.False;
-                    foreach (var c in o.Children) acc = RltlFormula.Or(acc, Lift(c));
-                    return acc;
-                }
-                case LtlNext n:    return RltlFormula.Next(Lift(n.Inner));
-                case LtlUntil u:   return RltlFormula.Until(Lift(u.Hold), Lift(u.Goal));
+                    {
+                        RltlFormula acc = RltlFormula.False;
+                        foreach (var c in o.Children) acc = RltlFormula.Or(acc, Lift(c));
+                        return acc;
+                    }
+                case LtlNext n: return RltlFormula.Next(Lift(n.Inner));
+                case LtlUntil u: return RltlFormula.Until(Lift(u.Hold), Lift(u.Goal));
                 case LtlRelease r: return RltlFormula.Release(Lift(r.Release_), Lift(r.Hold));
                 default:
                     throw new NotSupportedException(

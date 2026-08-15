@@ -102,99 +102,99 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 case RltlFalse<TPred> _: return _termAlgebra.Bottom;
 
                 case RltlAtom<TPred> atom:
-                {
-                    int idx = _registry.Register(atom.Predicate);
-                    // Atoms only carry positive predicates; negation flowed
-                    // into the EBA at formula-construction time.
-                    return _termAlgebra.MkIte(idx, _termAlgebra.Top, _termAlgebra.Bottom);
-                }
+                    {
+                        int idx = _registry.Register(atom.Predicate);
+                        // Atoms only carry positive predicates; negation flowed
+                        // into the EBA at formula-construction time.
+                        return _termAlgebra.MkIte(idx, _termAlgebra.Top, _termAlgebra.Bottom);
+                    }
 
                 case RltlNext<TPred> next:
                     return TransitionTerm<Dnf<Rltl<TPred>>>.Leaf(ToDnfAtom(next.Inner));
 
                 case RltlUntil<TPred> until:
-                {
-                    var dPhi = Derivative(until.Left);
-                    var dPsi = Derivative(until.Right);
-                    var selfAtom = TransitionTerm<Dnf<Rltl<TPred>>>.Leaf(_dnfAlgebra.Atom(formula));
-                    return _termAlgebra.Or(dPsi, _termAlgebra.And(dPhi, selfAtom));
-                }
+                    {
+                        var dPhi = Derivative(until.Left);
+                        var dPsi = Derivative(until.Right);
+                        var selfAtom = TransitionTerm<Dnf<Rltl<TPred>>>.Leaf(_dnfAlgebra.Atom(formula));
+                        return _termAlgebra.Or(dPsi, _termAlgebra.And(dPhi, selfAtom));
+                    }
 
                 case RltlRelease<TPred> release:
-                {
-                    var dPhi = Derivative(release.Left);
-                    var dPsi = Derivative(release.Right);
-                    var selfAtom = TransitionTerm<Dnf<Rltl<TPred>>>.Leaf(_dnfAlgebra.Atom(formula));
-                    return _termAlgebra.Or(_termAlgebra.And(dPsi, selfAtom), _termAlgebra.And(dPhi, dPsi));
-                }
+                    {
+                        var dPhi = Derivative(release.Left);
+                        var dPsi = Derivative(release.Right);
+                        var selfAtom = TransitionTerm<Dnf<Rltl<TPred>>>.Leaf(_dnfAlgebra.Atom(formula));
+                        return _termAlgebra.Or(_termAlgebra.And(dPsi, selfAtom), _termAlgebra.And(dPhi, dPsi));
+                    }
 
                 case RltlAnd<TPred> and:
-                {
-                    var result = Derivative(and.Operands[0]);
-                    for (int i = 1; i < and.Operands.Count; i++)
-                        result = _termAlgebra.And(result, Derivative(and.Operands[i]));
-                    return result;
-                }
+                    {
+                        var result = Derivative(and.Operands[0]);
+                        for (int i = 1; i < and.Operands.Count; i++)
+                            result = _termAlgebra.And(result, Derivative(and.Operands[i]));
+                        return result;
+                    }
 
                 case RltlOr<TPred> or:
-                {
-                    var result = Derivative(or.Operands[0]);
-                    for (int i = 1; i < or.Operands.Count; i++)
-                        result = _termAlgebra.Or(result, Derivative(or.Operands[i]));
-                    return result;
-                }
+                    {
+                        var result = Derivative(or.Operands[0]);
+                        for (int i = 1; i < or.Operands.Count; i++)
+                            result = _termAlgebra.Or(result, Derivative(or.Operands[i]));
+                        return result;
+                    }
 
                 case RltlSeqPrefix<TPred> seq:
-                {
-                    var dR = _ereDeriv.Derivative(seq.Regex);
-                    var lifted = _ereDeriv.TermAlgebra.MapUnary<Dnf<Rltl<TPred>>>(
-                        dR, r => ToDnfAtom(MkSeqPrefix(Canon(r), seq.Phi)));
-                    if (seq.Regex.Nullable)
-                        return _termAlgebra.Or(lifted, Derivative(seq.Phi));
-                    return lifted;
-                }
+                    {
+                        var dR = _ereDeriv.Derivative(seq.Regex);
+                        var lifted = _ereDeriv.TermAlgebra.MapUnary<Dnf<Rltl<TPred>>>(
+                            dR, r => ToDnfAtom(MkSeqPrefix(Canon(r), seq.Phi)));
+                        if (seq.Regex.Nullable)
+                            return _termAlgebra.Or(lifted, Derivative(seq.Phi));
+                        return lifted;
+                    }
 
                 case RltlOvlPrefix<TPred> ovl:
-                {
-                    var dR = _ereDeriv.Derivative(ovl.Regex);
-                    var dPhi = Derivative(ovl.Phi);
-                    return _ereDeriv.TermAlgebra.ApplyCross<Dnf<Rltl<TPred>>, Dnf<Rltl<TPred>>>(
-                        dR, dPhi,
-                        (rPrime, dF) =>
-                        {
-                            var atomDnf = ToDnfAtom(MkOvlPrefix(Canon(rPrime), ovl.Phi));
-                            if (rPrime.Nullable)
-                                return _dnfAlgebra.Or(atomDnf, dF);
-                            return atomDnf;
-                        },
-                        _eba.Top);
-                }
+                    {
+                        var dR = _ereDeriv.Derivative(ovl.Regex);
+                        var dPhi = Derivative(ovl.Phi);
+                        return _ereDeriv.TermAlgebra.ApplyCross<Dnf<Rltl<TPred>>, Dnf<Rltl<TPred>>>(
+                            dR, dPhi,
+                            (rPrime, dF) =>
+                            {
+                                var atomDnf = ToDnfAtom(MkOvlPrefix(Canon(rPrime), ovl.Phi));
+                                if (rPrime.Nullable)
+                                    return _dnfAlgebra.Or(atomDnf, dF);
+                                return atomDnf;
+                            },
+                            _eba.Top);
+                    }
 
                 case RltlTrigger<TPred> trig:
-                {
-                    var dR = _ereDeriv.Derivative(trig.Regex);
-                    var lifted = _ereDeriv.TermAlgebra.MapUnary<Dnf<Rltl<TPred>>>(
-                        dR, r => ToDnfAtom(MkTrigger(Canon(r), trig.Phi)));
-                    if (trig.Regex.Nullable)
-                        return _termAlgebra.And(lifted, Derivative(trig.Phi));
-                    return lifted;
-                }
+                    {
+                        var dR = _ereDeriv.Derivative(trig.Regex);
+                        var lifted = _ereDeriv.TermAlgebra.MapUnary<Dnf<Rltl<TPred>>>(
+                            dR, r => ToDnfAtom(MkTrigger(Canon(r), trig.Phi)));
+                        if (trig.Regex.Nullable)
+                            return _termAlgebra.And(lifted, Derivative(trig.Phi));
+                        return lifted;
+                    }
 
                 case RltlMatch<TPred> mat:
-                {
-                    var dR = _ereDeriv.Derivative(mat.Regex);
-                    var dPhi = Derivative(mat.Phi);
-                    return _ereDeriv.TermAlgebra.ApplyCross<Dnf<Rltl<TPred>>, Dnf<Rltl<TPred>>>(
-                        dR, dPhi,
-                        (rPrime, dF) =>
-                        {
-                            var atomDnf = ToDnfAtom(MkMatch(Canon(rPrime), mat.Phi));
-                            if (rPrime.Nullable)
-                                return _dnfAlgebra.And(atomDnf, dF);
-                            return atomDnf;
-                        },
-                        _eba.Top);
-                }
+                    {
+                        var dR = _ereDeriv.Derivative(mat.Regex);
+                        var dPhi = Derivative(mat.Phi);
+                        return _ereDeriv.TermAlgebra.ApplyCross<Dnf<Rltl<TPred>>, Dnf<Rltl<TPred>>>(
+                            dR, dPhi,
+                            (rPrime, dF) =>
+                            {
+                                var atomDnf = ToDnfAtom(MkMatch(Canon(rPrime), mat.Phi));
+                                if (rPrime.Nullable)
+                                    return _dnfAlgebra.And(atomDnf, dF);
+                                return atomDnf;
+                            },
+                            _eba.Top);
+                    }
 
                 // Closures — JACM eq. (3010)–(3014).
                 //
@@ -212,27 +212,27 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 // {R} ∈ Acc iff R alive; {{R}}̄ ∈ Acc iff R dead).
 
                 case RltlWeakClosure<TPred> wcl:
-                {
-                    if (wcl.Regex.Nullable) return _termAlgebra.Top;
-                    var dR = _ereDeriv.Derivative(wcl.Regex);
-                    return _ereDeriv.TermAlgebra.MapUnary<Dnf<Rltl<TPred>>>(
-                        dR, r => ToDnfAtom(LiftWeakClosure(r)));
-                }
+                    {
+                        if (wcl.Regex.Nullable) return _termAlgebra.Top;
+                        var dR = _ereDeriv.Derivative(wcl.Regex);
+                        return _ereDeriv.TermAlgebra.MapUnary<Dnf<Rltl<TPred>>>(
+                            dR, r => ToDnfAtom(LiftWeakClosure(r)));
+                    }
 
                 case RltlNegWeakClosure<TPred> nwcl:
-                {
-                    if (nwcl.Regex.Nullable) return _termAlgebra.Bottom;
-                    var dR = _ereDeriv.Derivative(nwcl.Regex);
-                    return _ereDeriv.TermAlgebra.MapUnary<Dnf<Rltl<TPred>>>(
-                        dR, r => ToDnfAtom(LiftNegWeakClosure(r)));
-                }
+                    {
+                        if (nwcl.Regex.Nullable) return _termAlgebra.Bottom;
+                        var dR = _ereDeriv.Derivative(nwcl.Regex);
+                        return _ereDeriv.TermAlgebra.MapUnary<Dnf<Rltl<TPred>>>(
+                            dR, r => ToDnfAtom(LiftNegWeakClosure(r)));
+                    }
 
                 case RltlOmegaClosure<TPred> ocl:
-                {
-                    // deriv({R}ω) = deriv(R ; X{R}ω)
-                    return Derivative(
-                        Rltl<TPred>.SeqPrefix(ocl.Regex, Rltl<TPred>.Next(ocl)));
-                }
+                    {
+                        // deriv({R}ω) = deriv(R ; X{R}ω)
+                        return Derivative(
+                            Rltl<TPred>.SeqPrefix(ocl.Regex, Rltl<TPred>.Next(ocl)));
+                    }
 
                 default:
                     throw new ArgumentException($"Unknown RLTL: {formula.GetType()}");
@@ -279,6 +279,17 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         /// <summary>
         /// Converts a Rltl formula into the corresponding Dnf leaf, handling
         /// the structural ⊤/⊥ cases so that the resulting Dnf is canonical.
+        ///
+        /// <para>Boolean connectives are pushed into B⁺(Q) rather than kept
+        /// inside the leaf: an <c>RltlOr</c> becomes a disjunction of Dnf
+        /// clauses and an <c>RltlAnd</c> becomes a conjunction, so every ABW
+        /// state (Dnf atom) is a *non-Boolean* formula. This is required for
+        /// correctness, not just for state-space size: the Büchi acceptance
+        /// set F is defined per state head (<see cref="IsAccepting"/>), so a
+        /// compound state such as <c>(R₁;φ) ∨ (R₂;φ)</c> — produced by the
+        /// Union distribution in <see cref="Rltl{TPred}.SeqPrefix"/> and its
+        /// siblings — would be classified by its <c>∨</c> head and silently
+        /// lose the liveness obligations of its disjuncts.</para>
         /// </summary>
         private Dnf<Rltl<TPred>> ToDnfAtom(Rltl<TPred> f)
         {
@@ -291,7 +302,38 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 if (canonF is RltlTrue<TPred>) return _dnfAlgebra.Top;
                 f = canonF;
             }
-            return _dnfAlgebra.Atom(f);
+            return ToDnf(f);
+        }
+
+        /// <summary>
+        /// Lifts the positive Boolean structure of <paramref name="f"/> into
+        /// B⁺(Q): <c>∨</c> becomes Dnf disjunction, <c>∧</c> becomes Dnf
+        /// conjunction, and every other head becomes an atomic ABW state.
+        /// </summary>
+        private Dnf<Rltl<TPred>> ToDnf(Rltl<TPred> f)
+        {
+            switch (f)
+            {
+                case RltlFalse<TPred> _: return _dnfAlgebra.Bottom;
+                case RltlTrue<TPred> _: return _dnfAlgebra.Top;
+
+                case RltlOr<TPred> or:
+                    {
+                        var acc = _dnfAlgebra.Bottom;
+                        foreach (var op in or.Operands) acc = _dnfAlgebra.Or(acc, ToDnf(op));
+                        return acc;
+                    }
+
+                case RltlAnd<TPred> and:
+                    {
+                        var acc = _dnfAlgebra.Top;
+                        foreach (var op in and.Operands) acc = _dnfAlgebra.And(acc, ToDnf(op));
+                        return acc;
+                    }
+
+                default:
+                    return _dnfAlgebra.Atom(f);
+            }
         }
 
         /// <summary>
@@ -309,6 +351,11 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         ///   (the obligation has been discharged).</item>
         ///   <item>{R}ω ω-closure: always accepting (its obligation is
         ///   absorbed by the SeqPrefix unrolling in the derivative).</item>
+        ///   <item>∧ / ∨: the derivative pipeline never emits a Boolean state
+        ///   (<c>ToDnfAtom</c> lifts connectives into B⁺(Q)), but a caller may
+        ///   hand one to <see cref="ToABW"/>; such a state carries every
+        ///   obligation of its operands, so it is accepting only when all of
+        ///   them are.</item>
         /// </list>
         /// </summary>
         public bool IsAccepting(Rltl<TPred> f)
@@ -323,6 +370,18 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     return _emptiness.IsAlive(w.Regex);
                 case RltlNegWeakClosure<TPred> n:
                     return _emptiness.IsDead(n.Regex);
+                case RltlAnd<TPred> and:
+                    {
+                        foreach (var op in and.Operands)
+                            if (!IsAccepting(op)) return false;
+                        return true;
+                    }
+                case RltlOr<TPred> or:
+                    {
+                        foreach (var op in or.Operands)
+                            if (!IsAccepting(op)) return false;
+                        return true;
+                    }
                 default:
                     return true;
             }
@@ -333,12 +392,19 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         /// automaton can be passed to <see cref="AlternationElimination"/> or
         /// the incremental <see cref="IncrementalAE{TPred,TElem,TState}"/>
         /// to obtain an NBW for model checking.
+        ///
+        /// <para>The initial formula φ₀ ∈ B⁺(Q) is obtained by lifting the
+        /// top-level Boolean structure of <paramref name="formula"/> into the
+        /// Dnf, exactly as derivative leaves are: a top-level <c>∨</c>/<c>∧</c>
+        /// must not become a single ABW state, or its operands' liveness
+        /// obligations would be invisible to the Büchi acceptance set.</para>
         /// </summary>
         public SymbolicABW<TPred, TElem, Rltl<TPred>> ToABW(Rltl<TPred> formula)
         {
+            if (formula == null) throw new ArgumentNullException(nameof(formula));
             return new SymbolicABW<TPred, TElem, Rltl<TPred>>(
                 _eba, _registry, _dnfAlgebra,
-                formula,
+                ToDnf(formula),
                 IsAccepting,
                 Derivative);
         }

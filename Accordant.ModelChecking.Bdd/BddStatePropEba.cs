@@ -70,7 +70,7 @@ namespace Microsoft.Accordant.ModelChecking.Bdd
 
         // --- Structural ops (delegate) -------------------------------------
 
-        public IStatePredicate Top    => _structural.Top;
+        public IStatePredicate Top => _structural.Top;
         public IStatePredicate Bottom => _structural.Bottom;
 
         public IStatePredicate And(IStatePredicate a, IStatePredicate b)
@@ -91,7 +91,7 @@ namespace Microsoft.Accordant.ModelChecking.Bdd
         {
             if (predicate == null) throw new ArgumentNullException(nameof(predicate));
             if (predicate is StatePredFalse) return false;
-            if (predicate is StatePredTrue)  return true;
+            if (predicate is StatePredTrue) return true;
             if (TryEncode(predicate, out var bdd))
                 return !_bridge.IsFalse(bdd);
             // Foreign IStatePredicate subtree -> conservative-true, matching
@@ -159,13 +159,13 @@ namespace Microsoft.Accordant.ModelChecking.Bdd
                     bdd = _bridge.Not(inner);
                     return true;
                 case StatePredAnd conj:
-                    if (!TryEncode(conj.Left,  out var la) ||
+                    if (!TryEncode(conj.Left, out var la) ||
                         !TryEncode(conj.Right, out var ra))
                     { bdd = null; return false; }
                     bdd = _bridge.And(la, ra);
                     return true;
                 case StatePredOr disj:
-                    if (!TryEncode(disj.Left,  out var ld) ||
+                    if (!TryEncode(disj.Left, out var ld) ||
                         !TryEncode(disj.Right, out var rd))
                     { bdd = null; return false; }
                     bdd = _bridge.Or(ld, rd);

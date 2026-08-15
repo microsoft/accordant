@@ -19,12 +19,12 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
             {
                 switch (c)
                 {
-                    case '"':  sb.Append("\\\""); break;
+                    case '"': sb.Append("\\\""); break;
                     case '\\': sb.Append("\\\\"); break;
                     case '\n': sb.Append("\\n"); break;
                     case '\r': sb.Append("\\r"); break;
                     case '\t': sb.Append("\\t"); break;
-                    default:   sb.Append(c); break;
+                    default: sb.Append(c); break;
                 }
             }
             sb.Append('"');
@@ -55,13 +55,13 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     pos++;
                     switch (json[pos])
                     {
-                        case '"':  sb.Append('"'); break;
+                        case '"': sb.Append('"'); break;
                         case '\\': sb.Append('\\'); break;
-                        case 'n':  sb.Append('\n'); break;
-                        case 'r':  sb.Append('\r'); break;
-                        case 't':  sb.Append('\t'); break;
-                        case '/':  sb.Append('/'); break;
-                        default:   sb.Append(json[pos]); break;
+                        case 'n': sb.Append('\n'); break;
+                        case 'r': sb.Append('\r'); break;
+                        case 't': sb.Append('\t'); break;
+                        case '/': sb.Append('/'); break;
+                        default: sb.Append(json[pos]); break;
                     }
                 }
                 else { sb.Append(json[pos]); }

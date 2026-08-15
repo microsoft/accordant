@@ -31,16 +31,16 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         private static Rltl<IStatePredicate> GFaGFbGFc()
         {
             var alg = new RltlAlgebra<IStatePredicate>(Eba);
-            var Fa  = alg.Eventually(alg.Atom(new StatePredAtom(A)));
-            var Fb  = alg.Eventually(alg.Atom(new StatePredAtom(B)));
-            var Fc  = alg.Eventually(alg.Atom(new StatePredAtom(C)));
+            var Fa = alg.Eventually(alg.Atom(new StatePredAtom(A)));
+            var Fb = alg.Eventually(alg.Atom(new StatePredAtom(B)));
+            var Fc = alg.Eventually(alg.Atom(new StatePredAtom(C)));
             return alg.And(alg.Globally(Fa), alg.And(alg.Globally(Fb), alg.Globally(Fc)));
         }
 
         private static Rltl<IStatePredicate> GFa_And_GFnota()
         {
             var alg = new RltlAlgebra<IStatePredicate>(Eba);
-            var a    = Rltl<IStatePredicate>.Atom(new StatePredAtom(A));
+            var a = Rltl<IStatePredicate>.Atom(new StatePredAtom(A));
             var nota = Rltl<IStatePredicate>.Atom(Eba.Not(new StatePredAtom(A)));
             return alg.And(alg.Globally(alg.Eventually(a)),
                            alg.Globally(alg.Eventually(nota)));
@@ -129,7 +129,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         public void TransitionMerge_OnGFaAndGFnota_DoesNotGrowState()
         {
             var off = CountReachableBp(GFa_And_GFnota(), subsume: false, hardCap: 200);
-            var on  = CountReachableBp(GFa_And_GFnota(), subsume: true,  hardCap: 200);
+            var on = CountReachableBp(GFa_And_GFnota(), subsume: true, hardCap: 200);
             TestContext.Out.WriteLine($"GFa ∧ GF(¬a):  off={off}  merge={on}");
             Assert.That(on, Is.LessThanOrEqualTo(off));
         }
@@ -140,7 +140,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         public void TransitionMerge_OnGFaGFbGFc_IsSound_NoChange()
         {
             var off = CountReachableBp(GFaGFbGFc(), subsume: false, hardCap: 200);
-            var on  = CountReachableBp(GFaGFbGFc(), subsume: true,  hardCap: 200);
+            var on = CountReachableBp(GFaGFbGFc(), subsume: true, hardCap: 200);
             TestContext.Out.WriteLine($"GFa ∧ GFb ∧ GFc:  off={off}  merge={on}");
             // The three F-states have distinct deltas → no collapse → equal counts.
             Assert.That(on, Is.EqualTo(off));
@@ -177,7 +177,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         public void TransitionMerge_DoesNotEnlargeBpCount(Rltl<IStatePredicate> phi)
         {
             int off = CountReachableBp(phi, subsume: false, hardCap: 500);
-            int on  = CountReachableBp(phi, subsume: true,  hardCap: 500);
+            int on = CountReachableBp(phi, subsume: true, hardCap: 500);
             Assert.That(on, Is.LessThanOrEqualTo(off),
                 $"Merge must not enlarge the BP count for φ={phi}");
         }

@@ -280,10 +280,11 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             var p = Prop("non_neg", s => ((TestState)s).Value >= 0);
             var property = G(Atom(p));
 
-            // With depth bound 5, we shouldn't reach the violation
+            // With depth bound 5, the unknown continuation may reach the violation.
             var result = SymbolicLtlCheck.Check(nodes[0], property, maxDepth: 5);
-            Assert.That(result.Valid, Is.True,
-                "Bounded check (depth 5) shouldn't find violation at depth 11");
+            Assert.That(
+                result.Status,
+                Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
 
             // With unlimited depth, we should find it
             var resultFull = SymbolicLtlCheck.Check(nodes[0], property);

@@ -69,9 +69,9 @@ namespace AlternatingBit
         /// specific payload.
         /// </summary>
         [Test]
-        public void Liveness_EachPayloadEventuallyDelivered_StrongFair()
+        public void Liveness_EachPayloadEventuallyDelivered_Strong()
         {
-            var fair = Fairness.StrongFair(sf => sf is AltBit.AltBitStep && !(sf is AltBit.StutterStep));
+            var fair = Fairness.Strong(sf => sf is AltBit.AltBitStep && !(sf is AltBit.StutterStep));
             for (int k = 1; k <= AltBit.MaxMessages; k++)
             {
                 var phi = LtlFormula.Eventually(DeliveredAtLeast(k));

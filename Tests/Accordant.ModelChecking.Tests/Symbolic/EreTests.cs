@@ -423,9 +423,9 @@ namespace Accordant.ModelChecking.Tests.Symbolic
 
             var d = deriv.Derivative(Ere<Prop>.Fusion(A, B));
             Assert.That(d.Evaluate(new HashSet<string> { "a", "b" }, reg, eba), Is.EqualTo(Ere<Prop>.Epsilon()));
-            Assert.That(d.Evaluate(new HashSet<string> { "a" }, reg, eba),      Is.EqualTo(Ere<Prop>.Empty()));
-            Assert.That(d.Evaluate(new HashSet<string> { "b" }, reg, eba),      Is.EqualTo(Ere<Prop>.Empty()));
-            Assert.That(d.Evaluate(new HashSet<string>(),        reg, eba),     Is.EqualTo(Ere<Prop>.Empty()));
+            Assert.That(d.Evaluate(new HashSet<string> { "a" }, reg, eba), Is.EqualTo(Ere<Prop>.Empty()));
+            Assert.That(d.Evaluate(new HashSet<string> { "b" }, reg, eba), Is.EqualTo(Ere<Prop>.Empty()));
+            Assert.That(d.Evaluate(new HashSet<string>(), reg, eba), Is.EqualTo(Ere<Prop>.Empty()));
         }
 
         [Test]
@@ -453,8 +453,8 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             // After ∂ on {a,b}, residual is nullable.
             var dR1 = deriv.Derivative(R).Evaluate(ab, reg, eba);
             var dS1 = deriv.Derivative(S).Evaluate(ab, reg, eba);
-            Assert.That(dR1.Nullable, Is.True,  "R should accept the singleton {a,b}");
-            Assert.That(dS1.Nullable, Is.True,  "S should accept the singleton {a,b}");
+            Assert.That(dR1.Nullable, Is.True, "R should accept the singleton {a,b}");
+            Assert.That(dS1.Nullable, Is.True, "S should accept the singleton {a,b}");
 
             // The word [a,a,{a,b},b] is in both languages (α-prefix, shared α∧β, β-suffix).
             Ere<Prop> rPos = R, sPos = S;
@@ -463,8 +463,8 @@ namespace Accordant.ModelChecking.Tests.Symbolic
                 rPos = deriv.Derivative(rPos).Evaluate(letter, reg, eba);
                 sPos = deriv.Derivative(sPos).Evaluate(letter, reg, eba);
             }
-            Assert.That(rPos.Nullable, Is.True,  "R should accept a·a·(a∧b)·b");
-            Assert.That(sPos.Nullable, Is.True,  "S should accept a·a·(a∧b)·b");
+            Assert.That(rPos.Nullable, Is.True, "R should accept a·a·(a∧b)·b");
+            Assert.That(sPos.Nullable, Is.True, "S should accept a·a·(a∧b)·b");
 
             // [a,b] alone (no shared letter) is in neither: the fusion needs one
             // position where both α and β hold.

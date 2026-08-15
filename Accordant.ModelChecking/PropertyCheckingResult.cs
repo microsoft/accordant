@@ -7,32 +7,76 @@ namespace Microsoft.Accordant.ModelChecking
     using Microsoft.Accordant.ModelChecking.Symbolic;
 
     /// <summary>
+    /// Outcome of a temporal property check.
+    /// </summary>
+    public enum PropertyCheckingStatus
+    {
+        /// <summary>The explored behavior graph satisfies the property.</summary>
+        Holds,
+
+        /// <summary>A definitive counterexample was found.</summary>
+        Violated,
+
+        /// <summary>
+        /// No definitive counterexample was found, but exploration reached a
+        /// depth frontier whose unknown continuation could affect the result.
+        /// </summary>
+        InconclusiveBound
+    }
+
+    /// <summary>
     /// The result of checking a property over a state graph.
     /// </summary>
-    public class PropertyCheckingResult
+    public sealed class PropertyCheckingResult
     {
         /// <summary>
         /// Creates a successful result (property holds).
         /// </summary>
-        public static PropertyCheckingResult Success() => new PropertyCheckingResult { Valid = true };
+        public static PropertyCheckingResult Success() =>
+            new PropertyCheckingResult(PropertyCheckingStatus.Holds);
 
         /// <summary>
         /// Creates a failure result with a counterexample trace.
         /// </summary>
         public static PropertyCheckingResult Failure(List<TraceItem> trace, StronglyConnectedComponent badCycle = null)
         {
-            return new PropertyCheckingResult
+            return new PropertyCheckingResult(PropertyCheckingStatus.Violated)
             {
-                Valid = false,
                 Trace = trace,
                 BadCycle = badCycle
             };
         }
 
         /// <summary>
-        /// Indicates whether the property holds.
+        /// Creates a result whose verdict is unknown because exploration
+        /// reached a depth frontier.
         /// </summary>
-        public bool Valid { get; private set; }
+        public static PropertyCheckingResult InconclusiveBound() =>
+            new PropertyCheckingResult(PropertyCheckingStatus.InconclusiveBound);
+
+        private PropertyCheckingResult(PropertyCheckingStatus status)
+        {
+            Status = status;
+        }
+
+        /// <summary>
+        /// The definitive or bounded-inconclusive outcome of the check.
+        /// </summary>
+        public PropertyCheckingStatus Status { get; }
+
+        /// <summary>
+        /// Indicates whether the property holds when the result is conclusive;
+        /// otherwise <c>null</c>.
+        /// </summary>
+        public bool? Valid =>
+            Status == PropertyCheckingStatus.Holds ? true :
+            Status == PropertyCheckingStatus.Violated ? false :
+            (bool?)null;
+
+        /// <summary>
+        /// Optional human-readable name of the checked formula.
+        /// </summary>
+        public string PropertyName { get; private set; }
 
         /// <summary>
         /// The counterexample trace if the property doesn't hold.
@@ -50,13 +94,36 @@ namespace Microsoft.Accordant.ModelChecking
         /// </summary>
         public string GetTraceString()
         {
-            if (Valid || Trace == null)
+            if (Status == PropertyCheckingStatus.InconclusiveBound)
             {
-                return "Property holds - no counterexample.";
+                return PropertyName == null
+                    ? "Property result is inconclusive because exploration reached a depth bound."
+                    : $"Property '{PropertyName}' is inconclusive because exploration reached a depth bound.";
+            }
+
+            if (Status == PropertyCheckingStatus.Holds)
+            {
+                return PropertyName == null
+                    ? "Property holds - no counterexample."
+                    : $"Property '{PropertyName}' holds - no counterexample.";
+            }
+
+            if (Trace == null)
+            {
+                return PropertyName == null
+                    ? "Property does not hold - no counterexample trace is available."
+                    : $"Property '{PropertyName}' does not hold - no counterexample trace is available.";
             }
 
             var sb = new StringBuilder();
-            sb.AppendLine("Counterexample trace:");
+            if (PropertyName == null)
+            {
+                sb.AppendLine("Counterexample trace:");
+            }
+            else
+            {
+                sb.AppendLine($"Counterexample for property '{PropertyName}':");
+            }
 
             bool inCycleSection = false;
             foreach (var item in Trace)
@@ -80,7 +147,7 @@ namespace Microsoft.Accordant.ModelChecking
             {
                 sb.AppendLine();
                 sb.AppendLine($"Bad cycle contains {BadCycle.Nodes.Count} state(s).");
-                
+
                 // Show which step functions were enabled but not taken (fairness hint)
                 var enabledNotTaken = GetEnabledButNotTakenSteps(BadCycle);
                 if (enabledNotTaken.Any())
@@ -91,11 +158,17 @@ namespace Microsoft.Accordant.ModelChecking
                     {
                         sb.AppendLine($"  - {sfId}");
                     }
-                    sb.AppendLine("Consider adding fairness constraints: fair: Fairness.WeakFair(...)");
+                    sb.AppendLine("Consider adding fairness constraints: fair: Fairness.Weak(...)");
                 }
             }
 
             return sb.ToString();
+        }
+
+        internal PropertyCheckingResult WithPropertyName(string propertyName)
+        {
+            PropertyName = propertyName;
+            return this;
         }
 
         /// <summary>
@@ -147,15 +220,17 @@ namespace Microsoft.Accordant.ModelChecking
             // at the end.
             var nodesInSCC = new HashSet<string>(scc.Nodes.Select(n => n.GetNodeFingerprint()));
 
-            IEnumerable<IStepFunction> EnabledAt(StateGraphNode n)
-                => n.Edges.Select(e => e.StepFunction);
+            IEnumerable<FairnessEdge> EnabledAt(StateGraphNode n)
+                => n.Edges.Select(e =>
+                    new FairnessEdge(n, e.StepFunction, e.Metadata, e.Target));
 
-            IEnumerable<IStepFunction> Taken()
+            IEnumerable<FairnessEdge> Taken()
             {
                 foreach (var n in scc.Nodes)
                     foreach (var e in n.Edges)
                         if (nodesInSCC.Contains(e.Target.GetNodeFingerprint()))
-                            yield return e.StepFunction;
+                            yield return new FairnessEdge(
+                                n, e.StepFunction, e.Metadata, e.Target);
             }
 
             var analysis = CycleFairness.Compute(scc.Nodes, EnabledAt, Taken());

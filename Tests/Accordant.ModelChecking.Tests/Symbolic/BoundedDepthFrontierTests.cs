@@ -5,57 +5,14 @@ namespace Accordant.ModelChecking.Tests.Symbolic
     using System.Linq;
     using Microsoft.Accordant;
     using Microsoft.Accordant.ModelChecking;
-    using Microsoft.Accordant.ModelChecking.Rltl;
+    using Microsoft.Accordant.ModelChecking.Ltl;
     using Microsoft.Accordant.ModelChecking.Symbolic;
     using NUnit.Framework;
 
     /// <summary>
-    /// Audit tests for the <c>maxDepth</c> frontier-stutter semantics
-    /// across the three symbolic backends. The audit task asks whether
-    /// the implicit self-loop added at the depth frontier preserves
-    /// sound Büchi semantics (no false counterexamples).
-    ///
-    /// <para>
-    /// Two distinct semantics existed pre-fix:
-    /// </para>
-    /// <list type="bullet">
-    ///   <item><b>NestedDfsCheck</b>: at frontier, system stutters but
-    ///   the NBW makes a real transition on the current system state.
-    ///   If the NBW has no valid outgoing transition (e.g. q is
-    ///   waiting for <c>¬p</c> and the frontier state has <c>p=true</c>),
-    ///   the run cuts off and no accepting cycle is reported.</item>
-    ///   <item><b>ExploreProduct / SccProductCheck</b>: at frontier,
-    ///   add a pure product self-loop without consulting the NBW.
-    ///   This pretends the NBW can self-loop at <c>(sys, q)</c> on
-    ///   <c>state(sys)</c> regardless of whether the NBW actually has
-    ///   such a transition.</item>
-    /// </list>
-    ///
-    /// <para>
-    /// The pure-product-self-loop is unsound: it can fabricate an
-    /// accepting cycle where no real Büchi-accepting run exists,
-    /// producing a false counterexample for an LTL property that
-    /// actually holds.
-    /// </para>
-    ///
-    /// <para>
-    /// The discriminating scenario:
-    /// </para>
-    /// <list type="bullet">
-    ///   <item>System: linear chain <c>s0 → s1 → s2</c> with <c>p</c>
-    ///   true only at <c>s2</c>.</item>
-    ///   <item>Property: <c>F p</c>. <c>¬F p = G ¬p</c>; NBW is single
-    ///   accepting state <c>q0</c> with self-loop on <c>¬p</c>.</item>
-    ///   <item><c>maxDepth=2</c>: <c>s2</c> is the frontier node and
-    ///   <c>p</c> is true there.</item>
-    /// </list>
-    ///
-    /// <para>
-    /// At <c>(s2, q0)</c> the NBW transition <c>q0 -¬p-> q0</c> cannot
-    /// fire because <c>p</c> is true. The correct semantics yields no
-    /// accepting cycle, so <c>F p</c> should be reported as holding.
-    /// All three backends must agree.
-    /// </para>
+    /// Ensures depth frontiers remain distinct from real terminal states.
+    /// Unknown continuations produce a bounded-inconclusive result; real
+    /// explored cycles and genuine terminal stutter remain conclusive.
     /// </summary>
     [TestFixture]
     public class BoundedDepthFrontierTests
@@ -90,6 +47,26 @@ namespace Accordant.ModelChecking.Tests.Symbolic
                 => null;
         }
 
+        private sealed class AdvanceStep : IStepFunction
+        {
+            public string StepFunctionId => "advance";
+
+            public IList<StepResult> Apply(
+                IState state,
+                IReadOnlyList<(IStepFunction, StateGraphNode)> path)
+            {
+                var current = (TestState)state;
+                return new[]
+                {
+                    new StepResult
+                    {
+                        State = new TestState($"s{current.Value + 1}", current.Value + 1),
+                        StepFunctions = new IStepFunction[] { this }
+                    }
+                };
+            }
+        }
+
         private static StateGraphNode MakeNode(string label, int value)
         {
             var st = new TestState(label, value);
@@ -114,8 +91,11 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             var s0 = MakeNode("s0", 0);
             var s1 = MakeNode("s1", 0);
             var s2 = MakeNode("s2", 1);
+            var s3 = MakeNode("s3", 2);
             AddEdge(s0, s1, "a");
             AddEdge(s1, s2, "b");
+            AddEdge(s2, s3, "c");
+            AddEdge(s3, s3, "loop");
             return s0;
         }
 
@@ -123,67 +103,46 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         private static StateProp PProp =>
             new StateProp("p", s => ((TestState)s).Value == 1);
 
-        /// <summary>
-        /// <see cref="SymbolicLtlCheck.Check"/> (ExploreProduct path,
-        /// no fairness) must report <c>F p</c> as holding when the
-        /// frontier state already satisfies <c>p</c>.
-        /// </summary>
+        private static StateProp GoalProp =>
+            new StateProp("goal", s => ((TestState)s).Value == 99);
+
         [Test]
-        public void ExploreProduct_FrontierAtSatisfyingState_FPHolds()
+        public void CheckerDepthFrontier_IsInconclusiveAcrossSymbolicBackends()
+        {
+            var s0 = BuildChain();
+            var phi = Ltl<IStatePredicate>.Eventually(
+                Ltl<IStatePredicate>.Atom(new StatePredAtom(GoalProp)));
+
+            var r1 = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2);
+            var r2 = SymbolicLtlCheck.CheckNDFS(s0, phi, maxDepth: 2);
+            var r3 = SymbolicLtlCheck.Check(
+                s0, phi, maxDepth: 2, fairness: Fairness.WeakAll);
+
+            Assert.That(r1.Status, Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
+            Assert.That(r2.Status, Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
+            Assert.That(r3.Status, Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
+            Assert.That(r1.Valid, Is.Null);
+        }
+
+        [Test]
+        public void CheckerDepthFrontier_AlreadySatisfiedEventuallyStillHolds()
         {
             var s0 = BuildChain();
             var phi = Ltl<IStatePredicate>.Eventually(
                 Ltl<IStatePredicate>.Atom(new StatePredAtom(PProp)));
 
-            var result = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2);
+            var r1 = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2);
+            var r2 = SymbolicLtlCheck.CheckNDFS(s0, phi, maxDepth: 2);
+            var r3 = SymbolicLtlCheck.Check(
+                s0, phi, maxDepth: 2, fairness: Fairness.WeakAll);
 
-            Assert.That(result.Valid, Is.True,
-                "F p holds because p is true at the frontier state s2; " +
-                "a pure product self-loop at the frontier would fabricate " +
-                "an accepting cycle that the real NBW cannot produce.");
+            Assert.That(r1.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
+            Assert.That(r2.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
+            Assert.That(r3.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
         }
 
-        /// <summary>
-        /// <see cref="SymbolicLtlCheck.CheckNDFS"/> (NestedDfsCheck path)
-        /// must agree.
-        /// </summary>
         [Test]
-        public void NDFS_FrontierAtSatisfyingState_FPHolds()
-        {
-            var s0 = BuildChain();
-            var phi = Ltl<IStatePredicate>.Eventually(
-                Ltl<IStatePredicate>.Atom(new StatePredAtom(PProp)));
-
-            var result = SymbolicLtlCheck.CheckNDFS(s0, phi, maxDepth: 2);
-            Assert.That(result.Valid, Is.True);
-        }
-
-        /// <summary>
-        /// <see cref="SymbolicLtlCheck.Check"/> with non-trivial
-        /// fairness routes through <see cref="SccProductCheck"/>; it
-        /// too must report <c>F p</c> as holding.
-        /// </summary>
-        [Test]
-        public void SccProductCheck_FrontierAtSatisfyingState_FPHolds()
-        {
-            var s0 = BuildChain();
-            var phi = Ltl<IStatePredicate>.Eventually(
-                Ltl<IStatePredicate>.Atom(new StatePredAtom(PProp)));
-
-            var result = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2,
-                fairness: Fairness.WeakFairAll);
-            Assert.That(result.Valid, Is.True);
-        }
-
-        /// <summary>
-        /// Negative-direction sanity check on the same chain. If
-        /// <c>p</c> is true at <em>every</em> frontier system state,
-        /// the unbounded property <c>G p</c> must still fail under all
-        /// three backends because the chain visits states where <c>p</c>
-        /// is false before reaching the frontier.
-        /// </summary>
-        [Test]
-        public void Frontier_GP_PFailsBeforeFrontier_InvalidEverywhere()
+        public void FiniteInvariantViolationBeforeCheckerFrontier_RemainsDefinitive()
         {
             var s0 = BuildChain();
             var phi = Ltl<IStatePredicate>.Globally(
@@ -191,12 +150,136 @@ namespace Accordant.ModelChecking.Tests.Symbolic
 
             var r1 = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2);
             var r2 = SymbolicLtlCheck.CheckNDFS(s0, phi, maxDepth: 2);
-            var r3 = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2,
-                fairness: Fairness.WeakFairAll);
 
-            Assert.That(r1.Valid, Is.False, "ExploreProduct: G p must fail (p false at s0).");
-            Assert.That(r2.Valid, Is.False, "NDFS: G p must fail (p false at s0).");
-            Assert.That(r3.Valid, Is.False, "SccProductCheck: G p must fail (p false at s0).");
+            Assert.That(r1.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(r2.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(r1.Trace, Has.Count.EqualTo(1));
+        }
+
+        [Test]
+        public void ConstructionDepthFrontier_IsMarkedForEagerAndLazyGraphs()
+        {
+            StateGraphNode Build(bool lazy) => StateGraph.ExploreStateGraph(
+                new IStepFunction[] { new AdvanceStep() },
+                new TestState("s0", 0),
+                maxDepth: 2,
+                lazy: lazy);
+
+            foreach (var root in new[] { Build(false), Build(true) })
+            {
+                var frontier = root.Edges.Single().Target;
+                Assert.That(root.IsDepthFrontier, Is.False);
+                Assert.That(frontier.Edges, Is.Empty);
+                Assert.That(frontier.IsDepthFrontier, Is.True);
+
+                var result = SymbolicLtlCheck.Check(
+                    root,
+                    Ltl<IStatePredicate>.Eventually(
+                        Ltl<IStatePredicate>.Atom(new StatePredAtom(GoalProp))));
+                Assert.That(
+                    result.Status,
+                    Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
+            }
+        }
+
+        [Test]
+        public void ConstructionDepthFrontier_IsInconclusiveInExplicitBackend()
+        {
+            var root = StateGraph.ExploreStateGraph(
+                new IStepFunction[] { new AdvanceStep() },
+                new TestState("s0", 0),
+                maxDepth: 2);
+            var phi = LtlFormula.Eventually(
+                LtlFormula.Prop(s => ((TestState)s).Value == 99, "goal"));
+
+            var result = LtlCheck.Check(root, phi);
+
+            Assert.That(
+                result.Status,
+                Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
+        }
+
+        [Test]
+        public void ConstructionDepthFrontier_ExplicitBackendObservesBoundaryState()
+        {
+            var root = StateGraph.ExploreStateGraph(
+                new IStepFunction[] { new AdvanceStep() },
+                new TestState("s0", 0),
+                maxDepth: 2);
+            var phi = LtlFormula.Eventually(
+                LtlFormula.Prop(s => ((TestState)s).Value == 1, "p"));
+
+            var result = LtlCheck.Check(root, phi);
+
+            Assert.That(result.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
+        }
+
+        [Test]
+        public void ConstructionDepthFrontier_UserFacingInvariantViolationIsDefinitive()
+        {
+            var root = StateGraph.ExploreStateGraph(
+                new IStepFunction[] { new AdvanceStep() },
+                new TestState("s0", 0),
+                maxDepth: 2);
+            var f = Formula.For<TestState>();
+            var positive = f.Observe(s => s.Value > 0, "positive");
+
+            var result = root.Check(f.Always(positive));
+
+            Assert.That(result.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(result.Trace, Has.Count.EqualTo(1));
+        }
+
+        [Test]
+        public void RealCounterexampleCycleBeforeFrontier_RemainsDefinitive()
+        {
+            var s0 = MakeNode("s0", 0);
+            AddEdge(s0, s0, "loop");
+            var phi = Ltl<IStatePredicate>.Globally(
+                Ltl<IStatePredicate>.Atom(new StatePredAtom(PProp)));
+
+            var r1 = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2);
+            var r2 = SymbolicLtlCheck.CheckNDFS(s0, phi, maxDepth: 2);
+            var r3 = SymbolicLtlCheck.Check(s0, phi, maxDepth: 2,
+                fairness: Fairness.WeakAll);
+
+            Assert.That(r1.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(r2.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(r3.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+        }
+
+        [Test]
+        public void ActualTerminalState_RemainsConclusive()
+        {
+            var terminal = MakeNode("terminal", 1);
+            var phi = Ltl<IStatePredicate>.Eventually(
+                Ltl<IStatePredicate>.Atom(new StatePredAtom(PProp)));
+
+            var r1 = SymbolicLtlCheck.Check(terminal, phi, maxDepth: 1);
+            var r2 = SymbolicLtlCheck.CheckNDFS(terminal, phi, maxDepth: 1);
+            var r3 = SymbolicLtlCheck.Check(
+                terminal, phi, maxDepth: 1, fairness: Fairness.WeakAll);
+
+            Assert.That(r1.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
+            Assert.That(r2.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
+            Assert.That(r3.Status, Is.EqualTo(PropertyCheckingStatus.Holds));
+        }
+
+        [Test]
+        public void ActualTerminalInvariantViolation_RemainsDefinitive()
+        {
+            var terminal = MakeNode("terminal", 0);
+            var phi = Ltl<IStatePredicate>.Globally(
+                Ltl<IStatePredicate>.Atom(new StatePredAtom(PProp)));
+
+            var r1 = SymbolicLtlCheck.Check(terminal, phi, maxDepth: 1);
+            var r2 = SymbolicLtlCheck.CheckNDFS(terminal, phi, maxDepth: 1);
+            var r3 = SymbolicLtlCheck.Check(
+                terminal, phi, maxDepth: 1, fairness: Fairness.WeakAll);
+
+            Assert.That(r1.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(r2.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
+            Assert.That(r3.Status, Is.EqualTo(PropertyCheckingStatus.Violated));
         }
     }
 }

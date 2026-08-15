@@ -308,9 +308,11 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             AddEdge(nodes[^1], nodes[^1]);
 
             var p = Prop("val>0", s => ((TestState)s).Value > 0);
-            // With maxDepth=3, violation at s5 is unreachable; stutter at s3 (val=1) is OK.
+            // With maxDepth=3, the continuation toward s5 is unknown.
             var result = SymbolicLtlCheck.CheckNDFS(nodes[0], G(Atom(p)), maxDepth: 3);
-            Assert.That(result.Valid, Is.True);
+            Assert.That(
+                result.Status,
+                Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
         }
 
         #endregion
@@ -343,12 +345,12 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             var pGoal = Prop("g", s => ((TestState)s).Value == 99);
             var pA = Prop("a", s => ((TestState)s).Value == 1);
 
-            AssertAgree(BuildLinearSelfLoop(new[] { 1 }),         G(Atom(pVpos)), "Ga-sat-single");
-            AssertAgree(BuildLinearSelfLoop(new[] { 1, 0 }),      G(Atom(pVpos)), "Ga-vio");
-            AssertAgree(BuildLinearSelfLoop(new[] { 0, 0, 99 }),  F(Atom(pGoal)), "Fa-sat");
-            AssertAgree(BuildTwoCycle(0, 1),                       F(Atom(pGoal)), "Fa-vio");
-            AssertAgree(BuildTwoCycle(1, 0),                       G(F(Atom(pA))), "GFa-sat");
-            AssertAgree(BuildLinearSelfLoop(new[] { 1, 0 }),       G(F(Atom(pA))), "GFa-vio");
+            AssertAgree(BuildLinearSelfLoop(new[] { 1 }), G(Atom(pVpos)), "Ga-sat-single");
+            AssertAgree(BuildLinearSelfLoop(new[] { 1, 0 }), G(Atom(pVpos)), "Ga-vio");
+            AssertAgree(BuildLinearSelfLoop(new[] { 0, 0, 99 }), F(Atom(pGoal)), "Fa-sat");
+            AssertAgree(BuildTwoCycle(0, 1), F(Atom(pGoal)), "Fa-vio");
+            AssertAgree(BuildTwoCycle(1, 0), G(F(Atom(pA))), "GFa-sat");
+            AssertAgree(BuildLinearSelfLoop(new[] { 1, 0 }), G(F(Atom(pA))), "GFa-vio");
         }
 
         private static void AssertAgree(StateGraphNode root, Ltl<IStatePredicate> phi, string label)

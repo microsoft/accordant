@@ -3,9 +3,11 @@
     <Project Path="Tests/Accordant.Choose.Tests/Accordant.Choose.Tests.csproj" />
     <Project Path="Tests/Accordant.ModelChecking.Tests/Accordant.ModelChecking.Tests.csproj" />
     <Project Path="Tests/Accordant.Operations.Tests/Accordant.Operations.Tests.csproj" />
+    <Project Path="Tests/Accordant.SourceGenerator.Tests/Accordant.SourceGenerator.Tests.csproj" />
     <Project Path="Tests/Accordant.Tests/Accordant.Tests.csproj" />
   </Folder>
   <Folder Name="/Samples/">
+    <Project Path="Samples/AugmentedRefinement/AugmentedRefinement.csproj" />
     <Project Path="Samples/BankAccount/BankAccount.Api/BankAccount.Api.csproj" />
     <Project Path="Samples/BankAccount/BankAccount.Api.Tests/BankAccount.Api.Tests.csproj" />
     <Project Path="Samples/Booking/Booking.Api/Booking.Api.csproj" />
@@ -20,7 +22,16 @@
     <Project Path="Samples/Peterson/Peterson.csproj" />
     <Project Path="Samples/Paxos/Paxos.csproj" />
     <Project Path="Samples/TerminationDetection/TerminationDetection.csproj" />
+    <Project Path="Samples/TemporalRefinement/TemporalRefinement.csproj" />
     <Project Path="Samples/AlternatingBit/AlternatingBit.csproj" />
+    <Project Path="Samples/OperationsModelChecking/OperationsModelChecking.csproj" />
+    <Project Path="Samples/OrderFulfillment/OrderFulfillment.csproj" />
+    <Project Path="Samples/DurableJobs/DurableJobs.csproj" />
+    <Project Path="Samples/ProcessModelChecking/ProcessModelChecking.csproj" />
+    <Project Path="Samples/WitnessRefinement/WitnessRefinement.csproj" />
+    <Project Path="Samples/WorkQueueRefinement/WorkQueueRefinement.csproj" />
+    <Project Path="Samples/WalRefinement/WalRefinement.csproj" />
+    <Project Path="Samples/WalProcessCoroutines/WalProcessCoroutines.csproj" />
   </Folder>
   <Project Path="Accordant.Choose/Accordant.Choose.csproj" />
   <Project Path="Microsoft.Accordant.Cli/Microsoft.Accordant.Cli.csproj" />
@@ -30,5 +41,7 @@
   <Project Path="Accordant.SourceGenerator/Accordant.SourceGenerator.csproj" />
   <Project Path="Accordant/Accordant.csproj" />
   <Project Path="Accordant.ModelChecking/Accordant.ModelChecking.csproj" />
+  <Project Path="Accordant.ModelChecking.Operations/Accordant.ModelChecking.Operations.csproj" />
+  <Project Path="Accordant.ModelChecking.Experimental.Coroutines/Accordant.ModelChecking.Experimental.Coroutines.csproj" />
   <Project Path="Accordant.ModelChecking.Bdd/Accordant.ModelChecking.Bdd.csproj" />
 </Solution>

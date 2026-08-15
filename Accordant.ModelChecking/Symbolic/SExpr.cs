@@ -147,11 +147,11 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     switch (esc)
                     {
                         case '\\': sb.Append('\\'); break;
-                        case '"':  sb.Append('"');  break;
-                        case 'n':  sb.Append('\n'); break;
-                        case 't':  sb.Append('\t'); break;
-                        case 'r':  sb.Append('\r'); break;
-                        default:   sb.Append(esc);  break;
+                        case '"': sb.Append('"'); break;
+                        case 'n': sb.Append('\n'); break;
+                        case 't': sb.Append('\t'); break;
+                        case 'r': sb.Append('\r'); break;
+                        default: sb.Append(esc); break;
                     }
                 }
                 else sb.Append(c);
@@ -232,11 +232,11 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                 switch (c)
                 {
                     case '\\': sb.Append("\\\\"); break;
-                    case '"':  sb.Append("\\\"");  break;
-                    case '\n': sb.Append("\\n");   break;
-                    case '\t': sb.Append("\\t");   break;
-                    case '\r': sb.Append("\\r");   break;
-                    default:   sb.Append(c);       break;
+                    case '"': sb.Append("\\\""); break;
+                    case '\n': sb.Append("\\n"); break;
+                    case '\t': sb.Append("\\t"); break;
+                    case '\r': sb.Append("\\r"); break;
+                    default: sb.Append(c); break;
                 }
             }
             sb.Append('"');

@@ -33,7 +33,9 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         /// State-only view: tests whether the proposition holds given only a
         /// source state. For transition-aware propositions this evaluates the
         /// proposition against the stutter self-loop at the state
-        /// (<c>from == to</c>, stutter action).
+        /// (<c>from == to</c>, stutter action). Node-level propositions such
+        /// as <c>ENABLED</c> require graph context and throw when invoked
+        /// through this state-only view.
         /// </summary>
         public Func<State, bool> Evaluate { get; }
 
@@ -83,6 +85,53 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
         public static StateProp OverTransition(
             string name, Func<TransitionContext, bool> evaluateTransition)
             => new StateProp(name, evaluateTransition, false);
+
+        /// <summary>
+        /// Creates the node-level proposition <c>ENABLED A</c>: it holds at a
+        /// state-graph node iff at least one <em>changing</em> outgoing model
+        /// edge of that node carries an action letter satisfying
+        /// <paramref name="actionPredicate"/>. State-neutral edges never
+        /// count, matching Accordant's fairness enabledness, so a terminal
+        /// node enables nothing.
+        ///
+        /// <para>The proposition reads
+        /// <see cref="TransitionContext.SourceNode"/> — not just the state —
+        /// because a node carries the active step-function set and two nodes
+        /// with equal states may enable different actions. It is reported as
+        /// <see cref="IsTransitionAware"/>, which keeps evaluators on the
+        /// per-edge path and makes them treat an unexpanded frontier as
+        /// unknown rather than as "nothing enabled". See
+        /// <see cref="Enabledness"/>.</para>
+        /// </summary>
+        /// <param name="name">Display name for diagnostics.</param>
+        /// <param name="actionPredicate">Tested against each candidate
+        /// outgoing edge, presented as the letter
+        /// <c>(n.State, a, metadata, n'.State)</c>.</param>
+        public static StateProp Enabled(
+            string name, Func<TransitionContext, bool> actionPredicate)
+        {
+            if (actionPredicate == null)
+                throw new ArgumentNullException(nameof(actionPredicate));
+            return new StateProp(
+                name,
+                Enabledness.Create(actionPredicate),
+                false);
+        }
+
+        /// <summary>
+        /// Creates metadata/action-aware enabledness. A selected
+        /// state-neutral model edge counts as enabled.
+        /// </summary>
+        public static StateProp EnabledAction(
+            string name, Func<TransitionContext, bool> actionPredicate)
+        {
+            if (actionPredicate == null)
+                throw new ArgumentNullException(nameof(actionPredicate));
+            return new StateProp(
+                name,
+                Enabledness.CreateAction(actionPredicate),
+                false);
+        }
 
         public bool Equals(StateProp other) => other != null && Id == other.Id;
         public override bool Equals(object obj) => Equals(obj as StateProp);

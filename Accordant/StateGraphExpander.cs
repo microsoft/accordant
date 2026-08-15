@@ -156,6 +156,7 @@ internal sealed class StateGraphExpander
 
             if (!withinDepth)
             {
+                node.IsDepthFrontier = true;
                 continue;
             }
 
@@ -164,7 +165,8 @@ internal sealed class StateGraphExpander
             var childFingerprint = child.GetNodeFingerprint();
             var alreadyPresent = edges.Any(e =>
                 e.StepFunction.StepFunctionId == stepFunction.StepFunctionId &&
-                e.Target.GetNodeFingerprint() == childFingerprint);
+                e.Target.GetNodeFingerprint() == childFingerprint &&
+                Equals(e.Metadata, edgeMetadata));
 
             if (!alreadyPresent)
             {

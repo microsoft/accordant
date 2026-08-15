@@ -134,7 +134,7 @@ namespace Accordant.ModelChecking.Tests
             var eagerRoot = Build(lazy: false);
             var lazyRoot = Build(lazy: true);
 
-            var p = new Properties<CounterState>();
+            var p = Formula.For<CounterState>();
             var inRange = p.Observe(s => s.Count >= 0 && s.Count <= max, "InRange");
             var atTwo = p.Observe(s => s.Count == 2, "AtTwo");
             var atZero = p.Observe(s => s.Count == 0, "AtZero");
@@ -144,7 +144,7 @@ namespace Accordant.ModelChecking.Tests
                 (p.Always(inRange), null, "safety-holds"),
                 (p.Always(!atTwo), null, "safety-fails"),
                 (p.Eventually(atTwo), null, "reachability"),
-                (p.InfinitelyOften(atZero), Fairness.WeakFairAll, "liveness-fairness"),
+                (p.InfinitelyOften(atZero), Fairness.WeakAll, "liveness-fairness"),
             };
 
             foreach (var (formula, fairness, name) in cases)
@@ -174,7 +174,7 @@ namespace Accordant.ModelChecking.Tests
                 var lazyRoot = Build(lazy: true);
 
                 var target = rnd.Next(0, max + 2);
-                var p = new Properties<CounterState>();
+                var p = Formula.For<CounterState>();
                 var atTarget = p.Observe(s => s.Count == target, "AtTarget");
                 var atZero = p.Observe(s => s.Count == 0, "AtZero");
 
@@ -183,7 +183,7 @@ namespace Accordant.ModelChecking.Tests
                     (p.Always(atTarget), null, "always"),
                     (p.Always(!atTarget), null, "always-not"),
                     (p.Eventually(atTarget), null, "eventually"),
-                    (p.InfinitelyOften(atZero), Fairness.WeakFairAll, "inf-often-fair"),
+                    (p.InfinitelyOften(atZero), Fairness.WeakAll, "inf-often-fair"),
                 };
 
                 foreach (var (formula, fairness, name) in cases)
@@ -278,7 +278,7 @@ namespace Accordant.ModelChecking.Tests
                 new RegionState { Region = 0, Count = 0 },
                 lazy: true);
 
-            var p = new Properties<RegionState>();
+            var p = Formula.For<RegionState>();
             var inRegion0 = p.Observe(s => s.Region == 0, "InRegion0");
             var safety = p.Always(inRegion0);
 
@@ -305,8 +305,7 @@ namespace Accordant.ModelChecking.Tests
             // Unbounded grow chain, truncated by construction maxDepth. Region-1
             // is never reachable via ToBad within a too-shallow bound because the
             // only violation requires stepping to region 1 (depth 2). With
-            // maxDepth = 1, only the root exists, so the safety property holds
-            // on the truncated graph.
+            // maxDepth = 1, only the root exists and its continuation is unknown.
             var steps = new IStepFunction[] { new ToBadStep(), new GrowStep(int.MaxValue) };
 
             var shallow = StateGraph.ExploreStateGraph(
@@ -315,12 +314,13 @@ namespace Accordant.ModelChecking.Tests
                 new IStepFunction[] { new ToBadStep(), new GrowStep(int.MaxValue) },
                 new RegionState { Region = 0, Count = 0 }, maxDepth: 5, lazy: true);
 
-            var p = new Properties<RegionState>();
+            var p = Formula.For<RegionState>();
             var safety = p.Always(p.Observe(s => s.Region == 0, "InRegion0"));
 
-            // Depth 1: root only, no edge to region 1 -> property holds.
-            Assert.That(shallow.Check(safety).Valid, Is.True,
-                "truncated graph has no region-1 state");
+            // Depth 1: root only, with unknown successors beyond the bound.
+            Assert.That(
+                shallow.Check(safety).Status,
+                Is.EqualTo(PropertyCheckingStatus.InconclusiveBound));
 
             // Depth 5: region 1 reachable at depth 2 -> violation is present.
             Assert.That(deeper.Check(safety).Valid, Is.False);

@@ -61,11 +61,16 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
     {
         public ProductNode Target { get; }
         public IStepFunction StepFunction { get; }
+        public object Metadata { get; }
 
-        public ProductEdge(ProductNode target, IStepFunction stepFunction)
+        public ProductEdge(
+            ProductNode target,
+            IStepFunction stepFunction,
+            object metadata = null)
         {
             Target = target;
             StepFunction = stepFunction;
+            Metadata = metadata;
         }
     }
 
@@ -108,17 +113,20 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
         /// </summary>
         /// <param name="root">The root of the system state graph.</param>
         /// <param name="formula">The LTL formula to check.</param>
-        /// <param name="fairness">Fairness constraints (default: weak fairness on all).</param>
-        /// <returns>Result indicating success or failure with counterexample.</returns>
+        /// <param name="fairness">Fairness constraints (default: none).</param>
+        /// <returns>A conclusive result with a counterexample on violation, or
+        /// a bounded-inconclusive result when the state graph contains an
+        /// unexplored construction-time frontier.</returns>
         public static PropertyCheckingResult Check(
             StateGraphNode root,
             LtlFormula formula,
             Fairness fairness = null)
         {
-            fairness ??= Fairness.WeakFairAll;
+            fairness ??= Fairness.None;
 
             // Build the product graph on-the-fly
-            var (productRoot, allNodes) = BuildProductGraph(root, formula);
+            var (productRoot, allNodes, reachedDepthFrontier) =
+                BuildProductGraph(root, formula);
 
             // If the initial formula is already false, fail immediately
             if (formula.IsFalse)
@@ -157,18 +165,24 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
                 }
             }
 
-            return PropertyCheckingResult.Success();
+            return reachedDepthFrontier
+                ? PropertyCheckingResult.InconclusiveBound()
+                : PropertyCheckingResult.Success();
         }
 
         /// <summary>
         /// Builds the product graph (System × Formula) on-the-fly using derivatives.
         /// </summary>
-        private static (ProductNode root, Dictionary<string, ProductNode> allNodes) BuildProductGraph(
+        private static (
+            ProductNode root,
+            Dictionary<string, ProductNode> allNodes,
+            bool reachedDepthFrontier) BuildProductGraph(
             StateGraphNode systemRoot,
             LtlFormula initialFormula)
         {
             var allNodes = new Dictionary<string, ProductNode>();
             var queue = new Queue<ProductNode>();
+            var reachedDepthFrontier = false;
 
             var root = new ProductNode(systemRoot, initialFormula);
             allNodes[root.GetFingerprint()] = root;
@@ -177,6 +191,27 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
+
+                if (current.SystemNode.IsDepthFrontier)
+                {
+                    var derivedFormula = current.Formula.Derivative(current.SystemNode.State);
+                    if (derivedFormula.IsFalse)
+                    {
+                        var rejectSink = new ProductNode(current.SystemNode, derivedFormula);
+                        var rejectFp = rejectSink.GetFingerprint();
+                        if (!allNodes.TryGetValue(rejectFp, out var existingReject))
+                        {
+                            allNodes[rejectFp] = rejectSink;
+                            existingReject = rejectSink;
+                        }
+                        current.Edges.Add(new ProductEdge(existingReject, StutterStep.Instance));
+                    }
+                    else if (!derivedFormula.IsTrue)
+                    {
+                        reachedDepthFrontier = true;
+                    }
+                    continue;
+                }
 
                 // Standard LTL convention: paths are infinite. If the system
                 // node has no outgoing edges, inject an implicit stutter
@@ -231,7 +266,8 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
                             existingReject = rejectSink;
                             // Do NOT enqueue: a (sys, False) node is a terminal sink.
                         }
-                        current.Edges.Add(new ProductEdge(existingReject, edge.StepFunction));
+                        current.Edges.Add(
+                            new ProductEdge(existingReject, edge.StepFunction, edge.Metadata));
                         continue;
                     }
 
@@ -245,11 +281,12 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
                         existingNode = successor;
                     }
 
-                    current.Edges.Add(new ProductEdge(existingNode, edge.StepFunction));
+                    current.Edges.Add(
+                        new ProductEdge(existingNode, edge.StepFunction, edge.Metadata));
                 }
             }
 
-            return (root, allNodes);
+            return (root, allNodes, reachedDepthFrontier);
         }
 
         /// <summary>
@@ -687,15 +724,20 @@ namespace Microsoft.Accordant.ModelChecking.Ltl
             // AND target are both inside the product SCC.
             var productSccFps = new HashSet<string>(productSCC.Nodes.Select(n => n.GetFingerprint()));
 
-            IEnumerable<IStepFunction> EnabledAt(StateGraphNode sys)
-                => sys.Edges.Select(e => e.StepFunction);
+            IEnumerable<FairnessEdge> EnabledAt(StateGraphNode sys)
+                => sys.Edges.Select(e =>
+                    new FairnessEdge(sys, e.StepFunction, e.Metadata, e.Target));
 
-            IEnumerable<IStepFunction> Taken()
+            IEnumerable<FairnessEdge> Taken()
             {
                 foreach (var pn in productSCC.Nodes)
                     foreach (var edge in pn.Edges)
                         if (productSccFps.Contains(edge.Target.GetFingerprint()))
-                            yield return edge.StepFunction;
+                            yield return new FairnessEdge(
+                                pn.SystemNode,
+                                edge.StepFunction,
+                                edge.Metadata,
+                                edge.Target.SystemNode);
             }
 
             var analysis = CycleFairness.Compute(systemNodes.Values, EnabledAt, Taken());

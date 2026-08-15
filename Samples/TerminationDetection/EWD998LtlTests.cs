@@ -173,7 +173,7 @@ namespace TerminationDetection
         /// holds.
         ///
         /// This is the canonical example where per-instance fairness
-        /// matters: a coarser <c>Fairness.WeakFairAll</c> over a global
+        /// matters: a coarser <c>Fairness.WeakAll</c> over a global
         /// no-op-bearing <c>DeactivateStep</c> could not have produced
         /// this verdict.
         /// </summary>
@@ -186,7 +186,7 @@ namespace TerminationDetection
 
             var phi = LtlFormula.InfinitelyOften(tokenAtLeader);
 
-            var fairness = Fairness.StrongFair(sf =>
+            var fairness = Fairness.Strong(sf =>
                 sf is EWD998.DeactivateStep ||
                 sf is EWD998.PassTokenStep ||
                 sf is EWD998.InitiateProbeStep);

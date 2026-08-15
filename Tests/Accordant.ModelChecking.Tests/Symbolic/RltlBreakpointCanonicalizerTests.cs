@@ -62,7 +62,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
 
             var cmp = Comparer<Rltl<IntPredicate>>.Create((x, y) => x.GetHashCode().CompareTo(y.GetHashCode()));
             var emptyO = StateSet<Rltl<IntPredicate>>.Empty(cmp);
-            var bpGp  = new BreakpointState<Rltl<IntPredicate>>(
+            var bpGp = new BreakpointState<Rltl<IntPredicate>>(
                 new StateSet<Rltl<IntPredicate>>(new[] { Gp }, cmp), emptyO);
             var bpGGp = new BreakpointState<Rltl<IntPredicate>>(
                 new StateSet<Rltl<IntPredicate>>(new[] { GGp }, cmp), emptyO);
@@ -163,7 +163,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
             }
 
             int noMerge = Run(merge: false);
-            int merged  = Run(merge: true);
+            int merged = Run(merge: true);
             Assert.That(merged, Is.LessThanOrEqualTo(noMerge));
             Assert.That(merged, Is.EqualTo(3),
                 "JACM Example 5.1: the weak-equivalent merge collapses to 3 reachable NBW states.");

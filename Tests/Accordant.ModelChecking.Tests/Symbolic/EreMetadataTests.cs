@@ -23,21 +23,21 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         public void Leaves_HaveZeroFlags_AndCostOne()
         {
             var empty = Ere<IStatePredicate>.Empty();
-            var eps   = Ere<IStatePredicate>.Epsilon();
-            var a     = Atom(Pa);
+            var eps = Ere<IStatePredicate>.Epsilon();
+            var a = Atom(Pa);
 
             foreach (var leaf in new Ere<IStatePredicate>[] { empty, eps, a })
             {
-                Assert.That(leaf.ContainsCompl,  Is.False, $"{leaf} should not contain complement");
-                Assert.That(leaf.ContainsInter,  Is.False, $"{leaf} should not contain intersect");
+                Assert.That(leaf.ContainsCompl, Is.False, $"{leaf} should not contain complement");
+                Assert.That(leaf.ContainsInter, Is.False, $"{leaf} should not contain intersect");
                 Assert.That(leaf.ContainsExists, Is.False, $"{leaf} should not contain exists");
                 Assert.That(leaf.Cost, Is.EqualTo(1), $"{leaf} cost should be 1");
             }
 
             // Empty is excluded from "definitely alive" because it denotes ∅.
             Assert.That(empty.IsDefinitelyAlive, Is.False);
-            Assert.That(eps.IsDefinitelyAlive,   Is.True);
-            Assert.That(a.IsDefinitelyAlive,     Is.True);
+            Assert.That(eps.IsDefinitelyAlive, Is.True);
+            Assert.That(a.IsDefinitelyAlive, Is.True);
         }
 
         [Test]
@@ -49,8 +49,8 @@ namespace Accordant.ModelChecking.Tests.Symbolic
                 Ere<IStatePredicate>.Star(
                     Ere<IStatePredicate>.Union(a, Ere<IStatePredicate>.Epsilon())));
 
-            Assert.That(r.ContainsCompl,  Is.False);
-            Assert.That(r.ContainsInter,  Is.False);
+            Assert.That(r.ContainsCompl, Is.False);
+            Assert.That(r.ContainsInter, Is.False);
             Assert.That(r.ContainsExists, Is.False);
             Assert.That(r.IsDefinitelyAlive, Is.True);
             Assert.That(r.Cost, Is.GreaterThan(1));

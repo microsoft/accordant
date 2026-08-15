@@ -17,7 +17,7 @@ namespace DiningPhilosophers
         private StateGraphNode _asymRoot;
 
         private static readonly Fairness PhilFairness =
-            Fairness.StrongFair(sf => sf is Dining.PhilStep);
+            Fairness.Strong(sf => sf is Dining.PhilStep);
 
         [SetUp]
         public void Setup()

@@ -62,19 +62,19 @@ namespace Microsoft.Accordant.ModelChecking.Testing
             // Otherwise pick a node weighted toward temporal operators.
             // Weights: leaf=2, ¬=1, ∧=2, ∨=2, X=2, U=3, R=3 (sum = 15).
             var roll = _rng.Next(15);
-            if (roll < 2)       return RandomLeaf();
-            if (roll < 3)       return LtlFormula.Not(Build(depth - 1));
-            if (roll < 5)       return LtlFormula.And(Build(depth - 1), Build(depth - 1));
-            if (roll < 7)       return LtlFormula.Or(Build(depth - 1), Build(depth - 1));
-            if (roll < 9)       return LtlFormula.Next(Build(depth - 1));
-            if (roll < 12)      return LtlFormula.Until(Build(depth - 1), Build(depth - 1));
-            return                     LtlFormula.Release(Build(depth - 1), Build(depth - 1));
+            if (roll < 2) return RandomLeaf();
+            if (roll < 3) return LtlFormula.Not(Build(depth - 1));
+            if (roll < 5) return LtlFormula.And(Build(depth - 1), Build(depth - 1));
+            if (roll < 7) return LtlFormula.Or(Build(depth - 1), Build(depth - 1));
+            if (roll < 9) return LtlFormula.Next(Build(depth - 1));
+            if (roll < 12) return LtlFormula.Until(Build(depth - 1), Build(depth - 1));
+            return LtlFormula.Release(Build(depth - 1), Build(depth - 1));
         }
 
         private LtlFormula RandomLeaf()
         {
             var roll = _rng.Next(_atoms.Count + 2);
-            if (roll == _atoms.Count)     return LtlFormula.True;
+            if (roll == _atoms.Count) return LtlFormula.True;
             if (roll == _atoms.Count + 1) return LtlFormula.False;
             var (pred, name) = _atoms[roll];
             // Randomly negate atoms half the time to exercise atom-level NNF.

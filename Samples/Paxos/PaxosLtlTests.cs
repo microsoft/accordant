@@ -73,7 +73,7 @@ namespace Accordant.Samples.Paxos
         [Test]
         public void Liveness_SomeoneDecides_UnderFullFairness()
         {
-            var fair = Fairness.StrongFair(sf =>
+            var fair = Fairness.Strong(sf =>
                 sf is Paxos.PrepareDeliverStep
                 || sf is Paxos.AcceptDeliverStep
                 || sf is Paxos.Phase1DoneStep
@@ -96,4 +96,3 @@ namespace Accordant.Samples.Paxos
         }
     }
 }
-

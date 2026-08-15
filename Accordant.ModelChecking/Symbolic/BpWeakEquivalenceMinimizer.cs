@@ -139,7 +139,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     }
                 }
             }
-            found:
+        found:
 
             var newInitials = new List<TState>();
             var initialSeen = new HashSet<TState>(eqCmp);
@@ -278,7 +278,7 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     foreach (var leaf in tt.GetDistinctLeaves())
                         if (leaf != null) { leafCmp = leaf.Comparer; goto found; }
             }
-            found:
+        found:
 
             var newInitials = new List<TState>();
             var initialSeen = new HashSet<TState>(eqCmp);

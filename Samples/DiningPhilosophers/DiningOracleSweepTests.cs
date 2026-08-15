@@ -16,7 +16,7 @@ namespace DiningPhilosophers
         private StateGraphNode _naiveRoot;
         private StateGraphNode _asymRoot;
 
-        private static readonly Fairness PhilFairness = Fairness.StrongFair(sf => sf is Dining.PhilStep);
+        private static readonly Fairness PhilFairness = Fairness.Strong(sf => sf is Dining.PhilStep);
 
         [SetUp]
         public void Setup()
@@ -52,10 +52,10 @@ namespace DiningPhilosophers
         }
 
         [Test]
-        public void Oracle_Safety_NoTwoEating_Asym_WeakFair()
+        public void Oracle_Safety_NoTwoEating_Asym_Weak()
         {
             var phi = LtlFormula.Always(LtlFormula.Not(TwoEating));
-            var r = LtlMultiBackendCrossCheck.Run(_asymRoot, phi, Fairness.WeakFairAll, nameof(Oracle_Safety_NoTwoEating_Asym_WeakFair));
+            var r = LtlMultiBackendCrossCheck.Run(_asymRoot, phi, Fairness.WeakAll, nameof(Oracle_Safety_NoTwoEating_Asym_Weak));
             r.ThrowIfDisagree();
             Assert.That(r.Verdicts[0].Result.Valid, Is.True);
         }

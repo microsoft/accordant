@@ -32,22 +32,22 @@ namespace Accordant.Samples.Paxos
         public void Agreement_AsForbiddenPrefixFamily()
         {
             for (int p1 = 0; p1 < Paxos.P; p1++)
-            for (int p2 = 0; p2 < Paxos.P; p2++)
-            {
-                if (p1 == p2) continue;
-                for (int v1 = 1; v1 <= Paxos.P; v1++)
-                for (int v2 = 1; v2 <= Paxos.P; v2++)
+                for (int p2 = 0; p2 < Paxos.P; p2++)
                 {
-                    if (v1 == v2) continue;
-                    var bad = Regex.Concat(SigmaStar,
-                                Regex.Concat(Decided(p1, v1),
-                                  Regex.Concat(SigmaStar, Decided(p2, v2))));
-                    var phi = RltlFormula.Trigger(bad, RltlFormula.False);
-                    var r = RltlCheck.Check(_root, phi);
-                    Assert.IsTrue(r.Valid,
-                        $"p1={p1},v1={v1},p2={p2},v2={v2}: {r.GetTraceString()}");
+                    if (p1 == p2) continue;
+                    for (int v1 = 1; v1 <= Paxos.P; v1++)
+                        for (int v2 = 1; v2 <= Paxos.P; v2++)
+                        {
+                            if (v1 == v2) continue;
+                            var bad = Regex.Concat(SigmaStar,
+                                        Regex.Concat(Decided(p1, v1),
+                                          Regex.Concat(SigmaStar, Decided(p2, v2))));
+                            var phi = RltlFormula.Trigger(bad, RltlFormula.False);
+                            var r = RltlCheck.Check(_root, phi);
+                            Assert.IsTrue(r.Valid,
+                                $"p1={p1},v1={v1},p2={p2},v2={v2}: {r.GetTraceString()}");
+                        }
                 }
-            }
         }
 
         /// <summary>
@@ -60,17 +60,17 @@ namespace Accordant.Samples.Paxos
         public void DecidedStable_AsForbiddenPrefix()
         {
             for (int p = 0; p < Paxos.P; p++)
-            for (int v1 = 1; v1 <= Paxos.P; v1++)
-            for (int v2 = 1; v2 <= Paxos.P; v2++)
-            {
-                if (v1 == v2) continue;
-                var bad = Regex.Concat(SigmaStar,
-                            Regex.Concat(Decided(p, v1),
-                              Regex.Concat(SigmaStar, Decided(p, v2))));
-                var phi = RltlFormula.Trigger(bad, RltlFormula.False);
-                var r = RltlCheck.Check(_root, phi);
-                Assert.IsTrue(r.Valid, $"p={p},v1={v1},v2={v2}: {r.GetTraceString()}");
-            }
+                for (int v1 = 1; v1 <= Paxos.P; v1++)
+                    for (int v2 = 1; v2 <= Paxos.P; v2++)
+                    {
+                        if (v1 == v2) continue;
+                        var bad = Regex.Concat(SigmaStar,
+                                    Regex.Concat(Decided(p, v1),
+                                      Regex.Concat(SigmaStar, Decided(p, v2))));
+                        var phi = RltlFormula.Trigger(bad, RltlFormula.False);
+                        var r = RltlCheck.Check(_root, phi);
+                        Assert.IsTrue(r.Valid, $"p={p},v1={v1},v2={v2}: {r.GetTraceString()}");
+                    }
         }
 
         /// <summary>

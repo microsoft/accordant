@@ -19,10 +19,11 @@ namespace Microsoft.Accordant.ModelChecking
         /// <param name="formula">The temporal property that should hold.</param>
         /// <param name="maxDepth">Maximum exploration depth (0 = unlimited).</param>
         /// <param name="fairness">Optional fairness constraint. Defaults to
-        ///   <see cref="Fairness.None"/>. Use <see cref="Fairness.WeakFairAll"/>
+        ///   <see cref="Fairness.None"/>. Use <see cref="Fairness.WeakAll"/>
         ///   for liveness properties that require weak fairness.</param>
-        /// <returns>A result indicating validity, with a counterexample trace
-        /// on failure.</returns>
+        /// <returns>A result indicating that the property holds, is violated,
+        /// or is inconclusive because exploration reached a depth frontier.
+        /// Violations include a counterexample trace.</returns>
         public static PropertyCheckingResult Check(
             this StateGraphNode root,
             TemporalFormula formula,
@@ -31,7 +32,9 @@ namespace Microsoft.Accordant.ModelChecking
         {
             if (root == null) throw new ArgumentNullException(nameof(root));
             if (formula == null) throw new ArgumentNullException(nameof(formula));
-            return SymbolicRltlCheck.Check(root, formula.Core, maxDepth, fairness);
+            return SymbolicRltlCheck
+                .Check(root, formula.Core, maxDepth, fairness)
+                .WithPropertyName(formula.Name);
         }
     }
 }

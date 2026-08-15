@@ -30,38 +30,44 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         private IStatePredicate Atom(StateProp p) => new StatePredAtom(p);
 
         [Test]
-        public void Constants() {
+        public void Constants()
+        {
             Assert.That(_eba.IsSatisfiable(_eba.Top), Is.True);
             Assert.That(_eba.IsSatisfiable(_eba.Bottom), Is.False);
         }
 
         [Test]
-        public void SingleAtom_Satisfiable() {
+        public void SingleAtom_Satisfiable()
+        {
             Assert.That(_eba.IsSatisfiable(Atom(_p)), Is.True);
             Assert.That(_eba.IsSatisfiable(_eba.Not(Atom(_p))), Is.True);
         }
 
         [Test]
-        public void Contradiction_PAndNotP_Unsatisfiable() {
+        public void Contradiction_PAndNotP_Unsatisfiable()
+        {
             var phi = _eba.And(Atom(_p), _eba.Not(Atom(_p)));
             Assert.That(_eba.IsSatisfiable(phi), Is.False);
         }
 
         [Test]
-        public void Tautology_PorNotP_Satisfiable() {
+        public void Tautology_PorNotP_Satisfiable()
+        {
             var phi = _eba.Or(Atom(_p), _eba.Not(Atom(_p)));
             Assert.That(_eba.IsSatisfiable(phi), Is.True);
         }
 
         [Test]
-        public void Conjunction_With_Hidden_Contradiction() {
+        public void Conjunction_With_Hidden_Contradiction()
+        {
             // (p ∧ q) ∧ ¬p — unsatisfiable; the conflict is below an inner conjunction.
             var phi = _eba.And(_eba.And(Atom(_p), Atom(_q)), _eba.Not(Atom(_p)));
             Assert.That(_eba.IsSatisfiable(phi), Is.False);
         }
 
         [Test]
-        public void Disjunction_Of_Contradictions_Unsatisfiable() {
+        public void Disjunction_Of_Contradictions_Unsatisfiable()
+        {
             // (p ∧ ¬p) ∨ (q ∧ ¬q) — both disjuncts unsat ⇒ whole formula unsat.
             var phi = _eba.Or(
                 _eba.And(Atom(_p), _eba.Not(Atom(_p))),
@@ -70,14 +76,16 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         }
 
         [Test]
-        public void DistinctAtoms_Independent() {
+        public void DistinctAtoms_Independent()
+        {
             // p ∧ ¬q — satisfiable (p=true, q=false).
             var phi = _eba.And(Atom(_p), _eba.Not(Atom(_q)));
             Assert.That(_eba.IsSatisfiable(phi), Is.True);
         }
 
         [Test]
-        public void ThreeAtoms_HiddenContradiction() {
+        public void ThreeAtoms_HiddenContradiction()
+        {
             // (p ∨ q) ∧ ¬p ∧ ¬q ∧ r — unsatisfiable: ¬p ∧ ¬q forces p∨q false.
             var phi = _eba.And(
                 _eba.And(
@@ -88,7 +96,8 @@ namespace Accordant.ModelChecking.Tests.Symbolic
         }
 
         [Test]
-        public void DoubleNegation_Preserved() {
+        public void DoubleNegation_Preserved()
+        {
             // ¬¬p ≡ p — built via the EBA, the constructor normalises double-not.
             var notNotP = _eba.Not(_eba.Not(Atom(_p)));
             Assert.That(_eba.IsSatisfiable(notNotP), Is.True);

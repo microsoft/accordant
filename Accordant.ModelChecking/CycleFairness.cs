@@ -1,154 +1,288 @@
-namespace Microsoft.Accordant.ModelChecking
+namespace Microsoft.Accordant.ModelChecking;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Accordant.ModelChecking.Symbolic;
+
+internal readonly struct FairnessEdge
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
+    public StateGraphNode Source { get; }
+    public IStepFunction StepFunction { get; }
+    public object Metadata { get; }
+    public StateGraphNode Target { get; }
 
-    /// <summary>
-    /// Single source of truth for the enabled / continuously-enabled /
-    /// taken-in-cycle computation underlying every fairness decision in
-    /// the model checker.
-    ///
-    /// <para>
-    /// Four call sites previously duplicated this logic, each with
-    /// slightly different group/edge iteration patterns:
-    /// </para>
-    /// <list type="bullet">
-    ///   <item><see cref="Fairness.IsFairCycle"/> — system SCC for the
-    ///   explicit non-product fairness path.</item>
-    ///   <item><see cref="Ltl.LtlCheck.IsFairCycle"/> — explicit LTL
-    ///   product SCC projected to its unique system nodes; "taken" comes
-    ///   from product edges that stay inside the product SCC.</item>
-    ///   <item><c>SccProductCheck.IsFairProductCycle</c> — symbolic
-    ///   product SCC, the symbolic analogue of the explicit-LTL
-    ///   projection.</item>
-    ///   <item><see cref="PropertyCheckingResult"/>'s
-    ///   <c>GetEnabledButNotTakenSteps</c> — diagnostic hint emitting
-    ///   labels for steps that were enabled but never fired inside the
-    ///   bad cycle.</item>
-    /// </list>
-    /// <para>
-    /// Each call site differs only in how it enumerates (a) the
-    /// "groups" (one per unique system node visited by the cycle),
-    /// (b) the step functions enabled at each group's system state, and
-    /// (c) the step functions actually fired on edges that stay inside
-    /// the cycle. This helper factors that variation behind
-    /// <see cref="Compute{TGroup}"/> and returns a single
-    /// <see cref="Analysis"/> from which fairness verdicts and the
-    /// diagnostic hint are derived.
-    /// </para>
-    /// </summary>
-    internal static class CycleFairness
+    public bool ChangesState => !StateSemantics.Equal(Source.State, Target.State);
+
+    public bool IsSyntheticStutter =>
+        StepFunction == null ||
+        StepFunction is StutterAction ||
+        StepFunction is Ltl.StutterStep ||
+        string.Equals(
+            StepFunction.StepFunctionId,
+            "<refinement-stutter>",
+            StringComparison.Ordinal);
+
+    public TransitionContext Context => TransitionContext.Edge(
+        Source.State, StepFunction, Metadata, Target.State, Source);
+
+    public FairnessEdge(
+        StateGraphNode source,
+        IStepFunction stepFunction,
+        object metadata,
+        StateGraphNode target)
     {
-        /// <summary>
-        /// Aggregated enabled / continuouslyEnabled / taken sets for a
-        /// cycle, plus a representative <see cref="IStepFunction"/> per
-        /// id so that fairness predicates can be evaluated.
-        /// </summary>
-        internal sealed class Analysis
-        {
-            public HashSet<string> Enabled { get; }
-            public HashSet<string> ContinuouslyEnabled { get; }
-            public HashSet<string> Taken { get; }
-            public Dictionary<string, IStepFunction> StepById { get; }
+        Source = source;
+        StepFunction = stepFunction;
+        Metadata = metadata;
+        Target = target;
+    }
+}
 
-            public Analysis(
-                HashSet<string> enabled,
-                HashSet<string> continuouslyEnabled,
-                HashSet<string> taken,
-                Dictionary<string, IStepFunction> stepById)
-            {
-                Enabled = enabled;
-                ContinuouslyEnabled = continuouslyEnabled;
-                Taken = taken;
-                StepById = stepById;
-            }
+/// <summary>
+/// Shared fairness analysis for system and product cycles. Legacy
+/// step/relation constraints consume the changing-edge projection;
+/// semantic-action constraints consume all selected model edges.
+/// </summary>
+internal static class CycleFairness
+{
+    internal sealed class Analysis
+    {
+        public HashSet<string> Enabled { get; }
+        public HashSet<string> ContinuouslyEnabled { get; }
+        public HashSet<string> Taken { get; }
+        public Dictionary<string, IStepFunction> StepById { get; }
+        public IReadOnlyList<IReadOnlyList<FairnessEdge>> EnabledByGroup { get; }
+        public IReadOnlyList<FairnessEdge> TakenEdges { get; }
+        public IReadOnlyList<IReadOnlyList<FairnessEdge>> AllEnabledByGroup { get; }
+        public IReadOnlyList<FairnessEdge> AllTakenEdges { get; }
+
+        public Analysis(
+            HashSet<string> enabled,
+            HashSet<string> continuouslyEnabled,
+            HashSet<string> taken,
+            Dictionary<string, IStepFunction> stepById,
+            IReadOnlyList<IReadOnlyList<FairnessEdge>> enabledByGroup,
+            IReadOnlyList<FairnessEdge> takenEdges,
+            IReadOnlyList<IReadOnlyList<FairnessEdge>> allEnabledByGroup,
+            IReadOnlyList<FairnessEdge> allTakenEdges)
+        {
+            Enabled = enabled;
+            ContinuouslyEnabled = continuouslyEnabled;
+            Taken = taken;
+            StepById = stepById;
+            EnabledByGroup = enabledByGroup;
+            TakenEdges = takenEdges;
+            AllEnabledByGroup = allEnabledByGroup;
+            AllTakenEdges = allTakenEdges;
+        }
+    }
+
+    internal sealed class EdgeViolation
+    {
+        private readonly FairnessKey key;
+
+        internal EdgeViolation(
+            Fairness.EdgeConstraint constraint,
+            bool hasKey,
+            FairnessKey key)
+        {
+            Constraint = constraint;
+            HasKey = hasKey;
+            this.key = key;
         }
 
-        /// <summary>
-        /// Build the per-cycle <see cref="Analysis"/>.
-        /// <paramref name="enabledAt"/> is called once per group;
-        /// continuouslyEnabled is computed as the intersection of
-        /// per-group enabled sets. <paramref name="taken"/> is the
-        /// global enumeration of step functions actually fired by edges
-        /// that stay inside the cycle — callers decide whether that's
-        /// system-edge intra-SCC firing (system-SCC case) or product-
-        /// edge intra-product-SCC firing (product-SCC case).
-        /// </summary>
-        internal static Analysis Compute<TGroup>(
-            IEnumerable<TGroup> groups,
-            Func<TGroup, IEnumerable<IStepFunction>> enabledAt,
-            IEnumerable<IStepFunction> taken)
+        internal Fairness.EdgeConstraint Constraint { get; }
+        internal bool HasKey { get; }
+
+        internal bool Matches(FairnessEdge edge)
+            => Constraint.Matches(edge) &&
+               (!HasKey ||
+                key.Equals(
+                    new FairnessKey(Constraint.KeySelector(edge))));
+    }
+
+    internal static Analysis Compute<TGroup>(
+        IEnumerable<TGroup> groups,
+        Func<TGroup, IEnumerable<FairnessEdge>> enabledAt,
+        IEnumerable<FairnessEdge> taken)
+    {
+        var stepById = new Dictionary<string, IStepFunction>();
+        var perGroup = new List<IReadOnlyList<FairnessEdge>>();
+        var allPerGroup = new List<IReadOnlyList<FairnessEdge>>();
+        var perGroupIds = new List<HashSet<string>>();
+
+        foreach (var group in groups)
         {
-            var stepById = new Dictionary<string, IStepFunction>();
+            var allEdges = enabledAt(group)
+                .Where(edge => !edge.IsSyntheticStutter)
+                .ToList();
+            allPerGroup.Add(allEdges);
 
-            // Per-group enabled sets. Materialize so we can intersect.
-            var perGroup = new List<HashSet<string>>();
-            foreach (var g in groups)
+            var edges = allEdges.Where(edge => edge.ChangesState).ToList();
+            perGroup.Add(edges);
+
+            var ids = new HashSet<string>();
+            foreach (var edge in edges)
             {
-                var local = new HashSet<string>();
-                foreach (var sf in enabledAt(g))
-                {
-                    if (sf == null) continue;
-                    local.Add(sf.StepFunctionId);
-                    if (!stepById.ContainsKey(sf.StepFunctionId))
-                        stepById[sf.StepFunctionId] = sf;
-                }
-                perGroup.Add(local);
+                ids.Add(edge.StepFunction.StepFunctionId);
+                if (!stepById.ContainsKey(edge.StepFunction.StepFunctionId))
+                    stepById[edge.StepFunction.StepFunctionId] = edge.StepFunction;
             }
-
-            var enabled = new HashSet<string>();
-            foreach (var s in perGroup) enabled.UnionWith(s);
-
-            var continuouslyEnabled = new HashSet<string>();
-            if (perGroup.Count > 0)
-            {
-                foreach (var id in enabled)
-                {
-                    bool atAll = true;
-                    for (int i = 0; i < perGroup.Count; i++)
-                    {
-                        if (!perGroup[i].Contains(id)) { atAll = false; break; }
-                    }
-                    if (atAll) continuouslyEnabled.Add(id);
-                }
-            }
-
-            var takenSet = new HashSet<string>();
-            foreach (var sf in taken)
-            {
-                if (sf == null) continue;
-                takenSet.Add(sf.StepFunctionId);
-                if (!stepById.ContainsKey(sf.StepFunctionId))
-                    stepById[sf.StepFunctionId] = sf;
-            }
-
-            return new Analysis(enabled, continuouslyEnabled, takenSet, stepById);
+            perGroupIds.Add(ids);
         }
 
-        /// <summary>
-        /// Apply <paramref name="fairness"/> to the analysis. Returns
-        /// <c>true</c> iff the cycle is fair: every weakly-fair step
-        /// that is continuously enabled is taken, and every strongly-
-        /// fair step that is enabled at all is taken.
-        /// </summary>
-        internal static bool IsFair(Analysis a, Fairness fairness)
-        {
-            if (fairness == null) return true;
-            foreach (var id in a.Enabled)
-            {
-                if (!a.StepById.TryGetValue(id, out var rep)) continue;
+        var enabled = new HashSet<string>();
+        foreach (var ids in perGroupIds)
+            enabled.UnionWith(ids);
 
-                if (fairness.WeakFairPredicate(rep) && a.ContinuouslyEnabled.Contains(id))
-                {
-                    if (!a.Taken.Contains(id)) return false;
-                }
-                if (fairness.StrongFairPredicate(rep))
-                {
-                    if (!a.Taken.Contains(id)) return false;
-                }
-            }
+        var continuouslyEnabled = new HashSet<string>(enabled);
+        foreach (var ids in perGroupIds)
+            continuouslyEnabled.IntersectWith(ids);
+        if (perGroupIds.Count == 0)
+            continuouslyEnabled.Clear();
+
+        var allTakenEdges = taken
+            .Where(edge => !edge.IsSyntheticStutter)
+            .ToList();
+        var takenEdges = allTakenEdges
+            .Where(edge => edge.ChangesState)
+            .ToList();
+        var takenIds = new HashSet<string>();
+        foreach (var edge in takenEdges)
+        {
+            takenIds.Add(edge.StepFunction.StepFunctionId);
+            if (!stepById.ContainsKey(edge.StepFunction.StepFunctionId))
+                stepById[edge.StepFunction.StepFunctionId] = edge.StepFunction;
+        }
+
+        return new Analysis(
+            enabled,
+            continuouslyEnabled,
+            takenIds,
+            stepById,
+            perGroup,
+            takenEdges,
+            allPerGroup,
+            allTakenEdges);
+    }
+
+    internal static bool IsFair(Analysis analysis, Fairness fairness)
+    {
+        if (fairness == null)
             return true;
+
+        foreach (var id in analysis.Enabled)
+        {
+            if (!analysis.StepById.TryGetValue(id, out var step))
+                continue;
+
+            if (fairness.WeakStepPredicate(step)
+                && analysis.ContinuouslyEnabled.Contains(id)
+                && !analysis.Taken.Contains(id))
+                return false;
+
+            if (fairness.StrongStepPredicate(step)
+                && !analysis.Taken.Contains(id))
+                return false;
         }
+
+        if (GetEdgeViolations(analysis, fairness, isStrong: false).Count > 0 ||
+            GetEdgeViolations(analysis, fairness, isStrong: true).Count > 0)
+            return false;
+
+        return true;
+    }
+
+    internal static IReadOnlyList<EdgeViolation> GetEdgeViolations(
+        Analysis analysis,
+        Fairness fairness,
+        bool isStrong)
+    {
+        var violations = new List<EdgeViolation>();
+
+        foreach (var constraint in fairness.EdgeConstraints
+            .Where(item => item.IsStrong == isStrong))
+        {
+            var enabledByGroup = constraint.IncludesStateNeutral
+                ? analysis.AllEnabledByGroup
+                : analysis.EnabledByGroup;
+            var takenEdges = constraint.IncludesStateNeutral
+                ? analysis.AllTakenEdges
+                : analysis.TakenEdges;
+
+            if (constraint.KeySelector == null)
+            {
+                var enabled = IsEnabled(
+                    enabledByGroup,
+                    constraint.IsStrong,
+                    constraint.Matches);
+                if (enabled && !takenEdges.Any(constraint.Matches))
+                {
+                    violations.Add(new EdgeViolation(
+                        constraint,
+                        hasKey: false,
+                        default));
+                }
+                continue;
+            }
+
+            var keys = new HashSet<FairnessKey>();
+            foreach (var edges in enabledByGroup)
+            {
+                foreach (var edge in edges)
+                {
+                    if (constraint.Matches(edge))
+                    {
+                        keys.Add(new FairnessKey(
+                            constraint.KeySelector(edge)));
+                    }
+                }
+            }
+
+            foreach (var key in keys)
+            {
+                var obligation = new EdgeViolation(
+                    constraint,
+                    hasKey: true,
+                    key);
+                var enabled = IsEnabled(
+                    enabledByGroup,
+                    constraint.IsStrong,
+                    obligation.Matches);
+                if (enabled && !takenEdges.Any(obligation.Matches))
+                    violations.Add(obligation);
+            }
+        }
+
+        return violations;
+    }
+
+    private static bool IsEnabled(
+        IReadOnlyList<IReadOnlyList<FairnessEdge>> enabledByGroup,
+        bool isStrong,
+        Func<FairnessEdge, bool> matches)
+        => isStrong
+            ? enabledByGroup.Any(edges => edges.Any(matches))
+            : enabledByGroup.Count > 0 &&
+              enabledByGroup.All(edges => edges.Any(matches));
+
+    internal readonly struct FairnessKey : IEquatable<FairnessKey>
+    {
+        private readonly object value;
+
+        internal FairnessKey(object value)
+        {
+            this.value = value;
+        }
+
+        public bool Equals(FairnessKey other)
+            => object.Equals(value, other.value);
+
+        public override bool Equals(object obj)
+            => obj is FairnessKey other && Equals(other);
+
+        public override int GetHashCode()
+            => value?.GetHashCode() ?? 0;
     }
 }

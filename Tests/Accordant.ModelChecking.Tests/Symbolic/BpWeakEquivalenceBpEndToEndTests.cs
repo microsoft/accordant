@@ -86,7 +86,7 @@ namespace Accordant.ModelChecking.Tests.Symbolic
                 Comparer<Rltl<IStatePredicate>>.Default);
             var min = variant switch
             {
-                MinVariant.Post  => BpWeakEquivalenceMinimizer.Minimize(nbw, bpEq, bpOrd),
+                MinVariant.Post => BpWeakEquivalenceMinimizer.Minimize(nbw, bpEq, bpOrd),
                 MinVariant.Fused => BpWeakEquivalenceMinimizer.MinimizeFused(nbw, bpEq, bpOrd),
                 MinVariant.Dedup => BpWeakEquivalenceMinimizer.DedupOnTheFly(nbw, bpEq, bpOrd),
                 _ => throw new System.ArgumentOutOfRangeException(nameof(variant)),

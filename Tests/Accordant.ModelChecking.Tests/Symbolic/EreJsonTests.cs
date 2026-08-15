@@ -17,15 +17,15 @@ namespace Accordant.ModelChecking.Tests.Symbolic
                 $"Round-trip failed. JSON: {json}\nOriginal: {r}\nGot: {back}");
         }
 
-        [Test] public void Empty()        => RoundTrip(Ere<string>.Empty());
-        [Test] public void Epsilon()      => RoundTrip(Ere<string>.Epsilon());
-        [Test] public void Atom_Simple()  => RoundTrip(A);
-        [Test] public void Concat_AB()    => RoundTrip(Ere<string>.Concat(A, B));
-        [Test] public void Union_AB()     => RoundTrip(Ere<string>.Union(A, B));
+        [Test] public void Empty() => RoundTrip(Ere<string>.Empty());
+        [Test] public void Epsilon() => RoundTrip(Ere<string>.Epsilon());
+        [Test] public void Atom_Simple() => RoundTrip(A);
+        [Test] public void Concat_AB() => RoundTrip(Ere<string>.Concat(A, B));
+        [Test] public void Union_AB() => RoundTrip(Ere<string>.Union(A, B));
         [Test] public void Intersect_AB() => RoundTrip(Ere<string>.Intersect(A, B));
-        [Test] public void Star_A()       => RoundTrip(Ere<string>.Star(A));
+        [Test] public void Star_A() => RoundTrip(Ere<string>.Star(A));
         [Test] public void Complement_A() => RoundTrip(Ere<string>.Complement(A));
-        [Test] public void Fusion_AB()    => RoundTrip(Ere<string>.Fusion(A, B));
+        [Test] public void Fusion_AB() => RoundTrip(Ere<string>.Fusion(A, B));
 
         [Test]
         public void Xor_AB()

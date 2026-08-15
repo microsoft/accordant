@@ -85,13 +85,13 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                     return _termAlgebra.Bottom;
 
                 case LtlAtom<TPred> atom:
-                {
-                    int condIdx = _registry.Register(atom.Predicate);
-                    // ∂(p) = ITE(p, ⊤, ⊥). Negation was pushed into the EBA at
-                    // formula-construction time, so atoms only carry positive
-                    // predicates here.
-                    return _termAlgebra.MkIte(condIdx, _termAlgebra.Top, _termAlgebra.Bottom);
-                }
+                    {
+                        int condIdx = _registry.Register(atom.Predicate);
+                        // ∂(p) = ITE(p, ⊤, ⊥). Negation was pushed into the EBA at
+                        // formula-construction time, so atoms only carry positive
+                        // predicates here.
+                        return _termAlgebra.MkIte(condIdx, _termAlgebra.Top, _termAlgebra.Bottom);
+                    }
 
                 case LtlNext<TPred> next:
                     // ∂(Xφ) = atom(φ)
@@ -99,43 +99,43 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
                         _dnfAlgebra.Atom(next.Inner));
 
                 case LtlUntil<TPred> until:
-                {
-                    // ∂(φ U ψ) = ∂(ψ) ∨ (∂(φ) ∧ atom(φ U ψ))
-                    var dPhi = Derivative(until.Left);
-                    var dPsi = Derivative(until.Right);
-                    var selfAtom = TransitionTerm<Dnf<Ltl<TPred>>>.Leaf(
-                        _dnfAlgebra.Atom(formula));
-                    var cont = _termAlgebra.And(dPhi, selfAtom);
-                    return _termAlgebra.Or(dPsi, cont);
-                }
+                    {
+                        // ∂(φ U ψ) = ∂(ψ) ∨ (∂(φ) ∧ atom(φ U ψ))
+                        var dPhi = Derivative(until.Left);
+                        var dPsi = Derivative(until.Right);
+                        var selfAtom = TransitionTerm<Dnf<Ltl<TPred>>>.Leaf(
+                            _dnfAlgebra.Atom(formula));
+                        var cont = _termAlgebra.And(dPhi, selfAtom);
+                        return _termAlgebra.Or(dPsi, cont);
+                    }
 
                 case LtlRelease<TPred> release:
-                {
-                    // ∂(φ R ψ) = (∂(ψ) ∧ atom(φ R ψ)) ∨ (∂(φ) ∧ ∂(ψ))
-                    var dPhi = Derivative(release.Left);
-                    var dPsi = Derivative(release.Right);
-                    var selfAtom = TransitionTerm<Dnf<Ltl<TPred>>>.Leaf(
-                        _dnfAlgebra.Atom(formula));
-                    var cont = _termAlgebra.And(dPsi, selfAtom);
-                    var done = _termAlgebra.And(dPhi, dPsi);
-                    return _termAlgebra.Or(cont, done);
-                }
+                    {
+                        // ∂(φ R ψ) = (∂(ψ) ∧ atom(φ R ψ)) ∨ (∂(φ) ∧ ∂(ψ))
+                        var dPhi = Derivative(release.Left);
+                        var dPsi = Derivative(release.Right);
+                        var selfAtom = TransitionTerm<Dnf<Ltl<TPred>>>.Leaf(
+                            _dnfAlgebra.Atom(formula));
+                        var cont = _termAlgebra.And(dPsi, selfAtom);
+                        var done = _termAlgebra.And(dPhi, dPsi);
+                        return _termAlgebra.Or(cont, done);
+                    }
 
                 case LtlAnd<TPred> and:
-                {
-                    var result = Derivative(and.Operands[0]);
-                    for (int i = 1; i < and.Operands.Count; i++)
-                        result = _termAlgebra.And(result, Derivative(and.Operands[i]));
-                    return result;
-                }
+                    {
+                        var result = Derivative(and.Operands[0]);
+                        for (int i = 1; i < and.Operands.Count; i++)
+                            result = _termAlgebra.And(result, Derivative(and.Operands[i]));
+                        return result;
+                    }
 
                 case LtlOr<TPred> or:
-                {
-                    var result = Derivative(or.Operands[0]);
-                    for (int i = 1; i < or.Operands.Count; i++)
-                        result = _termAlgebra.Or(result, Derivative(or.Operands[i]));
-                    return result;
-                }
+                    {
+                        var result = Derivative(or.Operands[0]);
+                        for (int i = 1; i < or.Operands.Count; i++)
+                            result = _termAlgebra.Or(result, Derivative(or.Operands[i]));
+                        return result;
+                    }
 
                 default:
                     throw new ArgumentException($"Unknown formula type: {formula.GetType()}");

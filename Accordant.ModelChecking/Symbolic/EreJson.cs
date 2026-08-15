@@ -135,86 +135,86 @@ namespace Microsoft.Accordant.ModelChecking.Symbolic
 
             switch (op)
             {
-                case "Empty":   return Ere<string>.Empty();
+                case "Empty": return Ere<string>.Empty();
                 case "Epsilon": return Ere<string>.Epsilon();
-                case "Sigma":   return Ere<string>.Sigma();
+                case "Sigma": return Ere<string>.Sigma();
                 case "Atom":
-                {
-                    if (!fields.TryGetValue("pred", out var pred))
-                        throw new FormatException("Atom missing 'pred' field.");
-                    return Ere<string>.Atom(pred);
-                }
+                    {
+                        if (!fields.TryGetValue("pred", out var pred))
+                            throw new FormatException("Atom missing 'pred' field.");
+                        return Ere<string>.Atom(pred);
+                    }
                 case "Concat":
-                {
-                    var (l, r) = ParseBinary(fields, "Concat");
-                    return Ere<string>.Concat(l, r);
-                }
+                    {
+                        var (l, r) = ParseBinary(fields, "Concat");
+                        return Ere<string>.Concat(l, r);
+                    }
                 case "Fusion":
-                {
-                    var (l, r) = ParseBinary(fields, "Fusion");
-                    return Ere<string>.Fusion(l, r);
-                }
+                    {
+                        var (l, r) = ParseBinary(fields, "Fusion");
+                        return Ere<string>.Fusion(l, r);
+                    }
                 case "Union":
-                {
-                    var args = ParseArgs(fields, "Union");
-                    var result = args[0];
-                    for (int i = 1; i < args.Count; i++)
-                        result = Ere<string>.Union(result, args[i]);
-                    return result;
-                }
+                    {
+                        var args = ParseArgs(fields, "Union");
+                        var result = args[0];
+                        for (int i = 1; i < args.Count; i++)
+                            result = Ere<string>.Union(result, args[i]);
+                        return result;
+                    }
                 case "Intersect":
-                {
-                    var args = ParseArgs(fields, "Intersect");
-                    var result = args[0];
-                    for (int i = 1; i < args.Count; i++)
-                        result = Ere<string>.Intersect(result, args[i]);
-                    return result;
-                }
+                    {
+                        var args = ParseArgs(fields, "Intersect");
+                        var result = args[0];
+                        for (int i = 1; i < args.Count; i++)
+                            result = Ere<string>.Intersect(result, args[i]);
+                        return result;
+                    }
                 case "Xor":
-                {
-                    var args = ParseArgs(fields, "Xor");
-                    var result = args[0];
-                    for (int i = 1; i < args.Count; i++)
-                        result = Ere<string>.Xor(result, args[i]);
-                    bool neg = fields.TryGetValue("neg", out var nv) && nv == "true";
-                    return neg ? Ere<string>.Complement(result) : result;
-                }
+                    {
+                        var args = ParseArgs(fields, "Xor");
+                        var result = args[0];
+                        for (int i = 1; i < args.Count; i++)
+                            result = Ere<string>.Xor(result, args[i]);
+                        bool neg = fields.TryGetValue("neg", out var nv) && nv == "true";
+                        return neg ? Ere<string>.Complement(result) : result;
+                    }
                 case "Xnor":
-                {
-                    var args = ParseArgs(fields, "Xnor");
-                    var result = args[0];
-                    for (int i = 1; i < args.Count; i++)
-                        result = Ere<string>.Xor(result, args[i]);
-                    return Ere<string>.Complement(result);
-                }
+                    {
+                        var args = ParseArgs(fields, "Xnor");
+                        var result = args[0];
+                        for (int i = 1; i < args.Count; i++)
+                            result = Ere<string>.Xor(result, args[i]);
+                        return Ere<string>.Complement(result);
+                    }
                 case "Star":
-                {
-                    if (!fields.TryGetValue("inner", out var innerJson))
-                        throw new FormatException("Star missing 'inner' field.");
-                    int p = 0;
-                    return Ere<string>.Star(ParseRegex(innerJson, ref p));
-                }
+                    {
+                        if (!fields.TryGetValue("inner", out var innerJson))
+                            throw new FormatException("Star missing 'inner' field.");
+                        int p = 0;
+                        return Ere<string>.Star(ParseRegex(innerJson, ref p));
+                    }
                 case "Complement":
-                {
-                    if (!fields.TryGetValue("inner", out var innerJson))
-                        throw new FormatException("Complement missing 'inner' field.");
-                    int p = 0;
-                    return Ere<string>.Complement(ParseRegex(innerJson, ref p));
-                }
+                    {
+                        if (!fields.TryGetValue("inner", out var innerJson))
+                            throw new FormatException("Complement missing 'inner' field.");
+                        int p = 0;
+                        return Ere<string>.Complement(ParseRegex(innerJson, ref p));
+                    }
                 case "Plus":
-                {
-                    if (!fields.TryGetValue("inner", out var innerJson))
-                        throw new FormatException("Plus missing 'inner' field.");
-                    int p = 0;
-                    return Ere<string>.Plus(ParseRegex(innerJson, ref p));
-                }
+                    {
+                        if (!fields.TryGetValue("inner", out var innerJson))
+                            throw new FormatException("Plus missing 'inner' field.");
+                        int p = 0;
+                        return Ere<string>.Plus(ParseRegex(innerJson, ref p));
+                    }
                 case "Optional":
-                {
-                    if (!fields.TryGetValue("inner", out var innerJson))
-                        throw new FormatException("Optional missing 'inner' field.");
-                    int p = 0;
-                    return Ere<string>.Optional(ParseRegex(innerJson, ref p));
-                }
+                    {
+                        if (!fields.TryGetValue("inner", out var innerJson))
+                            throw new FormatException("Optional missing 'inner' field.");
+                        int p = 0;
+                        return Ere<string>.Optional(ParseRegex(innerJson, ref p));
+                    }
                 default:
                     throw new FormatException($"Unknown ERE op: '{op}'.");
             }
