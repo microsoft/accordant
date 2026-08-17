@@ -4,6 +4,7 @@
 namespace Specmine.Tests;
 
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using NUnit.Framework;
 using TaskWorkflow.Api;
@@ -11,14 +12,16 @@ using TaskWorkflow.Api;
 /// <summary>
 /// Records a bounded sequence of calls against the in-memory TaskWorkflow benchmark and
 /// verifies the persisted trace preserves call order and the response-dependent task ID
-/// across calls.
+/// across calls. The benchmark is exposed as a test-local HTTP-backed
+/// <see cref="ITargetSession"/> - a stand-in for the built-in OpenAPI adapter, which is a
+/// later slice.
 /// </summary>
 [TestFixture]
 public sealed class TaskWorkflowRecordingTests
 {
     // A marker request for the parameterless reset endpoint - there is no reset contract
-    // type in TaskWorkflow.Api since the endpoint takes no body, but ExecuteAsync always
-    // records a concrete request snapshot.
+    // type in TaskWorkflow.Api since the endpoint takes no body, but every recorded call
+    // needs a concrete request snapshot.
     private sealed record ResetRequest;
 
     // The route-bound ID a Complete/Cancel call needs; TaskWorkflow.Api addresses these
@@ -30,23 +33,12 @@ public sealed class TaskWorkflowRecordingTests
     private sealed record TaskCallResponse(int StatusCode, TaskResponse? Task, ErrorResponse? Error);
 
     private WebApplicationFactory<Program> _factory = null!;
-    private HttpClient _client = null!;
-    private TaskWorkflowOperations _operations = null!;
 
     [OneTimeSetUp]
-    public void OneTimeSetUp()
-    {
-        _factory = new WebApplicationFactory<Program>();
-        _client = _factory.CreateClient();
-        _operations = new TaskWorkflowOperations(_client);
-    }
+    public void OneTimeSetUp() => _factory = new WebApplicationFactory<Program>();
 
     [OneTimeTearDown]
-    public void OneTimeTearDown()
-    {
-        _client.Dispose();
-        _factory.Dispose();
-    }
+    public void OneTimeTearDown() => _factory.Dispose();
 
     [Test]
     public async Task RecordsResetCreateAndTwoCompletesWithTheServerGeneratedId()
@@ -54,13 +46,14 @@ public sealed class TaskWorkflowRecordingTests
         using var tracesDirectory = new TestTracesDirectory();
         string? taskId = null;
 
-        var (trace, path) = await TraceRecorder.RunAsync(tracesDirectory.Path, async recorder =>
-        {
-            await recorder.ExecuteAsync(_operations.Reset, new ResetRequest());
+        await using var session = new HttpTaskWorkflowSession(_factory.CreateClient());
 
-            var created = await recorder.ExecuteAsync(
-                _operations.CreateTask,
-                new CreateTaskRequest("write benchmark"));
+        var (trace, path) = await TraceRecorder.RunAsync(tracesDirectory.Path, session, async recordingTarget =>
+        {
+            await recordingTarget.ExecuteAsync<ResetRequest, TaskCallResponse>("ResetBenchmark", new ResetRequest());
+
+            var created = await recordingTarget.ExecuteAsync<CreateTaskRequest, TaskCallResponse>(
+                "CreateTask", new CreateTaskRequest("write benchmark"));
 
             // The task ID is only known once CreateTask's real response comes back - this
             // is exactly the response-dependent chaining the recorder is meant to support.
@@ -68,9 +61,8 @@ public sealed class TaskWorkflowRecordingTests
 
             for (var i = 0; i < 2; i++)
             {
-                await recorder.ExecuteAsync(
-                    _operations.CompleteTask,
-                    new TaskIdRequest(taskId));
+                await recordingTarget.ExecuteAsync<TaskIdRequest, TaskCallResponse>(
+                    "CompleteTask", new TaskIdRequest(taskId));
             }
         });
 
@@ -101,45 +93,75 @@ public sealed class TaskWorkflowRecordingTests
         });
     }
 
-    private sealed class TaskWorkflowOperations
+    /// <summary>
+    /// A test-local <see cref="ITargetSession"/> that talks to the TaskWorkflow benchmark
+    /// over HTTP. It owns the <see cref="HttpClient"/> it is given (created fresh per
+    /// session by the test) and disposes it in <see cref="DisposeAsync"/>, exactly as the
+    /// session lifetime contract requires.
+    /// </summary>
+    private sealed class HttpTaskWorkflowSession : TargetSessionBase
     {
-        public ExecutableOperation<ResetRequest, TaskCallResponse> Reset { get; }
+        private readonly HttpClient _client;
 
-        public ExecutableOperation<CreateTaskRequest, TaskCallResponse> CreateTask { get; }
-
-        public ExecutableOperation<TaskIdRequest, TaskCallResponse> CompleteTask { get; }
-
-        public TaskWorkflowOperations(HttpClient client)
+        public HttpTaskWorkflowSession(HttpClient client)
+            : base(new[]
+            {
+                OperationDefinition.Create<ResetRequest, TaskCallResponse>("ResetBenchmark"),
+                OperationDefinition.Create<CreateTaskRequest, TaskCallResponse>("CreateTask"),
+                OperationDefinition.Create<TaskIdRequest, TaskCallResponse>("CompleteTask"),
+            })
         {
-            Reset = new ExecutableOperation<ResetRequest, TaskCallResponse>(
-                "ResetBenchmark",
-                async _ =>
-                {
-                    var response = await client.PostAsync("/__test/reset", content: null);
-                    return new TaskCallResponse((int)response.StatusCode, Task: null, Error: null);
-                });
+            _client = client;
+        }
 
-            CreateTask = new ExecutableOperation<CreateTaskRequest, TaskCallResponse>(
-                "CreateTask",
-                async request =>
-                {
-                    var response = await client.PostAsJsonAsync("/tasks", request);
-                    var task = response.IsSuccessStatusCode
-                        ? await response.Content.ReadFromJsonAsync<TaskResponse>()
-                        : null;
-                    return new TaskCallResponse((int)response.StatusCode, task, Error: null);
-                });
+        protected override async Task<JsonElement> ExecuteOperationAsync(
+            OperationDefinition operation, JsonElement request, CancellationToken cancellationToken)
+        {
+            var response = operation.Name switch
+            {
+                "ResetBenchmark" => await ResetAsync(cancellationToken).ConfigureAwait(false),
+                "CreateTask" => await CreateTaskAsync(request, cancellationToken).ConfigureAwait(false),
+                "CompleteTask" => await CompleteTaskAsync(request, cancellationToken).ConfigureAwait(false),
+                _ => throw new InvalidOperationException($"No handler registered for operation '{operation.Name}'."),
+            };
 
-            CompleteTask = new ExecutableOperation<TaskIdRequest, TaskCallResponse>(
-                "CompleteTask",
-                async request =>
-                {
-                    var response = await client.PostAsync($"/tasks/{request.Id}/complete", content: null);
-                    var task = response.IsSuccessStatusCode
-                        ? await response.Content.ReadFromJsonAsync<TaskResponse>()
-                        : null;
-                    return new TaskCallResponse((int)response.StatusCode, task, Error: null);
-                });
+            return JsonSerializer.SerializeToElement(response);
+        }
+
+        private async Task<TaskCallResponse> ResetAsync(CancellationToken cancellationToken)
+        {
+            var httpResponse = await _client.PostAsync("/__test/reset", content: null, cancellationToken)
+                .ConfigureAwait(false);
+            return new TaskCallResponse((int)httpResponse.StatusCode, Task: null, Error: null);
+        }
+
+        private async Task<TaskCallResponse> CreateTaskAsync(JsonElement request, CancellationToken cancellationToken)
+        {
+            var typedRequest = JsonSerializer.Deserialize<CreateTaskRequest>(request)!;
+            var httpResponse = await _client.PostAsJsonAsync("/tasks", typedRequest, cancellationToken)
+                .ConfigureAwait(false);
+            var task = httpResponse.IsSuccessStatusCode
+                ? await httpResponse.Content.ReadFromJsonAsync<TaskResponse>(cancellationToken).ConfigureAwait(false)
+                : null;
+            return new TaskCallResponse((int)httpResponse.StatusCode, task, Error: null);
+        }
+
+        private async Task<TaskCallResponse> CompleteTaskAsync(JsonElement request, CancellationToken cancellationToken)
+        {
+            var typedRequest = JsonSerializer.Deserialize<TaskIdRequest>(request)!;
+            var httpResponse = await _client
+                .PostAsync($"/tasks/{typedRequest.Id}/complete", content: null, cancellationToken)
+                .ConfigureAwait(false);
+            var task = httpResponse.IsSuccessStatusCode
+                ? await httpResponse.Content.ReadFromJsonAsync<TaskResponse>(cancellationToken).ConfigureAwait(false)
+                : null;
+            return new TaskCallResponse((int)httpResponse.StatusCode, task, Error: null);
+        }
+
+        public override ValueTask DisposeAsync()
+        {
+            _client.Dispose();
+            return ValueTask.CompletedTask;
         }
     }
 }

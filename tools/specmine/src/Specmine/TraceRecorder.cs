@@ -3,100 +3,67 @@
 
 namespace Specmine;
 
-using System.Text.Json;
-
 /// <summary>
-/// Records the calls made during one bounded recording experiment.
+/// Runs one bounded recording experiment against a target session and persists its trace.
 ///
-/// A <see cref="TraceRecorder"/> is scoped to a single experiment: create one via
-/// <see cref="RunAsync"/>, call <see cref="ExecuteAsync{TRequest, TResponse}"/> for each
-/// operation invocation (using the returned response to build subsequent requests, e.g.
-/// reading a server-generated ID from a Create call before issuing a Complete call), and
-/// let <see cref="RunAsync"/> persist the resulting completed or interrupted trace.
+/// <see cref="RunAsync"/> is the sole, primary entry point: it wraps a caller-owned
+/// <see cref="ITargetSession"/> in a <see cref="RecordingTargetSession"/> and hands that
+/// wrapper to the experiment body, so every <see cref="ITargetSession.ExecuteAsync"/> call
+/// the body makes is automatically recorded, in order, with response-dependent chaining
+/// working naturally (e.g. reading a server-generated ID from a Create call's response
+/// before issuing a Complete call):
+///
+/// <code>
+/// await TraceRecorder.RunAsync(tracesDirectory, target, async recordingTarget =>
+/// {
+///     var created = await recordingTarget.ExecuteAsync("Create", requestJson);
+///     await recordingTarget.ExecuteAsync("Complete", ToRequestJson(created));
+/// });
+/// </code>
+///
+/// The target session passed to <see cref="RunAsync"/> is never disposed by this method:
+/// the caller or adapter that produced it owns its lifetime and is responsible for
+/// disposing it, typically once it is done running experiments against it - not once any
+/// single <see cref="RunAsync"/> call returns.
 /// </summary>
-public sealed class TraceRecorder
+public static class TraceRecorder
 {
-    private readonly List<RecordedCall> _calls = new();
-    private int _nextCallId = 1;
-
-    private TraceRecorder()
-    {
-    }
-
     /// <summary>
-    /// Executes one bound operation call: snapshots <paramref name="request"/>, invokes
-    /// <paramref name="operation"/> against the system under test, and records either the
-    /// snapshotted response or the execution error.
+    /// Runs one bounded recording experiment against <paramref name="target"/> and persists
+    /// its trace.
     ///
-    /// If the operation throws, that means its execution binding failed to
-    /// produce its declared response. The failure is recorded as an execution error and
-    /// the exception is rethrown unchanged - this method never swallows a failure or
-    /// turns it into a success.
-    /// </summary>
-    /// <typeparam name="TRequest">The type of the request.</typeparam>
-    /// <typeparam name="TResponse">The type of the declared response.</typeparam>
-    /// <param name="operation">The reusable operation and its target-specific execution binding.</param>
-    /// <param name="request">The request to record and pass to the operation.</param>
-    /// <returns>The response produced by the operation.</returns>
-    public async Task<TResponse> ExecuteAsync<TRequest, TResponse>(
-        ExecutableOperation<TRequest, TResponse> operation,
-        TRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(operation);
-
-        var callId = _nextCallId++;
-        var requestSnapshot = JsonSerializer.SerializeToElement(request, TraceJson.SnapshotOptions);
-
-        try
-        {
-            var response = await operation.ExecuteAsync(request).ConfigureAwait(false);
-            var responseSnapshot = JsonSerializer.SerializeToElement(response, TraceJson.SnapshotOptions);
-
-            _calls.Add(new RecordedCall(callId, operation.Name, requestSnapshot, responseSnapshot, error: null));
-
-            return response;
-        }
-        catch (Exception ex)
-        {
-            _calls.Add(new RecordedCall(
-                callId,
-                operation.Name,
-                requestSnapshot,
-                response: null,
-                RecordedError.FromException(ex)));
-
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Runs one bounded recording experiment and persists its trace.
-    ///
-    /// A fresh recorder is created and passed to <paramref name="body"/>. If the body runs
-    /// to completion, a <see cref="TraceStatus.Completed"/> trace of every recorded call is
-    /// saved. If the body throws, a <see cref="TraceStatus.Interrupted"/> trace of the calls
-    /// recorded so far is saved and the original exception is rethrown - this method never
-    /// swallows a failure or turns it into a success.
+    /// <paramref name="target"/> is wrapped in a fresh <see cref="RecordingTargetSession"/>
+    /// and passed to <paramref name="body"/>. If the body runs to completion, a
+    /// <see cref="TraceStatus.Completed"/> trace of every recorded call is saved. If the
+    /// body throws, a <see cref="TraceStatus.Interrupted"/> trace of the calls recorded so
+    /// far is saved and the original exception is rethrown - this method never swallows a
+    /// failure or turns it into a success.
     /// </summary>
     /// <param name="tracesDirectory">
     /// The directory the trace file is written to. Created if it does not already exist.
     /// </param>
-    /// <param name="body">The experiment body, given the recorder to call operations with.</param>
+    /// <param name="target">
+    /// The target session to record against. Owned by the caller: not disposed by this
+    /// method, whether the experiment completes or is interrupted.
+    /// </param>
+    /// <param name="body">The experiment body, given a recording session to call operations with.</param>
     /// <returns>The persisted trace and the path of the file it was written to.</returns>
     public static async Task<(RecordedTrace Trace, string Path)> RunAsync(
         string tracesDirectory,
-        Func<TraceRecorder, Task> body)
+        ITargetSession target,
+        Func<RecordingTargetSession, Task> body)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tracesDirectory);
+        ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(body);
 
-        var recorder = new TraceRecorder();
+        var recordingSession = new RecordingTargetSession(target);
         var traceId = Guid.NewGuid();
         var startedAt = DateTime.UtcNow;
 
         try
         {
-            await body(recorder).ConfigureAwait(false);
+            await body(recordingSession).ConfigureAwait(false);
 
             var trace = new RecordedTrace(
                 RecordedTrace.CurrentSchemaVersion,
@@ -104,7 +71,7 @@ public sealed class TraceRecorder
                 startedAt,
                 DateTime.UtcNow,
                 TraceStatus.Completed,
-                recorder._calls.AsReadOnly());
+                recordingSession.Calls);
 
             var path = await TraceStore.SaveAsync(tracesDirectory, trace).ConfigureAwait(false);
             return (trace, path);
@@ -117,7 +84,7 @@ public sealed class TraceRecorder
                 startedAt,
                 DateTime.UtcNow,
                 TraceStatus.Interrupted,
-                recorder._calls.AsReadOnly());
+                recordingSession.Calls);
 
             await TraceStore.SaveAsync(tracesDirectory, trace).ConfigureAwait(false);
             throw;

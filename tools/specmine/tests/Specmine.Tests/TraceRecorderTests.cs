@@ -3,36 +3,67 @@
 
 namespace Specmine.Tests;
 
+using System.Text.Json;
 using NUnit.Framework;
 
 [TestFixture]
 public sealed class TraceRecorderTests
 {
-    private sealed record EchoRequest(string Text);
+    // A minimal test-only ITargetSession whose operations are supplied as plain
+    // JSON-in/JSON-out delegates, so each test can define exactly the handful of
+    // operations its scenario needs without standing up a real target.
+    private sealed class DelegateTargetSession : ITargetSession
+    {
+        private readonly Dictionary<string, Func<JsonElement, JsonElement>> _handlers;
 
-    private sealed record EchoResponse(string Text);
+        public IReadOnlyList<OperationDefinition> Operations { get; }
 
-    private sealed record CreateRequest(string Name);
+        public DelegateTargetSession(Dictionary<string, Func<JsonElement, JsonElement>> handlers)
+        {
+            _handlers = handlers;
+            Operations = handlers.Keys
+                .Select(name => new OperationDefinition(
+                    name,
+                    JsonDocument.Parse("true").RootElement,
+                    JsonDocument.Parse("true").RootElement))
+                .ToList();
+        }
 
-    private sealed record CreateResponse(string Id);
+        public Task<JsonElement> ExecuteAsync(
+            string operationName, JsonElement request, CancellationToken cancellationToken = default)
+        {
+            if (!_handlers.TryGetValue(operationName, out var handler))
+            {
+                throw new UnknownOperationException(operationName);
+            }
 
-    private sealed record CompleteRequest(string Id);
+            if (request.ValueKind == JsonValueKind.Undefined)
+            {
+                throw new ArgumentException("Request must be a valid JSON value.", nameof(request));
+            }
 
-    private sealed record CompleteResponse(string Id, string Status);
+            return Task.FromResult(handler(request));
+        }
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
+    private static JsonElement Text(string value) => JsonSerializer.SerializeToElement(new { Text = value });
 
     [Test]
     public async Task RunAsync_CompletedExperiment_PersistsCallsInOrderWithSnapshots()
     {
         using var tracesDirectory = new TestTracesDirectory();
-        var echo = new ExecutableOperation<EchoRequest, EchoResponse>(
-            "Echo",
-            request => Task.FromResult(new EchoResponse(request.Text)));
-
-        var (trace, path) = await TraceRecorder.RunAsync(tracesDirectory.Path, async recorder =>
+        var session = new DelegateTargetSession(new Dictionary<string, Func<JsonElement, JsonElement>>
         {
-            var first = await recorder.ExecuteAsync(echo, new EchoRequest("a"));
+            ["Echo"] = request => request,
+        });
 
-            await recorder.ExecuteAsync(echo, new EchoRequest(first.Text + "b"));
+        var (trace, path) = await TraceRecorder.RunAsync(tracesDirectory.Path, session, async recordingTarget =>
+        {
+            var first = await recordingTarget.ExecuteAsync("Echo", Text("a"));
+
+            await recordingTarget.ExecuteAsync("Echo", Text(first.GetProperty("Text").GetString() + "b"));
         });
 
         Assert.Multiple(() =>
@@ -59,22 +90,23 @@ public sealed class TraceRecorderTests
     {
         using var tracesDirectory = new TestTracesDirectory();
         string? capturedId = null;
-        var create = new ExecutableOperation<CreateRequest, CreateResponse>(
-            "Create",
-            _ => Task.FromResult(new CreateResponse(Id: "generated-42")));
-        var complete = new ExecutableOperation<CompleteRequest, CompleteResponse>(
-            "Complete",
-            request => Task.FromResult(new CompleteResponse(request.Id, "done")));
+        var session = new DelegateTargetSession(new Dictionary<string, Func<JsonElement, JsonElement>>
+        {
+            ["Create"] = _ => JsonSerializer.SerializeToElement(new { Id = "generated-42" }),
+            ["Complete"] = request => JsonSerializer.SerializeToElement(
+                new { Id = request.GetProperty("Id").GetString(), Status = "done" }),
+        });
 
-        var (trace, _) = await TraceRecorder.RunAsync(tracesDirectory.Path, async recorder =>
+        var (trace, _) = await TraceRecorder.RunAsync(tracesDirectory.Path, session, async recordingTarget =>
         {
             // Execute Create, inspect the returned ID, then execute Complete using that ID -
             // the pattern this API is meant to support naturally.
-            var created = await recorder.ExecuteAsync(create, new CreateRequest("widget"));
+            var created = await recordingTarget.ExecuteAsync(
+                "Create", JsonSerializer.SerializeToElement(new { Name = "widget" }));
 
-            capturedId = created.Id;
+            capturedId = created.GetProperty("Id").GetString();
 
-            await recorder.ExecuteAsync(complete, new CompleteRequest(created.Id));
+            await recordingTarget.ExecuteAsync("Complete", JsonSerializer.SerializeToElement(new { Id = capturedId }));
         });
 
         Assert.Multiple(() =>
@@ -89,19 +121,18 @@ public sealed class TraceRecorderTests
     public void RunAsync_ExecutionDelegateThrows_RethrowsAndPersistsInterruptedTraceWithError()
     {
         using var tracesDirectory = new TestTracesDirectory();
-        var echo = new ExecutableOperation<EchoRequest, EchoResponse>(
-            "Echo",
-            request => Task.FromResult(new EchoResponse(request.Text)));
-        var failingEcho = new ExecutableOperation<EchoRequest, EchoResponse>(
-            "Echo",
-            _ => throw new InvalidOperationException("boom"));
+        var session = new DelegateTargetSession(new Dictionary<string, Func<JsonElement, JsonElement>>
+        {
+            ["Echo"] = request => request,
+            ["FailingEcho"] = _ => throw new InvalidOperationException("boom"),
+        });
 
         var thrown = Assert.ThrowsAsync<InvalidOperationException>(() =>
-            TraceRecorder.RunAsync(tracesDirectory.Path, async recorder =>
+            TraceRecorder.RunAsync(tracesDirectory.Path, session, async recordingTarget =>
             {
-                await recorder.ExecuteAsync(echo, new EchoRequest("a"));
+                await recordingTarget.ExecuteAsync("Echo", Text("a"));
 
-                await recorder.ExecuteAsync(failingEcho, new EchoRequest("b"));
+                await recordingTarget.ExecuteAsync("FailingEcho", Text("b"));
             }));
 
         Assert.That(thrown!.Message, Is.EqualTo("boom"));
@@ -114,19 +145,18 @@ public sealed class TraceRecorderTests
     public async Task RunAsync_ExecutionDelegateThrows_InterruptedTraceHasSuccessCallAndErrorCall()
     {
         using var tracesDirectory = new TestTracesDirectory();
-        var echo = new ExecutableOperation<EchoRequest, EchoResponse>(
-            "Echo",
-            request => Task.FromResult(new EchoResponse(request.Text)));
-        var failingEcho = new ExecutableOperation<EchoRequest, EchoResponse>(
-            "Echo",
-            _ => throw new InvalidOperationException("boom"));
+        var session = new DelegateTargetSession(new Dictionary<string, Func<JsonElement, JsonElement>>
+        {
+            ["Echo"] = request => request,
+            ["FailingEcho"] = _ => throw new InvalidOperationException("boom"),
+        });
 
         Assert.ThrowsAsync<InvalidOperationException>(() =>
-            TraceRecorder.RunAsync(tracesDirectory.Path, async recorder =>
+            TraceRecorder.RunAsync(tracesDirectory.Path, session, async recordingTarget =>
             {
-                await recorder.ExecuteAsync(echo, new EchoRequest("a"));
+                await recordingTarget.ExecuteAsync("Echo", Text("a"));
 
-                await recorder.ExecuteAsync(failingEcho, new EchoRequest("b"));
+                await recordingTarget.ExecuteAsync("FailingEcho", Text("b"));
             }));
 
         var path = Directory.GetFiles(tracesDirectory.Path, "*.json").Single();
@@ -143,5 +173,40 @@ public sealed class TraceRecorderTests
             Assert.That(reloaded.Calls[1].Error!.ExceptionType, Is.EqualTo(typeof(InvalidOperationException).FullName));
             Assert.That(reloaded.Calls[1].Error!.Message, Is.EqualTo("boom"));
         });
+    }
+
+    [Test]
+    public void RunAsync_NeverDisposesTheTargetSessionItWasGiven()
+    {
+        using var tracesDirectory = new TestTracesDirectory();
+        var session = new DisposeTrackingSession();
+
+        Assert.DoesNotThrowAsync(() =>
+            TraceRecorder.RunAsync(tracesDirectory.Path, session, async recordingTarget =>
+            {
+                await recordingTarget.ExecuteAsync("Echo", Text("a"));
+            }));
+
+        Assert.That(session.Disposed, Is.False);
+    }
+
+    private sealed class DisposeTrackingSession : ITargetSession
+    {
+        public bool Disposed { get; private set; }
+
+        public IReadOnlyList<OperationDefinition> Operations { get; } = new[]
+        {
+            new OperationDefinition("Echo", JsonDocument.Parse("true").RootElement, JsonDocument.Parse("true").RootElement),
+        };
+
+        public Task<JsonElement> ExecuteAsync(
+            string operationName, JsonElement request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(request);
+
+        public ValueTask DisposeAsync()
+        {
+            Disposed = true;
+            return ValueTask.CompletedTask;
+        }
     }
 }

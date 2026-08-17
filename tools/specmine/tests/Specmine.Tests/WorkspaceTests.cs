@@ -9,9 +9,23 @@ using NUnit.Framework;
 [TestFixture]
 public sealed class WorkspaceTests
 {
-    private sealed record EchoRequest(string Text);
+    // A minimal test-only ITargetSession that echoes back whatever JSON request it is
+    // given under a single "Echo" operation.
+    private sealed class EchoTargetSession : ITargetSession
+    {
+        public IReadOnlyList<OperationDefinition> Operations { get; } = new[]
+        {
+            new OperationDefinition("Echo", JsonDocument.Parse("true").RootElement, JsonDocument.Parse("true").RootElement),
+        };
 
-    private sealed record EchoResponse(string Text);
+        public Task<JsonElement> ExecuteAsync(
+            string operationName, JsonElement request, CancellationToken cancellationToken = default) =>
+            operationName == "Echo"
+                ? Task.FromResult(request)
+                : throw new UnknownOperationException(operationName);
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
 
     private static JsonElement OpenApiStyleSettings() => JsonSerializer.SerializeToElement(new
     {
@@ -326,13 +340,11 @@ public sealed class WorkspaceTests
         using var root = new TestWorkspaceRoot();
         var settings = JsonSerializer.SerializeToElement(new { baseUrl = "https://example.test" });
         var workspace = await Workspace.InitializeAsync(root.Path, new TargetAdapterDeclaration("openapi", settings));
-        var echo = new ExecutableOperation<EchoRequest, EchoResponse>(
-            "Echo",
-            request => Task.FromResult(new EchoResponse(request.Text)));
+        var session = new EchoTargetSession();
 
-        var (trace, path) = await TraceRecorder.RunAsync(workspace.TracesDirectory, async recorder =>
+        var (trace, path) = await TraceRecorder.RunAsync(workspace.TracesDirectory, session, async recordingTarget =>
         {
-            await recorder.ExecuteAsync(echo, new EchoRequest("hello"));
+            await recordingTarget.ExecuteAsync("Echo", JsonSerializer.SerializeToElement(new { Text = "hello" }));
         });
 
         var reloaded = await TraceStore.LoadAsync(path);

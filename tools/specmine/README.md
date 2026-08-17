@@ -45,37 +45,65 @@ record when reset was attempted and can experimentally check its effects.
 `Specmine` is a small library for recording one bounded investigation as a
 single-file trace. It intentionally does not depend on Accordant.
 
-A `TraceRecorder` is scoped to one experiment:
+### Adapter/session SDK
+
+A target is anything an investigation can call operations against - an HTTP API, a
+CLI, or (as a proof, see `tests/Specmine.Tests/InMemoryTaskAdapter.cs`) an
+in-process dictionary. Two interfaces describe that boundary, and JSON Schema is
+the portable contract everything else is built on:
+
+- `OperationDefinition` - a stable operation name plus request and response JSON
+  Schemas. `OperationDefinition.Create<TRequest, TResponse>(name)` derives both
+  schemas from ordinary C# request/response types using .NET's built-in
+  `System.Text.Json.Schema.JsonSchemaExporter`, so an adapter with concrete types
+  doesn't need to hand-author JSON Schema; hand-authored schemas work too.
+- `ITargetAdapter` - identifies itself with a stable `AdapterType` string and
+  connects opaque, adapter-owned `JsonElement` settings (the same settings a
+  `TargetAdapterDeclaration` carries) to a live `ITargetSession`.
+- `ITargetSession : IAsyncDisposable` - exposes a stable `Operations` catalog and
+  `ExecuteAsync(operationName, request, cancellationToken)`, taking and returning
+  concrete `JsonElement` values. A session owns its own client/in-memory target
+  lifetime and validates tightly: an unrecognized operation name throws
+  `UnknownOperationException`, and an undefined/invalid JSON request throws.
+  `TargetSessionBase` is an abstract base that centralizes this validation so an
+  adapter's session only implements its own operation dispatch.
+
+An adapter's internal implementation is free to use whatever C# types (or none)
+it likes; only the JSON Schemas it declares and the JSON values it exchanges need
+to be portable.
+
+### Recording and running an experiment
+
+`TraceRecorder.RunAsync` takes an existing, caller-owned `ITargetSession` and
+wraps it in a `RecordingTargetSession` - a transparent decorator that delegates
+operation discovery and execution to the wrapped session while automatically
+recording every attempted call, in order:
 
 ```csharp
-var createTask = new ExecutableOperation<CreateTaskRequest, CreateTaskResponse>(
-    "CreateTask",
-    request => client.CreateTaskAsync(request));
-
-var completeTask = new ExecutableOperation<TaskIdRequest, TaskResponse>(
-    "CompleteTask",
-    request => client.CompleteTaskAsync(request));
-
-var (trace, path) = await TraceRecorder.RunAsync(tracesDirectory, async recorder =>
+var (trace, path) = await TraceRecorder.RunAsync(tracesDirectory, target, async recordingTarget =>
 {
-    var created = await recorder.ExecuteAsync(
-        createTask,
-        new CreateTaskRequest("write benchmark"));
+    var created = await recordingTarget.ExecuteAsync("CreateTask", createTaskRequestJson);
 
     // Response-dependent code works naturally: the server-generated ID from
     // `created` flows straight into the next call.
-    await recorder.ExecuteAsync(
-        completeTask,
-        new TaskIdRequest(created.Id));
+    await recordingTarget.ExecuteAsync("CompleteTask", ToCompleteRequestJson(created));
 });
 ```
 
-An `ExecutableOperation<TRequest, TResponse>` binds target-specific execution
-once and can be reused across calls. `ExecuteAsync` snapshots the request, invokes
-the bound operation against the system under test, and records either the response or - if it throws -
-an execution error (exception type and message) before rethrowing. `RunAsync`
-persists a `Completed` trace if the body finishes, or an `Interrupted` trace (with
-the calls recorded so far) if it throws, and always rethrows the original failure.
+`RunAsync` never disposes `target`: the caller or adapter that produced it owns
+its lifetime (typically via `await using`) and disposes it once done running
+experiments against it, not once any single `RunAsync` call returns. If the body
+runs to completion, a `Completed` trace of every recorded call is persisted; if it
+throws - for an unrecognized operation, an invalid request, a genuine execution
+failure, or a cancellation - the failure is recorded as an execution error, an
+`Interrupted` trace of the calls recorded so far is persisted, and the original
+exception is always rethrown, never swallowed.
+
+C# callers who would rather work with typed request/response values than raw
+`JsonElement` can use the `ExecuteAsync<TRequest, TResponse>` extension method on
+`ITargetSession`: it is a thin layer that serializes/deserializes over the same
+JSON boundary and records exactly the same portable JSON a raw-JSON caller would
+have produced.
 
 `TraceStore.SaveAsync` writes the trace as one indented JSON file named after its
 trace ID, atomically (via a temporary file plus a non-overwriting move) into a
@@ -103,9 +131,16 @@ var workspace = await Workspace.InitializeAsync(workspaceRoot, new TargetAdapter
 // Later, in a fresh process:
 var reloaded = await Workspace.LoadAsync(workspaceRoot);
 
-// Point the recorder at the workspace's traces directory.
-await TraceRecorder.RunAsync(reloaded.TracesDirectory, async recorder => { /* ... */ });
+// Connect the declared adapter to a live session, then point the recorder at the
+// workspace's traces directory.
+var adapter = ResolveAdapter(reloaded.Document.TargetAdapter.AdapterType);
+await using var target = await adapter.ConnectAsync(reloaded.Document.TargetAdapter.Settings);
+await TraceRecorder.RunAsync(reloaded.TracesDirectory, target, async recordingTarget => { /* ... */ });
 ```
+
+(Adapter discovery - resolving an `AdapterType` string like `"openapi"` to a
+concrete `ITargetAdapter` - is out of scope for this slice; `ResolveAdapter` above
+is illustrative only.)
 
 `workspace.json` declares a schema version and a single `TargetAdapter` with an
 `AdapterType` string and an opaque `Settings` JSON value. **Adapter settings are
