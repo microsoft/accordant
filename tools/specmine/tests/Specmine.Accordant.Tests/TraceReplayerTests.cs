@@ -1,0 +1,338 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+namespace Specmine.Accordant.Tests;
+
+using System.Text.Json;
+using Microsoft.Accordant;
+using NUnit.Framework;
+
+[TestFixture]
+public sealed class TraceReplayerTests
+{
+    [Test]
+    public void Replay_CompleteConformingTraceAcrossMultipleOperations_ReturnsConformingWithFinalState()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        // CompleteTask's request reuses the server-generated TaskId from CreateTask's own
+        // response, exercising response-derived state exactly as TaskWorkflowSpec models it.
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")),
+            TraceBuilder.Call(2, "CompleteTask", new CompleteTaskRequest("t-1"), new CompleteTaskResponse("t-1", "Completed")));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.TraceId, Is.EqualTo(trace.TraceId));
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Conforming));
+            Assert.That(result.Steps, Has.Count.EqualTo(2));
+            Assert.That(result.Steps[0].Outcome, Is.EqualTo(ReplayStepOutcome.Conforming));
+            Assert.That(result.Steps[1].Outcome, Is.EqualTo(ReplayStepOutcome.Conforming));
+            Assert.That(result.FinalStateProfile, Is.Not.Null);
+        });
+
+        var finalState = (TaskWorkflowState)result.FinalStateProfile!.SingleState();
+        Assert.That(finalState.Tasks["t-1"].Status, Is.EqualTo("Completed"));
+        Assert.That(finalState.Tasks["t-1"].Title, Is.EqualTo("Buy milk"));
+    }
+
+    [Test]
+    public void Replay_EmptyTrace_IsTriviallyConformingWithInitialState()
+    {
+        var spec = TaskWorkflowSpec.Create();
+        var trace = TraceBuilder.Trace(TraceStatus.Completed);
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Conforming));
+            Assert.That(result.Steps, Is.Empty);
+            Assert.That(result.FinalStateProfile, Is.Not.Null);
+        });
+    }
+
+    [Test]
+    public void Replay_ResponseRejectedByModel_ReportsModelViolationWithExplanation()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        // No CreateTask ever ran for "missing-task", so the model expects NotFound - the
+        // trace instead claims the (nonexistent) task was completed.
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CompleteTask", new CompleteTaskRequest("missing-task"), new CompleteTaskResponse("missing-task", "Completed")));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Stopped));
+            Assert.That(result.Steps, Has.Count.EqualTo(1));
+            Assert.That(result.Steps[0].Outcome, Is.EqualTo(ReplayStepOutcome.ModelViolation));
+            Assert.That(result.Steps[0].Message, Does.Contain("NotFound"));
+        });
+    }
+
+    [Test]
+    public void Replay_UnknownOperation_ReportsOperationNotModeledRatherThanViolationOrPass()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "ArchiveTask", new { taskId = "t-1" }, new { taskId = "t-1", status = "Archived" }));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Stopped));
+            Assert.That(result.Steps, Has.Count.EqualTo(1));
+            Assert.That(result.Steps[0].Outcome, Is.EqualTo(ReplayStepOutcome.OperationNotModeled));
+            Assert.That(result.Steps[0].Message, Is.Not.Null.And.Not.Empty);
+        });
+    }
+
+    [Test]
+    public void Replay_PartialModelTrace_StopsConservativelyAtUnmodeledOperationRatherThanPassing()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")),
+            TraceBuilder.Call(2, "CompleteTask", new CompleteTaskRequest("t-1"), new CompleteTaskResponse("t-1", "Completed")),
+            TraceBuilder.Call(3, "ArchiveTask", new { taskId = "t-1" }, new { taskId = "t-1", status = "Archived" }),
+            // Well-formed and would itself be conforming - included to prove replay never
+            // reaches it once an unmodeled operation has been hit.
+            TraceBuilder.Call(4, "CreateTask", new CreateTaskRequest("Wash car"), new CreateTaskResponse("t-2", "Wash car", "Open")));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Stopped));
+            Assert.That(result.Steps, Has.Count.EqualTo(3), "Replay must stop at the unmodeled call, not continue to call 4.");
+            Assert.That(result.Steps[0].Outcome, Is.EqualTo(ReplayStepOutcome.Conforming));
+            Assert.That(result.Steps[1].Outcome, Is.EqualTo(ReplayStepOutcome.Conforming));
+            Assert.That(result.Steps[2].Outcome, Is.EqualTo(ReplayStepOutcome.OperationNotModeled));
+        });
+    }
+
+    [Test]
+    public void Replay_ExecutionErrorCall_ReportsExecutionErrorRatherThanViolationOrPass()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Interrupted,
+            TraceBuilder.ErrorCall(
+                1, "CreateTask", new CreateTaskRequest("Buy milk"), "System.TimeoutException", "The operation timed out."));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Stopped));
+            Assert.That(result.Steps, Has.Count.EqualTo(1));
+            Assert.That(result.Steps[0].Outcome, Is.EqualTo(ReplayStepOutcome.ExecutionError));
+            Assert.That(result.Steps[0].Message, Does.Contain("System.TimeoutException").And.Contains("timed out"));
+        });
+    }
+
+    [Test]
+    public void Replay_RequestDeserializationFailure_ReportsRequestDeserializationFailed()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        // "title" is a JSON number, but CreateTaskRequest.Title is a string.
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.RawCall(1, "CreateTask", "{\"title\":123}", "{\"taskId\":\"t-1\",\"title\":\"x\",\"status\":\"Open\"}"));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Stopped));
+            Assert.That(result.Steps, Has.Count.EqualTo(1));
+            Assert.That(result.Steps[0].Outcome, Is.EqualTo(ReplayStepOutcome.RequestDeserializationFailed));
+            Assert.That(result.Steps[0].Message, Does.Contain("CreateTaskRequest"));
+        });
+    }
+
+    [Test]
+    public void Replay_ResponseDeserializationFailure_ReportsResponseDeserializationFailed()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        // "taskId" is a JSON boolean, but CreateTaskResponse.TaskId is a string.
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.RawCall(1, "CreateTask", "{\"title\":\"Buy milk\"}", "{\"taskId\":true,\"title\":\"Buy milk\",\"status\":\"Open\"}"));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Stopped));
+            Assert.That(result.Steps, Has.Count.EqualTo(1));
+            Assert.That(result.Steps[0].Outcome, Is.EqualTo(ReplayStepOutcome.ResponseDeserializationFailed));
+            Assert.That(result.Steps[0].Message, Does.Contain("CreateTaskResponse"));
+        });
+    }
+
+    [Test]
+    public void Replay_UnsupportedSchemaVersion_ReportsUnsupportedSchemaVersionWithNoSteps()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        var trace = TraceBuilder.Trace(
+            schemaVersion: 999,
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.UnsupportedSchemaVersion));
+            Assert.That(result.Steps, Is.Empty);
+            Assert.That(result.FinalStateProfile, Is.Null);
+            Assert.That(result.Message, Does.Contain("999"));
+        });
+    }
+
+    [Test]
+    public void Replay_NonPositiveCallId_ReportsInvalidTraceStructure()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(0, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.InvalidTraceStructure));
+            Assert.That(result.Steps, Is.Empty);
+            Assert.That(result.FinalStateProfile, Is.Null);
+            Assert.That(result.Message, Does.Contain("not positive"));
+        });
+    }
+
+    [Test]
+    public void Replay_OutOfOrderCallIds_ReportsInvalidTraceStructure()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(2, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")),
+            TraceBuilder.Call(1, "CompleteTask", new CompleteTaskRequest("t-1"), new CompleteTaskResponse("t-1", "Completed")));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.InvalidTraceStructure));
+            Assert.That(result.Steps, Is.Empty);
+            Assert.That(result.FinalStateProfile, Is.Null);
+            Assert.That(result.Message, Does.Contain("strictly"));
+        });
+    }
+
+    [Test]
+    public async Task ReplayAsync_TracePathOverload_MatchesInMemoryReplay()
+    {
+        using var tracesDirectory = new TestTracesDirectory();
+        var spec = TaskWorkflowSpec.Create();
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")),
+            TraceBuilder.Call(2, "CompleteTask", new CompleteTaskRequest("t-1"), new CompleteTaskResponse("t-1", "Completed")));
+
+        var path = await TraceStore.SaveAsync(tracesDirectory.Path, trace);
+
+        var inMemoryResult = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+        var pathResult = await TraceReplayer.ReplayAsync(spec, TaskWorkflowSpec.InitialState(), path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(pathResult.TraceId, Is.EqualTo(inMemoryResult.TraceId));
+            Assert.That(pathResult.Status, Is.EqualTo(inMemoryResult.Status));
+            Assert.That(pathResult.Steps, Is.EqualTo(inMemoryResult.Steps));
+        });
+    }
+
+    [Test]
+    public void Replay_CustomSerializerOptions_ChangesOutcomeVersusDefaultOptions()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        // "task_id" only binds to CreateTaskResponse.TaskId under a snake_case naming
+        // policy. Under the default (camelCase, case-insensitive) options it deserializes
+        // with a null TaskId, which the model then rejects (TaskId must be non-empty) -
+        // a silent-looking model violation that is really a serializer mismatch.
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.RawCall(
+                1,
+                "CreateTask",
+                "{\"title\":\"Buy milk\"}",
+                "{\"task_id\":\"t-custom\",\"title\":\"Buy milk\",\"status\":\"Open\"}"));
+
+        var defaultResult = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(defaultResult.Status, Is.EqualTo(TraceReplayStatus.Stopped));
+            Assert.That(defaultResult.Steps[0].Outcome, Is.EqualTo(ReplayStepOutcome.ModelViolation));
+        });
+
+        var snakeCaseOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+        var customResult = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace, snakeCaseOptions);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(customResult.Status, Is.EqualTo(TraceReplayStatus.Conforming));
+            Assert.That(customResult.Steps[0].Outcome, Is.EqualTo(ReplayStepOutcome.Conforming));
+
+            var finalState = (TaskWorkflowState)customResult.FinalStateProfile!.SingleState();
+            Assert.That(finalState.Tasks["t-custom"].Title, Is.EqualTo("Buy milk"));
+        });
+    }
+
+    [Test]
+    public void Replay_DoesNotMutateInitialStateAndIsRepeatable()
+    {
+        var spec = TaskWorkflowSpec.Create();
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")),
+            TraceBuilder.Call(2, "CompleteTask", new CompleteTaskRequest("t-1"), new CompleteTaskResponse("t-1", "Completed")));
+
+        var initialState = TaskWorkflowSpec.InitialState();
+
+        var firstResult = TraceReplayer.Replay(spec, initialState, trace);
+
+        Assert.That(initialState.Tasks, Is.Empty, "Replay must not mutate the caller's initial state.");
+
+        var secondResult = TraceReplayer.Replay(spec, initialState, trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(secondResult.Status, Is.EqualTo(firstResult.Status));
+            Assert.That(secondResult.Steps, Is.EqualTo(firstResult.Steps));
+            Assert.That(initialState.Tasks, Is.Empty, "Replay must not mutate the caller's initial state, even when repeated.");
+        });
+    }
+}

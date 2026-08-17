@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Specmine.Accordant</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Specmine\Specmine.csproj" />
+    <ProjectReference Include="..\..\..\..\Accordant.Operations\Accordant.Operations.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -27,8 +27,10 @@
   <Folder Name="/Tools/Specmine/">
     <Project Path="tools/specmine/src/Specmine/Specmine.csproj" />
     <Project Path="tools/specmine/src/Specmine.Adapters.OpenApi/Specmine.Adapters.OpenApi.csproj" />
+     <Project Path="tools/specmine/src/Specmine.Accordant/Specmine.Accordant.csproj" />
     <Project Path="tools/specmine/tests/Specmine.Tests/Specmine.Tests.csproj" />
     <Project Path="tools/specmine/tests/Specmine.OpenApi.Tests/Specmine.OpenApi.Tests.csproj" />
+     <Project Path="tools/specmine/tests/Specmine.Accordant.Tests/Specmine.Accordant.Tests.csproj" />
   </Folder>
   <Project Path="Accordant.Choose/Accordant.Choose.csproj" />
   <Project Path="Microsoft.Accordant.Cli/Microsoft.Accordant.Cli.csproj" />

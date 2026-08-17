@@ -311,3 +311,83 @@ integration tests; run them with:
 ```powershell
 dotnet test tools\specmine\tests\Specmine.Tests\Specmine.Tests.csproj
 ```
+
+## Accordant bridge (`src/Specmine.Accordant`)
+
+`Specmine.Accordant` replays an immutable `RecordedTrace` through an Accordant
+`Spec<TState>` acting purely as an oracle: it never executes anything, it only
+asks, call by call, "does the model allow this?" This is the sequential
+conformance-checking pattern documented for cross-language trace validation (see
+`agent/skills/cross-language/SKILL.md` and `docs/how-to/testing-any-system.md`),
+wired directly to Specmine's own `RecordedTrace`/`RecordedCall` shape instead of a
+hand-rolled trace format.
+
+```csharp
+var spec = TaskWorkflowSpec.Create();               // your Spec<TState>
+var trace = await TraceStore.LoadAsync(tracePath);  // or replay the object directly
+
+var result = TraceReplayer.Replay(spec, new TaskWorkflowState(), trace);
+// or: var result = await TraceReplayer.ReplayAsync(spec, new TaskWorkflowState(), tracePath);
+
+foreach (var step in result.Steps)
+{
+    Console.WriteLine($"{step.CallId} {step.OperationName}: {step.Outcome} {step.Message}");
+}
+```
+
+`TraceReplayer.Replay`/`ReplayAsync` walk `RecordedTrace.Calls` in order, matching
+each call's `OperationName` to a spec operation by exact name, deserializing its
+recorded request/response `JsonElement`s into that operation's declared
+`RequestType`/`ResponseType`, and feeding them through `spec.Allows` - the same
+`StateProfile`-threading validation path Accordant itself uses, never
+reimplemented. Deserialization uses caller-supplied `JsonSerializerOptions` when
+given, otherwise `ReplayJsonOptions.CreateDefault()` (`JsonSerializerDefaults.Web`
+plus a camelCase string enum converter, matching how Specmine snapshots traces).
+
+Rather than a bare pass/fail, `TraceReplayResult` reports one `ReplayStepResult`
+per replayed call, each with a `ReplayStepOutcome`:
+
+| Outcome | Meaning |
+| --- | --- |
+| `Conforming` | The operation is modeled and `spec.Allows` accepted the response. |
+| `ModelViolation` | The operation is modeled but the response was rejected; `Message` carries Accordant's own explanation. |
+| `OperationNotModeled` | The call's `OperationName` matches no operation in the spec - reported explicitly, never silently accepted and never counted as a violation. A partial model is legitimate. |
+| `ExecutionError` | The recorded call captured an execution error rather than a response. |
+| `RequestDeserializationFailed` / `ResponseDeserializationFailed` | The recorded JSON did not deserialize into the operation's declared type. |
+
+The overall `TraceReplayResult.Status` is `Conforming` only if every call in the
+trace replayed as `Conforming`; `UnsupportedSchemaVersion` or
+`InvalidTraceStructure` if the trace itself failed an integrity check (an
+unrecognized `SchemaVersion`, or a non-positive/non-increasing `CallId`) before
+any call was replayed; otherwise `Stopped`.
+
+**Replay conservatively stops** at the first call that is not `Conforming`. For a
+`ModelViolation` this is forced - `Verify` has no successor state to offer once a
+response is rejected. For an unmodeled operation, an execution error, or a
+deserialization failure, replay could in principle keep validating later calls
+against the same state profile, but this slice stops there anyway: a call that
+couldn't be explained might have changed real system state the model tracks, so
+later "conforming" results would rest on an unverified assumption. `Steps` is
+therefore a strict prefix of `RecordedTrace.Calls` whenever `Status` is
+`Stopped`, and `FinalStateProfile` is the `StateProfile` after the last
+`Conforming` call - the most advanced point at which the state is still reliably
+known (`null` only when the trace itself failed an integrity check). Neither the
+trace nor the initial state is ever mutated.
+
+**Sequential only.** `RecordedTrace` has no concurrency segments yet, so this
+bridge only calls `Spec<TState>.Allows`, never `Spec<TState>.AllowsConcurrent`.
+Supporting concurrent replay waits on a future trace representation for
+concurrent segments - this slice does not invent one.
+
+Out of scope for this slice: no live target execution, no model generation, no
+promotion of a trace into a ground-truth test, no CLI, no agent orchestration -
+just the replay-as-oracle bridge described above.
+
+See `tests/Specmine.Accordant.Tests` for coverage (a small Accordant spec with
+response-derived state, conforming/violating/unmodeled/error/deserialization-
+failure/malformed-trace scenarios, the trace-path overload, custom serializer
+options, and non-mutation/repeatability); run them with:
+
+```powershell
+dotnet test tools\specmine\tests\Specmine.Accordant.Tests\Specmine.Accordant.Tests.csproj
+```
