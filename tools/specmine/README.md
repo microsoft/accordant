@@ -204,6 +204,107 @@ an adapter that needs a workspace-relative path (for example, a future OpenAPI
 adapter's document path) must have that path included explicitly, by whoever
 authored the declaration, inside its own `Settings`.
 
+## Built-in OpenAPI adapter (`src/Specmine.Adapters.OpenApi`)
+
+`OpenApiTargetAdapter` (`AdapterType = "openapi"`) turns a committed OpenAPI 3.0.x
+JSON document plus a base URL into a live `ITargetSession`, using only
+`System.Text.Json` - no external OpenAPI parsing library. It is built for the
+documents the three benchmarks commit, not as a general-purpose OpenAPI 3.x
+implementation; see Limitations below for what it deliberately does not handle.
+
+### Settings
+
+```json
+{ "document": "C:\\path\\to\\openapi.json", "baseUrl": "https://localhost:5001" }
+```
+
+- `document` - path to a local OpenAPI JSON file. A relative path is resolved
+  against the current process's working directory; resolving it relative to the
+  workspace root instead is deferred (per the note above, a workspace-relative
+  path is the declaration author's responsibility to resolve into `Settings`
+  before it reaches the adapter - no core-layer leakage).
+- `baseUrl` - an absolute `http`/`https` URL the adapter's own `HttpClient` sends
+  requests against.
+
+Both fields are required and validated eagerly in `ConnectAsync`
+(`OpenApiSettingsException` for a malformed settings shape, `FileNotFoundException`
+if `document` does not exist). No credential settings exist yet.
+
+### Operation discovery
+
+Every path/method pair with a nonblank, unique `operationId` becomes one
+`Operation`, named after that `operationId`. A missing or duplicate
+`operationId` fails document parsing outright (`OpenApiDocumentException`)
+rather than inventing a synthesized name. Local `#/components/schemas/...`
+references are resolved recursively and inlined; a reference to a nonexistent
+schema, a non-local reference (e.g. a remote URL), or a reference cycle is
+rejected explicitly instead of hanging or silently truncating.
+
+Only `path`, `query`, and `header` parameters and `application/json` request
+bodies are supported; `cookie` parameters, any other parameter location, and any
+non-JSON request body content type fail document parsing with a message naming
+the unsupported location/content type.
+
+### Composite request/response representation
+
+Every operation's request and response are one concrete, portable JSON shape,
+regardless of what the operation actually declares:
+
+```jsonc
+// Request
+{ "path": { /* path params */ }, "query": { /* query params */ }, "headers": { /* header params */ }, "body": /* JSON request body, or omitted */ }
+
+// Response - always exactly this shape, every execution
+{ "status": 200, "body": /* one of the operation's documented JSON response schemas, or JSON null */ }
+```
+
+- The request schema only includes the `path`/`query`/`headers`/`body` sections
+  an operation actually declares (an operation with no parameters and no body has
+  an empty request object). A section is `required` in the schema if the
+  operation has any required parameter in that location (`path` is required
+  whenever any path parameters exist, since OpenAPI path parameters are always
+  required); `body` is required exactly when `requestBody.required` is `true`.
+- The response schema is always `{ "status": integer, "body": <schema> }`. `body`
+  is a `oneOf` of every distinct JSON schema documented across the operation's
+  responses (deduplicated, and with a response that is itself a bare top-level
+  `oneOf` flattened into the aggregate instead of nesting), plus a trailing
+  `null` option - because real execution can return an undocumented status or
+  an empty body regardless of what is documented. If an operation documents no
+  JSON response schemas at all, `body` is simply `{"type": "null"}`.
+- HTTP failure responses (4xx/5xx) are an ordinary `{ "status": ..., "body": ... }`
+  result, not a thrown exception - only network/client failures, JSON document
+  parsing failures, and non-JSON response bodies are execution exceptions.
+- Runtime validation before sending a request checks section/parameter
+  *presence* (required sections and required parameters must be present) but
+  does **not** perform full JSON Schema validation of a request body's nested
+  properties; malformed body content is only caught once the server itself
+  rejects it.
+
+### Limitations
+
+- No credentials/authentication support.
+- Only `path`, `query`, and `header` parameters; only `application/json` request
+  bodies. Anything else fails at document-parse time.
+- Only local `#/components/schemas/...` references are resolved; remote refs and
+  reference cycles are rejected rather than followed.
+- Response headers are not represented in the response schema.
+- `document` path resolution is relative to the current process only, not the
+  workspace root.
+- Request validation checks presence of required sections/parameters, not full
+  JSON Schema conformance of the body's contents.
+
+See `tests/Specmine.OpenApi.Tests` for settings validation, malformed/unsupported
+document handling, TaskWorkflow discovery and schema-shape assertions, a real
+end-to-end Reset -> CreateTask -> CompleteTask -> CompleteTask trace recorded
+against a live Kestrel-hosted TaskWorkflow instance, path/query/header/body
+parameter-mapping coverage against a small fixture API, and PaymentProcessing/
+InventoryReservation discovery coverage (proving generality without duplicating
+either benchmark's ground truth); run them with:
+
+```powershell
+dotnet test tools\specmine\tests\Specmine.OpenApi.Tests\Specmine.OpenApi.Tests.csproj
+```
+
 See `tests/Specmine.Tests` for recorder, persistence, workspace, and TaskWorkflow
 integration tests; run them with:
 

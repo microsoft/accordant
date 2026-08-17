@@ -1,0 +1,18 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "x", "version": "1.0.0" },
+  "paths": {
+    "/ping": {
+      "get": {
+        "operationId": "Ping",
+        "responses": { "200": { "description": "ok" } }
+      }
+    },
+    "/ping2": {
+      "get": {
+        "operationId": "Ping",
+        "responses": { "200": { "description": "ok" } }
+      }
+    }
+  }
+}

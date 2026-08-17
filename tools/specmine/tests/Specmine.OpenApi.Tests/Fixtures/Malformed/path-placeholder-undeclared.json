@@ -1,0 +1,12 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "x", "version": "1.0.0" },
+  "paths": {
+    "/widgets/{id}": {
+      "get": {
+        "operationId": "GetWidget",
+        "responses": { "200": { "description": "ok" } }
+      }
+    }
+  }
+}

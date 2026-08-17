@@ -1,0 +1,93 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Specmine OpenAPI Adapter Test Fixture",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/widgets/{id}/annotate": {
+      "post": {
+        "operationId": "AnnotateWidget",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "priority", "in": "query", "required": true, "schema": { "type": "integer" } },
+          { "name": "verbose", "in": "query", "required": false, "schema": { "type": "boolean" } },
+          { "name": "X-Trace-Id", "in": "header", "required": true, "schema": { "type": "string" } },
+          { "name": "X-Optional-Tag", "in": "header", "required": false, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AnnotateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Annotated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AnnotateResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid priority",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/widgets/{id}/touch": {
+      "post": {
+        "operationId": "TouchWidget",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "204": {
+            "description": "Touched"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnnotateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["note"],
+        "properties": {
+          "note": { "type": "string" }
+        }
+      },
+      "AnnotateResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "priority", "traceId", "note"],
+        "properties": {
+          "id": { "type": "string" },
+          "priority": { "type": "integer" },
+          "verbose": { "type": "boolean" },
+          "traceId": { "type": "string" },
+          "optionalTag": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

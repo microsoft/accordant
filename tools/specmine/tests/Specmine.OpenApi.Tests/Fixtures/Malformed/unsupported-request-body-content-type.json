@@ -1,0 +1,18 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "x", "version": "1.0.0" },
+  "paths": {
+    "/ping": {
+      "post": {
+        "operationId": "Ping",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/xml": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "200": { "description": "ok" } }
+      }
+    }
+  }
+}

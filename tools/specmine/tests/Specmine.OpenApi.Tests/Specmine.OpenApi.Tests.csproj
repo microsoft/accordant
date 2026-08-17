@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Specmine.OpenApi.Tests</RootNamespace>
+
+    <!--
+      This test project hosts a small fixture API of its own (see Fixture/FixtureProgram.cs)
+      so it can exercise query/header/body/path parameter mapping end to end against a real
+      Kestrel listener, alongside the three committed benchmark APIs. Disable the SDK's
+      auto-generated test host entry point so FixtureProgram's own Main is the assembly's
+      sole entry point, per the documented ASP.NET Core "app and test in the same project"
+      pattern.
+    -->
+    <GenerateProgramFile>false</GenerateProgramFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Specmine\Specmine.csproj" />
+    <ProjectReference Include="..\..\src\Specmine.Adapters.OpenApi\Specmine.Adapters.OpenApi.csproj" />
+    <ProjectReference Include="..\..\benchmarks\TaskWorkflow\TaskWorkflow.Api\TaskWorkflow.Api.csproj" />
+    <ProjectReference Include="..\..\benchmarks\PaymentProcessing\PaymentProcessing.Api\PaymentProcessing.Api.csproj" />
+    <ProjectReference Include="..\..\benchmarks\InventoryReservation\InventoryReservation.Api\InventoryReservation.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Fixtures/*.json files this project authors itself (the query/header/body/path
+      fixture document and the malformed OpenAPI documents used by
+      MalformedOpenApiDocumentTests) are picked up automatically by the Sdk.Web default
+      content globs below; the three benchmark documents are linked in from their own
+      projects so there is a single source of truth for each.
+    -->
+    <Content Include="..\..\benchmarks\TaskWorkflow\TaskWorkflow.Api\openapi.json"
+              Link="Fixtures\TaskWorkflow.openapi.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\benchmarks\PaymentProcessing\PaymentProcessing.Api\openapi.json"
+              Link="Fixtures\PaymentProcessing.openapi.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\benchmarks\InventoryReservation\InventoryReservation.Api\openapi.json"
+              Link="Fixtures\InventoryReservation.openapi.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
