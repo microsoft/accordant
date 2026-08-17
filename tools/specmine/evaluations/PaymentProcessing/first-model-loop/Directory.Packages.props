@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <!-- The archived workspace projects pin their own PackageReference versions inline, as
+         they did in the staged workspace. This repository enables Central Package Management
+         at its root, which rejects inline versions (NU1008); MSBuild imports only the nearest
+         Directory.Packages.props, so this file opts the archived copies out rather than
+         editing them. See README.md, "Reproducing the build". -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

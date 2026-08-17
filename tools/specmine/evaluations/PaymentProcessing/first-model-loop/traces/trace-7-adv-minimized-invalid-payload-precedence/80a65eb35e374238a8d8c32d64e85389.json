@@ -1,0 +1,101 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "80a65eb3-5e37-4238-a8d8-c32d64e85389",
+  "StartedAt": "2026-08-17T13:30:10.3406661Z",
+  "CompletedAt": "2026-08-17T13:30:10.4268205Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "Reset",
+      "Request": {},
+      "Response": {
+        "status": 204,
+        "body": null
+      },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "adv-G1",
+          "amount": 100.00,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 201,
+        "body": {
+          "id": "6ca979150bd645068c6aafbe75693c77",
+          "idempotencyKey": "adv-G1",
+          "amount": 100.00,
+          "currency": "USD",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 3,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "adv-G1",
+          "amount": 100.00,
+          "currency": "usd"
+        }
+      },
+      "Response": {
+        "status": 400,
+        "body": {
+          "type": "validation_error",
+          "code": "invalid_request",
+          "message": "idempotencyKey must be nonblank, amount must be positive, and currency must be three uppercase letters."
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 4,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "adv-G2",
+          "amount": 100.00,
+          "currency": "usd"
+        }
+      },
+      "Response": {
+        "status": 400,
+        "body": {
+          "type": "validation_error",
+          "code": "invalid_request",
+          "message": "idempotencyKey must be nonblank, amount must be positive, and currency must be three uppercase letters."
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 5,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "adv-G1",
+          "amount": -5.00,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 400,
+        "body": {
+          "type": "validation_error",
+          "code": "invalid_request",
+          "message": "idempotencyKey must be nonblank, amount must be positive, and currency must be three uppercase letters."
+        }
+      },
+      "Error": null
+    }
+  ]
+}

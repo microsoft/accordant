@@ -1,0 +1,105 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "0c64d433-45a9-47d1-8fb7-fa2bc4c4cc61",
+  "StartedAt": "2026-08-17T13:28:39.7327836Z",
+  "CompletedAt": "2026-08-17T13:28:39.7372081Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "Reset",
+      "Request": {},
+      "Response": {
+        "status": 204,
+        "body": null
+      },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "adv-E1",
+          "amount": 100.00,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 201,
+        "body": {
+          "id": "3895bfb8ac0a4cbcb455a1e67262a5e7",
+          "idempotencyKey": "adv-E1",
+          "amount": 100.00,
+          "currency": "USD",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 3,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "adv-E1",
+          "amount": 100.0,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "3895bfb8ac0a4cbcb455a1e67262a5e7",
+          "idempotencyKey": "adv-E1",
+          "amount": 100.00,
+          "currency": "USD",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 4,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "adv-E2",
+          "amount": 100.00,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 201,
+        "body": {
+          "id": "bca52fe630844d91a8e743203e6cc86e",
+          "idempotencyKey": "adv-E2",
+          "amount": 100.00,
+          "currency": "USD",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 5,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "adv-E2",
+          "amount": 100.00,
+          "currency": "usd"
+        }
+      },
+      "Response": {
+        "status": 400,
+        "body": {
+          "type": "validation_error",
+          "code": "invalid_request",
+          "message": "idempotencyKey must be nonblank, amount must be positive, and currency must be three uppercase letters."
+        }
+      },
+      "Error": null
+    }
+  ]
+}
