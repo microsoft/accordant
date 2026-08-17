@@ -130,17 +130,7 @@ var workspace = await Workspace.InitializeAsync(workspaceRoot, new TargetAdapter
 
 // Later, in a fresh process:
 var reloaded = await Workspace.LoadAsync(workspaceRoot);
-
-// Connect the declared adapter to a live session, then point the recorder at the
-// workspace's traces directory.
-var adapter = ResolveAdapter(reloaded.Document.TargetAdapter.AdapterType);
-await using var target = await adapter.ConnectAsync(reloaded.Document.TargetAdapter.Settings);
-await TraceRecorder.RunAsync(reloaded.TracesDirectory, target, async recordingTarget => { /* ... */ });
 ```
-
-(Adapter discovery - resolving an `AdapterType` string like `"openapi"` to a
-concrete `ITargetAdapter` - is out of scope for this slice; `ResolveAdapter` above
-is illustrative only.)
 
 `workspace.json` declares a schema version and a single `TargetAdapter` with an
 `AdapterType` string and an opaque `Settings` JSON value. **Adapter settings are
@@ -164,6 +154,55 @@ throwing a specific exception for whichever check fails.
 A workspace performs no orchestration and includes no adapter implementation or
 CLI: it only creates, validates, and resolves paths, and exposes
 `TracesDirectory` for `TraceRecorder` to write into.
+
+### Adapter registry and workspace activation (`src/Specmine`)
+
+Turning a workspace's declared `AdapterType` string into a live session requires
+a host - a test harness, a future CLI, an IDE extension - that knows which
+concrete `ITargetAdapter` implementations exist. `TargetAdapterRegistry` is a
+small, explicit registry the host builds by hand: there is no reflection,
+assembly scanning, package loading, or dependency injection container - every
+adapter type a host can activate is registered in code the host controls.
+`WorkspaceActivator.ConnectAsync` is the bridge from a loaded workspace to a live
+session: it resolves `workspace.Document.TargetAdapter.AdapterType` in the
+registry and connects that adapter with the declaration's own opaque `Settings`.
+
+```csharp
+// Host startup: register exactly the adapters this host supports.
+var registry = new TargetAdapterRegistry();
+registry.Register(new OpenApiTargetAdapter());
+registry.Register(new CommandTargetAdapter());
+
+// Load a previously initialized workspace and activate its declared adapter.
+var workspace = await Workspace.LoadAsync(workspaceRoot);
+await using var target = await WorkspaceActivator.ConnectAsync(workspace, registry, cancellationToken);
+
+// The returned session is live and caller-owned: enumerate its operations,
+// execute them directly, or hand it to TraceRecorder to record an experiment.
+foreach (var operation in target.Operations)
+{
+    Console.WriteLine($"{operation.Name}: {operation.RequestSchema} -> {operation.ResponseSchema}");
+}
+
+await TraceRecorder.RunAsync(workspace.TracesDirectory, target, async recordingTarget =>
+{
+    await recordingTarget.ExecuteAsync("CreateTask", createTaskRequestJson);
+});
+```
+
+`Register` throws if an adapter is already registered for the same adapter type
+(comparing type strings with ordinal, case-sensitive semantics throughout, since
+the same string is also the literal value written into `workspace.json`);
+`Resolve`/`ConnectAsync` throw `UnknownAdapterTypeException` if the workspace
+declares a type nothing is registered for. `ConnectAsync` passes cancellation
+through to the adapter, never swallows a settings-validation or connection
+exception the adapter throws, and throws `InvalidOperationException` if a
+misbehaving adapter returns a null session. Workspace paths (`RootPath`,
+`TargetDirectory`, ...) are machine-resolved runtime properties of `Workspace`
+itself and are never implicitly added into the settings handed to the adapter -
+an adapter that needs a workspace-relative path (for example, a future OpenAPI
+adapter's document path) must have that path included explicitly, by whoever
+authored the declaration, inside its own `Settings`.
 
 See `tests/Specmine.Tests` for recorder, persistence, workspace, and TaskWorkflow
 integration tests; run them with:
