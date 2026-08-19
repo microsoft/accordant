@@ -98,6 +98,139 @@ public sealed class TraceReplayerTests
     }
 
     [Test]
+    public void Replay_ProvisionalExpectationMatches_ReportsProvisionalAndAdvancesState()
+    {
+        var spec = Spec.For<TaskWorkflowState>();
+        spec.Operation<CreateTaskRequest, CreateTaskResponse>("CreateTask", (request, state) =>
+            Research.Provisional(
+                "create-outcome",
+                "What selects creation success?",
+                Expect.That<CreateTaskResponse>(
+                        response => response.Status == "Open",
+                        "Expected an open task.")
+                    .ThenState<TaskWorkflowState>((response, next) =>
+                    {
+                        next.Tasks[response.TaskId] = new TaskRecordState
+                        {
+                            Title = response.Title,
+                            Status = response.Status,
+                        };
+                    }, mock: () => new CreateTaskResponse("mock", request.Title, "Open"))));
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Provisional));
+            Assert.That(result.Steps.Single().Outcome, Is.EqualTo(ReplayStepOutcome.ProvisionalMatch));
+            Assert.That(result.Steps.Single().Message, Does.Contain("create-outcome"));
+            Assert.That(result.Steps.Single().ResearchId, Is.EqualTo("create-outcome"));
+            Assert.That(result.Steps.Single().ResearchKind, Is.EqualTo(ResearchExpectationKind.Provisional));
+            Assert.That(result.AcceptedMatchCount, Is.Zero);
+            Assert.That(result.ProvisionalMatchCount, Is.EqualTo(1));
+            Assert.That(result.UnknownCount, Is.Zero);
+            Assert.That(result.ViolationCount, Is.Zero);
+            Assert.That(
+                ((TaskWorkflowState)result.FinalStateProfile!.SingleState()).Tasks,
+                Does.ContainKey("t-1"));
+        });
+    }
+
+    [Test]
+    public void Replay_ProvisionalExpectationRejects_ReportsModelViolation()
+    {
+        var spec = Spec.For<TaskWorkflowState>();
+        spec.Operation<CreateTaskRequest, CreateTaskResponse>("CreateTask", (_, _) =>
+            Research.Provisional(
+                "create-outcome",
+                "What selects creation success?",
+                Expect.That<CreateTaskResponse>(
+                        response => response.Status == "Open",
+                        "Expected an open task.")
+                    .SameState()));
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Rejected")));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Stopped));
+            Assert.That(result.Steps.Single().Outcome, Is.EqualTo(ReplayStepOutcome.ModelViolation));
+            Assert.That(result.ViolationCount, Is.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public void Replay_UnknownExpectation_ReportsUnknownAndStopsWithoutChangingState()
+    {
+        var spec = Spec.For<TaskWorkflowState>();
+        spec.Operation<CreateTaskRequest, CreateTaskResponse>("CreateTask", (_, _) =>
+            Research.Unknown<CreateTaskResponse>(
+                "create-outcome",
+                "Creation behavior has not been investigated."));
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")),
+            TraceBuilder.Call(2, "CreateTask", new CreateTaskRequest("Wash car"), new CreateTaskResponse("t-2", "Wash car", "Open")));
+
+        var initialState = TaskWorkflowSpec.InitialState();
+        var result = TraceReplayer.Replay(spec, initialState, trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Stopped));
+            Assert.That(result.Steps, Has.Count.EqualTo(1));
+            Assert.That(result.Steps.Single().Outcome, Is.EqualTo(ReplayStepOutcome.Unknown));
+            Assert.That(result.Steps.Single().Message, Does.Contain("create-outcome"));
+            Assert.That(result.Steps.Single().ResearchId, Is.EqualTo("create-outcome"));
+            Assert.That(result.Steps.Single().ResearchKind, Is.EqualTo(ResearchExpectationKind.Unknown));
+            Assert.That(result.UnknownCount, Is.EqualTo(1));
+            Assert.That(result.FinalStateProfile!.SingleState(), Is.SameAs(initialState));
+        });
+    }
+
+    [Test]
+    public void Provisional_RejectsNestedResearchExpectation()
+    {
+        var unknown = Research.Unknown<CreateTaskResponse>(
+            "create-outcome",
+            "Creation behavior has not been investigated.");
+
+        Assert.That(
+            () => Research.Provisional("outer", "Can this be refined?", unknown),
+            Throws.ArgumentException.With.Message.Contains("cannot be nested"));
+    }
+
+    [Test]
+    public void Replay_RecomposedUnknownOutcome_PreservesUnknownMarker()
+    {
+        var spec = Spec.For<TaskWorkflowState>();
+        spec.Operation<CreateTaskRequest, CreateTaskResponse>("CreateTask", (_, _) =>
+        {
+            var unknown = Research.Unknown<CreateTaskResponse>(
+                "create-outcome",
+                "Creation behavior has not been investigated.");
+            return new ExpectedOutcomes(unknown.PossibleOutcomes.ToArray());
+        });
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.That(result.Steps.Single().Outcome, Is.EqualTo(ReplayStepOutcome.Unknown));
+    }
+
+    [Test]
     public void Replay_PartialModelTrace_StopsConservativelyAtUnmodeledOperationRatherThanPassing()
     {
         var spec = TaskWorkflowSpec.Create();

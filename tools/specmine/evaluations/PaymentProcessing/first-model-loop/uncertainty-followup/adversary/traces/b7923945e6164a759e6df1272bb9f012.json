@@ -1,0 +1,37 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "b7923945-e616-4a75-9e6d-f1272bb9f012",
+  "StartedAt": "2026-08-19T04:49:14.4235874Z",
+  "CompletedAt": "2026-08-19T04:49:14.4420139Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "Reset",
+      "Request": {},
+      "Response": { "status": 204, "body": null },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "AuthorizePayment",
+      "Request": { "body": { "idempotencyKey": "adv-void-live-replay", "amount": 100, "currency": "USD" } },
+      "Response": { "status": 201, "body": { "id": "e2ab5862e5df433fadef71b8b79486eb", "idempotencyKey": "adv-void-live-replay", "amount": 100, "currency": "USD", "status": "authorized" } },
+      "Error": null
+    },
+    {
+      "CallId": 3,
+      "OperationName": "VoidPayment",
+      "Request": { "path": { "id": "e2ab5862e5df433fadef71b8b79486eb" } },
+      "Response": { "status": 200, "body": { "id": "e2ab5862e5df433fadef71b8b79486eb", "idempotencyKey": "adv-void-live-replay", "amount": 100, "currency": "USD", "status": "voided" } },
+      "Error": null
+    },
+    {
+      "CallId": 4,
+      "OperationName": "AuthorizePayment",
+      "Request": { "body": { "idempotencyKey": "adv-void-live-replay", "amount": 100, "currency": "USD" } },
+      "Response": { "status": 200, "body": { "id": "e2ab5862e5df433fadef71b8b79486eb", "idempotencyKey": "adv-void-live-replay", "amount": 100, "currency": "USD", "status": "voided" } },
+      "Error": null
+    }
+  ]
+}

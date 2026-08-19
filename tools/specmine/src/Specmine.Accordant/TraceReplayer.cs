@@ -31,9 +31,9 @@ using Microsoft.Accordant;
 /// </para>
 ///
 /// <para>
-/// <b>Conservative stop.</b> Once a call's outcome is anything other than
-/// <see cref="ReplayStepOutcome.Conforming"/> - a model violation, an unmodeled operation, a
-/// recorded execution error, or a request/response deserialization failure - replay stops
+/// <b>Conservative stop.</b> A conforming or provisional match advances state. Any other
+/// outcome - an unknown region, model violation, unmodeled operation, recorded execution
+/// error, or request/response deserialization failure - stops replay
 /// without attempting later calls. For a model violation this is forced: Accordant's own
 /// <c>Verify</c> has no successor <see cref="StateProfile"/> to offer once a response is
 /// rejected. For the other cases a later call could, in principle, still be checked against
@@ -156,6 +156,14 @@ public static class TraceReplayer
                 break;
             }
 
+            var researchExpectation = InspectResearchExpectation(operation, request, response, stateProfile);
+
+            if (researchExpectation is { Kind: ResearchExpectationKind.Unknown })
+            {
+                steps.Add(ReplayStepResult.Unknown(call.CallId, call.OperationName, researchExpectation));
+                break;
+            }
+
             var (isValid, message, nextStateProfile) = spec.Allows(operation, request, response, stateProfile);
 
             if (!isValid)
@@ -164,21 +172,66 @@ public static class TraceReplayer
                 break;
             }
 
-            steps.Add(ReplayStepResult.Conforming(call.CallId, call.OperationName));
+            steps.Add(researchExpectation is { Kind: ResearchExpectationKind.Provisional }
+                ? ReplayStepResult.ProvisionalMatch(call.CallId, call.OperationName, researchExpectation)
+                : ReplayStepResult.Conforming(call.CallId, call.OperationName));
             stateProfile = nextStateProfile;
             lastReliableStateProfile = nextStateProfile;
         }
 
-        var fullyConforming =
+        var fullyMatched =
             steps.Count == trace.Calls.Count &&
-            steps.All(step => step.Outcome == ReplayStepOutcome.Conforming);
+            steps.All(step => step.Outcome is ReplayStepOutcome.Conforming or ReplayStepOutcome.ProvisionalMatch);
+        var hasProvisionalMatch = steps.Any(step => step.Outcome == ReplayStepOutcome.ProvisionalMatch);
 
         return new TraceReplayResult(
             trace.TraceId,
-            fullyConforming ? TraceReplayStatus.Conforming : TraceReplayStatus.Stopped,
+            fullyMatched
+                ? hasProvisionalMatch ? TraceReplayStatus.Provisional : TraceReplayStatus.Conforming
+                : TraceReplayStatus.Stopped,
             message: null,
             steps,
             lastReliableStateProfile);
+    }
+
+    private static ResearchExpectedOutcome? InspectResearchExpectation(
+        IOperation operation,
+        object? request,
+        object? response,
+        StateProfile stateProfile)
+    {
+        if (operation is not IExpectedOutcomesProvider provider)
+        {
+            return null;
+        }
+
+        ResearchExpectedOutcome? provisionalMatch = null;
+
+        foreach (var (state, _) in stateProfile.StatesAndStepFunctions)
+        {
+            var outcomes = provider.GetExpectedOutcomes(request!, state);
+            var unknown = outcomes.PossibleOutcomes
+                .OfType<ResearchExpectedOutcome>()
+                .FirstOrDefault(outcome => outcome.Kind == ResearchExpectationKind.Unknown);
+
+            if (unknown is not null)
+            {
+                return unknown;
+            }
+
+            provisionalMatch ??= outcomes.PossibleOutcomes
+                .OfType<ResearchExpectedOutcome>()
+                .FirstOrDefault(outcome =>
+                    outcome.Kind == ResearchExpectationKind.Provisional &&
+                    outcome.Satisfies(response!));
+
+            if (provisionalMatch is not null)
+            {
+                break;
+            }
+        }
+
+        return provisionalMatch;
     }
 
     /// <summary>

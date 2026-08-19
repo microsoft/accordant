@@ -110,6 +110,35 @@ trace ID, atomically (via a temporary file plus a non-overwriting move) into a
 caller-provided traces directory; a persisted trace file is never overwritten.
 `TraceStore.LoadAsync` reloads a trace file back into a `RecordedTrace`.
 
+## Partial Accordant models (`src/Specmine.Accordant`)
+
+Mining models can mark incomplete knowledge next to executable behavior:
+
+```csharp
+return Research.Unknown<Response>(
+    "fresh-key-outcome",
+    "The success-versus-decline rule has not been characterized.");
+
+return Research.Provisional(
+    "replay-live-status",
+    "Does replay reflect every lifecycle transition?",
+    Expect.That<Response>(IsLiveRecord).SameState());
+```
+
+An ordinary Accordant expectation is accepted knowledge. `Provisional` verifies
+its wrapped expectation normally but produces a `ProvisionalMatch` replay result
+when it matches. A mismatch remains a `ModelViolation`. `Unknown` makes no
+response or transition claim; `TraceReplayer` reports `Unknown` and stops before
+later calls can be checked against an unreliable state. For a single-state direct Accordant check, `Unknown` fails with an `UNKNOWN[id]`
+explanation. Research annotations are intended for `TraceReplayer`; direct
+Accordant generation and multi-state verification do not preserve the
+three-way accepted/provisional/unknown verdict.
+
+`TraceReplayResult` reports accepted, provisional, unknown, and violation counts.
+The wrappers do not change Accordant's behavioral algebra: they are annotations
+inspected through the optional `IExpectedOutcomesProvider` interface implemented
+by Accordant operations.
+
 ## Investigation workspace (`src/Specmine`)
 
 A `Workspace` is a minimal, on-disk investigation workspace: a small, fixed set of

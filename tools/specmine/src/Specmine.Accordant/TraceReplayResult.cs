@@ -42,14 +42,23 @@ public sealed record TraceReplayResult
 
     /// <summary>
     /// The <see cref="StateProfile"/> after the last call that replayed as
-    /// <see cref="ReplayStepOutcome.Conforming"/> - the most advanced point at which the
-    /// state is still reliably known. This is the initial state profile, unmodified, when
-    /// zero calls conformed (including an empty trace). <c>null</c> when <see cref="Status"/>
+    /// <see cref="ReplayStepOutcome.Conforming"/> or
+    /// <see cref="ReplayStepOutcome.ProvisionalMatch"/> - the most advanced point at which
+    /// the state is still reliably known. This is the initial state profile, unmodified,
+    /// when zero calls matched (including an empty trace). <c>null</c> when <see cref="Status"/>
     /// is <see cref="TraceReplayStatus.UnsupportedSchemaVersion"/> or
     /// <see cref="TraceReplayStatus.InvalidTraceStructure"/>, since replay never validly
     /// began and no state can be considered reliable.
     /// </summary>
     public StateProfile? FinalStateProfile { get; }
+
+    public int AcceptedMatchCount => Steps.Count(step => step.Outcome == ReplayStepOutcome.Conforming);
+
+    public int ProvisionalMatchCount => Steps.Count(step => step.Outcome == ReplayStepOutcome.ProvisionalMatch);
+
+    public int UnknownCount => Steps.Count(step => step.Outcome == ReplayStepOutcome.Unknown);
+
+    public int ViolationCount => Steps.Count(step => step.Outcome == ReplayStepOutcome.ModelViolation);
 
     public TraceReplayResult(
         Guid traceId,

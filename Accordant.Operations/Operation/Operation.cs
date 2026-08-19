@@ -22,7 +22,8 @@ using System.Threading.Tasks;
 /// <typeparam name="TResponse">The type of response this operation returns.</typeparam>
 /// <typeparam name="TState">The type of state this operation operates on.</typeparam>
 public abstract class Operation<TRequest, TResponse, TState> :
-    IOperation
+    IOperation,
+    IExpectedOutcomesProvider
     where TState : class, IState
 {
     /// <summary>
@@ -112,6 +113,12 @@ public abstract class Operation<TRequest, TResponse, TState> :
     /// <param name="state">The current state.</param>
     /// <returns>The expected outcomes including response descriptor and next state(s).</returns>
     public abstract ExpectedOutcomes Apply(TRequest request, TState state);
+
+    /// <inheritdoc/>
+    ExpectedOutcomes IExpectedOutcomesProvider.GetExpectedOutcomes(object request, IState state)
+    {
+        return Apply((TRequest)request, (TState)state);
+    }
 
     #endregion
 

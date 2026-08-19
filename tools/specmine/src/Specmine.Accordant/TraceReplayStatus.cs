@@ -14,9 +14,15 @@ public enum TraceReplayStatus
     Conforming,
 
     /// <summary>
+    /// Every call matched an executable expectation, and at least one matched expectation
+    /// was marked provisional.
+    /// </summary>
+    Provisional,
+
+    /// <summary>
     /// Replay stopped before reaching the end of the trace because a call's outcome left
-    /// the state no longer reliably known: a model violation, an unmodeled operation, an
-    /// execution error, or a request/response deserialization failure. See the last entry
+    /// the state no longer reliably known: an unknown region, a model violation, an
+    /// unmodeled operation, an execution error, or a request/response deserialization failure. See the last entry
     /// in <see cref="TraceReplayResult.Steps"/> for which one and why. This is a
     /// deliberately conservative choice - see the <c>Specmine.Accordant</c> README.
     /// </summary>

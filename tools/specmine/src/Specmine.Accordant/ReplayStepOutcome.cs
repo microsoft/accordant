@@ -16,6 +16,20 @@ public enum ReplayStepOutcome
     Conforming,
 
     /// <summary>
+    /// The observed response matched an executable expectation marked with
+    /// <see cref="Research.Provisional"/>. The state transition is reliable, but the model
+    /// explicitly identifies this claim as needing further refinement.
+    /// </summary>
+    ProvisionalMatch,
+
+    /// <summary>
+    /// The model explicitly marked this request/state region with
+    /// <see cref="Research.Unknown{TResponse}"/>. No response or state-transition claim was
+    /// made, so replay stops without classifying the observation as a model violation.
+    /// </summary>
+    Unknown,
+
+    /// <summary>
     /// The call's operation is modeled and both its request and response deserialized
     /// cleanly, but <c>Spec&lt;TState&gt;.Allows</c> rejected the observed response: the
     /// model disagrees with what the trace recorded. See <see cref="ReplayStepResult.Message"/>

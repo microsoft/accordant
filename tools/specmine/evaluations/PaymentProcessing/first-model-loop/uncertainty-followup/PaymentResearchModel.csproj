@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>PaymentResearchModel</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\model\PaymentContracts.cs" Link="PaymentContracts.cs" />
+    <Compile Include="..\model\PaymentModelState.cs" Link="PaymentModelState.cs" />
+    <Compile Include="..\model\ModelScope.cs" Link="ModelScope.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\Accordant.Operations\Accordant.Operations.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Specmine\Specmine.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Specmine.Accordant\Specmine.Accordant.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\Accordant.SourceGenerator\Accordant.SourceGenerator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

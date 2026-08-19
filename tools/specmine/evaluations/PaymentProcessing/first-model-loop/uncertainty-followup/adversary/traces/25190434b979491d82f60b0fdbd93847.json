@@ -1,0 +1,51 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "25190434-b979-491d-82f6-0b0fdbd93847",
+  "StartedAt": "2026-08-19T04:49:14.3476434Z",
+  "CompletedAt": "2026-08-19T04:49:14.3944974Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "Reset",
+      "Request": {},
+      "Response": { "status": 204, "body": null },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "AuthorizePayment",
+      "Request": { "body": { "idempotencyKey": "adv-boundary-neg-cent", "amount": -0.01, "currency": "USD" } },
+      "Response": { "status": 400, "body": { "type": "validation_error", "code": "invalid_request", "message": "idempotencyKey must be nonblank, amount must be positive, and currency must be three uppercase letters." } },
+      "Error": null
+    },
+    {
+      "CallId": 3,
+      "OperationName": "AuthorizePayment",
+      "Request": { "body": { "idempotencyKey": "adv-boundary-zero", "amount": 0, "currency": "USD" } },
+      "Response": { "status": 400, "body": { "type": "validation_error", "code": "invalid_request", "message": "idempotencyKey must be nonblank, amount must be positive, and currency must be three uppercase letters." } },
+      "Error": null
+    },
+    {
+      "CallId": 4,
+      "OperationName": "AuthorizePayment",
+      "Request": { "body": { "idempotencyKey": "adv-boundary-pos-cent", "amount": 0.01, "currency": "USD" } },
+      "Response": { "status": 201, "body": { "id": "3b910e4ee19e4f5cb1ed9f05e041fd92", "idempotencyKey": "adv-boundary-pos-cent", "amount": 0.01, "currency": "USD", "status": "authorized" } },
+      "Error": null
+    },
+    {
+      "CallId": 5,
+      "OperationName": "AuthorizePayment",
+      "Request": { "body": { "idempotencyKey": "adv-boundary-empty-currency", "amount": 100, "currency": "" } },
+      "Response": { "status": 400, "body": { "type": "validation_error", "code": "invalid_request", "message": "idempotencyKey must be nonblank, amount must be positive, and currency must be three uppercase letters." } },
+      "Error": null
+    },
+    {
+      "CallId": 6,
+      "OperationName": "AuthorizePayment",
+      "Request": { "body": { "idempotencyKey": "adv-boundary-lower-currency", "amount": 100, "currency": "usd" } },
+      "Response": { "status": 400, "body": { "type": "validation_error", "code": "invalid_request", "message": "idempotencyKey must be nonblank, amount must be positive, and currency must be three uppercase letters." } },
+      "Error": null
+    }
+  ]
+}

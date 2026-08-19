@@ -1,0 +1,37 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "eea9d9f5-8006-4b5d-bbb7-e37f69515f32",
+  "StartedAt": "2026-08-19T04:49:14.3972994Z",
+  "CompletedAt": "2026-08-19T04:49:14.4208214Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "Reset",
+      "Request": {},
+      "Response": { "status": 204, "body": null },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "AuthorizePayment",
+      "Request": { "body": { "idempotencyKey": "adv-capture-low", "amount": 0.01, "currency": "USD" } },
+      "Response": { "status": 201, "body": { "id": "187256da2c98446fa838df7a21a7456e", "idempotencyKey": "adv-capture-low", "amount": 0.01, "currency": "USD", "status": "authorized" } },
+      "Error": null
+    },
+    {
+      "CallId": 3,
+      "OperationName": "CapturePayment",
+      "Request": { "path": { "id": "187256da2c98446fa838df7a21a7456e" } },
+      "Response": { "status": 200, "body": { "id": "187256da2c98446fa838df7a21a7456e", "idempotencyKey": "adv-capture-low", "amount": 0.01, "currency": "USD", "status": "captured" } },
+      "Error": null
+    },
+    {
+      "CallId": 4,
+      "OperationName": "AuthorizePayment",
+      "Request": { "body": { "idempotencyKey": "adv-capture-low", "amount": 0.01, "currency": "USD" } },
+      "Response": { "status": 200, "body": { "id": "187256da2c98446fa838df7a21a7456e", "idempotencyKey": "adv-capture-low", "amount": 0.01, "currency": "USD", "status": "captured" } },
+      "Error": null
+    }
+  ]
+}
