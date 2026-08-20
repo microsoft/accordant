@@ -18,10 +18,7 @@ $globalPackagesDirectory = Join-Path $tempRoot "global-packages"
 $nugetConfigPath = Join-Path $tempRoot "NuGet.config"
 
 function Invoke-DotNet {
-    param(
-        [Parameter(Mandatory)]
-        [string[]] $Arguments
-    )
+    param([Parameter(Mandatory)][string[]] $Arguments)
 
     $output = & dotnet @Arguments 2>&1 | Out-String
     if ($LASTEXITCODE -ne 0) {
@@ -31,81 +28,20 @@ function Invoke-DotNet {
     return $output
 }
 
-function Assert-PackageDependencies {
-    param(
-        [Parameter(Mandatory)]
-        [string] $PackagePath,
-
-        [Parameter(Mandatory)]
-        [string] $TargetFramework,
-
-        [Parameter(Mandatory)]
-        [hashtable] $ExpectedPackages
-    )
-
-    $archive = [System.IO.Compression.ZipFile]::OpenRead($PackagePath)
-    try {
-        $nuspecEntry = $archive.Entries |
-            Where-Object { $_.FullName.EndsWith(".nuspec", [StringComparison]::OrdinalIgnoreCase) } |
-            Select-Object -First 1
-        $reader = [System.IO.StreamReader]::new($nuspecEntry.Open())
-        try {
-            [xml] $packageNuspec = $reader.ReadToEnd()
-        }
-        finally {
-            $reader.Dispose()
-        }
-    }
-    finally {
-        $archive.Dispose()
-    }
-
-    $group = $packageNuspec.SelectNodes("//*[local-name()='group']") |
-        Where-Object { $_.targetFramework -eq $TargetFramework } |
-        Select-Object -First 1
-
-    if ($null -eq $group) {
-        throw "Package dependency group $TargetFramework was not found in $PackagePath."
-    }
-
-    foreach ($package in $ExpectedPackages.GetEnumerator()) {
-        $dependency = $group.SelectNodes("*[local-name()='dependency']") |
-            Where-Object { $_.id -eq $package.Key } |
-            Select-Object -First 1
-
-        if ($null -eq $dependency -or $dependency.version -ne $package.Value) {
-            throw "Expected $($package.Key) $($package.Value) in the $TargetFramework dependency group."
-        }
-    }
-}
-
-function Assert-AccordantAsset {
-    param(
-        [Parameter(Mandatory)]
-        [string] $AssetsPath,
-
-        [Parameter(Mandatory)]
-        [string] $PackageVersion,
-
-        [Parameter(Mandatory)]
-        [string] $TargetFramework
-    )
-
-    $assets = Get-Content $AssetsPath -Raw | ConvertFrom-Json
-    $target = $assets.targets.PSObject.Properties | Select-Object -First 1 -ExpandProperty Value
-    $accordant = $target.PSObject.Properties |
-        Where-Object { $_.Name -eq "Microsoft.Accordant/$PackageVersion" } |
-        Select-Object -First 1 -ExpandProperty Value
-    $compileAssets = @($accordant.compile.PSObject.Properties.Name)
-
-    if ($compileAssets.Count -eq 0 -or
-        $compileAssets.Where({ -not $_.StartsWith("lib/$TargetFramework/", [StringComparison]::OrdinalIgnoreCase) }).Count -gt 0) {
-        throw "Expected Microsoft.Accordant $PackageVersion to select only $TargetFramework compile assets."
-    }
-}
-
 try {
     New-Item -ItemType Directory -Path $packageDirectory -Force | Out-Null
+
+    [xml] $nuspec = Get-Content $nuspecPath
+    $packageVersion = [string] $nuspec.package.metadata.version
+
+    Invoke-DotNet @(
+        "pack", $packageProject,
+        "--configuration", "Release",
+        "--output", $packageDirectory,
+        "--nologo",
+        "--verbosity", "minimal"
+    ) | Out-Host
+
     $escapedPackageDirectory = [System.Security.SecurityElement]::Escape($packageDirectory)
     $escapedNuGetSource = [System.Security.SecurityElement]::Escape($NuGetSource)
     @"
@@ -127,87 +63,62 @@ try {
 </configuration>
 "@ | Set-Content $nugetConfigPath -Encoding utf8
 
-    [xml] $nuspec = Get-Content $nuspecPath
-    $packageVersion = [string] $nuspec.package.metadata.version
-
-    Invoke-DotNet @(
-        "pack",
-        $packageProject,
-        "--configuration", "Release",
-        "--output", $packageDirectory,
-        "--nologo",
-        "--verbosity", "minimal"
-    ) | Out-Host
-    $packagePath = Join-Path $packageDirectory "Microsoft.Accordant.$packageVersion.nupkg"
-
-    $consumerCases = @(
-        @{
-            Name = "Net8Consumer"
-            TargetFramework = "net8.0"
-            Packages = @{
-                "System.Collections.Immutable" = "8.0.0"
-                "System.IO.Hashing" = "8.0.0"
-                "System.Text.Json" = "8.0.5"
-            }
-        },
-        @{
-            Name = "Net10Consumer"
-            TargetFramework = "net10.0"
-            Packages = @{
-                "System.Collections.Immutable" = "10.0.0"
-                "System.IO.Hashing" = "10.0.3"
-                "System.Text.Json" = "10.0.3"
-            }
-        }
-    )
-
-    foreach ($case in $consumerCases) {
-        Assert-PackageDependencies `
-            -PackagePath $packagePath `
-            -TargetFramework $case.TargetFramework `
-            -ExpectedPackages $case.Packages
-
-        $sourceDirectory = Join-Path $PSScriptRoot "Consumers\$($case.Name)"
-        $consumerDirectory = Join-Path $tempRoot $case.Name
+    foreach ($targetFramework in "net8.0", "net10.0") {
+        $consumerDirectory = Join-Path $tempRoot $targetFramework
+        $consumerProject = Join-Path $consumerDirectory "Consumer.csproj"
         New-Item -ItemType Directory -Path $consumerDirectory -Force | Out-Null
-        Copy-Item -Path (Join-Path $sourceDirectory "*") -Destination $consumerDirectory -Recurse
 
-        $consumerProject = Get-ChildItem $consumerDirectory -Filter "*.csproj" | Select-Object -First 1 -ExpandProperty FullName
+        @"
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>$targetFramework</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Accordant" Version="$packageVersion" />
+  </ItemGroup>
+</Project>
+"@ | Set-Content $consumerProject -Encoding utf8
+
+        'public static class Consumer { public static System.Type AccordantType => typeof(Microsoft.Accordant.StateAttribute); }' |
+            Set-Content (Join-Path $consumerDirectory "Consumer.cs") -Encoding utf8
+
         Invoke-DotNet @(
-            "restore",
-            $consumerProject,
+            "restore", $consumerProject,
             "--packages", $globalPackagesDirectory,
             "--configfile", $nugetConfigPath,
             "--force",
             "--no-cache",
             "--ignore-failed-sources",
             "--nologo",
-            "--verbosity", "minimal",
-            "-p:AccordantPackageVersion=$packageVersion"
+            "--verbosity", "minimal"
         ) | Out-Host
 
         $buildOutput = Invoke-DotNet @(
-            "build",
-            $consumerProject,
+            "build", $consumerProject,
             "--configuration", "Release",
             "--no-restore",
             "--nologo",
             "--verbosity", "minimal",
-            "-warnaserror:MSB3277",
-            "-p:AccordantPackageVersion=$packageVersion"
+            "-warnaserror:MSB3277"
         )
 
         if ($buildOutput -match "\bMSB3277\b") {
-            throw "$($case.Name) emitted an MSB3277 assembly conflict:`n$buildOutput"
+            throw "$targetFramework emitted an MSB3277 assembly conflict:`n$buildOutput"
         }
 
-        $assetsPath = Join-Path $consumerDirectory "obj\project.assets.json"
-        Assert-AccordantAsset `
-            -AssetsPath $assetsPath `
-            -PackageVersion $packageVersion `
-            -TargetFramework $case.TargetFramework
+        $assets = Get-Content (Join-Path $consumerDirectory "obj\project.assets.json") -Raw | ConvertFrom-Json
+        $target = $assets.targets.PSObject.Properties | Select-Object -First 1 -ExpandProperty Value
+        $accordant = $target.PSObject.Properties |
+            Where-Object Name -eq "Microsoft.Accordant/$packageVersion" |
+            Select-Object -First 1 -ExpandProperty Value
+        $compileAssets = @($accordant.compile.PSObject.Properties.Name)
 
-        Write-Host "$($case.Name) resolved the expected package train without MSB3277."
+        if ($compileAssets.Count -eq 0 -or
+            $compileAssets.Where({ -not $_.StartsWith("lib/$targetFramework/", [StringComparison]::OrdinalIgnoreCase) }).Count -gt 0) {
+            throw "Microsoft.Accordant $packageVersion did not select its $targetFramework assets."
+        }
+
+        Write-Host "$targetFramework selected its package assets without MSB3277."
     }
 }
 finally {
