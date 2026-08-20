@@ -32,9 +32,10 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
-      - name: Validate package compatibility
-        shell: pwsh
-        run: ./Tests/PackageCompatibility/Validate-Packages.ps1
+      - name: Pack
+        run: |
+          dotnet pack nuget/Microsoft.Accordant.Package.csproj --no-build --no-restore --configuration Release
+          dotnet pack Microsoft.Accordant.Cli/Microsoft.Accordant.Cli.csproj --no-build --no-restore --configuration Release
 
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal

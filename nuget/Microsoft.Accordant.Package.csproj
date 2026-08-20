@@ -1,11 +1,55 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net8.0;net10.0</TargetFrameworks>
+    <PackageId>Microsoft.Accordant</PackageId>
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <NuspecFile>Microsoft.Accordant.nuspec</NuspecFile>
-    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageReadmeFile>docs\readme.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <Description>Accordant is a model-based testing framework for .NET. Define state specifications, operations, and expected outcomes, then let Accordant automatically generate and execute comprehensive test cases covering all state transitions.</Description>
+    <PackageTags>accordant model-based testing state specifications fuzzing automated-testing</PackageTags>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddAccordantAssembliesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Accordant\Accordant.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Accordant.Choose\Accordant.Choose.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Accordant.Invariant\Accordant.Invariant.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Accordant.Operations\Accordant.Operations.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Accordant.Operations.Http\Accordant.Operations.Http.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Accordant.SourceGenerator\Accordant.SourceGenerator.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.IO.Hashing" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="docs\readme.md" />
+    <None Include="icon.png" Pack="true" PackagePath="icon.png" />
+    <None Include="..\bin\netstandard2.0\Accordant.SourceGenerator.dll"
+          Pack="true"
+          PackagePath="analyzers\dotnet\cs"
+          Visible="false" />
+  </ItemGroup>
+
+  <Target Name="AddAccordantAssembliesToPackage"
+          Returns="@(TfmSpecificPackageFile)">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="..\bin\$(TargetFramework)\Accordant*.dll"
+                              Exclude="..\bin\$(TargetFramework)\Accordant.SourceGenerator.dll"
+                              PackagePath="lib\$(TargetFramework)" />
+      <TfmSpecificPackageFile Include="..\bin\$(TargetFramework)\Accordant*.pdb"
+                              Exclude="..\bin\$(TargetFramework)\Accordant.SourceGenerator.pdb"
+                              PackagePath="lib\$(TargetFramework)" />
+    </ItemGroup>
+  </Target>
 
 </Project>
