@@ -7,9 +7,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Microsoft.Accordant</RootNamespace>
-    
-    <!-- Tool is packaged via Scripts/NuGet/Microsoft.Accordant.Cli.nuspec -->
-    <IsPackable>false</IsPackable>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>accordant</ToolCommandName>
+    <PackageId>Microsoft.Accordant.Cli</PackageId>
+    <PackageReadmeFile>docs\readme.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <Description>CLI tool for scaffolding Accordant model-based testing projects</Description>
+    <PackageTags>accordant cli scaffolding testing model-based</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,9 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="DotnetToolSettings.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="..\nuget\README.md" Pack="true" PackagePath="docs\readme.md" />
+    <None Include="..\nuget\icon.png" Pack="true" PackagePath="icon.png" />
   </ItemGroup>
 
 </Project>
