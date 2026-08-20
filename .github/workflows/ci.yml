@@ -32,5 +32,9 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
+      - name: Validate package compatibility
+        shell: pwsh
+        run: ./Tests/PackageCompatibility/Validate-Packages.ps1
+
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
