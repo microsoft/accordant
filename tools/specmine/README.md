@@ -115,29 +115,58 @@ caller-provided traces directory; a persisted trace file is never overwritten.
 Mining models can mark incomplete knowledge next to executable behavior:
 
 ```csharp
-return Research.Unknown<Response>(
+return Understanding.Unknown<Response>(
     "fresh-key-outcome",
     "The success-versus-decline rule has not been characterized.");
 
-return Research.Provisional(
+return Understanding.Provisional(
     "replay-live-status",
     "Does replay reflect every lifecycle transition?",
     Expect.That<Response>(IsLiveRecord).SameState());
 ```
 
-An ordinary Accordant expectation is accepted knowledge. `Provisional` verifies
-its wrapped expectation normally but produces a `ProvisionalMatch` replay result
-when it matches. A mismatch remains a `ModelViolation`. `Unknown` makes no
-response or transition claim; `TraceReplayer` reports `Unknown` and stops before
-later calls can be checked against an unreliable state. For a single-state direct Accordant check, `Unknown` fails with an `UNKNOWN[id]`
-explanation. Research annotations are intended for `TraceReplayer`; direct
-Accordant generation and multi-state verification do not preserve the
-three-way accepted/provisional/unknown verdict.
+There is also `Understanding.Assume(condition, id, reason)` for the request side: call it at
+the top of an operation's model function to restrict its claims to requests/states it actually
+covers. When `condition` is false it throws `AssumptionViolatedException` - a distinct,
+always-on signal (no permissive mode) that the model was never asked to cover this case,
+rather than a claim it got wrong. `TraceReplayer` reports this as `OutOfScope` and stops.
 
-`TraceReplayResult` reports accepted, provisional, unknown, and violation counts.
-The wrappers do not change Accordant's behavioral algebra: they are annotations
-inspected through the optional `IExpectedOutcomesProvider` interface implemented
-by Accordant operations.
+`Unknown`/`Provisional` wrap the outcome's `ResponseValidator` itself rather than the
+`ExpectedOutcome` type, so the marker is evaluated exactly once, inside whatever single call
+(`Spec<TState>.Allows`, Accordant's own verification, or a hand-written check) happens to
+invoke it - there is no separate inspection pass and no reliance on the
+`IExpectedOutcomesProvider` interface or any other side channel. Behavior is governed by the
+ambient `Understanding.CurrentStrictness` (set directly, or scoped with
+`Understanding.UseStrictness`):
+
+- **`Reject`** (default) - `Unknown` fails with an `UNKNOWN[id]` explanation; `Provisional`
+  validates its wrapped expectation honestly (a match passes, a mismatch is an ordinary
+  `ModelViolation`).
+- **`Accept`** - `Unknown` passes, state unchanged; `Provisional` behaves as under `Reject`.
+- **`Strict`** - `Unknown` throws `UnknownRegionEncounteredException` unconditionally;
+  `Provisional` throws `ProvisionalMatchEncounteredException` only when its wrapped
+  expectation actually matches (a mismatch still surfaces as an ordinary rejection).
+
+In the non-throwing modes, reaching either marker records an `Understanding.LastEncounter`
+(cleared via `Understanding.ClearLastEncounter()`) that any caller can inspect immediately
+after its validation call - this is how `TraceReplayer` reports `Unknown`/`ProvisionalMatch`
+without a second call into the model. If a caller runs `TraceReplayer.Replay` under
+`UnderstandingStrictness.Strict`, an encountered marker's exception propagates out of `Replay`
+rather than being converted into a step result - that is the point of strict mode.
+
+Because an understanding marker throws from inside the validator that `Spec<TState>.Allows` invokes
+while exploring the state graph, Accordant's own state-graph machinery catches it first and
+re-throws it as an `InvalidSpecException` wrapping a `StepFunctionApplicationException`
+wrapping the original exception - the same thing that happens to any accidental exception
+from a model's `Apply` function. `TraceReplayer` unwraps this automatically and re-throws (or
+reports) the original `AssumptionViolatedException`/`UnknownRegionEncounteredException`/
+`ProvisionalMatchEncounteredException`, so callers of `TraceReplayer.Replay` never see the
+wrapper. Any other caller that invokes `Spec<TState>.Allows` directly under `Strict` mode
+should expect the same wrapping and unwrap it the same way if it needs the specific marker
+exception type.
+
+`TraceReplayResult` reports accepted, provisional, unknown, out-of-scope, and violation
+counts.
 
 ## Investigation workspace (`src/Specmine`)
 

@@ -1,0 +1,51 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "21c65d45-2595-44dc-9183-a77b76601470",
+  "StartedAt": "2026-09-04T17:57:42.5652395Z",
+  "CompletedAt": "2026-09-04T17:57:42.5680786Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-auth-currency",
+          "amount": 10,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 201,
+        "body": {
+          "id": "c5b7b61ede8846a0b67bfaeb024cdfe3",
+          "idempotencyKey": "pp-auth-currency",
+          "amount": 10,
+          "currency": "USD",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-auth-currency",
+          "amount": 10,
+          "currency": "EUR"
+        }
+      },
+      "Response": {
+        "status": 409,
+        "body": {
+          "type": "conflict",
+          "code": "idempotency_conflict",
+          "message": "The idempotency key was already used with a different request."
+        }
+      },
+      "Error": null
+    }
+  ]
+}

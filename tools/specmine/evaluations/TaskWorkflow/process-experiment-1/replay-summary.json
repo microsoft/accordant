@@ -1,0 +1,294 @@
+[
+  {
+    "scenario": "complete-happy-path-idempotent",
+    "traceId": "c79f2e25-c925-4843-b64c-43d9bcd0e19e",
+    "tracePath": "traces\\c79f2e25c9254843b64c43d9bcd0e19e.json",
+    "status": "Conforming",
+    "acceptedMatchCount": 6,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "CreateTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "GetTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 3,
+        "operationName": "CompleteTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 4,
+        "operationName": "GetTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 5,
+        "operationName": "CompleteTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 6,
+        "operationName": "GetTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "cancel-happy-path-idempotent",
+    "traceId": "2b2d91c7-7939-48d2-af2b-4b8258c96e6f",
+    "tracePath": "traces\\2b2d91c7793948d2af2b4b8258c96e6f.json",
+    "status": "Conforming",
+    "acceptedMatchCount": 5,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "CreateTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "CancelTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 3,
+        "operationName": "GetTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 4,
+        "operationName": "CancelTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 5,
+        "operationName": "GetTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "completed-then-cancel-conflict",
+    "traceId": "161f40ec-cf17-4a74-b727-925a210139c7",
+    "tracePath": "traces\\161f40eccf174a74b727925a210139c7.json",
+    "status": "Conforming",
+    "acceptedMatchCount": 3,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "CreateTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "CompleteTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 3,
+        "operationName": "CancelTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "canceled-then-complete-conflict",
+    "traceId": "c8eedc82-71cc-48d1-8679-aea47beab179",
+    "tracePath": "traces\\c8eedc8271cc48d18679aea47beab179.json",
+    "status": "Conforming",
+    "acceptedMatchCount": 3,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "CreateTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "CancelTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 3,
+        "operationName": "CompleteTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "blank-title-validation",
+    "traceId": "d1aad0ed-ffa3-4654-adae-6ba670255fb3",
+    "tracePath": "traces\\d1aad0edffa34654adae6ba670255fb3.json",
+    "status": "Conforming",
+    "acceptedMatchCount": 1,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "CreateTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "get-missing-task",
+    "traceId": "ee6943aa-10dd-4460-a514-1d91f87c7a06",
+    "tracePath": "traces\\ee6943aa10dd4460a5141d91f87c7a06.json",
+    "status": "Conforming",
+    "acceptedMatchCount": 1,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "GetTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "complete-missing-task",
+    "traceId": "c101a914-214e-4da6-8794-a5d005fea538",
+    "tracePath": "traces\\c101a914214e4da68794a5d005fea538.json",
+    "status": "Conforming",
+    "acceptedMatchCount": 1,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "CompleteTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "cancel-missing-task",
+    "traceId": "0c10271b-2369-4a2b-96fe-09b8e5261d09",
+    "tracePath": "traces\\0c10271b23694a2b96fe09b8e5261d09.json",
+    "status": "Conforming",
+    "acceptedMatchCount": 1,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "CancelTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "duplicate-title-fresh-ids",
+    "traceId": "95a89db5-eec8-4861-a316-9be30a4581e9",
+    "tracePath": "traces\\95a89db5eec84861a3169be30a4581e9.json",
+    "status": "Conforming",
+    "acceptedMatchCount": 4,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "CreateTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "CreateTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 3,
+        "operationName": "GetTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 4,
+        "operationName": "GetTask",
+        "outcome": "Conforming",
+        "message": null,
+        "researchId": null
+      }
+    ]
+  }
+]

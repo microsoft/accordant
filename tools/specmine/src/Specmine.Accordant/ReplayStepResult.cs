@@ -33,23 +33,28 @@ public sealed record ReplayStepResult
     public string? Message { get; }
 
     /// <summary>
-    /// Stable research marker ID for <see cref="ReplayStepOutcome.ProvisionalMatch"/> or
-    /// <see cref="ReplayStepOutcome.Unknown"/>; otherwise <c>null</c>.
+    /// Stable understanding marker ID for <see cref="ReplayStepOutcome.ProvisionalMatch"/>,
+    /// <see cref="ReplayStepOutcome.Unknown"/>, or <see cref="ReplayStepOutcome.OutOfScope"/>
+    /// (the <see cref="UnderstandingException.Id"/> of the <see cref="AssumptionViolatedException"/>);
+    /// otherwise <c>null</c>.
     /// </summary>
-    public string? ResearchId { get; }
+    public string? MarkerId { get; }
 
     /// <summary>
-    /// Research marker kind when <see cref="ResearchId"/> is populated.
+    /// Understanding marker kind when <see cref="MarkerId"/> is populated for a
+    /// <see cref="ReplayStepOutcome.ProvisionalMatch"/> or <see cref="ReplayStepOutcome.Unknown"/>
+    /// step; <c>null</c> for <see cref="ReplayStepOutcome.OutOfScope"/>, since an assumption
+    /// violation isn't an <see cref="UnderstandingKind"/>.
     /// </summary>
-    public ResearchExpectationKind? ResearchKind { get; }
+    public UnderstandingKind? MarkerKind { get; }
 
     public ReplayStepResult(
         int callId,
         string operationName,
         ReplayStepOutcome outcome,
         string? message,
-        string? researchId = null,
-        ResearchExpectationKind? researchKind = null)
+        string? markerId = null,
+        UnderstandingKind? markerKind = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(operationName);
 
@@ -57,8 +62,8 @@ public sealed record ReplayStepResult
         OperationName = operationName;
         Outcome = outcome;
         Message = message;
-        ResearchId = researchId;
-        ResearchKind = researchKind;
+        MarkerId = markerId;
+        MarkerKind = markerKind;
     }
 
     internal static ReplayStepResult Conforming(int callId, string operationName) =>
@@ -67,26 +72,37 @@ public sealed record ReplayStepResult
     internal static ReplayStepResult ProvisionalMatch(
         int callId,
         string operationName,
-        ResearchExpectedOutcome expectation) =>
+        UnderstandingEncounter encounter) =>
         new(
             callId,
             operationName,
             ReplayStepOutcome.ProvisionalMatch,
-            $"{expectation.Id}: {expectation.Detail}",
-            expectation.Id,
-            expectation.Kind);
+            $"{encounter.Id}: {encounter.Detail}",
+            encounter.Id,
+            encounter.Kind);
 
     internal static ReplayStepResult Unknown(
         int callId,
         string operationName,
-        ResearchExpectedOutcome expectation) =>
+        UnderstandingEncounter encounter) =>
         new(
             callId,
             operationName,
             ReplayStepOutcome.Unknown,
-            $"{expectation.Id}: {expectation.Detail}",
-            expectation.Id,
-            expectation.Kind);
+            $"{encounter.Id}: {encounter.Detail}",
+            encounter.Id,
+            encounter.Kind);
+
+    internal static ReplayStepResult OutOfScope(
+        int callId,
+        string operationName,
+        AssumptionViolatedException exception) =>
+        new(
+            callId,
+            operationName,
+            ReplayStepOutcome.OutOfScope,
+            $"{exception.Id}: {exception.Reason}",
+            exception.Id);
 
     internal static ReplayStepResult ModelViolation(int callId, string operationName, string message) =>
         new(callId, operationName, ReplayStepOutcome.ModelViolation, message);

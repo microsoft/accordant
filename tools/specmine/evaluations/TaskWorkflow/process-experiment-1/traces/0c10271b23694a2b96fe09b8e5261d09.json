@@ -1,0 +1,26 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "0c10271b-2369-4a2b-96fe-09b8e5261d09",
+  "StartedAt": "2026-09-04T16:09:26.1643202Z",
+  "CompletedAt": "2026-09-04T16:09:26.1657549Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "CancelTask",
+      "Request": {
+        "path": {
+          "id": "not-a-guid"
+        }
+      },
+      "Response": {
+        "status": 404,
+        "body": {
+          "code": "not_found",
+          "message": "Task \u0027not-a-guid\u0027 was not found."
+        }
+      },
+      "Error": null
+    }
+  ]
+}

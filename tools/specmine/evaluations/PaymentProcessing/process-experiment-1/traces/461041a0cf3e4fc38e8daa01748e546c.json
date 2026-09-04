@@ -1,0 +1,171 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "461041a0-cf3e-4fc3-8e8d-aa01748e546c",
+  "StartedAt": "2026-09-04T17:57:42.6481698Z",
+  "CompletedAt": "2026-09-04T17:57:42.6652402Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-capture-flow",
+          "amount": 25,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 201,
+        "body": {
+          "id": "03500c4d13af42ff8bcd2dbf21212744",
+          "idempotencyKey": "pp-capture-flow",
+          "amount": 25,
+          "currency": "USD",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "GetPayment",
+      "Request": {
+        "path": {
+          "id": "03500c4d13af42ff8bcd2dbf21212744"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "03500c4d13af42ff8bcd2dbf21212744",
+          "idempotencyKey": "pp-capture-flow",
+          "amount": 25,
+          "currency": "USD",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 3,
+      "OperationName": "CapturePayment",
+      "Request": {
+        "path": {
+          "id": "03500c4d13af42ff8bcd2dbf21212744"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "03500c4d13af42ff8bcd2dbf21212744",
+          "idempotencyKey": "pp-capture-flow",
+          "amount": 25,
+          "currency": "USD",
+          "status": "captured"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 4,
+      "OperationName": "GetPayment",
+      "Request": {
+        "path": {
+          "id": "03500c4d13af42ff8bcd2dbf21212744"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "03500c4d13af42ff8bcd2dbf21212744",
+          "idempotencyKey": "pp-capture-flow",
+          "amount": 25,
+          "currency": "USD",
+          "status": "captured"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 5,
+      "OperationName": "CapturePayment",
+      "Request": {
+        "path": {
+          "id": "03500c4d13af42ff8bcd2dbf21212744"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "03500c4d13af42ff8bcd2dbf21212744",
+          "idempotencyKey": "pp-capture-flow",
+          "amount": 25,
+          "currency": "USD",
+          "status": "captured"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 6,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-capture-flow",
+          "amount": 25,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "03500c4d13af42ff8bcd2dbf21212744",
+          "idempotencyKey": "pp-capture-flow",
+          "amount": 25,
+          "currency": "USD",
+          "status": "captured"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 7,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-capture-flow",
+          "amount": 26,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 409,
+        "body": {
+          "type": "conflict",
+          "code": "idempotency_conflict",
+          "message": "The idempotency key was already used with a different request."
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 8,
+      "OperationName": "VoidPayment",
+      "Request": {
+        "path": {
+          "id": "03500c4d13af42ff8bcd2dbf21212744"
+        }
+      },
+      "Response": {
+        "status": 409,
+        "body": {
+          "type": "conflict",
+          "code": "invalid_payment_state",
+          "message": "Payment \u002703500c4d13af42ff8bcd2dbf21212744\u0027: A captured payment cannot be voided."
+        }
+      },
+      "Error": null
+    }
+  ]
+}

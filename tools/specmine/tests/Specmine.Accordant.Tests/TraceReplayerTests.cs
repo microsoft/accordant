@@ -102,7 +102,7 @@ public sealed class TraceReplayerTests
     {
         var spec = Spec.For<TaskWorkflowState>();
         spec.Operation<CreateTaskRequest, CreateTaskResponse>("CreateTask", (request, state) =>
-            Research.Provisional(
+            Understanding.Provisional(
                 "create-outcome",
                 "What selects creation success?",
                 Expect.That<CreateTaskResponse>(
@@ -128,8 +128,8 @@ public sealed class TraceReplayerTests
             Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Provisional));
             Assert.That(result.Steps.Single().Outcome, Is.EqualTo(ReplayStepOutcome.ProvisionalMatch));
             Assert.That(result.Steps.Single().Message, Does.Contain("create-outcome"));
-            Assert.That(result.Steps.Single().ResearchId, Is.EqualTo("create-outcome"));
-            Assert.That(result.Steps.Single().ResearchKind, Is.EqualTo(ResearchExpectationKind.Provisional));
+            Assert.That(result.Steps.Single().MarkerId, Is.EqualTo("create-outcome"));
+            Assert.That(result.Steps.Single().MarkerKind, Is.EqualTo(UnderstandingKind.Provisional));
             Assert.That(result.AcceptedMatchCount, Is.Zero);
             Assert.That(result.ProvisionalMatchCount, Is.EqualTo(1));
             Assert.That(result.UnknownCount, Is.Zero);
@@ -145,7 +145,7 @@ public sealed class TraceReplayerTests
     {
         var spec = Spec.For<TaskWorkflowState>();
         spec.Operation<CreateTaskRequest, CreateTaskResponse>("CreateTask", (_, _) =>
-            Research.Provisional(
+            Understanding.Provisional(
                 "create-outcome",
                 "What selects creation success?",
                 Expect.That<CreateTaskResponse>(
@@ -172,7 +172,7 @@ public sealed class TraceReplayerTests
     {
         var spec = Spec.For<TaskWorkflowState>();
         spec.Operation<CreateTaskRequest, CreateTaskResponse>("CreateTask", (_, _) =>
-            Research.Unknown<CreateTaskResponse>(
+            Understanding.Unknown<CreateTaskResponse>(
                 "create-outcome",
                 "Creation behavior has not been investigated."));
 
@@ -190,23 +190,36 @@ public sealed class TraceReplayerTests
             Assert.That(result.Steps, Has.Count.EqualTo(1));
             Assert.That(result.Steps.Single().Outcome, Is.EqualTo(ReplayStepOutcome.Unknown));
             Assert.That(result.Steps.Single().Message, Does.Contain("create-outcome"));
-            Assert.That(result.Steps.Single().ResearchId, Is.EqualTo("create-outcome"));
-            Assert.That(result.Steps.Single().ResearchKind, Is.EqualTo(ResearchExpectationKind.Unknown));
+            Assert.That(result.Steps.Single().MarkerId, Is.EqualTo("create-outcome"));
+            Assert.That(result.Steps.Single().MarkerKind, Is.EqualTo(UnderstandingKind.Unknown));
             Assert.That(result.UnknownCount, Is.EqualTo(1));
             Assert.That(result.FinalStateProfile!.SingleState(), Is.SameAs(initialState));
         });
     }
 
     [Test]
-    public void Provisional_RejectsNestedResearchExpectation()
+    public void Provisional_CanWrapAnotherProvisional_LastWrapRecordsTheEncounter()
     {
-        var unknown = Research.Unknown<CreateTaskResponse>(
-            "create-outcome",
-            "Creation behavior has not been investigated.");
+        // Nesting is no longer disallowed: Provisional wraps the validator, not the outcome
+        // type, so wrapping twice just double-wraps - harmless, if redundant. The outermost
+        // wrap's id/question is what LastEncounter reflects.
+        var inner = Understanding.Provisional(
+            "inner-question",
+            "Is this the inner rule?",
+            Expect.That<CreateTaskResponse>(response => response.Status == "Open", "Expected open.").SameState());
 
-        Assert.That(
-            () => Research.Provisional("outer", "Can this be refined?", unknown),
-            Throws.ArgumentException.With.Message.Contains("cannot be nested"));
+        var outer = Understanding.Provisional("outer-question", "Is this the outer rule?", inner);
+
+        Understanding.ClearLastEncounter();
+        var (isValid, _) = outer.Matches(new CreateTaskResponse("t-1", "Buy milk", "Open"), TaskWorkflowSpec.InitialState());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(isValid, Is.True);
+            Assert.That(Understanding.LastEncounter, Is.Not.Null);
+            Assert.That(Understanding.LastEncounter!.Id, Is.EqualTo("outer-question"));
+            Assert.That(Understanding.LastEncounter!.Kind, Is.EqualTo(UnderstandingKind.Provisional));
+        });
     }
 
     [Test]
@@ -215,7 +228,7 @@ public sealed class TraceReplayerTests
         var spec = Spec.For<TaskWorkflowState>();
         spec.Operation<CreateTaskRequest, CreateTaskResponse>("CreateTask", (_, _) =>
         {
-            var unknown = Research.Unknown<CreateTaskResponse>(
+            var unknown = Understanding.Unknown<CreateTaskResponse>(
                 "create-outcome",
                 "Creation behavior has not been investigated.");
             return new ExpectedOutcomes(unknown.PossibleOutcomes.ToArray());
@@ -228,6 +241,204 @@ public sealed class TraceReplayerTests
         var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
 
         Assert.That(result.Steps.Single().Outcome, Is.EqualTo(ReplayStepOutcome.Unknown));
+    }
+
+    [Test]
+    public void Unknown_DefaultStrictness_FailsValidationWithExplanationRatherThanThrowing()
+    {
+        Understanding.ClearLastEncounter();
+        var outcome = Understanding.Unknown<CreateTaskResponse>("create-outcome", "Not yet characterized.");
+
+        var (isValid, _) = outcome.Matches(new CreateTaskResponse("t-1", "Buy milk", "Open"), TaskWorkflowSpec.InitialState());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Understanding.CurrentStrictness, Is.EqualTo(UnderstandingStrictness.Reject));
+            Assert.That(isValid, Is.False);
+            Assert.That(Understanding.LastEncounter, Is.Not.Null);
+            Assert.That(Understanding.LastEncounter!.Kind, Is.EqualTo(UnderstandingKind.Unknown));
+            Assert.That(Understanding.LastEncounter!.Id, Is.EqualTo("create-outcome"));
+        });
+    }
+
+    [Test]
+    public void Unknown_AcceptStrictness_PassesValidationAndRecordsEncounter()
+    {
+        using var scope = Understanding.UseStrictness(UnderstandingStrictness.Accept);
+        Understanding.ClearLastEncounter();
+        var outcome = Understanding.Unknown<CreateTaskResponse>("create-outcome", "Not yet characterized.");
+
+        var (isValid, stateProfile) = outcome.Matches(
+            new CreateTaskResponse("t-1", "Buy milk", "Open"),
+            TaskWorkflowSpec.InitialState());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(isValid, Is.True);
+            Assert.That(stateProfile, Is.Not.Null);
+            Assert.That(Understanding.LastEncounter, Is.Not.Null);
+            Assert.That(Understanding.LastEncounter!.Kind, Is.EqualTo(UnderstandingKind.Unknown));
+        });
+    }
+
+    [Test]
+    public void Unknown_StrictStrictness_ThrowsUnconditionallyOnEvaluation()
+    {
+        using var scope = Understanding.UseStrictness(UnderstandingStrictness.Strict);
+        var outcome = Understanding.Unknown<CreateTaskResponse>("create-outcome", "Not yet characterized.");
+
+        var exception = Assert.Throws<UnknownRegionEncounteredException>(
+            () => outcome.Matches(new CreateTaskResponse("t-1", "Buy milk", "Open"), TaskWorkflowSpec.InitialState()));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(exception!.Id, Is.EqualTo("create-outcome"));
+            Assert.That(exception, Is.InstanceOf<UnderstandingException>());
+        });
+    }
+
+    [Test]
+    public void Provisional_NonMatchingResponse_StaysOrdinaryRejectionEvenUnderStrict()
+    {
+        using var scope = Understanding.UseStrictness(UnderstandingStrictness.Strict);
+        Understanding.ClearLastEncounter();
+        var outcome = Understanding.Provisional(
+            "create-outcome",
+            "Still needs refinement?",
+            Expect.That<CreateTaskResponse>(response => response.Status == "Open", "Expected open.").SameState());
+
+        var (isValid, _) = outcome.Matches(
+            new CreateTaskResponse("t-1", "Buy milk", "Rejected"),
+            TaskWorkflowSpec.InitialState());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(isValid, Is.False, "A non-matching response must not be treated as a Understanding encounter.");
+            Assert.That(Understanding.LastEncounter, Is.Null);
+        });
+    }
+
+    [Test]
+    public void Provisional_MatchingResponse_StrictStrictnessThrowsInsteadOfPassing()
+    {
+        using var scope = Understanding.UseStrictness(UnderstandingStrictness.Strict);
+        var outcome = Understanding.Provisional(
+            "create-outcome",
+            "Still needs refinement?",
+            Expect.That<CreateTaskResponse>(response => response.Status == "Open", "Expected open.").SameState());
+
+        var exception = Assert.Throws<ProvisionalMatchEncounteredException>(
+            () => outcome.Matches(new CreateTaskResponse("t-1", "Buy milk", "Open"), TaskWorkflowSpec.InitialState()));
+
+        Assert.That(exception!.Id, Is.EqualTo("create-outcome"));
+    }
+
+    [Test]
+    public void Replay_UnderStrictStrictness_PropagatesUnknownExceptionInsteadOfReportingStep()
+    {
+        var spec = Spec.For<TaskWorkflowState>();
+        spec.Operation<CreateTaskRequest, CreateTaskResponse>("CreateTask", (_, _) =>
+            Understanding.Unknown<CreateTaskResponse>("create-outcome", "Not yet characterized."));
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")));
+
+        using var scope = Understanding.UseStrictness(UnderstandingStrictness.Strict);
+
+        Assert.Throws<UnknownRegionEncounteredException>(
+            () => TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace));
+    }
+
+    [Test]
+    public void Assume_ConditionSatisfied_DoesNotThrow()
+    {
+        Assert.That(() => Understanding.Assume(true, "create-scope", "Only short titles are modeled."), Throws.Nothing);
+    }
+
+    [Test]
+    public void Assume_ConditionViolated_ThrowsAssumptionViolatedExceptionWithIdAndReason()
+    {
+        var exception = Assert.Throws<AssumptionViolatedException>(
+            () => Understanding.Assume(false, "create-scope", "Only short titles are modeled."));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(exception!.Id, Is.EqualTo("create-scope"));
+            Assert.That(exception.Reason, Is.EqualTo("Only short titles are modeled."));
+            Assert.That(exception, Is.InstanceOf<UnderstandingException>());
+            Assert.That(exception.Message, Does.Contain("create-scope").And.Contain("Only short titles are modeled."));
+        });
+    }
+
+    [Test]
+    public void Replay_AssumptionViolated_ReportsOutOfScopeAndStopsWithoutChangingState()
+    {
+        var spec = Spec.For<TaskWorkflowState>();
+        spec.Operation<CreateTaskRequest, CreateTaskResponse>("CreateTask", (request, _) =>
+        {
+            Understanding.Assume(
+                request.Title.Length <= 10,
+                "create-scope",
+                "Only short titles (<= 10 chars) are modeled so far.");
+
+            return Expect.That<CreateTaskResponse>(response => response.Status == "Open", "Expected an open task.")
+                .SameState();
+        });
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(
+                1,
+                "CreateTask",
+                new CreateTaskRequest("A very long task title indeed"),
+                new CreateTaskResponse("t-1", "A very long task title indeed", "Open")));
+
+        var initialState = TaskWorkflowSpec.InitialState();
+        var result = TraceReplayer.Replay(spec, initialState, trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Stopped));
+            Assert.That(result.Steps, Has.Count.EqualTo(1));
+            Assert.That(result.Steps.Single().Outcome, Is.EqualTo(ReplayStepOutcome.OutOfScope));
+            Assert.That(result.Steps.Single().Message, Does.Contain("create-scope"));
+            Assert.That(result.Steps.Single().MarkerId, Is.EqualTo("create-scope"));
+            Assert.That(result.Steps.Single().MarkerKind, Is.Null);
+            Assert.That(result.OutOfScopeCount, Is.EqualTo(1));
+            Assert.That(result.UnknownCount, Is.Zero);
+            Assert.That(result.ViolationCount, Is.Zero);
+            Assert.That(result.FinalStateProfile!.SingleState(), Is.SameAs(initialState));
+        });
+    }
+
+    [Test]
+    public void Replay_AssumptionSatisfied_ReplaysNormallyAsConforming()
+    {
+        var spec = Spec.For<TaskWorkflowState>();
+        spec.Operation<CreateTaskRequest, CreateTaskResponse>("CreateTask", (request, _) =>
+        {
+            Understanding.Assume(
+                request.Title.Length <= 10,
+                "create-scope",
+                "Only short titles (<= 10 chars) are modeled so far.");
+
+            return Expect.That<CreateTaskResponse>(response => response.Status == "Open", "Expected an open task.")
+                .SameState();
+        });
+
+        var trace = TraceBuilder.Trace(
+            TraceStatus.Completed,
+            TraceBuilder.Call(1, "CreateTask", new CreateTaskRequest("Buy milk"), new CreateTaskResponse("t-1", "Buy milk", "Open")));
+
+        var result = TraceReplayer.Replay(spec, TaskWorkflowSpec.InitialState(), trace);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo(TraceReplayStatus.Conforming));
+            Assert.That(result.Steps.Single().Outcome, Is.EqualTo(ReplayStepOutcome.Conforming));
+            Assert.That(result.OutOfScopeCount, Is.Zero);
+        });
     }
 
     [Test]

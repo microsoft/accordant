@@ -1,0 +1,27 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "76896ce2-b712-4d53-b2be-fe3360644308",
+  "StartedAt": "2026-09-04T17:57:42.6412624Z",
+  "CompletedAt": "2026-09-04T17:57:42.6427178Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "VoidPayment",
+      "Request": {
+        "path": {
+          "id": "not-a-real-id"
+        }
+      },
+      "Response": {
+        "status": 404,
+        "body": {
+          "type": "not_found",
+          "code": "payment_not_found",
+          "message": "Payment \u0027not-a-real-id\u0027 was not found."
+        }
+      },
+      "Error": null
+    }
+  ]
+}

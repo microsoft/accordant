@@ -1,0 +1,26 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "d1aad0ed-ffa3-4654-adae-6ba670255fb3",
+  "StartedAt": "2026-09-04T16:09:26.1517232Z",
+  "CompletedAt": "2026-09-04T16:09:26.153078Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "CreateTask",
+      "Request": {
+        "body": {
+          "title": "   "
+        }
+      },
+      "Response": {
+        "status": 400,
+        "body": {
+          "code": "validation_error",
+          "message": "Title must not be blank."
+        }
+      },
+      "Error": null
+    }
+  ]
+}

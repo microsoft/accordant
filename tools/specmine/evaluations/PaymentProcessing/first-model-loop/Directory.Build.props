@@ -1,8 +1,0 @@
-<Project>
-  <!-- Isolation shim for the archived black-box workspace projects under this evaluation
-       directory (model\, tests\). These projects were authored *outside* this repository,
-       inside a staged investigation workspace, and are preserved here byte-for-byte as
-       evidence. MSBuild imports only the nearest Directory.Build.props walking up, so this
-       empty file keeps the repository-wide packaging/documentation defaults from silently
-       changing how the archived copies build. See README.md, "Reproducing the build". -->
-</Project>

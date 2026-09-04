@@ -1,0 +1,31 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "d664e97b-703c-4018-bb23-efe96424ea7e",
+  "StartedAt": "2026-09-04T17:57:42.6136571Z",
+  "CompletedAt": "2026-09-04T17:57:42.6154811Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-zzz",
+          "amount": 10,
+          "currency": "ZZZ"
+        }
+      },
+      "Response": {
+        "status": 201,
+        "body": {
+          "id": "ab9b407d25f14262a842302fccaa8e8f",
+          "idempotencyKey": "pp-zzz",
+          "amount": 10,
+          "currency": "ZZZ",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    }
+  ]
+}

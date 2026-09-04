@@ -1,0 +1,471 @@
+[
+  {
+    "scenario": "fresh-authorize-then-exact-replay",
+    "traceId": "3b7fd5a7-9b85-4da8-87ec-57a87f69ea04",
+    "tracePath": "traces\\3b7fd5a79b854da887ec57a87f69ea04.json",
+    "status": 0,
+    "acceptedMatchCount": 2,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "successful-authorize-then-changed-amount-conflict",
+    "traceId": "cd7dc3b4-c34e-46ed-9a0e-782c537b24bd",
+    "tracePath": "traces\\cd7dc3b4c34e46ed9a0e782c537b24bd.json",
+    "status": 0,
+    "acceptedMatchCount": 2,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "successful-authorize-then-changed-currency-conflict",
+    "traceId": "21c65d45-2595-44dc-9183-a77b76601470",
+    "tracePath": "traces\\21c65d45259544dc9183a77b76601470.json",
+    "status": 0,
+    "acceptedMatchCount": 2,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "declined-request-repeat",
+    "traceId": "48709e92-fba3-4fe8-98a4-701882334b5f",
+    "tracePath": "traces\\48709e92fba34fe898a4701882334b5f.json",
+    "status": 0,
+    "acceptedMatchCount": 2,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "declines-do-not-reserve-key",
+    "traceId": "8b383283-0238-49d4-8fdc-dd5c02ce78cc",
+    "tracePath": "traces\\8b383283023849d48fdcdd5c02ce78cc.json",
+    "status": 0,
+    "acceptedMatchCount": 4,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 3,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 4,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "validation-errors",
+    "traceId": "f77a38f9-f398-44aa-9d24-d9bb2ee2ff24",
+    "tracePath": "traces\\f77a38f9f39844aa9d24d9bb2ee2ff24.json",
+    "status": 0,
+    "acceptedMatchCount": 3,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 3,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "boundary-1000-vs-1000-01",
+    "traceId": "4ab37547-2d76-4ef7-b904-80038a64c038",
+    "tracePath": "traces\\4ab375472d764ef7b90480038a64c038.json",
+    "status": 0,
+    "acceptedMatchCount": 2,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "arbitrary-uppercase-currency-authorizes",
+    "traceId": "d664e97b-703c-4018-bb23-efe96424ea7e",
+    "tracePath": "traces\\d664e97b703c4018bb23efe96424ea7e.json",
+    "status": 0,
+    "acceptedMatchCount": 1,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "get-missing-payment",
+    "traceId": "f59beebc-9e7d-4fdc-81b9-6fe9953e8c63",
+    "tracePath": "traces\\f59beebc9e7d4fdc81b96fe9953e8c63.json",
+    "status": 0,
+    "acceptedMatchCount": 1,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "GetPayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "capture-missing-payment",
+    "traceId": "b21df58a-8c8a-4b1c-8517-42fe5a19ff5e",
+    "tracePath": "traces\\b21df58a8c8a4b1c851742fe5a19ff5e.json",
+    "status": 0,
+    "acceptedMatchCount": 1,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "CapturePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "void-missing-payment",
+    "traceId": "76896ce2-b712-4d53-b2be-fe3360644308",
+    "tracePath": "traces\\76896ce2b7124d53b2befe3360644308.json",
+    "status": 0,
+    "acceptedMatchCount": 1,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "VoidPayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "capture-lifecycle-and-authorize-replay",
+    "traceId": "461041a0-cf3e-4fc3-8e8d-aa01748e546c",
+    "tracePath": "traces\\461041a0cf3e4fc38e8daa01748e546c.json",
+    "status": 0,
+    "acceptedMatchCount": 8,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "GetPayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 3,
+        "operationName": "CapturePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 4,
+        "operationName": "GetPayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 5,
+        "operationName": "CapturePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 6,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 7,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 8,
+        "operationName": "VoidPayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "void-lifecycle-and-authorize-replay",
+    "traceId": "f639094b-9621-4361-b50f-eca1a6c5e8df",
+    "tracePath": "traces\\f639094b96214361b50feca1a6c5e8df.json",
+    "status": 0,
+    "acceptedMatchCount": 8,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "GetPayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 3,
+        "operationName": "VoidPayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 4,
+        "operationName": "GetPayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 5,
+        "operationName": "VoidPayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 6,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 7,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 8,
+        "operationName": "CapturePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  },
+  {
+    "scenario": "capture-then-get-current-state",
+    "traceId": "d4803915-d0ca-49fc-8bfe-50382a5e71bb",
+    "tracePath": "traces\\d4803915d0ca49fc8bfe50382a5e71bb.json",
+    "status": 0,
+    "acceptedMatchCount": 4,
+    "provisionalMatchCount": 0,
+    "unknownCount": 0,
+    "outOfScopeCount": 0,
+    "violationCount": 0,
+    "steps": [
+      {
+        "callId": 1,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 2,
+        "operationName": "CapturePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 3,
+        "operationName": "GetPayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      },
+      {
+        "callId": 4,
+        "operationName": "AuthorizePayment",
+        "outcome": 0,
+        "message": null,
+        "researchId": null
+      }
+    ]
+  }
+]

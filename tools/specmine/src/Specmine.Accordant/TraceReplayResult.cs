@@ -58,6 +58,8 @@ public sealed record TraceReplayResult
 
     public int UnknownCount => Steps.Count(step => step.Outcome == ReplayStepOutcome.Unknown);
 
+    public int OutOfScopeCount => Steps.Count(step => step.Outcome == ReplayStepOutcome.OutOfScope);
+
     public int ViolationCount => Steps.Count(step => step.Outcome == ReplayStepOutcome.ModelViolation);
 
     public TraceReplayResult(

@@ -17,17 +17,27 @@ public enum ReplayStepOutcome
 
     /// <summary>
     /// The observed response matched an executable expectation marked with
-    /// <see cref="Research.Provisional"/>. The state transition is reliable, but the model
+    /// <see cref="Understanding.Provisional"/>. The state transition is reliable, but the model
     /// explicitly identifies this claim as needing further refinement.
     /// </summary>
     ProvisionalMatch,
 
     /// <summary>
     /// The model explicitly marked this request/state region with
-    /// <see cref="Research.Unknown{TResponse}"/>. No response or state-transition claim was
+    /// <see cref="Understanding.Unknown{TResponse}"/>. No response or state-transition claim was
     /// made, so replay stops without classifying the observation as a model violation.
     /// </summary>
     Unknown,
+
+    /// <summary>
+    /// The call's operation is modeled, but evaluating it raised
+    /// <see cref="AssumptionViolatedException"/>: <see cref="Understanding.Assume"/> found the
+    /// request/state outside the subset the model currently covers. Like <see cref="Unknown"/>,
+    /// no response or state-transition claim was made, so replay stops without classifying the
+    /// observation as a model violation. See <see cref="ReplayStepResult.Message"/> for which
+    /// assumption failed and why.
+    /// </summary>
+    OutOfScope,
 
     /// <summary>
     /// The call's operation is modeled and both its request and response deserialized

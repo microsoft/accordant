@@ -1,0 +1,50 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "4ab37547-2d76-4ef7-b904-80038a64c038",
+  "StartedAt": "2026-09-04T17:57:42.6029653Z",
+  "CompletedAt": "2026-09-04T17:57:42.6057107Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-boundary-ok",
+          "amount": 1000,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 201,
+        "body": {
+          "id": "a88b30982b3842dc83bcee6df6baed0f",
+          "idempotencyKey": "pp-boundary-ok",
+          "amount": 1000,
+          "currency": "USD",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-boundary-decline",
+          "amount": 1000.01,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "status": "declined",
+          "reason": "limit_exceeded"
+        }
+      },
+      "Error": null
+    }
+  ]
+}

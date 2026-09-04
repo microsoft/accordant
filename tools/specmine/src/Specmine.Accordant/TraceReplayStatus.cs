@@ -21,8 +21,9 @@ public enum TraceReplayStatus
 
     /// <summary>
     /// Replay stopped before reaching the end of the trace because a call's outcome left
-    /// the state no longer reliably known: an unknown region, a model violation, an
-    /// unmodeled operation, an execution error, or a request/response deserialization failure. See the last entry
+    /// the state no longer reliably known: an unknown region, an out-of-scope assumption
+    /// violation, a model violation, an unmodeled operation, an execution error, or a
+    /// request/response deserialization failure. See the last entry
     /// in <see cref="TraceReplayResult.Steps"/> for which one and why. This is a
     /// deliberately conservative choice - see the <c>Specmine.Accordant</c> README.
     /// </summary>

@@ -3,6 +3,7 @@
 
 namespace Specmine.Accordant;
 
+using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using Microsoft.Accordant;
 
@@ -32,8 +33,9 @@ using Microsoft.Accordant;
 ///
 /// <para>
 /// <b>Conservative stop.</b> A conforming or provisional match advances state. Any other
-/// outcome - an unknown region, model violation, unmodeled operation, recorded execution
-/// error, or request/response deserialization failure - stops replay
+/// outcome - an unknown region, an out-of-scope assumption violation, a model violation, an
+/// unmodeled operation, a recorded execution error, or a request/response deserialization
+/// failure - stops replay
 /// without attempting later calls. For a model violation this is forced: Accordant's own
 /// <c>Verify</c> has no successor <see cref="StateProfile"/> to offer once a response is
 /// rejected. For the other cases a later call could, in principle, still be checked against
@@ -44,6 +46,36 @@ using Microsoft.Accordant;
 /// the task deliberately allows; a caller who wants best-effort continuation past an
 /// unmodeled/erroring call can slice <see cref="RecordedTrace.Calls"/> itself and call
 /// <see cref="Replay{TState}"/> again from the resulting <see cref="TraceReplayResult.FinalStateProfile"/>.
+/// </para>
+///
+/// <para>
+/// <b>Understanding markers.</b> <see cref="Specmine.Accordant.Understanding.Unknown{TResponse}"/>/<see cref="Specmine.Accordant.Understanding.Provisional"/>
+/// are detected the same way any other caller would: by calling
+/// <c>Spec&lt;TState&gt;.Allows</c> as usual and then reading <see cref="Understanding.LastEncounter"/>
+/// immediately afterward - there is
+/// no separate inspection pass. This replayer runs at whatever <see cref="Understanding.CurrentStrictness"/>
+/// the caller has ambiently set (defaulting to <see cref="UnderstandingStrictness.Reject"/> if unset). If
+/// a caller wraps a <see cref="Replay{TState}"/> call in <see cref="Understanding.UseStrictness"/> with
+/// <see cref="UnderstandingStrictness.Strict"/>, an <see cref="UnknownRegionEncounteredException"/> or
+/// <see cref="ProvisionalMatchEncounteredException"/> propagates out of <see cref="Replay{TState}"/>
+/// rather than being converted into a step result - that is the point of strict mode: an
+/// immediate, hard failure instead of a structured report. <see cref="AssumptionViolatedException"/>
+/// is different: <see cref="Understanding.Assume"/> has no permissive mode, so it always throws, and this
+/// replayer always catches it and reports <see cref="ReplayStepOutcome.OutOfScope"/> instead.
+///
+/// <para>
+/// <b>Unwrapping Accordant's own wrapping.</b> Every Understanding marker throws from inside the
+/// validator that <c>Spec&lt;TState&gt;.Allows</c> invokes while exploring the state graph, so
+/// Accordant's own <see cref="StateGraph"/>/<see cref="SystemChecker"/> machinery catches it
+/// first and re-throws it as an <see cref="InvalidSpecException"/> wrapping a
+/// <see cref="StepFunctionApplicationException"/> wrapping our original exception - the same
+/// thing that happens to any exception a model's <c>Apply</c> function throws by accident.
+/// This replayer catches that wrapper, unwraps down to the original
+/// <see cref="AssumptionViolatedException"/>/<see cref="UnknownRegionEncounteredException"/>/
+/// <see cref="ProvisionalMatchEncounteredException"/>, and re-throws (or reports) the unwrapped
+/// exception so callers never have to know about the wrapping - any other
+/// <see cref="InvalidSpecException"/> (a real bug in the model) is left alone and propagates as-is.
+/// </para>
 /// </para>
 /// </summary>
 public static class TraceReplayer
@@ -156,15 +188,50 @@ public static class TraceReplayer
                 break;
             }
 
-            var researchExpectation = InspectResearchExpectation(operation, request, response, stateProfile);
+            UnderstandingEncounter? encounter;
+            bool isValid;
+            string message;
+            StateProfile nextStateProfile;
 
-            if (researchExpectation is { Kind: ResearchExpectationKind.Unknown })
+            Understanding.ClearLastEncounter();
+
+            try
             {
-                steps.Add(ReplayStepResult.Unknown(call.CallId, call.OperationName, researchExpectation));
+                (isValid, message, nextStateProfile) = spec.Allows(operation, request, response, stateProfile);
+            }
+            catch (InvalidSpecException ex) when (TryUnwrapUnderstandingException<AssumptionViolatedException>(ex, out var assumptionViolation))
+            {
+                // Understanding.Assume has no permissive mode - it always throws when a request/state
+                // falls outside what the model covers. Out of scope, not a model violation.
+                steps.Add(ReplayStepResult.OutOfScope(call.CallId, call.OperationName, assumptionViolation));
                 break;
             }
+            catch (InvalidSpecException ex) when (
+                TryUnwrapUnderstandingException<UnknownRegionEncounteredException>(ex, out var unknownException))
+            {
+                // Only fires when the caller has ambiently opted into UnderstandingStrictness.Strict;
+                // re-throw the original marker exception, not Accordant's wrapper - see the
+                // "Understanding markers"/"Unwrapping Accordant's own wrapping" remarks on this type.
+                ExceptionDispatchInfo.Capture(unknownException).Throw();
+                throw; // unreachable; satisfies flow analysis.
+            }
+            catch (InvalidSpecException ex) when (
+                TryUnwrapUnderstandingException<ProvisionalMatchEncounteredException>(ex, out var provisionalException))
+            {
+                ExceptionDispatchInfo.Capture(provisionalException).Throw();
+                throw; // unreachable; satisfies flow analysis.
+            }
 
-            var (isValid, message, nextStateProfile) = spec.Allows(operation, request, response, stateProfile);
+            encounter = Understanding.LastEncounter;
+
+            if (encounter is { Kind: UnderstandingKind.Unknown })
+            {
+                // No response or state-transition claim was made for this call, regardless of
+                // whether UnderstandingStrictness.Accept or .Reject made isValid true or false above -
+                // stop conservatively rather than trust or reject on that basis.
+                steps.Add(ReplayStepResult.Unknown(call.CallId, call.OperationName, encounter));
+                break;
+            }
 
             if (!isValid)
             {
@@ -172,8 +239,8 @@ public static class TraceReplayer
                 break;
             }
 
-            steps.Add(researchExpectation is { Kind: ResearchExpectationKind.Provisional }
-                ? ReplayStepResult.ProvisionalMatch(call.CallId, call.OperationName, researchExpectation)
+            steps.Add(encounter is { Kind: UnderstandingKind.Provisional }
+                ? ReplayStepResult.ProvisionalMatch(call.CallId, call.OperationName, encounter)
                 : ReplayStepResult.Conforming(call.CallId, call.OperationName));
             stateProfile = nextStateProfile;
             lastReliableStateProfile = nextStateProfile;
@@ -192,46 +259,6 @@ public static class TraceReplayer
             message: null,
             steps,
             lastReliableStateProfile);
-    }
-
-    private static ResearchExpectedOutcome? InspectResearchExpectation(
-        IOperation operation,
-        object? request,
-        object? response,
-        StateProfile stateProfile)
-    {
-        if (operation is not IExpectedOutcomesProvider provider)
-        {
-            return null;
-        }
-
-        ResearchExpectedOutcome? provisionalMatch = null;
-
-        foreach (var (state, _) in stateProfile.StatesAndStepFunctions)
-        {
-            var outcomes = provider.GetExpectedOutcomes(request!, state);
-            var unknown = outcomes.PossibleOutcomes
-                .OfType<ResearchExpectedOutcome>()
-                .FirstOrDefault(outcome => outcome.Kind == ResearchExpectationKind.Unknown);
-
-            if (unknown is not null)
-            {
-                return unknown;
-            }
-
-            provisionalMatch ??= outcomes.PossibleOutcomes
-                .OfType<ResearchExpectedOutcome>()
-                .FirstOrDefault(outcome =>
-                    outcome.Kind == ResearchExpectationKind.Provisional &&
-                    outcome.Satisfies(response!));
-
-            if (provisionalMatch is not null)
-            {
-                break;
-            }
-        }
-
-        return provisionalMatch;
     }
 
     /// <summary>
@@ -257,6 +284,29 @@ public static class TraceReplayer
 
         var trace = await TraceStore.LoadAsync(tracePath).ConfigureAwait(false);
         return Replay(spec, initialState, trace, serializerOptions);
+    }
+
+    /// <summary>
+    /// Unwraps an understanding marker exception from underneath Accordant's own step-function-failure
+    /// wrapping. A marker exception thrown from inside a validator surfaces from
+    /// <c>Spec&lt;TState&gt;.Allows</c> as an <see cref="InvalidSpecException"/> whose
+    /// <see cref="Exception.InnerException"/> is a <see cref="StepFunctionApplicationException"/>
+    /// whose own <see cref="Exception.InnerException"/> is the original exception - see the
+    /// "Unwrapping Accordant's own wrapping" remark on this type.
+    /// </summary>
+    private static bool TryUnwrapUnderstandingException<TException>(
+        InvalidSpecException exception,
+        out TException understandingException)
+        where TException : UnderstandingException
+    {
+        if (exception.InnerException is StepFunctionApplicationException { InnerException: TException inner })
+        {
+            understandingException = inner;
+            return true;
+        }
+
+        understandingException = null!;
+        return false;
     }
 
     /// <summary>

@@ -1,0 +1,62 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "161f40ec-cf17-4a74-b727-925a210139c7",
+  "StartedAt": "2026-09-04T16:09:26.1404084Z",
+  "CompletedAt": "2026-09-04T16:09:26.1431653Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "CreateTask",
+      "Request": {
+        "body": {
+          "title": "beta"
+        }
+      },
+      "Response": {
+        "status": 201,
+        "body": {
+          "id": "d68d8d72-ccb5-4fad-b0a6-accc0094b1cc",
+          "title": "beta",
+          "status": "pending"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "CompleteTask",
+      "Request": {
+        "path": {
+          "id": "d68d8d72-ccb5-4fad-b0a6-accc0094b1cc"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "d68d8d72-ccb5-4fad-b0a6-accc0094b1cc",
+          "title": "beta",
+          "status": "completed"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 3,
+      "OperationName": "CancelTask",
+      "Request": {
+        "path": {
+          "id": "d68d8d72-ccb5-4fad-b0a6-accc0094b1cc"
+        }
+      },
+      "Response": {
+        "status": 409,
+        "body": {
+          "code": "invalid_transition",
+          "message": "The requested task transition conflicts with its current status."
+        }
+      },
+      "Error": null
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "d4803915-d0ca-49fc-8bfe-50382a5e71bb",
+  "StartedAt": "2026-09-04T17:57:42.6869421Z",
+  "CompletedAt": "2026-09-04T17:57:42.6912912Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-get-captured",
+          "amount": 12,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 201,
+        "body": {
+          "id": "4b981267d3184498b9d0ab859319fc3f",
+          "idempotencyKey": "pp-get-captured",
+          "amount": 12,
+          "currency": "USD",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "CapturePayment",
+      "Request": {
+        "path": {
+          "id": "4b981267d3184498b9d0ab859319fc3f"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "4b981267d3184498b9d0ab859319fc3f",
+          "idempotencyKey": "pp-get-captured",
+          "amount": 12,
+          "currency": "USD",
+          "status": "captured"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 3,
+      "OperationName": "GetPayment",
+      "Request": {
+        "path": {
+          "id": "4b981267d3184498b9d0ab859319fc3f"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "4b981267d3184498b9d0ab859319fc3f",
+          "idempotencyKey": "pp-get-captured",
+          "amount": 12,
+          "currency": "USD",
+          "status": "captured"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 4,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-get-captured",
+          "amount": 12,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "4b981267d3184498b9d0ab859319fc3f",
+          "idempotencyKey": "pp-get-captured",
+          "amount": 12,
+          "currency": "USD",
+          "status": "captured"
+        }
+      },
+      "Error": null
+    }
+  ]
+}

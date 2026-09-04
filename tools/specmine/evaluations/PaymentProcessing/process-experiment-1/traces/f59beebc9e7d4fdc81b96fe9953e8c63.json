@@ -1,0 +1,27 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "f59beebc-9e7d-4fdc-81b9-6fe9953e8c63",
+  "StartedAt": "2026-09-04T17:57:42.6205142Z",
+  "CompletedAt": "2026-09-04T17:57:42.6281084Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "GetPayment",
+      "Request": {
+        "path": {
+          "id": "not-a-real-id"
+        }
+      },
+      "Response": {
+        "status": 404,
+        "body": {
+          "type": "not_found",
+          "code": "payment_not_found",
+          "message": "Payment \u0027not-a-real-id\u0027 was not found."
+        }
+      },
+      "Error": null
+    }
+  ]
+}

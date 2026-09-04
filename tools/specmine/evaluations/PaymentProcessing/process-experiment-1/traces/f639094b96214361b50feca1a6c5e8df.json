@@ -1,0 +1,171 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "f639094b-9621-4361-b50f-eca1a6c5e8df",
+  "StartedAt": "2026-09-04T17:57:42.6739348Z",
+  "CompletedAt": "2026-09-04T17:57:42.6824918Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-void-flow",
+          "amount": 30,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 201,
+        "body": {
+          "id": "40526adf15ed430ea2285467727966cd",
+          "idempotencyKey": "pp-void-flow",
+          "amount": 30,
+          "currency": "USD",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "GetPayment",
+      "Request": {
+        "path": {
+          "id": "40526adf15ed430ea2285467727966cd"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "40526adf15ed430ea2285467727966cd",
+          "idempotencyKey": "pp-void-flow",
+          "amount": 30,
+          "currency": "USD",
+          "status": "authorized"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 3,
+      "OperationName": "VoidPayment",
+      "Request": {
+        "path": {
+          "id": "40526adf15ed430ea2285467727966cd"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "40526adf15ed430ea2285467727966cd",
+          "idempotencyKey": "pp-void-flow",
+          "amount": 30,
+          "currency": "USD",
+          "status": "voided"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 4,
+      "OperationName": "GetPayment",
+      "Request": {
+        "path": {
+          "id": "40526adf15ed430ea2285467727966cd"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "40526adf15ed430ea2285467727966cd",
+          "idempotencyKey": "pp-void-flow",
+          "amount": 30,
+          "currency": "USD",
+          "status": "voided"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 5,
+      "OperationName": "VoidPayment",
+      "Request": {
+        "path": {
+          "id": "40526adf15ed430ea2285467727966cd"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "40526adf15ed430ea2285467727966cd",
+          "idempotencyKey": "pp-void-flow",
+          "amount": 30,
+          "currency": "USD",
+          "status": "voided"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 6,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-void-flow",
+          "amount": 30,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "40526adf15ed430ea2285467727966cd",
+          "idempotencyKey": "pp-void-flow",
+          "amount": 30,
+          "currency": "USD",
+          "status": "voided"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 7,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-void-flow",
+          "amount": 31,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 409,
+        "body": {
+          "type": "conflict",
+          "code": "idempotency_conflict",
+          "message": "The idempotency key was already used with a different request."
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 8,
+      "OperationName": "CapturePayment",
+      "Request": {
+        "path": {
+          "id": "40526adf15ed430ea2285467727966cd"
+        }
+      },
+      "Response": {
+        "status": 409,
+        "body": {
+          "type": "conflict",
+          "code": "invalid_payment_state",
+          "message": "Payment \u002740526adf15ed430ea2285467727966cd\u0027: A voided payment cannot be captured."
+        }
+      },
+      "Error": null
+    }
+  ]
+}

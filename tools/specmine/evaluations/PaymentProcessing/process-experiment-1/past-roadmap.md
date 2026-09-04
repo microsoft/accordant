@@ -1,0 +1,6 @@
+# Past Roadmap
+
+- `pp-f1` - Authorization outcomes and idempotency-key retries.
+  - Completed in this run. The final model covers semantic request validation, fresh successful authorization, exact retries after success (`201` first, `200` thereafter), changed-payload conflicts once a key has produced a payment, amount-based decline behavior, repeated declines, and the key finding that declined attempts do not reserve the idempotency key: a later changed request can still succeed, and only that first success starts conflicting with changed retries.
+- `pp-f2` - Existing-payment lifecycle and retrieval.
+  - Completed in this run. The final model covers `GetPayment`, `CapturePayment`, and `VoidPayment` for known and unknown ids; `authorized -> captured` and `authorized -> voided` transitions; repeated capture/void as idempotent `200` replays; opposite-terminal conflicts with concrete `invalid_payment_state` messages; and the cross-feature rule that exact `AuthorizePayment` replays return the payment's current lifecycle status (`captured` / `voided`), not a frozen `authorized` snapshot.

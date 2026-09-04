@@ -1,0 +1,69 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "f77a38f9-f398-44aa-9d24-d9bb2ee2ff24",
+  "StartedAt": "2026-09-04T17:57:42.5939013Z",
+  "CompletedAt": "2026-09-04T17:57:42.5979447Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "   ",
+          "amount": 10,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 400,
+        "body": {
+          "type": "validation_error",
+          "code": "invalid_request",
+          "message": "idempotencyKey must be nonblank, amount must be positive, and currency must be three uppercase letters."
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-invalid-amount",
+          "amount": 0,
+          "currency": "USD"
+        }
+      },
+      "Response": {
+        "status": 400,
+        "body": {
+          "type": "validation_error",
+          "code": "invalid_request",
+          "message": "idempotencyKey must be nonblank, amount must be positive, and currency must be three uppercase letters."
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 3,
+      "OperationName": "AuthorizePayment",
+      "Request": {
+        "body": {
+          "idempotencyKey": "pp-invalid-currency",
+          "amount": 10,
+          "currency": "usd"
+        }
+      },
+      "Response": {
+        "status": 400,
+        "body": {
+          "type": "validation_error",
+          "code": "invalid_request",
+          "message": "idempotencyKey must be nonblank, amount must be positive, and currency must be three uppercase letters."
+        }
+      },
+      "Error": null
+    }
+  ]
+}

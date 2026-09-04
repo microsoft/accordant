@@ -1,0 +1,62 @@
+{
+  "SchemaVersion": 1,
+  "TraceId": "c8eedc82-71cc-48d1-8679-aea47beab179",
+  "StartedAt": "2026-09-04T16:09:26.1459902Z",
+  "CompletedAt": "2026-09-04T16:09:26.1490583Z",
+  "Status": "completed",
+  "Calls": [
+    {
+      "CallId": 1,
+      "OperationName": "CreateTask",
+      "Request": {
+        "body": {
+          "title": "delta"
+        }
+      },
+      "Response": {
+        "status": 201,
+        "body": {
+          "id": "affad14e-773e-4baa-97b4-147f4e959101",
+          "title": "delta",
+          "status": "pending"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 2,
+      "OperationName": "CancelTask",
+      "Request": {
+        "path": {
+          "id": "affad14e-773e-4baa-97b4-147f4e959101"
+        }
+      },
+      "Response": {
+        "status": 200,
+        "body": {
+          "id": "affad14e-773e-4baa-97b4-147f4e959101",
+          "title": "delta",
+          "status": "canceled"
+        }
+      },
+      "Error": null
+    },
+    {
+      "CallId": 3,
+      "OperationName": "CompleteTask",
+      "Request": {
+        "path": {
+          "id": "affad14e-773e-4baa-97b4-147f4e959101"
+        }
+      },
+      "Response": {
+        "status": 409,
+        "body": {
+          "code": "invalid_transition",
+          "message": "The requested task transition conflicts with its current status."
+        }
+      },
+      "Error": null
+    }
+  ]
+}
