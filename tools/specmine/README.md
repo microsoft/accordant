@@ -58,8 +58,10 @@ the portable contract everything else is built on:
   `System.Text.Json.Schema.JsonSchemaExporter`, so an adapter with concrete types
   doesn't need to hand-author JSON Schema; hand-authored schemas work too.
 - `ITargetAdapter` - identifies itself with a stable `AdapterType` string and
-  connects opaque, adapter-owned `JsonElement` settings (the same settings a
-  `TargetAdapterDeclaration` carries) to a live `ITargetSession`.
+  connects opaque, adapter-owned `JsonElement` settings to a live
+  `ITargetSession`. A caller who already knows which adapter and settings to
+  use just instantiates and connects it directly (see the OpenAPI adapter
+  section below) - there is no registry or persisted declaration to go through.
 - `ITargetSession : IAsyncDisposable` - exposes a stable `Operations` catalog and
   `ExecuteAsync(operationName, request, cancellationToken)`, taking and returning
   concrete `JsonElement` values. A session owns its own client/in-memory target
@@ -167,100 +169,6 @@ exception type.
 
 `TraceReplayResult` reports accepted, provisional, unknown, out-of-scope, and violation
 counts.
-
-## Investigation workspace (`src/Specmine`)
-
-A `Workspace` is a minimal, on-disk investigation workspace: a small, fixed set of
-artifacts rooted at one directory.
-
-```
-<root>/
-  workspace.json   - schema version and the target adapter declaration
-  target/          - reserved for adapter-owned target artifacts
-  traces/          - recorded traces (see TraceRecorder / TraceStore above)
-  frontier.md      - free-form notes on open questions and next steps
-  journal.md       - free-form running log of what was tried and observed
-```
-
-```csharp
-var settings = JsonSerializer.SerializeToElement(new { baseUrl = "https://localhost:5001" });
-var workspace = await Workspace.InitializeAsync(workspaceRoot, new TargetAdapterDeclaration("openapi", settings));
-
-// Later, in a fresh process:
-var reloaded = await Workspace.LoadAsync(workspaceRoot);
-```
-
-`workspace.json` declares a schema version and a single `TargetAdapter` with an
-`AdapterType` string and an opaque `Settings` JSON value. **Adapter settings are
-entirely adapter-owned**: the workspace schema does not define a base URL,
-credential model, capability taxonomy, reset model, or operation catalog - an
-OpenAPI adapter, a command adapter, or any future custom adapter defines its own
-`Settings` shape without changing the workspace schema. `Settings` is snapshotted
-(cloned) at construction time, so later mutation or disposal of whatever JSON
-object or document the caller built it from cannot alter the workspace afterward.
-
-`Workspace.InitializeAsync` creates the root directory (building the whole
-artifact set in a private staging directory and moving it into place with a
-single directory rename when the root doesn't already exist, so a reader never
-observes a partially initialized workspace) and refuses to run if a workspace is
-already initialized there or an existing file/directory would conflict with one
-of its artifacts. `Workspace.LoadAsync` validates that `workspace.json` exists,
-declares a supported schema version and a non-blank adapter type, and that the
-`target/`, `traces/`, `frontier.md`, and `journal.md` artifacts all exist,
-throwing a specific exception for whichever check fails.
-
-A workspace performs no orchestration and includes no adapter implementation or
-CLI: it only creates, validates, and resolves paths, and exposes
-`TracesDirectory` for `TraceRecorder` to write into.
-
-### Adapter registry and workspace activation (`src/Specmine`)
-
-Turning a workspace's declared `AdapterType` string into a live session requires
-a host - a test harness, a future CLI, an IDE extension - that knows which
-concrete `ITargetAdapter` implementations exist. `TargetAdapterRegistry` is a
-small, explicit registry the host builds by hand: there is no reflection,
-assembly scanning, package loading, or dependency injection container - every
-adapter type a host can activate is registered in code the host controls.
-`WorkspaceActivator.ConnectAsync` is the bridge from a loaded workspace to a live
-session: it resolves `workspace.Document.TargetAdapter.AdapterType` in the
-registry and connects that adapter with the declaration's own opaque `Settings`.
-
-```csharp
-// Host startup: register exactly the adapters this host supports.
-var registry = new TargetAdapterRegistry();
-registry.Register(new OpenApiTargetAdapter());
-registry.Register(new CommandTargetAdapter());
-
-// Load a previously initialized workspace and activate its declared adapter.
-var workspace = await Workspace.LoadAsync(workspaceRoot);
-await using var target = await WorkspaceActivator.ConnectAsync(workspace, registry, cancellationToken);
-
-// The returned session is live and caller-owned: enumerate its operations,
-// execute them directly, or hand it to TraceRecorder to record an experiment.
-foreach (var operation in target.Operations)
-{
-    Console.WriteLine($"{operation.Name}: {operation.RequestSchema} -> {operation.ResponseSchema}");
-}
-
-await TraceRecorder.RunAsync(workspace.TracesDirectory, target, async recordingTarget =>
-{
-    await recordingTarget.ExecuteAsync("CreateTask", createTaskRequestJson);
-});
-```
-
-`Register` throws if an adapter is already registered for the same adapter type
-(comparing type strings with ordinal, case-sensitive semantics throughout, since
-the same string is also the literal value written into `workspace.json`);
-`Resolve`/`ConnectAsync` throw `UnknownAdapterTypeException` if the workspace
-declares a type nothing is registered for. `ConnectAsync` passes cancellation
-through to the adapter, never swallows a settings-validation or connection
-exception the adapter throws, and throws `InvalidOperationException` if a
-misbehaving adapter returns a null session. Workspace paths (`RootPath`,
-`TargetDirectory`, ...) are machine-resolved runtime properties of `Workspace`
-itself and are never implicitly added into the settings handed to the adapter -
-an adapter that needs a workspace-relative path (for example, a future OpenAPI
-adapter's document path) must have that path included explicitly, by whoever
-authored the declaration, inside its own `Settings`.
 
 ## Built-in OpenAPI adapter (`src/Specmine.Adapters.OpenApi`)
 

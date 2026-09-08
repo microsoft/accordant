@@ -7,8 +7,8 @@ informal and thin: the goal is to make an overwhelming "model this whole API"
 problem into a sequence of small, checkable steps, not to impose heavy process for
 its own sake.
 
-This is a process description, not (yet) a schema `Workspace` enforces. It builds
-on the existing building blocks documented elsewhere in this README - the
+This is a process description, not enforced by any schema or tool. It builds on
+the existing building blocks documented elsewhere in this README - the
 adapter/session SDK, `TraceRecorder`/`TraceStore`, the OpenAPI adapter, and
 `Understanding.Assume`/`Unknown`/`Provisional` - without changing any of them.
 
@@ -104,8 +104,9 @@ until exit - not revisited piecemeal across many disconnected slices:
 
 ## What this does not change
 
-`Workspace`'s current fixed artifact set (`workspace.json`, `target/`,
-`traces/`, `frontier.md`, `journal.md`) is untouched by this document. This is
-a process description to be exercised experimentally first; if it proves out,
-a follow-up would evolve `Workspace` to match (e.g. replacing `frontier.md`
-with `roadmap.md`/`past-roadmap.md`, keeping `journal.md`).
+This process description does not change `ITargetAdapter`/`ITargetSession` (the
+adapter/session SDK) or `TraceRecorder`/`TraceStore`. There is no separate
+persistence/registry layer to go through: a script for a given target simply
+instantiates and connects the adapter it already knows it needs (e.g.
+`new OpenApiTargetAdapter().ConnectAsync(settings)`), the same way both
+`evaluations/*/process-experiment-1/model/Program.cs` files do.
