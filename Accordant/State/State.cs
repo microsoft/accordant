@@ -20,14 +20,13 @@ using System.Text.Json.Serialization;
 /// </summary>
 public abstract class State : IState
 {
-    public static Random Random { get; } = new Random();
-
     /// <summary>
-    /// Controls whether <see cref="ValidateNotMutated"/> performs validation.
-    /// Set to false to disable validation for performance in production scenarios.
+    /// Controls whether <see cref="ValidateNotMutated"/> performs validation
+    /// for this state instance. Set to false only when the caller explicitly
+    /// accepts the loss of mutation detection for this state.
     /// Default is true.
     /// </summary>
-    public static bool EnableFreezeValidation { get; set; } = true;
+    public bool EnableFreezeValidation { get; set; } = true;
 
     protected string stringRepresentation = null;
     protected ulong? stateHash = null;
@@ -93,6 +92,9 @@ public abstract class State : IState
 
         if (clonedMap[this] is State state)
         {
+            // Validation is an instance option and should follow the state
+            // when it is cloned, while the clone remains unfrozen.
+            state.EnableFreezeValidation = EnableFreezeValidation;
             return state;
         }
         else
@@ -296,6 +298,14 @@ public abstract class State : IState
 
     public void Freeze(HashSet<object> visited)
     {
+        if (IsFrozen)
+        {
+            // A frozen state is already baselined. Re-freezing must validate
+            // it rather than silently accepting a mutation as the new baseline.
+            ValidateNotMutated();
+            return;
+        }
+
         if (visited.Contains(this))
         {
             return;

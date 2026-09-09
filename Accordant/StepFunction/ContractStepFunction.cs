@@ -42,7 +42,7 @@ public class ContractStepFunction : BaseStepFunction
         Request = request;
         ObservedResponse = observedResponse;
         Verify = verify ?? throw new ArgumentNullException(nameof(verify));
-        _predecessorIds = predecessorIds ?? Array.Empty<string>();
+        _predecessorIds = NormalizePredecessorIds(predecessorIds);
     }
 
     /// <summary>
@@ -51,7 +51,78 @@ public class ContractStepFunction : BaseStepFunction
     /// </summary>
     public void SetPredecessorIds(IReadOnlyCollection<string> ids)
     {
-        _predecessorIds = ids ?? Array.Empty<string>();
+        if (HasBeenApplied)
+        {
+            throw new InvalidOperationException(
+                "Predecessor IDs cannot be changed after the contract step function has been applied.");
+        }
+
+        _predecessorIds = NormalizePredecessorIds(ids);
+    }
+
+    private static IReadOnlyCollection<string> NormalizePredecessorIds(
+        IReadOnlyCollection<string> ids)
+    {
+        if (ids == null)
+        {
+            return Array.Empty<string>();
+        }
+
+        var snapshot = ids.ToList();
+        var seenIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var id in snapshot)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException(
+                    "Predecessor IDs cannot contain null or empty values.",
+                    nameof(ids));
+            }
+
+            if (!seenIds.Add(id))
+            {
+                throw new ArgumentException(
+                    $"Predecessor IDs contain duplicate ID '{id}'.",
+                    nameof(ids));
+            }
+        }
+
+        return snapshot.AsReadOnly();
+    }
+
+    private static void ValidateVerifiedStateProfile(StateProfile stateProfile)
+    {
+        if (stateProfile == null)
+        {
+            throw new InvalidOperationException(
+                "A verification result marked valid must include a non-null StateProfile.");
+        }
+
+        if (stateProfile.StatesAndStepFunctions == null ||
+            stateProfile.StatesAndStepFunctions.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "A valid verification result must include at least one state outcome.");
+        }
+
+        foreach (var (state, stepFunctions) in stateProfile.StatesAndStepFunctions)
+        {
+            if (state == null)
+            {
+                throw new InvalidOperationException(
+                    "A valid verification result cannot include a null state outcome.");
+            }
+
+            if (stepFunctions == null)
+            {
+                throw new InvalidOperationException(
+                    "A valid verification result cannot include a null step-function collection.");
+            }
+
+            StateGraph.ValidateStepFunctionList(
+                stepFunctions,
+                "A valid verification result");
+        }
     }
 
     protected override IList<StepResult> ApplyInternal(
@@ -75,14 +146,14 @@ public class ContractStepFunction : BaseStepFunction
         {
             return null;
         }
-        else
-        {
-            return
-                stateProfile.StatesAndStepFunctions.Select(stateAndStepFunctions => new StepResult()
-                {
-                    State = stateAndStepFunctions.State,
-                    StepFunctions = stateAndStepFunctions.StepFunctions
-                }).ToList();
-        }
+
+        ValidateVerifiedStateProfile(stateProfile);
+
+        return
+            stateProfile.StatesAndStepFunctions.Select(stateAndStepFunctions => new StepResult()
+            {
+                State = stateAndStepFunctions.State,
+                StepFunctions = stateAndStepFunctions.StepFunctions
+            }).ToList();
     }
 }

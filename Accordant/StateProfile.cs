@@ -33,11 +33,21 @@ using System.Linq;
 /// </summary>
 public class StateProfile
 {
+    private IList<(IState State, IList<IStepFunction> StepFunctions)> statesAndStepFunctions;
+
     /// <summary>
     /// The set of states the system can be and the set of step functions
     /// associated with each of those states.
+    ///
+    /// The assigned collection is snapshotted and exposed as read-only. This
+    /// keeps the profile invariant stable after construction while preserving
+    /// the existing IList-based API.
     /// </summary>
-    public IList<(IState State, IList<IStepFunction> StepFunctions)> StatesAndStepFunctions { get; set; }
+    public IList<(IState State, IList<IStepFunction> StepFunctions)> StatesAndStepFunctions
+    {
+        get => statesAndStepFunctions;
+        set => statesAndStepFunctions = Normalize(value);
+    }
 
     /// <summary>
     /// Constructs an instance of this class given a single state.
@@ -56,6 +66,11 @@ public class StateProfile
     /// <param name="states"></param>
     public StateProfile(IList<IState> states)
     {
+        if (states == null)
+        {
+            throw new ArgumentNullException(nameof(states));
+        }
+
         StatesAndStepFunctions =
             states.Select(s => (s, (IList<IStepFunction>)Array.Empty<IStepFunction>())).ToList();
     }
@@ -67,17 +82,43 @@ public class StateProfile
     public StateProfile(IList<(IState, IList<IStepFunction>)> statesAndStepFunctions)
     {
         StatesAndStepFunctions = statesAndStepFunctions;
+    }
 
-        // If any of the step functions is null, then convert that to an empty list,
-        // while preserving the non-null ones.
-        if (StatesAndStepFunctions.Any(ssf => ssf.StepFunctions == null))
+    private static IList<(IState State, IList<IStepFunction> StepFunctions)> Normalize(
+        IList<(IState State, IList<IStepFunction> StepFunctions)> statesAndStepFunctions)
+    {
+        if (statesAndStepFunctions == null)
         {
-            StatesAndStepFunctions = StatesAndStepFunctions
-                .Select(ssf => (
-                    ssf.State,
-                    ssf.StepFunctions == null ? Array.Empty<IStepFunction>() : ssf.StepFunctions))
-                .ToList();
+            throw new ArgumentNullException(nameof(statesAndStepFunctions));
         }
+
+        var snapshot = new List<(IState State, IList<IStepFunction> StepFunctions)>(
+            statesAndStepFunctions.Count);
+
+        foreach (var (state, stepFunctions) in statesAndStepFunctions)
+        {
+            if (state == null)
+            {
+                throw new ArgumentException(
+                    "A state profile cannot contain a null state.",
+                    nameof(statesAndStepFunctions));
+            }
+
+            // A null step-function list has historically meant "no enabled
+            // step functions". Preserve that behavior while still taking a
+            // defensive snapshot of every non-null collection.
+            IList<IStepFunction> normalizedStepFunctions = stepFunctions == null
+                ? Array.Empty<IStepFunction>()
+                : new List<IStepFunction>(stepFunctions).AsReadOnly();
+
+            StateGraph.ValidateStepFunctionList(
+                normalizedStepFunctions,
+                "State profile step functions");
+
+            snapshot.Add((state, normalizedStepFunctions));
+        }
+
+        return snapshot.AsReadOnly();
     }
 
     /// <summary>

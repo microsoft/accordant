@@ -152,8 +152,8 @@ public class SharedDictionaryReferenceTests
             new OperationInput("GetCount", spec["GetCount"]),
         };
 
-        // Enable mutation detection (should be on by default)
-        State.EnableFreezeValidation = true;
+        // Enable mutation detection explicitly on the starting state (it is on by default).
+        initialState.EnableFreezeValidation = true;
 
         // The framework should detect this via mutation detection.
         // The exception is wrapped in TestCaseGenerationException with StateFrozenException as inner.

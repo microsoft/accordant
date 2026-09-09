@@ -48,8 +48,11 @@ internal sealed class StateGraphExpander
     // reaching the same (state, step-functions) fingerprint resolve to the
     // same node object, so a state's edges are computed at most once and the
     // graph stays a proper DAG-with-cycles.
-    private readonly Dictionary<string, StateGraphNode> nodeMap =
-        new Dictionary<string, StateGraphNode>();
+    // The compact hash/signature key is used for the normal lookup path.
+    // Multiple nodes may share it, so each bucket is resolved with the exact
+    // canonical state representation before interning.
+    private readonly Dictionary<string, List<StateGraphNode>> nodeMap =
+        new Dictionary<string, List<StateGraphNode>>(StringComparer.Ordinal);
 
     public StateGraphExpander(
         int maxDepth,
@@ -86,23 +89,33 @@ internal sealed class StateGraphExpander
         IStepFunction discoveredVia,
         int depth)
     {
-        var fingerprint = StateGraphNode.GetNodeFingerprint(state, stepFunctions);
+        var fastKey = StateGraphNode.GetFastNodeKey(state, stepFunctions);
 
-        if (!nodeMap.TryGetValue(fingerprint, out var node))
+        if (nodeMap.TryGetValue(fastKey, out var candidates))
         {
-            node = new StateGraphNode
+            foreach (var candidate in candidates)
             {
-                State = state,
-                StepFunctions = stepFunctions,
-                LazyExpander = this.lazy ? this : null,
-                DiscoveredFrom = discoveredFrom,
-                DiscoveredVia = discoveredVia,
-                Depth = depth
-            };
-
-            nodeMap[fingerprint] = node;
+                if (StateGraphNode.HasSameNodeIdentity(candidate, state, stepFunctions))
+                {
+                    return candidate;
+                }
+            }
+        }
+        else
+        {
+            candidates = new List<StateGraphNode>();
+            nodeMap[fastKey] = candidates;
         }
 
+        var node = new StateGraphNode(
+            state,
+            stepFunctions,
+            this.lazy ? this : null,
+            discoveredFrom,
+            discoveredVia,
+            depth);
+
+        candidates.Add(node);
         return node;
     }
 
@@ -161,19 +174,16 @@ internal sealed class StateGraphExpander
 
             var child = GetOrCreateNode(childState, childStepFunctions, node, stepFunction, childDepth);
 
-            var childFingerprint = child.GetNodeFingerprint();
             var alreadyPresent = edges.Any(e =>
                 e.StepFunction.StepFunctionId == stepFunction.StepFunctionId &&
-                e.Target.GetNodeFingerprint() == childFingerprint);
+                ReferenceEquals(e.Target, child));
 
             if (!alreadyPresent)
             {
-                edges.Add(new StateGraphEdge
-                {
-                    StepFunction = stepFunction,
-                    Target = child,
-                    Metadata = edgeMetadata
-                });
+                edges.Add(new StateGraphEdge(
+                    child,
+                    stepFunction,
+                    edgeMetadata));
             }
         }
 

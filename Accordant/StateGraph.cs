@@ -5,9 +5,10 @@ namespace Microsoft.Accordant;
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO.Hashing;
 using System.Linq;
-using System.Security.Cryptography;
+using System.Runtime.ExceptionServices;
 using System.Text;
 
 /// <summary>
@@ -38,12 +39,16 @@ public static class StateGraph
         Func<IState, IStepFunction, StepResult, bool> shouldIncludeStepFunctionResult = null,
         bool lazy = false)
     {
+        ValidateExplorationInputs(steps, startingState, maxDepth);
+
         if (lazy && !generateStateGraph)
         {
             throw new ArgumentException(
                 "Lazy exploration builds the graph on demand and therefore requires generateStateGraph = true.",
                 nameof(generateStateGraph));
         }
+
+        EnsureStateFrozen(startingState, nameof(startingState));
 
         var expander = new StateGraphExpander(
             maxDepth,
@@ -77,7 +82,10 @@ public static class StateGraph
         // Both the traversal path and the depth handed to expansion are read
         // from each node (reconstructed from its discovery back-pointers),
         // exactly as in lazy mode, so the worklist carries only the nodes.
-        var processed = new HashSet<string>();
+        // Node interning is collision-safe, so node references are the
+        // identity used by the traversal. A compact fingerprint is useful
+        // for diagnostics but must not decide whether a node was processed.
+        var processed = new HashSet<StateGraphNode>();
         var stack = new Stack<StateGraphNode>();
 
         stack.Push(rootGraphNode);
@@ -86,7 +94,7 @@ public static class StateGraph
         {
             var node = stack.Pop();
 
-            if (!processed.Add(node.GetNodeFingerprint()))
+            if (!processed.Add(node))
             {
                 continue;
             }
@@ -101,7 +109,7 @@ public static class StateGraph
             foreach (var edge in edges)
             {
                 var child = edge.Target;
-                if (!processed.Contains(child.GetNodeFingerprint()))
+                if (!processed.Contains(child))
                 {
                     stack.Push(child);
                 }
@@ -111,6 +119,113 @@ public static class StateGraph
         return generateStateGraph ?
             rootGraphNode :
             null;
+    }
+
+    private static void ValidateExplorationInputs(
+        IList<IStepFunction> steps,
+        IState startingState,
+        int maxDepth)
+    {
+        if (steps == null)
+        {
+            throw new ArgumentNullException(nameof(steps));
+        }
+
+        if (startingState == null)
+        {
+            throw new ArgumentNullException(nameof(startingState));
+        }
+
+        if (maxDepth < -1)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(maxDepth),
+                maxDepth,
+                "maxDepth must be -1 for unbounded exploration or a non-negative depth.");
+        }
+
+        ValidateStepFunctionList(steps, "The initial step-function set");
+    }
+
+    internal static void EnsureStateFrozen(IState state, string context)
+    {
+        if (state == null)
+        {
+            throw new ArgumentNullException(nameof(state));
+        }
+
+        if (!state.IsFrozen)
+        {
+            state.Freeze();
+        }
+
+        if (!state.IsFrozen)
+        {
+            throw new InvalidOperationException(
+                $"The {context} state did not become frozen after Freeze(). " +
+                "IState implementations must make Freeze establish immutability.");
+        }
+    }
+
+    internal static void ValidateStepFunctionList(
+        IEnumerable<IStepFunction> stepFunctions,
+        string context)
+    {
+        if (stepFunctions == null)
+        {
+            throw new ArgumentNullException(nameof(stepFunctions));
+        }
+
+        var seenIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var stepFunction in stepFunctions)
+        {
+            if (stepFunction == null)
+            {
+                throw new ArgumentException(
+                    $"{context} cannot contain null step functions.",
+                    nameof(stepFunctions));
+            }
+
+            var stepFunctionId = stepFunction.StepFunctionId;
+            if (string.IsNullOrEmpty(stepFunctionId))
+            {
+                throw new ArgumentException(
+                    $"{context} contains a step function with a null or empty StepFunctionId.",
+                    nameof(stepFunctions));
+            }
+
+            if (!seenIds.Add(stepFunctionId))
+            {
+                throw new ArgumentException(
+                    $"{context} contains duplicate StepFunctionId '{stepFunctionId}'.",
+                    nameof(stepFunctions));
+            }
+        }
+    }
+
+    internal static void ValidateStepResult(
+        StepResult stepResult,
+        IStepFunction sourceStepFunction,
+        int resultIndex)
+    {
+        if (stepResult == null)
+        {
+            throw new InvalidOperationException(
+                $"Step function '{sourceStepFunction.StepFunctionId}' returned a null StepResult at index {resultIndex}.");
+        }
+
+        if (stepResult.State == null)
+        {
+            throw new InvalidOperationException(
+                $"Step function '{sourceStepFunction.StepFunctionId}' returned a StepResult with a null State at index {resultIndex}.");
+        }
+
+        if (stepResult.StepFunctions != null)
+        {
+            ValidateStepFunctionList(
+                stepResult.StepFunctions,
+                $"StepResult {resultIndex} from step function '{sourceStepFunction.StepFunctionId}'");
+        }
     }
 
     /// <summary>
@@ -145,6 +260,7 @@ public static class StateGraph
     {
         var state = node.State;
         var stepFunctions = node.StepFunctions;
+        ValidateStepFunctionList(stepFunctions, "The node's step-function set");
 
         foreach (var stepFunction in stepFunctions)
         {
@@ -159,7 +275,7 @@ public static class StateGraph
                 throw new StepFunctionApplicationException(
                     ex,
                     node,
-                    path.ToList(),
+                    path,
                     stepFunction);
             }
 
@@ -168,27 +284,66 @@ public static class StateGraph
                 continue;
             }
 
+            var resultIndex = 0;
             foreach (var stepResult in stepResults)
             {
+                try
+                {
+                    ValidateStepResult(stepResult, stepFunction, resultIndex);
+                    EnsureStateFrozen(
+                        stepResult.State,
+                        $"StepResult {resultIndex} from step function '{stepFunction.StepFunctionId}'");
+                }
+                catch (Exception ex)
+                {
+                    throw new StepFunctionApplicationException(
+                        ex,
+                        node,
+                        path,
+                        stepFunction);
+                }
+
                 if (shouldIncludeStepFunctionResult != null &&
                     !shouldIncludeStepFunctionResult(state, stepFunction, stepResult))
                 {
+                    resultIndex++;
                     continue;
                 }
 
-                var newStepFunctions = stepFunctions
-                    .Where(s => s.StepFunctionId != stepFunction.StepFunctionId)
-                    .ToList();
-                if (stepResult.StepFunctions != null)
+                IList<IStepFunction> orderedStepFunctions;
+                try
                 {
-                    newStepFunctions.AddRange(stepResult.StepFunctions);
+                    var newStepFunctions = stepFunctions
+                        .Where(s => s.StepFunctionId != stepFunction.StepFunctionId)
+                        .ToList();
+                    if (stepResult.StepFunctions != null)
+                    {
+                        newStepFunctions.AddRange(stepResult.StepFunctions);
+                    }
+
+                    ValidateStepFunctionList(
+                        newStepFunctions,
+                        $"Successor step-function set from '{stepFunction.StepFunctionId}'");
+                    orderedStepFunctions = newStepFunctions
+                        .OrderBy(s => s.StepFunctionId)
+                        .ToList();
+                }
+                catch (Exception ex)
+                {
+                    throw new StepFunctionApplicationException(
+                        ex,
+                        node,
+                        path,
+                        stepFunction);
                 }
 
                 yield return (
                     stepFunction,
                     stepResult.State,
-                    newStepFunctions.OrderBy(s => s.StepFunctionId).ToList(),
+                    orderedStepFunctions,
                     stepResult.EdgeMetadata);
+
+                resultIndex++;
             }
         }
     }
@@ -203,12 +358,33 @@ public class StateGraphNode
 {
     private string nodeFingerprint = null;
 
-    private static SHA256 SHA256 = SHA256.Create();
+    internal StateGraphNode(
+        IState state,
+        IList<IStepFunction> stepFunctions,
+        StateGraphExpander lazyExpander,
+        StateGraphNode discoveredFrom,
+        IStepFunction discoveredVia,
+        int depth)
+    {
+        State = state ?? throw new ArgumentNullException(nameof(state));
+        if (stepFunctions == null)
+        {
+            throw new ArgumentNullException(nameof(stepFunctions));
+        }
+
+        var stepFunctionSnapshot = new List<IStepFunction>(stepFunctions);
+        StateGraph.ValidateStepFunctionList(stepFunctionSnapshot, "Node step functions");
+        StepFunctions = stepFunctionSnapshot.AsReadOnly();
+        LazyExpander = lazyExpander;
+        DiscoveredFrom = discoveredFrom;
+        DiscoveredVia = discoveredVia;
+        Depth = depth;
+    }
 
     /// <summary>
     /// The system state represented by this node.
     /// </summary>
-    public IState State { get; set; }
+    public IState State { get; }
 
     /// <summary>
     /// The set of step functions that can be applied to this state.
@@ -216,21 +392,30 @@ public class StateGraphNode
     /// updated state (though a step function can produce new step functions that
     /// are included in the step function list for the updated state).
     /// </summary>
-    public IList<IStepFunction> StepFunctions { get; set; }
+    public IReadOnlyList<IStepFunction> StepFunctions { get; }
 
     private List<StateGraphEdge> edges = new List<StateGraphEdge>();
 
-    private bool expanded;
+    private enum ExpansionState
+    {
+        NotExpanded,
+        Expanding,
+        Expanded,
+        Failed
+    }
+
+    private ExpansionState expansionState;
+    private ExceptionDispatchInfo expansionFailure;
 
     /// <summary>
     /// The expander bound to this node in lazy (on-the-fly) exploration, which
     /// computes the node's outgoing edges the first time <see cref="Edges"/> is
     /// accessed. This is the single flag distinguishing the two modes:
     /// <list type="bullet">
-    /// <item><c>null</c> ⇒ an <b>eager</b> (or manually constructed) node. The
-    /// eager worklist has already computed and stored its edges via
-    /// <see cref="SetExpandedEdges"/>, so the lazy machinery is inert and
-    /// <see cref="Edges"/> behaves as a plain list.</item>
+    /// <item><c>null</c> ⇒ an <b>eager</b> node. The eager worklist has already
+    /// computed and stored its edges via <see cref="SetExpandedEdges"/>, so the
+    /// lazy machinery is inert and <see cref="Edges"/> behaves as a plain
+    /// read-only list.</item>
     /// <item>non-<c>null</c> ⇒ a <b>lazy</b> node
     /// (<c>StateGraph.ExploreStateGraph(..., lazy: true)</c>) that materializes
     /// its edges on first <see cref="Edges"/> access.</item>
@@ -313,37 +498,58 @@ public class StateGraphNode
     /// visualization, BFS traversals) — the graph materializes only as far
     /// as it is actually walked.</para>
     /// </summary>
-    public List<StateGraphEdge> Edges
+    public IReadOnlyList<StateGraphEdge> Edges
     {
         get
         {
             EnsureExpanded();
             return edges;
         }
-
-        set => edges = value;
     }
 
     /// <summary>
     /// Ensures this node's outgoing edges have been computed. A no-op for
-    /// eager / manually built nodes (<see cref="LazyExpander"/> is <c>null</c>)
+    /// eager nodes (<see cref="LazyExpander"/> is <c>null</c>)
     /// and idempotent for lazy nodes (expansion runs at most once).
+    /// If lazy expansion fails, the original exception is cached and rethrown
+    /// on subsequent accesses rather than exposing a partial empty graph.
     /// </summary>
     internal void EnsureExpanded()
     {
-        if (expanded)
+        if (expansionState == ExpansionState.Expanded)
         {
             return;
         }
 
-        // Mark expanded before invoking the expander so that any re-entrant
-        // access to this node's Edges during expansion returns the
-        // (currently empty) backing list rather than recursing.
-        expanded = true;
-
-        if (LazyExpander != null)
+        if (expansionState == ExpansionState.Failed)
         {
-            edges = LazyExpander.ExpandNode(this);
+            expansionFailure.Throw();
+            return;
+        }
+
+        // Preserve the previous re-entrant behavior: an expansion callback
+        // reading this node's Edges observes the current backing list instead
+        // of recursively expanding the same node.
+        if (expansionState == ExpansionState.Expanding)
+        {
+            return;
+        }
+
+        expansionState = ExpansionState.Expanding;
+        try
+        {
+            if (LazyExpander != null)
+            {
+                edges = LazyExpander.ExpandNode(this);
+            }
+
+            expansionState = ExpansionState.Expanded;
+        }
+        catch (Exception ex)
+        {
+            expansionFailure = ExceptionDispatchInfo.Capture(ex);
+            expansionState = ExpansionState.Failed;
+            throw;
         }
     }
 
@@ -353,7 +559,7 @@ public class StateGraphNode
     /// than triggering (re)computation. Used by the eager explorer, whose
     /// worklist has already produced the node's edges.
     /// </summary>
-    internal void SetExpandedEdges(List<StateGraphEdge> computedEdges)
+    internal void SetExpandedEdges(IReadOnlyList<StateGraphEdge> computedEdges)
     {
         // Eager and lazy are mutually exclusive per node: an eager node must
         // never be lazy-bound, or a later Edges access would re-expand it
@@ -366,8 +572,28 @@ public class StateGraphNode
                 "lazy-bound node (LazyExpander != null).");
         }
 
-        edges = computedEdges;
-        expanded = true;
+        if (computedEdges == null)
+        {
+            throw new ArgumentNullException(nameof(computedEdges));
+        }
+
+        var edgeSnapshot = new List<StateGraphEdge>(computedEdges);
+        foreach (var edge in edgeSnapshot)
+        {
+            if (edge == null)
+            {
+                throw new ArgumentException("Expanded edges cannot contain null entries.", nameof(computedEdges));
+            }
+        }
+
+        if (expansionState != ExpansionState.NotExpanded)
+        {
+            throw new InvalidOperationException(
+                "Expanded edges can only be assigned to a node that has not started expansion.");
+        }
+
+        edges = edgeSnapshot;
+        expansionState = ExpansionState.Expanded;
     }
 
     /// <summary>
@@ -379,7 +605,7 @@ public class StateGraphNode
     {
         if (nodeFingerprint == null)
         {
-            nodeFingerprint = GetNodeFingerprint(State, StepFunctions);
+            nodeFingerprint = GetNodeFingerprint(State, StepFunctions.ToList());
         }
 
         return nodeFingerprint;
@@ -411,15 +637,27 @@ public class StateGraphNode
         var edges = new List<(string, string, string)>();
         var nodes = new List<(string, string)>();
 
-        var seenSet = new HashSet<string>();
+        var seenSet = new HashSet<StateGraphNode>();
+        var nodeIds = new Dictionary<StateGraphNode, string>();
+        var nextNodeId = 0;
+
+        string GetNodeId(StateGraphNode node)
+        {
+            if (!nodeIds.TryGetValue(node, out var nodeId))
+            {
+                nodeId = $"N{nextNodeId++}";
+                nodeIds[node] = nodeId;
+            }
+
+            return nodeId;
+        }
+
         void CollectEdges(StateGraphNode node)
         {
-            if (seenSet.Contains(node.GetNodeFingerprint()))
+            if (!seenSet.Add(node))
             {
                 return;
             }
-
-            seenSet.Add(node.GetNodeFingerprint());
 
             var nodeLabel = nodeLabelLambda(node);
 
@@ -430,7 +668,7 @@ public class StateGraphNode
             }
 
             nodes.Add((
-                node.GetNodeFingerprint().Substring(0, 5),
+                GetNodeId(node),
                 nodeLabel.Replace("\"", "\\\"")));
 
             foreach (var edge in node.Edges)
@@ -440,8 +678,8 @@ public class StateGraphNode
                     edge.StepFunction.StepFunctionId;
 
                 edges.Add((
-                    node.GetNodeFingerprint().Substring(0, 5),
-                    edge.Target.GetNodeFingerprint().Substring(0, 5),
+                    GetNodeId(node),
+                    GetNodeId(edge.Target),
                     edgeLabel.Replace("\"", "\\\"")));
 
                 CollectEdges(edge.Target);
@@ -476,19 +714,100 @@ public class StateGraphNode
         return string.Join("\r\n", lines);
     }
 
+    /// <summary>
+    /// Returns the compact diagnostic fingerprint for a state and its enabled
+    /// step functions. This value is intentionally not used as graph identity:
+    /// it is a 64-bit display hash and therefore can collide.
+    /// </summary>
     public static string GetNodeFingerprint(
         IState state,
         IList<IStepFunction> stepFunctions)
     {
-        // Combine state hash with step function IDs for node fingerprint
-        var nodeState =
-            state.GetStateHash().ToString() + "-" +
-            string.Join(string.Empty, stepFunctions.OrderBy(s => s.StepFunctionId).Select(s => s.StepFunctionId));
-
-        // Use XxHash64 for fast node fingerprinting
-        var bytes = Encoding.UTF8.GetBytes(nodeState);
+        var fastKey = GetFastNodeKey(state, stepFunctions);
+        var bytes = Encoding.UTF8.GetBytes(fastKey);
         var hash = XxHash64.HashToUInt64(bytes);
-        return hash.ToString("x16");
+        return hash.ToString("x16", CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Returns the cheap lookup key used by graph interning. Equal fast keys
+    /// are still compared using the canonical state representation before two
+    /// nodes are considered identical.
+    /// </summary>
+    internal static string GetFastNodeKey(
+        IState state,
+        IList<IStepFunction> stepFunctions)
+    {
+        if (state == null)
+        {
+            throw new ArgumentNullException(nameof(state));
+        }
+
+        StateGraph.ValidateStepFunctionList(stepFunctions, "Fingerprint step functions");
+
+        var stepFunctionSignature = new StringBuilder();
+        foreach (var stepFunction in stepFunctions.OrderBy(
+            s => s.StepFunctionId,
+            StringComparer.Ordinal))
+        {
+            var id = stepFunction.StepFunctionId;
+            stepFunctionSignature
+                .Append(id.Length.ToString(CultureInfo.InvariantCulture))
+                .Append(':')
+                .Append(id);
+        }
+
+        return state.GetStateHash().ToString(CultureInfo.InvariantCulture) +
+            "-" +
+            stepFunctionSignature;
+    }
+
+    /// <summary>
+    /// Returns the exact logical state representation required to resolve a
+    /// collision in <see cref="GetFastNodeKey"/>.
+    /// </summary>
+    internal static string GetCanonicalStateRepresentation(IState state)
+    {
+        if (state == null)
+        {
+            throw new ArgumentNullException(nameof(state));
+        }
+
+        var representation = state.StringRepresentation();
+        if (representation == null)
+        {
+            throw new InvalidOperationException(
+                $"State of type '{state.GetType().Name}' returned a null StringRepresentation().");
+        }
+
+        return representation;
+    }
+
+    /// <summary>
+    /// Compares two candidate nodes after their cheap hash/signature keys have
+    /// matched. The canonical representation is computed only on this slow
+    /// collision path.
+    /// </summary>
+    internal static bool HasSameNodeIdentity(
+        StateGraphNode existingNode,
+        IState state,
+        IList<IStepFunction> stepFunctions)
+    {
+        if (existingNode == null)
+        {
+            throw new ArgumentNullException(nameof(existingNode));
+        }
+
+        if (GetFastNodeKey(existingNode.State, existingNode.StepFunctions.ToList()) !=
+            GetFastNodeKey(state, stepFunctions))
+        {
+            return false;
+        }
+
+        return string.Equals(
+            GetCanonicalStateRepresentation(existingNode.State),
+            GetCanonicalStateRepresentation(state),
+            StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -524,19 +843,29 @@ public class StateGraphNode
 /// </summary>
 public class StateGraphEdge
 {
+    internal StateGraphEdge(
+        StateGraphNode target,
+        IStepFunction stepFunction,
+        object metadata)
+    {
+        Target = target ?? throw new ArgumentNullException(nameof(target));
+        StepFunction = stepFunction ?? throw new ArgumentNullException(nameof(stepFunction));
+        Metadata = metadata;
+    }
+
     /// <summary>
     /// The target state graph node.
     /// </summary>
-    public StateGraphNode Target { get; set; }
+    public StateGraphNode Target { get; }
 
     /// <summary>
     /// The step function that takes the system to the target
     /// state graph node.
     /// </summary>
-    public IStepFunction StepFunction { get; set; }
+    public IStepFunction StepFunction { get; }
 
     /// <summary>
     /// Metadata associated with the edge.
     /// </summary>
-    public object Metadata { get; set; }
+    public object Metadata { get; }
 }
