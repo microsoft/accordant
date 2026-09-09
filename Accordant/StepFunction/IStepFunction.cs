@@ -12,12 +12,13 @@ using System.Collections.Generic;
 public class StepResult
 {
     /// <summary>
-    /// The next state.
+    /// The next state. This must be non-null for every returned result.
     /// </summary>
     public IState State { get; set; }
 
     /// <summary>
     /// The list of step functions that should be applied in the next state.
+    /// A null list means that no step functions are enabled in the next state.
     /// </summary>
     public IList<IStepFunction> StepFunctions { get; set; }
 
@@ -62,9 +63,33 @@ public interface IStepFunction
 /// </summary>
 public abstract class BaseStepFunction : IStepFunction
 {
-    private string stepFunctionId = Guid.NewGuid().ToString();
+    private readonly string stepFunctionId;
+    private bool hasBeenApplied;
+
+    /// <summary>
+    /// Creates a step function with an optional stable identifier. When no ID
+    /// is supplied, a GUID preserves the existing identity-by-instance
+    /// behavior.
+    /// </summary>
+    protected BaseStepFunction(string stepFunctionId = null)
+    {
+        this.stepFunctionId = stepFunctionId ?? Guid.NewGuid().ToString();
+        if (string.IsNullOrEmpty(this.stepFunctionId))
+        {
+            throw new ArgumentException(
+                "A step-function ID cannot be null or empty.",
+                nameof(stepFunctionId));
+        }
+    }
 
     public virtual string StepFunctionId => stepFunctionId;
+
+    /// <summary>
+    /// Indicates whether this step function has begun application. Derived
+    /// step functions can use this to reject configuration changes that would
+    /// alter behavior after graph identity has started being used.
+    /// </summary>
+    protected bool HasBeenApplied => hasBeenApplied;
 
     /// <summary>
     /// This method locks the state, calls the derived class's
@@ -73,21 +98,49 @@ public abstract class BaseStepFunction : IStepFunction
     /// </summary>
     public IList<StepResult> Apply(IState state, IReadOnlyList<(IStepFunction, StateGraphNode)> path)
     {
+        if (state == null)
+        {
+            throw new ArgumentNullException(nameof(state));
+        }
+
+        if (path == null)
+        {
+            throw new ArgumentNullException(nameof(path));
+        }
+
+        hasBeenApplied = true;
         state.Freeze();
 
-        var stepResults = ApplyInternal(state, path);
+        IList<StepResult> stepResults;
+        try
+        {
+            stepResults = ApplyInternal(state, path);
+        }
+        catch
+        {
+            // Mutation validation must also run when user code throws. This
+            // is a defect in the step implementation, not an expected result.
+            if (state is State stateObj)
+            {
+                stateObj.ValidateNotMutated();
+            }
+
+            throw;
+        }
 
         // Validate that State inputs were not mutated by user code
-        if (state is State stateObj)
+        if (state is State stateObjAfterApply)
         {
-            stateObj.ValidateNotMutated();
+            stateObjAfterApply.ValidateNotMutated();
         }
 
         if (stepResults != null)
         {
-            foreach (var stepResult in stepResults)
+            for (var i = 0; i < stepResults.Count; i++)
             {
-                stepResult.State?.Freeze();
+                var stepResult = stepResults[i];
+                StateGraph.ValidateStepResult(stepResult, this, i);
+                stepResult.State.Freeze();
             }
         }
 
@@ -239,13 +292,39 @@ internal sealed class AsyncOperation<TState> : TerminatingStepFunction where TSt
         string name = null)
     {
         _isTerminal = isTerminal ?? throw new ArgumentNullException(nameof(isTerminal));
-        _transitions = transitions ?? throw new ArgumentNullException(nameof(transitions));
-        if (_transitions.Length == 0)
+        if (transitions == null)
+        {
+            throw new ArgumentNullException(nameof(transitions));
+        }
+
+        if (transitions.Length == 0)
+        {
             throw new ArgumentException("At least one transition is required.", nameof(transitions));
+        }
+
+        _transitions = new Action<TState>[transitions.Length];
+        for (var i = 0; i < transitions.Length; i++)
+        {
+            _transitions[i] = transitions[i] ?? throw new ArgumentException(
+                $"Transition at index {i} cannot be null.",
+                nameof(transitions));
+        }
+
         _name = name;
     }
 
-    public override Func<IState, bool> IsTerminalState => state => _isTerminal((TState)state);
+    public override Func<IState, bool> IsTerminalState => state =>
+    {
+        if (!(state is TState typedState))
+        {
+            throw new ArgumentException(
+                $"Async operation '{ToString()}' requires state type '{typeof(TState).FullName}', " +
+                $"but received '{state?.GetType().FullName ?? "null"}'.",
+                nameof(state));
+        }
+
+        return _isTerminal(typedState);
+    };
 
     protected override IList<StepResult> GetStepResults(IState state)
     {

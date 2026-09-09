@@ -103,7 +103,7 @@ public class ConcurrentTestCaseAlgorithms
                 else
                 {
                     var concurrentEdgeList = GetCombinations(
-                        edgeList,
+                        edgeList.ToList(),
                         maxConcurrencyLevel);
 
                     foreach (var subset in concurrentEdgeList)
