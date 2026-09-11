@@ -126,4 +126,63 @@ public sealed class TraceStoreTests
             Assert.That(Directory.GetFiles(tracesDirectory.Path, "*.json"), Has.Length.EqualTo(1));
         });
     }
+
+    [Test]
+    public async Task SaveAsync_WithName_WritesToNamedFile()
+    {
+        using var tracesDirectory = new TestTracesDirectory();
+
+        var trace = new RecordedTrace(
+            RecordedTrace.CurrentSchemaVersion,
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            DateTime.UtcNow,
+            TraceStatus.Completed,
+            Array.Empty<RecordedCall>());
+
+        var path = await TraceStore.SaveAsync(tracesDirectory.Path, trace, "HappyPath");
+
+        Assert.That(path, Is.EqualTo(Path.Combine(tracesDirectory.Path, "HappyPath.json")));
+
+        var reloaded = await TraceStore.LoadAsync(path);
+        Assert.That(reloaded.TraceId, Is.EqualTo(trace.TraceId));
+    }
+
+    [Test]
+    public async Task SaveAsync_WithName_OverwritesAPreviouslyNamedTrace()
+    {
+        using var tracesDirectory = new TestTracesDirectory();
+
+        var first = new RecordedTrace(
+            RecordedTrace.CurrentSchemaVersion,
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            DateTime.UtcNow,
+            TraceStatus.Completed,
+            new List<RecordedCall>
+            {
+                new(1, "Create", JsonSerializer.SerializeToElement(new { }), JsonSerializer.SerializeToElement(new { }), error: null),
+            });
+
+        var second = new RecordedTrace(
+            RecordedTrace.CurrentSchemaVersion,
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            DateTime.UtcNow,
+            TraceStatus.Completed,
+            Array.Empty<RecordedCall>());
+
+        await TraceStore.SaveAsync(tracesDirectory.Path, first, "HappyPath");
+        var path = await TraceStore.SaveAsync(tracesDirectory.Path, second, "HappyPath");
+
+        var reloaded = await TraceStore.LoadAsync(path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(reloaded.TraceId, Is.EqualTo(second.TraceId));
+            Assert.That(reloaded.Calls, Is.Empty);
+            Assert.That(Directory.GetFiles(tracesDirectory.Path, "*.tmp"), Is.Empty);
+            Assert.That(Directory.GetFiles(tracesDirectory.Path, "*.json"), Has.Length.EqualTo(1));
+        });
+    }
 }
