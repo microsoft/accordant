@@ -268,7 +268,7 @@ public static class TraceReplayer
     /// <typeparam name="TState">The spec's state type.</typeparam>
     /// <param name="spec">The spec to use as an oracle. Never mutated.</param>
     /// <param name="initialState">The state the system was in before the trace's first call. Never mutated.</param>
-    /// <param name="tracePath">The path of a trace file previously written by <see cref="TraceStore.SaveAsync"/>.</param>
+    /// <param name="tracePath">The path of a trace file previously written by one of the <see cref="TraceStore.SaveAsync(string, RecordedTrace)"/> overloads.</param>
     /// <param name="serializerOptions">
     /// Options used to deserialize each call's recorded request/response JSON. Defaults to
     /// <see cref="ReplayJsonOptions.CreateDefault"/> when omitted.
