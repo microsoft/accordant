@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Tests/">
     <Project Path="Tests/Accordant.Choose.Tests/Accordant.Choose.Tests.csproj" />
+    <Project Path="Tests/Accordant.ModelChecking.Tests/Accordant.ModelChecking.Tests.csproj" />
     <Project Path="Tests/Accordant.Operations.Tests/Accordant.Operations.Tests.csproj" />
     <Project Path="Tests/Accordant.Tests/Accordant.Tests.csproj" />
   </Folder>
@@ -15,6 +16,11 @@
     <Project Path="Samples/TodoList/TodoList.Tests/TodoList.Tests.csproj" />
     <Project Path="Samples/TodoList-Extended/TodoList-Extended.Api/TodoList-Extended.Api.csproj" />
     <Project Path="Samples/TodoList-Extended/TodoList-Extended.Tests/TodoList-Extended.Tests.csproj" />
+    <Project Path="Samples/DiningPhilosophers/DiningPhilosophers.csproj" />
+    <Project Path="Samples/Peterson/Peterson.csproj" />
+    <Project Path="Samples/Paxos/Paxos.csproj" />
+    <Project Path="Samples/TerminationDetection/TerminationDetection.csproj" />
+    <Project Path="Samples/AlternatingBit/AlternatingBit.csproj" />
   </Folder>
   <Project Path="Accordant.Choose/Accordant.Choose.csproj" />
   <Project Path="Microsoft.Accordant.Cli/Microsoft.Accordant.Cli.csproj" />
@@ -23,4 +29,6 @@
   <Project Path="Accordant.Operations/Accordant.Operations.csproj" />
   <Project Path="Accordant.SourceGenerator/Accordant.SourceGenerator.csproj" />
   <Project Path="Accordant/Accordant.csproj" />
+  <Project Path="Accordant.ModelChecking/Accordant.ModelChecking.csproj" />
+  <Project Path="Accordant.ModelChecking.Bdd/Accordant.ModelChecking.Bdd.csproj" />
 </Solution>

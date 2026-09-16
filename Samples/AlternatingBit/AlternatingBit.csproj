@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<OutputType>Library</OutputType>
+		<RootNamespace>AlternatingBit</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="NUnit" />
+		<PackageReference Include="NUnit3TestAdapter" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Accordant\Accordant.csproj" />
+		<ProjectReference Include="..\..\Accordant.ModelChecking\Accordant.ModelChecking.csproj" />
+		<ProjectReference Include="..\..\Accordant.ModelChecking.Bdd\Accordant.ModelChecking.Bdd.csproj" />
+		<ProjectReference Include="..\..\Accordant.SourceGenerator\Accordant.SourceGenerator.csproj" 
+		                  OutputItemType="Analyzer" 
+		                  ReferenceOutputAssembly="false" />
+	</ItemGroup>
+
+</Project>
