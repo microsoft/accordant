@@ -1,6 +1,5 @@
 # Install-AccordantCli.ps1
 # Installs (or reinstalls) the Microsoft.Accordant.Cli tool locally for development
-# Uses the nuspec file from nuget/ folder
 
 param(
     [switch]$Global = $true
@@ -10,12 +9,9 @@ $ErrorActionPreference = "Stop"
 
 $toolName = "Microsoft.Accordant.Cli"
 $projectPath = (Resolve-Path "$PSScriptRoot\..\Microsoft.Accordant.Cli\Microsoft.Accordant.Cli.csproj").Path
-$nuspecPath = (Resolve-Path "$PSScriptRoot\..\nuget\Microsoft.Accordant.Cli.nuspec").Path
 $nupkgPath = "$PSScriptRoot\..\bin\packages"
 
-# Extract version from nuspec
-[xml]$nuspec = Get-Content $nuspecPath
-$version = $nuspec.package.metadata.version
+$version = dotnet msbuild $projectPath -getProperty:Version -nologo
 
 Write-Host "=== Accordant CLI Installer ===" -ForegroundColor Cyan
 Write-Host ""
@@ -48,24 +44,16 @@ if (-not (Test-Path $nupkgPath)) {
 # Convert to absolute path for dotnet tool install
 $nupkgPath = (Resolve-Path $nupkgPath).Path
 
-# Pack using nuspec (catches target framework mismatches)
 Write-Host ""
-Write-Host "Packing with nuspec (validates target framework coverage)..." -ForegroundColor Yellow
+Write-Host "Packing..." -ForegroundColor Yellow
 
 # Remove any existing nupkg to avoid file locking issues
 Remove-Item "$nupkgPath\$toolName.*.nupkg" -Force -ErrorAction SilentlyContinue
 
-# Use nuget pack with the nuspec file
-$nugetExe = Get-Command nuget -ErrorAction SilentlyContinue
-if ($nugetExe) {
-    nuget pack $nuspecPath -OutputDirectory $nupkgPath
-} else {
-    # Fallback: use dotnet pack with nuspec
-    dotnet pack $projectPath -c Release -o $nupkgPath -p:NuspecFile=$nuspecPath /m:1
-}
+dotnet pack $projectPath -c Release -o $nupkgPath --no-build
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Pack failed! Check if nuspec matches csproj TargetFrameworks." -ForegroundColor Red
+    Write-Host "Pack failed!" -ForegroundColor Red
     exit 1
 }
 
