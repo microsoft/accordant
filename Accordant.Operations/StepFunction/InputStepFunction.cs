@@ -25,11 +25,7 @@ public class InputStepFunction : BaseStepFunction
 
     private ISpec spec;
 
-    private Dictionary<string, int> operationCount;
-
-    private Dictionary<string, object> operationCallRequests;
-
-    private Dictionary<string, object> operationCallResponses;
+    private OperationCallLabeler labeler;
 
     private Dictionary<string, Func<object>> requestTemplates;
 
@@ -42,16 +38,14 @@ public class InputStepFunction : BaseStepFunction
     /// <summary>
     /// Constructs an instance of this class given a request and a model definition.
     /// </summary>
-    public InputStepFunction(
+    internal InputStepFunction(
         OperationInput operationInput,
         bool addNonInputStepFunctions,
         Func<OperationInput, IState, bool> shouldApply,
         Func<OperationInput, IList<OperationInput>, bool> shouldPreserveOperation,
         Func<UnwindContext, bool> shouldUnwindStepFunction,
         ISpec spec,
-        Dictionary<string, int> operationCount,
-        Dictionary<string, object> operationCallRequests,
-        Dictionary<string, object> operationCallResponses,
+        OperationCallLabeler labeler,
         Dictionary<string, Func<object>> requestTemplates,
         IList<DerivationSelector> derivationSelectors)
     {
@@ -60,9 +54,7 @@ public class InputStepFunction : BaseStepFunction
         this.shouldPreserveOperation = shouldPreserveOperation;
         this.shouldUnwindStepFunction = shouldUnwindStepFunction;
         this.spec = spec;
-        this.operationCount = operationCount;
-        this.operationCallRequests = operationCallRequests;
-        this.operationCallResponses = operationCallResponses;
+        this.labeler = labeler;
         this.requestTemplates = requestTemplates;
         this.derivationSelectors = derivationSelectors;
         OperationInput = operationInput;
@@ -99,16 +91,7 @@ public class InputStepFunction : BaseStepFunction
             {
                 var operationName = OperationInput.Name;
 
-                if (!operationCount.ContainsKey(operationName))
-                {
-                    operationCount[operationName] = 0;
-                }
-
-                var count = operationCount[operationName];
-
-                operationCount[operationName]++;
-
-                var arbitraryLabel = GetArbitraryLabel(count);
+                var arbitraryLabel = labeler.NextLabel(operationName);
                 var namePrefix = responseAndStateProfiles.Count == 1 ?
                     $"[{arbitraryLabel}]" :
                     $"[{arbitraryLabel}-{responseCount}]";
@@ -118,9 +101,6 @@ public class InputStepFunction : BaseStepFunction
                     OperationInput);
 
                 var currentOperationName = spec.GetOperationName(operation);
-
-                operationCallRequests[operationCall.Name] = request;
-                operationCallResponses[operationCall.Name] = response;
 
                 var finalStepFunctions = new List<IStepFunction>();
 
@@ -288,9 +268,7 @@ public class InputStepFunction : BaseStepFunction
                                 shouldPreserveOperation,
                                 shouldUnwindStepFunction,
                                 spec,
-                                operationCount,
-                                operationCallRequests,
-                                operationCallResponses,
+                                labeler,
                                 requestTemplates,
                                 derivationSelectors));
                     }
@@ -391,31 +369,6 @@ public class InputStepFunction : BaseStepFunction
             {
                 result.Add(operationStepFunction.OperationInput);
             }
-        }
-
-        return result;
-    }
-
-    private static char[] randomChars = new char[]
-    {
-        's', 'u', 'p', 'e', 'r', 'g', 'y', 'a', 'q', 'z', 'c', 'o',
-        'i', 'b', 't', 'd', 'l', 'm', 'v', 'f', 'w', 'j', 'n',
-        'x', 'k', 'h'
-    };
-
-    internal static string GetArbitraryLabel(int num)
-    {
-        var randomStringsLength = randomChars.Length;
-
-        num = num + 1;
-
-        string result = string.Empty;
-        while (num > 0)
-        {
-            num--;
-            var part = randomChars[num % randomStringsLength];
-            result = part + result;
-            num /= randomStringsLength;
         }
 
         return result;

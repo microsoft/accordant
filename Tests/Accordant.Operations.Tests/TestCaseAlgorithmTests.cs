@@ -558,4 +558,76 @@ public class TestCaseAlgorithmTests
     }
 
     #endregion
+
+    #region Name simplification robustness
+
+    [Test]
+    public void OperationCallLabeler_AssignsDistinctLabelsPerOperation()
+    {
+        var labeler = new OperationCallLabeler();
+
+        Assert.That(labeler.NextLabel("Add"), Is.EqualTo("s"));
+        Assert.That(labeler.NextLabel("Add"), Is.EqualTo("u"));
+        Assert.That(labeler.NextLabel("Add"), Is.EqualTo("p"));
+
+        // Each operation name has its own counter.
+        Assert.That(labeler.NextLabel("Get"), Is.EqualTo("s"));
+    }
+
+    [Test]
+    public void Generation_IsDeterministic_AcrossRuns()
+    {
+        var spec = new CounterSpec();
+        var inputs = new InputSet
+        {
+            spec.AddOp.With(1, "Add 1"),
+            spec.AddOp.With(2, "Add 2"),
+            spec.GetOp.With("Get")
+        };
+        var options = new TestGenerationOptions { MaxDepth = 3 };
+
+        var first = spec.GenerateTests(new CounterState { Value = 0 }, inputs, options)
+            .Select(testCase => testCase.Description)
+            .ToList();
+
+        var second = spec.GenerateTests(new CounterState { Value = 0 }, inputs, options)
+            .Select(testCase => testCase.Description)
+            .ToList();
+
+        Assert.That(second, Is.EqualTo(first));
+    }
+
+    [Test]
+    public void ConstructSimplifiedOperationCallNameMap_WithUnresolvableDerivation_Throws()
+    {
+        var spec = new CounterSpec();
+
+        var missingCall = new OperationCall(
+            "[x] Missing",
+            spec.ResetOp.With(Unit.Value, "Missing"));
+
+        var addCall = new OperationCall(
+            "[u] Add",
+            spec.AddOp.With(1, "Add"));
+
+        // This call derives from a call name that is not present in the test case,
+        // so it can never be resolved and the loop must not spin forever.
+        var derivedCall = new OperationCall(
+            "[v] Reset",
+            new OperationInput(
+                "Reset",
+                spec.ResetOp,
+                request: null,
+                derivedFromOperationCalls: new List<OperationCall> { missingCall },
+                derivationVariant: DerivationLabels.Default));
+
+        var ex = Assert.Throws<InvalidSpecException>(() =>
+            TestCaseGenerator.ConstructSimplifiedOperationCallNameMap(
+                spec,
+                new List<OperationCall> { addCall, derivedCall }));
+
+        Assert.That(ex.Message, Does.Contain("no further names could be resolved"));
+    }
+
+    #endregion
 }

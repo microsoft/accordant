@@ -14,7 +14,16 @@ using System.Collections.Generic;
 /// </summary>
 public class ChooseExpressionLambda
 {
-    internal static ChooseExpressionLambdaConfig CurrentConfig { get; set; }
+    // Per-thread so that concurrent ChooseExpressionLambda.Run calls (e.g. parallel
+    // test fixtures) don't overwrite each other's choice-space state.
+    [ThreadStatic]
+    private static ChooseExpressionLambdaConfig currentConfig;
+
+    internal static ChooseExpressionLambdaConfig CurrentConfig
+    {
+        get => currentConfig;
+        set => currentConfig = value;
+    }
 
     /// <summary>
     /// Runs a choose expression lambda, enough times such that all

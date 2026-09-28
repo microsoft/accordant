@@ -184,7 +184,7 @@ public class TestCaseGenerator
 
         var operationCalls = operationNames
             .Select((name, index) => new OperationCall(
-                InputStepFunction.GetArbitraryLabel(index) + name,
+                OperationCallLabeler.GetArbitraryLabel(index) + name,
                 inputSet[name]))
             .ToList();
 
@@ -224,7 +224,7 @@ public class TestCaseGenerator
         {
             return operationNames
                 .Select((name, index) => new OperationCall(
-                    InputStepFunction.GetArbitraryLabel(baseIndex + index) + name,
+                    OperationCallLabeler.GetArbitraryLabel(baseIndex + index) + name,
                     inputSet[name]))
                 .ToList();
         }
@@ -502,10 +502,7 @@ public class TestCaseGenerator
         TestGenerationOptions options,
         bool addNonInputStepFunctions)
     {
-        var operationCount = new Dictionary<string, int>();
-
-        var operationCallRequests = new Dictionary<string, object>();
-        var operationCallResponses = new Dictionary<string, object>();
+        var operationLabeler = new OperationCallLabeler();
 
         var stepFunctions = new List<IStepFunction>();
         foreach (var input in inputSet.Inputs)
@@ -517,9 +514,7 @@ public class TestCaseGenerator
                 options.ShouldPreserveOperation,
                 options.ShouldUnwindStepFunction,
                 spec,
-                operationCount,
-                operationCallRequests,
-                operationCallResponses,
+                operationLabeler,
                 options.RequestTemplates,
                 options.DerivationSelectors);
 
@@ -638,8 +633,23 @@ public class TestCaseGenerator
         var operationCallNameMap = new Dictionary<string, string>();
         var operationNameMap = new Dictionary<string, string>();
 
+        // Each pass must resolve at least one additional call name; if it doesn't,
+        // a DerivedFrom reference can never be resolved (a cycle, or a dependency on
+        // a call that is not present), which would otherwise spin forever.
+        var previousResolvedCount = -1;
+
         while (operationCallNameMap.Count != operationCalls.Count)
         {
+            if (operationCallNameMap.Count == previousResolvedCount)
+            {
+                throw new InvalidSpecException(
+                    "Could not simplify operation call names because no further names could be resolved. " +
+                    "This indicates a cycle or an unresolvable DerivedFrom reference among the operation calls: " +
+                    string.Join(", ", operationCalls.Select(call => call.Name)));
+            }
+
+            previousResolvedCount = operationCallNameMap.Count;
+
             var nameCountMap = new Dictionary<string, int>();
 
             foreach (var operationCall in operationCalls)
