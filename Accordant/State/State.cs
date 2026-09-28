@@ -95,21 +95,27 @@ public abstract class State : IState
             throw new ArgumentNullException(nameof(clonedMap));
         }
 
-        if (!clonedMap.ContainsKey(this))
+        if (!clonedMap.TryGetValue(this, out var clone))
         {
             CloneInternal(clonedMap);
+
+            if (!clonedMap.TryGetValue(this, out clone))
+            {
+                throw new InvalidOperationException(
+                    $"CloneInternal on '{GetType().Name}' did not register the clone in the cloned map. " +
+                    "Every State.CloneInternal implementation must set clonedMap[this] = clone before " +
+                    "cloning its sub-components so that cycles resolve to the same clone.");
+            }
         }
 
-        if (clonedMap[this] is State state)
+        if (clone is State state)
         {
             return state;
         }
-        else
-        {
-            throw new InvalidOperationException(
-                $"The cloned map contains an invalid value for key '{GetType().Name}'. " +
-                $"Expected a State instance but found '{clonedMap[this]?.GetType().Name ?? "null"}'.");
-        }
+
+        throw new InvalidOperationException(
+            $"The cloned map contains an invalid value for key '{GetType().Name}'. " +
+            $"Expected a State instance but found '{clone?.GetType().Name ?? "null"}'.");
     }
 
     /// <summary>

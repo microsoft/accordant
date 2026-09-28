@@ -52,6 +52,26 @@ public class ValidationTests
         }
     }
 
+    // A state whose CloneInternal violates the contract by not registering the
+    // clone. Used to prove Clone fails fast instead of throwing KeyNotFoundException.
+    private sealed class UnregisteredCloneState : State
+    {
+        public int Value { get; set; }
+
+        protected override void CloneInternal(Dictionary<object, object> clonedMap)
+        {
+            // Intentionally does NOT set clonedMap[this].
+        }
+
+        protected override string StringRepresentationInternal(
+            Dictionary<object, string> objectPaths, string path, bool forceRecompute)
+            => $"unregistered:{this.Value}";
+
+        protected override void FreezeComponents(HashSet<object> visited)
+        {
+        }
+    }
+
     #endregion
 
     #region Test step functions
@@ -287,6 +307,16 @@ public class ValidationTests
     {
         var ex = Assert.Throws<ArgumentNullException>(() => new ProbeState().Clone(null));
         Assert.That(ex.ParamName, Is.EqualTo("clonedMap"));
+    }
+
+    [Test]
+    public void State_Clone_WhenCloneInternalDoesNotRegisterClone_Throws()
+    {
+        var state = new UnregisteredCloneState { Value = 1 };
+
+        var ex = Assert.Throws<InvalidOperationException>(() => state.Clone());
+
+        Assert.That(ex.Message, Does.Contain("did not register the clone"));
     }
 
     [Test]
