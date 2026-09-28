@@ -184,7 +184,7 @@ public class TestCaseGenerator
 
         var operationCalls = operationNames
             .Select((name, index) => new OperationCall(
-                InputStepFunction.GetArbitraryLabel(index) + name,
+                OperationCallLabeler.GetArbitraryLabel(index) + name,
                 inputSet[name]))
             .ToList();
 
@@ -224,7 +224,7 @@ public class TestCaseGenerator
         {
             return operationNames
                 .Select((name, index) => new OperationCall(
-                    InputStepFunction.GetArbitraryLabel(baseIndex + index) + name,
+                    OperationCallLabeler.GetArbitraryLabel(baseIndex + index) + name,
                     inputSet[name]))
                 .ToList();
         }
@@ -502,10 +502,7 @@ public class TestCaseGenerator
         TestGenerationOptions options,
         bool addNonInputStepFunctions)
     {
-        var operationCount = new Dictionary<string, int>();
-
-        var operationCallRequests = new Dictionary<string, object>();
-        var operationCallResponses = new Dictionary<string, object>();
+        var operationLabeler = new OperationCallLabeler();
 
         var stepFunctions = new List<IStepFunction>();
         foreach (var input in inputSet.Inputs)
@@ -517,9 +514,7 @@ public class TestCaseGenerator
                 options.ShouldPreserveOperation,
                 options.ShouldUnwindStepFunction,
                 spec,
-                operationCount,
-                operationCallRequests,
-                operationCallResponses,
+                operationLabeler,
                 options.RequestTemplates,
                 options.DerivationSelectors);
 

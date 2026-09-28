@@ -4,8 +4,10 @@
 namespace Microsoft.Accordant.Choose.Tests;
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.Accordant;
 using NUnit.Framework;
 
@@ -39,6 +41,48 @@ public class ChooseTests
         {
             Choose.Each<int>(Array.Empty<int>());
         });
+    }
+
+    [Test]
+    public static void ConcurrentRunsAreIsolated()
+    {
+        const int threadCount = 8;
+        const int iterationsPerThread = 100;
+
+        var failures = new ConcurrentBag<string>();
+        var threads = new List<Thread>();
+        using var barrier = new Barrier(threadCount);
+
+        for (var t = 0; t < threadCount; t++)
+        {
+            var thread = new Thread(() =>
+            {
+                barrier.SignalAndWait();
+
+                for (var i = 0; i < iterationsPerThread; i++)
+                {
+                    var results = ChooseExpressionLambda
+                        .Run(() => Choose.Each(1, 2, 3))
+                        .ToList();
+
+                    if (!results.SequenceEqual(new[] { 1, 2, 3 }))
+                    {
+                        failures.Add(string.Join(",", results));
+                        return;
+                    }
+                }
+            });
+
+            threads.Add(thread);
+            thread.Start();
+        }
+
+        foreach (var thread in threads)
+        {
+            thread.Join();
+        }
+
+        Assert.That(failures, Is.Empty);
     }
 
     [Test]

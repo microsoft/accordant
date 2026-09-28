@@ -20,8 +20,6 @@ using System.Text.Json.Serialization;
 /// </summary>
 public abstract class State : IState
 {
-    public static Random Random { get; } = new Random();
-
     /// <summary>
     /// Controls whether <see cref="ValidateNotMutated"/> performs validation.
     /// <para>
