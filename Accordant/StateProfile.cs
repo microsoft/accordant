@@ -33,17 +33,30 @@ using System.Linq;
 /// </summary>
 public class StateProfile
 {
+    private IList<(IState State, IList<IStepFunction> StepFunctions)> statesAndStepFunctions;
+
     /// <summary>
     /// The set of states the system can be and the set of step functions
-    /// associated with each of those states.
+    /// associated with each of those states. The value is never null; assigning
+    /// null fails fast so downstream code can rely on the invariant.
     /// </summary>
-    public IList<(IState State, IList<IStepFunction> StepFunctions)> StatesAndStepFunctions { get; set; }
+    public IList<(IState State, IList<IStepFunction> StepFunctions)> StatesAndStepFunctions
+    {
+        get => statesAndStepFunctions;
+        set => statesAndStepFunctions = value
+            ?? throw new ArgumentNullException(nameof(StatesAndStepFunctions));
+    }
 
     /// <summary>
     /// Constructs an instance of this class given a single state.
     /// </summary>
     public StateProfile(IState state)
     {
+        if (state == null)
+        {
+            throw new ArgumentNullException(nameof(state));
+        }
+
         StatesAndStepFunctions = new List<(IState, IList<IStepFunction>)>()
         {
             (state, Array.Empty<IStepFunction>())
@@ -56,6 +69,16 @@ public class StateProfile
     /// <param name="states"></param>
     public StateProfile(IList<IState> states)
     {
+        if (states == null)
+        {
+            throw new ArgumentNullException(nameof(states));
+        }
+
+        if (states.Any(s => s == null))
+        {
+            throw new ArgumentException("The state list must not contain null entries.", nameof(states));
+        }
+
         StatesAndStepFunctions =
             states.Select(s => (s, (IList<IStepFunction>)Array.Empty<IStepFunction>())).ToList();
     }
@@ -66,6 +89,18 @@ public class StateProfile
     /// </summary>
     public StateProfile(IList<(IState, IList<IStepFunction>)> statesAndStepFunctions)
     {
+        if (statesAndStepFunctions == null)
+        {
+            throw new ArgumentNullException(nameof(statesAndStepFunctions));
+        }
+
+        if (statesAndStepFunctions.Any(ssf => ssf.Item1 == null))
+        {
+            throw new ArgumentException(
+                "The state/steps list must not contain null states.",
+                nameof(statesAndStepFunctions));
+        }
+
         StatesAndStepFunctions = statesAndStepFunctions;
 
         // If any of the step functions is null, then convert that to an empty list,
@@ -87,15 +122,12 @@ public class StateProfile
     /// </summary>
     public IState SingleState()
     {
-        Invariant.Assert(StatesAndStepFunctions.Count > 0);
-
-        if (StatesAndStepFunctions.Count != 1 ||
-            StatesAndStepFunctions[0].StepFunctions.Count != 0)
+        if (!IsSingleState())
         {
             throw new MultipleStateException();
         }
 
-        return StatesAndStepFunctions.Single().State;
+        return StatesAndStepFunctions[0].State;
     }
 
     /// <summary>
@@ -104,15 +136,19 @@ public class StateProfile
     /// </summary>
     public bool IsSingleState()
     {
-        Invariant.Assert(StatesAndStepFunctions.Count > 0);
+        Invariant.Assert(StatesAndStepFunctions != null, "StateProfile.StatesAndStepFunctions must not be null.");
+        Invariant.Assert(StatesAndStepFunctions.Count > 0, "StateProfile must contain at least one state.");
 
-        if (StatesAndStepFunctions.Count != 1 ||
-            StatesAndStepFunctions[0].StepFunctions.Count != 0)
+        if (StatesAndStepFunctions.Count != 1)
         {
             return false;
         }
 
-        return true;
+        Invariant.Assert(
+            StatesAndStepFunctions[0].StepFunctions != null,
+            "StateProfile step functions must not be null; use an empty list instead.");
+
+        return StatesAndStepFunctions[0].StepFunctions.Count == 0;
     }
 
     public override string ToString()

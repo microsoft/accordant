@@ -75,14 +75,22 @@ public class ContractStepFunction : BaseStepFunction
         {
             return null;
         }
-        else
+
+        // The verify function reported the response valid, so it must supply the
+        // resulting state(s). A null profile here (or one with null
+        // StatesAndStepFunctions, which StateProfile now rejects on assignment)
+        // is a bug in the user-supplied verify function: fail loudly and name it.
+        if (stateProfile == null)
         {
-            return
-                stateProfile.StatesAndStepFunctions.Select(stateAndStepFunctions => new StepResult()
-                {
-                    State = stateAndStepFunctions.State,
-                    StepFunctions = stateAndStepFunctions.StepFunctions
-                }).ToList();
+            throw new InvalidOperationException(
+                "The verify function reported a valid response but returned a null StateProfile.");
         }
+
+        return
+            stateProfile.StatesAndStepFunctions.Select(stateAndStepFunctions => new StepResult()
+            {
+                State = stateAndStepFunctions.State,
+                StepFunctions = stateAndStepFunctions.StepFunctions
+            }).ToList();
     }
 }
