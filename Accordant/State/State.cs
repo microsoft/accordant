@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 /// State class represents the state maintained by the user of a system to make sense
 /// of the behavior of the system. It is not the internal state of the system though
 /// it is probably similar to the internal state of the system.
-/// 
+///
 /// This is an abstract class and defines properties and methods that should be implemented
 /// by all state objects.
 /// </summary>
@@ -24,10 +24,14 @@ public abstract class State : IState
 
     /// <summary>
     /// Controls whether <see cref="ValidateNotMutated"/> performs validation.
-    /// Set to false to disable validation for performance in production scenarios.
-    /// Default is true.
+    /// <para>
+    /// Defaults to <c>false</c>: validation re-renders the entire state graph on
+    /// every step-function application, which is a debug aid rather than a
+    /// production cost. Set it to <c>true</c> explicitly to force validation on
+    /// (for example in a test that asserts mutation is detected).
+    /// </para>
     /// </summary>
-    public static bool EnableFreezeValidation { get; set; } = true;
+    public static bool EnableFreezeValidation { get; set; } = false;
 
     protected string stringRepresentation = null;
     protected ulong? stateHash = null;
@@ -300,7 +304,7 @@ public abstract class State : IState
     /// <summary>
     /// Appends hash data for this state's fields to the hasher.
     /// Override in derived classes for efficient incremental hashing.
-    /// The cycle check is handled by <see cref="AppendHashCore"/> - 
+    /// The cycle check is handled by <see cref="AppendHashCore"/> -
     /// this method only needs to append field data.
     /// </summary>
     /// <param name="hasher">The XxHash64 hasher to append data to.</param>
@@ -326,6 +330,15 @@ public abstract class State : IState
     /// </summary>
     public void Freeze()
     {
+        // Already frozen: FreezeComponents has run and every component is frozen,
+        // so skip the HashSet allocation and the full object-graph walk. Step
+        // functions call this on their (already frozen) input state on every
+        // application, so this fast path matters.
+        if (IsFrozen)
+        {
+            return;
+        }
+
         Freeze(visited: new HashSet<object>(ReferenceEqualityComparer.Instance));
     }
 
@@ -334,6 +347,11 @@ public abstract class State : IState
         if (visited == null)
         {
             throw new ArgumentNullException(nameof(visited));
+        }
+
+        if (IsFrozen)
+        {
+            return;
         }
 
         if (visited.Contains(this))

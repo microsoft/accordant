@@ -4,10 +4,10 @@
 namespace Microsoft.Accordant;
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO.Hashing;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 
 /// <summary>
@@ -262,8 +262,6 @@ public static class StateGraph
 public class StateGraphNode
 {
     private string nodeFingerprint = null;
-
-    private static SHA256 SHA256 = SHA256.Create();
 
     /// <summary>
     /// The system state represented by this node.
@@ -557,15 +555,65 @@ public class StateGraphNode
             throw new ArgumentNullException(nameof(stepFunctions));
         }
 
-        // Combine state hash with step function IDs for node fingerprint
-        var nodeState =
-            state.GetStateHash().ToString() + "-" +
-            string.Join(string.Empty, stepFunctions.OrderBy(s => s.StepFunctionId).Select(s => s.StepFunctionId));
+        // Hash the state hash and the ordered step-function ids directly into a
+        // single XxHash64. The previous implementation built a joined id string, the
+        // combined string and a UTF-8 byte[] of the whole thing before hashing;
+        // appending the pieces incrementally yields an equally stable fingerprint
+        // with a fraction of the allocations.
+        var hasher = new XxHash64();
 
-        // Use XxHash64 for fast node fingerprinting
-        var bytes = Encoding.UTF8.GetBytes(nodeState);
-        var hash = XxHash64.HashToUInt64(bytes);
-        return hash.ToString("x16");
+        Span<byte> stateHashBytes = stackalloc byte[sizeof(ulong)];
+        BinaryPrimitives.WriteUInt64LittleEndian(stateHashBytes, state.GetStateHash());
+        hasher.Append(stateHashBytes);
+
+        if (IsOrderedByStepFunctionId(stepFunctions))
+        {
+            // The common case: step functions handed out by the graph are already
+            // ordered, so skip the LINQ sort entirely.
+            for (var i = 0; i < stepFunctions.Count; i++)
+            {
+                AppendUtf8(hasher, stepFunctions[i].StepFunctionId);
+            }
+        }
+        else
+        {
+            foreach (var stepFunction in stepFunctions.OrderBy(s => s.StepFunctionId))
+            {
+                AppendUtf8(hasher, stepFunction.StepFunctionId);
+            }
+        }
+
+        return hasher.GetCurrentHashAsUInt64().ToString("x16");
+    }
+
+    private static readonly IComparer<string> StepFunctionIdComparer =
+        Comparer<string>.Default;
+
+    private static readonly byte[] Utf8Separator = { 0 };
+
+    private static bool IsOrderedByStepFunctionId(IList<IStepFunction> stepFunctions)
+    {
+        for (var i = 1; i < stepFunctions.Count; i++)
+        {
+            if (StepFunctionIdComparer.Compare(
+                    stepFunctions[i - 1].StepFunctionId,
+                    stepFunctions[i].StepFunctionId) > 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Appends a UTF-8 string followed by a separator byte, so the hash is not
+    /// ambiguous across field boundaries (e.g. "ab"+"c" vs "a"+"bc").
+    /// </summary>
+    private static void AppendUtf8(XxHash64 hasher, string value)
+    {
+        hasher.Append(Encoding.UTF8.GetBytes(value ?? string.Empty));
+        hasher.Append(Utf8Separator);
     }
 
     /// <summary>
