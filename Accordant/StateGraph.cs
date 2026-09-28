@@ -38,6 +38,31 @@ public static class StateGraph
         Func<IState, IStepFunction, StepResult, bool> shouldIncludeStepFunctionResult = null,
         bool lazy = false)
     {
+        if (steps == null)
+        {
+            throw new ArgumentNullException(nameof(steps));
+        }
+
+        if (startingState == null)
+        {
+            throw new ArgumentNullException(nameof(startingState));
+        }
+
+        if (steps.Any(s => s == null))
+        {
+            throw new ArgumentException(
+                "The step function list must not contain null entries.",
+                nameof(steps));
+        }
+
+        if (maxDepth < -1)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(maxDepth),
+                maxDepth,
+                "maxDepth must be -1 (unbounded) or a non-negative depth bound.");
+        }
+
         if (lazy && !generateStateGraph)
         {
             throw new ArgumentException(
@@ -168,8 +193,11 @@ public static class StateGraph
                 continue;
             }
 
-            foreach (var stepResult in stepResults)
+            for (var i = 0; i < stepResults.Count; i++)
             {
+                var stepResult = stepResults[i];
+                ValidateStepResult(stepFunction, i, stepResult);
+
                 if (shouldIncludeStepFunctionResult != null &&
                     !shouldIncludeStepFunctionResult(state, stepFunction, stepResult))
                 {
@@ -190,6 +218,38 @@ public static class StateGraph
                     newStepFunctions.OrderBy(s => s.StepFunctionId).ToList(),
                     stepResult.EdgeMetadata);
             }
+        }
+    }
+
+    /// <summary>
+    /// Validates that a step function honored its contract: every returned
+    /// <see cref="StepResult"/> is non-null, carries a non-null
+    /// <see cref="StepResult.State"/>, and lists no null step functions.
+    /// A violation is a bug in the step function (or the step function it
+    /// produced), so fail loudly and name the offender instead of letting the
+    /// null surface as an obscure failure deep inside hashing or fingerprinting.
+    /// </summary>
+    private static void ValidateStepResult(
+        IStepFunction stepFunction,
+        int index,
+        StepResult stepResult)
+    {
+        if (stepResult == null)
+        {
+            throw new InvalidOperationException(
+                $"Step function '{stepFunction.StepFunctionId}' returned a null step result at index {index}.");
+        }
+
+        if (stepResult.State == null)
+        {
+            throw new InvalidOperationException(
+                $"Step function '{stepFunction.StepFunctionId}' returned a step result with a null state at index {index}.");
+        }
+
+        if (stepResult.StepFunctions != null && stepResult.StepFunctions.Any(sf => sf == null))
+        {
+            throw new InvalidOperationException(
+                $"Step function '{stepFunction.StepFunctionId}' returned a null step function in the step result at index {index}.");
         }
     }
 }
@@ -379,6 +439,8 @@ public class StateGraphNode
     {
         if (nodeFingerprint == null)
         {
+            Invariant.Assert(State != null, "StateGraphNode.State must not be null.");
+            Invariant.Assert(StepFunctions != null, "StateGraphNode.StepFunctions must not be null.");
             nodeFingerprint = GetNodeFingerprint(State, StepFunctions);
         }
 
@@ -403,6 +465,11 @@ public class StateGraphNode
         Func<StateGraphNode, string> nodeLabelLambda = null,
         bool showStepFunctionsInNode = true)
     {
+        if (rootNode == null)
+        {
+            throw new ArgumentNullException(nameof(rootNode));
+        }
+
         if (nodeLabelLambda == null)
         {
             nodeLabelLambda = DefaultNodeLabelLambda;
@@ -480,6 +547,16 @@ public class StateGraphNode
         IState state,
         IList<IStepFunction> stepFunctions)
     {
+        if (state == null)
+        {
+            throw new ArgumentNullException(nameof(state));
+        }
+
+        if (stepFunctions == null)
+        {
+            throw new ArgumentNullException(nameof(stepFunctions));
+        }
+
         // Combine state hash with step function IDs for node fingerprint
         var nodeState =
             state.GetStateHash().ToString() + "-" +
