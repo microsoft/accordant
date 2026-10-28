@@ -638,8 +638,23 @@ public class TestCaseGenerator
         var operationCallNameMap = new Dictionary<string, string>();
         var operationNameMap = new Dictionary<string, string>();
 
+        // Each pass must resolve at least one additional call name; if it doesn't,
+        // a DerivedFrom reference can never be resolved (a cycle, or a dependency on
+        // a call that is not present), which would otherwise spin forever.
+        var previousResolvedCount = -1;
+
         while (operationCallNameMap.Count != operationCalls.Count)
         {
+            if (operationCallNameMap.Count == previousResolvedCount)
+            {
+                throw new InvalidSpecException(
+                    "Could not simplify operation call names because no further names could be resolved. " +
+                    "This indicates a cycle or an unresolvable DerivedFrom reference among the operation calls: " +
+                    string.Join(", ", operationCalls.Select(call => call.Name)));
+            }
+
+            previousResolvedCount = operationCallNameMap.Count;
+
             var nameCountMap = new Dictionary<string, int>();
 
             foreach (var operationCall in operationCalls)

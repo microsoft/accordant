@@ -13,6 +13,35 @@ using NUnit.Framework;
 public class ChooseTests
 {
     [Test]
+    public static void EachOutsideRunThrows()
+    {
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            Choose.Each(1, 2);
+        });
+
+        Assert.That(ex.Message, Does.Contain("ChooseExpressionLambda.Run"));
+    }
+
+    [Test]
+    public static void EachWithNullValuesThrows()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            Choose.Each<int>((IList<int>)null);
+        });
+    }
+
+    [Test]
+    public static void EachWithEmptyValuesThrows()
+    {
+        Assert.Throws<ArgumentException>(() =>
+        {
+            Choose.Each<int>(Array.Empty<int>());
+        });
+    }
+
+    [Test]
     public static void SimpleTest()
     {
         var results = ChooseExpressionLambda.Run(() =>

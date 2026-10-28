@@ -3,6 +3,7 @@
 
 namespace Microsoft.Accordant;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -31,8 +32,26 @@ public class Choose
     /// </summary>
     public static T Each<T>(IList<T> values)
     {
+        if (values == null)
+        {
+            throw new ArgumentNullException(nameof(values));
+        }
+
+        if (values.Count == 0)
+        {
+            throw new ArgumentException(
+                "Choose.Each requires at least one value.",
+                nameof(values));
+        }
 
         var config = ChooseExpressionLambda.CurrentConfig;
+
+        if (config == null)
+        {
+            throw new InvalidOperationException(
+                "Choose.Each can only be called while running a ChooseExpressionLambda. " +
+                "Wrap the call in ChooseExpressionLambda.Run(...).");
+        }
 
         if (config.ChoiceSetIndex >= config.ChoiceSpaceCoordinate.Count)
         {
