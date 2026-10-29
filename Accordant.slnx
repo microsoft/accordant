@@ -23,4 +23,5 @@
   <Project Path="Accordant.Operations/Accordant.Operations.csproj" />
   <Project Path="Accordant.SourceGenerator/Accordant.SourceGenerator.csproj" />
   <Project Path="Accordant/Accordant.csproj" />
+  <Project Path="nuget/Microsoft.Accordant.Package.csproj" />
 </Solution>
