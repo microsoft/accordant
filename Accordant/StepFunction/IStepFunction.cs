@@ -73,6 +73,11 @@ public abstract class BaseStepFunction : IStepFunction
     /// </summary>
     public IList<StepResult> Apply(IState state, IReadOnlyList<(IStepFunction, StateGraphNode)> path)
     {
+        if (state == null)
+        {
+            throw new ArgumentNullException(nameof(state));
+        }
+
         state.Freeze();
 
         var stepResults = ApplyInternal(state, path);
@@ -85,8 +90,15 @@ public abstract class BaseStepFunction : IStepFunction
 
         if (stepResults != null)
         {
-            foreach (var stepResult in stepResults)
+            for (var i = 0; i < stepResults.Count; i++)
             {
+                var stepResult = stepResults[i];
+                if (stepResult == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Step function '{StepFunctionId}' returned a null step result at index {i}.");
+                }
+
                 stepResult.State?.Freeze();
             }
         }
@@ -149,8 +161,15 @@ public abstract class TerminatingStepFunction : BaseStepFunction
     /// </summary>
     protected sealed override IList<StepResult> ApplyInternal(IState state)
     {
+        var isTerminalState = IsTerminalState;
+        if (isTerminalState == null)
+        {
+            throw new InvalidOperationException(
+                $"The step function '{StepFunctionId}' returned a null IsTerminalState predicate.");
+        }
+
         // Already terminal? Return same state to consume ourselves (get removed from state profile).
-        if (IsTerminalState(state))
+        if (isTerminalState(state))
         {
             return new[] { new StepResult { State = state } };
         }
@@ -245,7 +264,7 @@ internal sealed class AsyncOperation<TState> : TerminatingStepFunction where TSt
         _name = name;
     }
 
-    public override Func<IState, bool> IsTerminalState => state => _isTerminal((TState)state);
+    public override Func<IState, bool> IsTerminalState => state => _isTerminal(CastState(state));
 
     protected override IList<StepResult> GetStepResults(IState state)
     {
@@ -253,11 +272,29 @@ internal sealed class AsyncOperation<TState> : TerminatingStepFunction where TSt
         var results = new List<StepResult>();
         foreach (var transition in _transitions)
         {
-            var nextState = (TState)state.Clone();
+            var nextState = (TState)CastState(state).Clone();
             transition(nextState);
             results.Add(new StepResult { State = nextState });
         }
         return results;
+    }
+
+    /// <summary>
+    /// Casts the state to the operation's state type, failing fast with a named
+    /// message when the operation is applied to an incompatible state instead of
+    /// letting an <see cref="InvalidCastException"/> escape from deep inside the
+    /// transition.
+    /// </summary>
+    private static TState CastState(IState state)
+    {
+        if (state is TState typedState)
+        {
+            return typedState;
+        }
+
+        throw new InvalidOperationException(
+            $"AsyncOperation<{typeof(TState).Name}> was applied to a state of type " +
+            $"'{state?.GetType().Name ?? "null"}', which is not compatible with the operation's state type.");
     }
 
     public override string ToString()

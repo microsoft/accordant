@@ -86,6 +86,11 @@ public abstract class State : IState
     /// </summary>
     public State Clone(Dictionary<object, object> clonedMap)
     {
+        if (clonedMap == null)
+        {
+            throw new ArgumentNullException(nameof(clonedMap));
+        }
+
         if (!clonedMap.ContainsKey(this))
         {
             CloneInternal(clonedMap);
@@ -173,6 +178,11 @@ public abstract class State : IState
         string path,
         bool forceRecompute)
     {
+        if (objectPaths == null)
+        {
+            throw new ArgumentNullException(nameof(objectPaths));
+        }
+
         if (objectPaths.ContainsKey(this))
         {
             return objectPaths[this];
@@ -216,6 +226,16 @@ public abstract class State : IState
     /// <param name="value">The string to append.</param>
     public static void AppendLengthPrefixedString(XxHash64 hasher, string value)
     {
+        if (hasher == null)
+        {
+            throw new ArgumentNullException(nameof(hasher));
+        }
+
+        if (value == null)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
+
         var bytes = Encoding.UTF8.GetBytes(value);
         hasher.Append(BitConverter.GetBytes(bytes.Length));
         hasher.Append(bytes);
@@ -231,6 +251,11 @@ public abstract class State : IState
     /// </summary>
     public static string GetStableTypeName(Type type)
     {
+        if (type == null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
         if (!type.IsGenericType)
             return type.FullName ?? type.Name;
 
@@ -251,6 +276,16 @@ public abstract class State : IState
     /// <param name="visited">Dictionary mapping visited objects to their reference IDs for back-reference handling.</param>
     public void AppendHashCore(XxHash64 hasher, Dictionary<object, int> visited)
     {
+        if (hasher == null)
+        {
+            throw new ArgumentNullException(nameof(hasher));
+        }
+
+        if (visited == null)
+        {
+            throw new ArgumentNullException(nameof(visited));
+        }
+
         if (visited.TryGetValue(this, out var refId))
         {
             // Already visited - append backref marker with reference ID
@@ -296,6 +331,11 @@ public abstract class State : IState
 
     public void Freeze(HashSet<object> visited)
     {
+        if (visited == null)
+        {
+            throw new ArgumentNullException(nameof(visited));
+        }
+
         if (visited.Contains(this))
         {
             return;
