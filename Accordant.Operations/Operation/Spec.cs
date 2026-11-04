@@ -788,10 +788,15 @@ public class Spec<TState> : ISpec where TState : class, IState
                 baseType.GetGenericTypeDefinition() == typeof(Operation<,,>))
             {
                 var specProperty = baseType.GetProperty("Spec");
-                if (specProperty != null && specProperty.CanWrite)
+                if (specProperty == null || !specProperty.CanWrite)
                 {
-                    specProperty.SetValue(operation, this);
+                    throw new SpecException(
+                        $"Operation '{operation.Name}' derives from {typeof(Operation<,,>).Name} " +
+                        "but its Spec property is missing or not writable, so it cannot be linked " +
+                        "to this spec. This indicates an incompatible Operation base type.");
                 }
+
+                specProperty.SetValue(operation, this);
                 break;
             }
             baseType = baseType.BaseType;

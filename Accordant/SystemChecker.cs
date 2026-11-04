@@ -18,6 +18,11 @@ public class SystemChecker
         IState startingState,
         Action<IState, IList<IStepFunction>> hook = null)
     {
+        if (startingState == null)
+        {
+            throw new ArgumentNullException(nameof(startingState));
+        }
+
         return Validate(
             sequenceOfConcurrentSteps,
             new StateProfile(startingState),
@@ -29,6 +34,30 @@ public class SystemChecker
         StateProfile stateProfile,
         Action<IState, IList<IStepFunction>> hook = null)
     {
+        if (sequenceOfConcurrentSteps == null)
+        {
+            throw new ArgumentNullException(nameof(sequenceOfConcurrentSteps));
+        }
+
+        if (stateProfile == null)
+        {
+            throw new ArgumentNullException(nameof(stateProfile));
+        }
+
+        if (stateProfile.StatesAndStepFunctions == null)
+        {
+            throw new ArgumentException(
+                "The state profile must contain a non-null set of states and step functions.",
+                nameof(stateProfile));
+        }
+
+        if (sequenceOfConcurrentSteps.Any(concurrentSteps => concurrentSteps == null))
+        {
+            throw new ArgumentException(
+                "The concurrent step groups must not contain null entries.",
+                nameof(sequenceOfConcurrentSteps));
+        }
+
         try
         {
             return ValidateInternal(

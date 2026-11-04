@@ -1277,6 +1277,46 @@ public class OperationTests
         Assert.IsTrue(ex.Message.Contains("Bug in spec"));
     }
 
+    /// <summary>
+    /// A spec bug encountered while explaining a response across multiple states
+    /// must surface, not be swallowed into a partial explanation.
+    /// </summary>
+    [Test]
+    public void MultiStateExplainInvalidResponse_WhenSpecThrows_PropagatesSpecBug()
+    {
+        var spec = new BuggyOperations.BuggyOnSecondCallSpec();
+        var stateProfile = new StateProfile(new IState[]
+        {
+            new CounterState(1),
+            new CounterState(2)
+        });
+
+        // The first Apply (inside the explanation hook) succeeds; the second Apply
+        // (while validating the ContractStepFunction) throws, which the framework
+        // wraps. That wrapped spec bug must propagate, not be swallowed.
+        var ex = Assert.Throws<InvalidSpecException>(() =>
+        {
+            spec.BuggyOnSecondCall.ExplainInvalidResponse(1, stateProfile, 999);
+        });
+
+        Assert.That(
+            ex.InnerException,
+            Is.InstanceOf<StepFunctionApplicationException>(),
+            "The underlying spec bug should be preserved as the inner exception.");
+    }
+
+    /// <summary>
+    /// Registering an operation must link it back to its spec; callers rely on
+    /// <see cref="Operation{TRequest, TResponse, TState}.Spec"/> being set.
+    /// </summary>
+    [Test]
+    public void RegisterOperation_SetsSpecReference()
+    {
+        var spec = new SimpleOperations.SimpleSpec();
+
+        Assert.That(spec.Mirror.Spec, Is.SameAs(spec));
+    }
+
     public class BuggyOperations
     {
         public class BuggySpec : Spec<CounterState>

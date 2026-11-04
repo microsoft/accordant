@@ -399,8 +399,16 @@ public abstract class Operation<TRequest, TResponse, TState> :
                         observedResponse));
                 });
         }
+        catch (InvalidSpecException ex) when (ex.InnerException is StepFunctionApplicationException)
+        {
+            // The spec itself is broken (a step function threw while we were trying
+            // to explain the response). Do not hide that behind a partial explanation.
+            throw;
+        }
         catch (InvalidSpecException)
         {
+            // Expected: no state could explain the observed response. The hook has
+            // already appended the per-state explanations to sb.
         }
 
         return sb.ToString();

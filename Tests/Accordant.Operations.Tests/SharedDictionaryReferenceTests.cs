@@ -152,32 +152,41 @@ public class SharedDictionaryReferenceTests
             new OperationInput("GetCount", spec["GetCount"]),
         };
 
-        // Enable mutation detection (should be on by default)
+        // Enable mutation detection for this test only; Release builds default it off
+        // for performance, so restore the previous value when done to keep tests isolated.
+        var previousFreezeValidation = State.EnableFreezeValidation;
         State.EnableFreezeValidation = true;
 
-        // The framework should detect this via mutation detection.
-        // The exception is wrapped in TestCaseGenerationException with StateFrozenException as inner.
-        var ex = Assert.Throws<TestCaseGenerationException>(() =>
+        try
         {
-            var testCases = spec.GenerateTests(
-                initialState,
-                inputSet,
-                new TestGenerationOptions()
-                {
-                    MaxDepth = 3
-                });
+            // The framework should detect this via mutation detection.
+            // The exception is wrapped in TestCaseGenerationException with StateFrozenException as inner.
+            var ex = Assert.Throws<TestCaseGenerationException>(() =>
+            {
+                var testCases = spec.GenerateTests(
+                    initialState,
+                    inputSet,
+                    new TestGenerationOptions()
+                    {
+                        MaxDepth = 3
+                    });
 
-            // Force enumeration to trigger the exception
-            var testCasesList = testCases.ToList();
-        });
+                // Force enumeration to trigger the exception
+                var testCasesList = testCases.ToList();
+            });
 
-        // Verify the inner exception is StateFrozenException
-        Assert.IsInstanceOf<StateFrozenException>(ex.InnerException,
-            "Inner exception should be StateFrozenException indicating mutation was detected");
+            // Verify the inner exception is StateFrozenException
+            Assert.IsInstanceOf<StateFrozenException>(ex.InnerException,
+                "Inner exception should be StateFrozenException indicating mutation was detected");
 
-        Console.WriteLine($"Mutation detection correctly caught the issue:");
-        Console.WriteLine($"  Outer: {ex.Message}");
-        Console.WriteLine($"  Inner: {ex.InnerException?.Message}");
+            Console.WriteLine($"Mutation detection correctly caught the issue:");
+            Console.WriteLine($"  Outer: {ex.Message}");
+            Console.WriteLine($"  Inner: {ex.InnerException?.Message}");
+        }
+        finally
+        {
+            State.EnableFreezeValidation = previousFreezeValidation;
+        }
     }
 
     /// <summary>
